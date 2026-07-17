@@ -12,6 +12,7 @@
 *   **Core Library:** React `19.2.4` / React DOM `19.2.4`
 *   **Styling (CSS):** Vanilla CSS / Tailwind CSS (สำหรับการจัดสไตล์แบบ Utility-first ควบคุมความสวยงามและดีไซน์พรีเมียมสีเข้ม)
 *   **UI Elements & Icons:** Lucide React `1.23.0` (สำหรับชุดไอคอนระบบงานขาย)
+*   **QR Code Generator:** `react-qr-code` `2.2.0` (สร้าง QR Code สำหรับลูกค้าสั่งอาหาร และ PromptPay EMVCo Dynamic QR)
 *   **Database & BaaS:** Supabase (PostgreSQL)
 *   **Client Library:** `@supabase/supabase-js` `2.110.0` (สำหรับดึงข้อมูลและอัปเดตแบบเรียลไทม์)
 *   **Package Manager:** `pnpm` `10.11.0`
@@ -40,8 +41,15 @@ yokayaki/
 ├── app/                  # Next.js App Router (หน้าจอหลักและเส้นทางเข้าถึง)
 │   ├── globals.css       # การตั้งค่า CSS และ Design Tokens
 │   ├── layout.tsx        # โครงสร้าง Layout หลักครอบด้วย AuthProvider
-│   └── page.tsx          # หน้าแลนดิ้งเพจ POS สลับระหว่าง PIN / Table Map
-├── components/           # คอมโพเนนต์ UI (PinPad, TableMap, POSOrderScreen)
+│   ├── page.tsx          # หน้าแลนดิ้งเพจ POS สลับระหว่าง PIN / Table Map
+│   └── customer/
+│       └── [session_id]/
+│           └── page.tsx  # หน้าสั่งอาหารลูกค้า (Mobile First)
+├── components/           # คอมโพเนนต์ UI
+│   ├── PinPad.tsx        # กล่องกรอก PIN 6 หลัก
+│   ├── TableMap.tsx      # ผังโต๊ะ + Action Selector
+│   ├── POSOrderScreen.tsx # สั่งอาหาร + ตะกร้า + Void + QR ลูกค้า
+│   └── CheckoutScreen.tsx # เช็คบิล + สมาชิก + PromptPay QR + ใบเสร็จ
 ├── context/              # Context Providers (AuthContext ระบบระบุตัวตน)
 ├── docs/                 # เอกสาร Specs, แผนงาน และ Business Logic
 │   └── superpowers/
@@ -51,8 +59,12 @@ yokayaki/
 ├── public/               # ไฟล์รูปภาพ ไอคอน โลโก้ของร้าน
 ├── supabase/             # โครงร่างการจัดการฐานข้อมูล
 │   └── migrations/       # SQL Script ไฟล์ Migration สำหรับติดตั้งตาราง
-├── .env.example          # เทมเพลตตัวอย่างสำหรับเชื่อมต่อ
-├── .env.local            # ไฟล์จริงสำหรับรันเครื่องนักพัฒนา (ห้ามส่งขึ้น Git)
+│       ├── 20260705_init_schema.sql           # 9 ตาราง + Seeds
+│       ├── 20260707_void_order_item.sql       # Void RPC + RLS
+│       ├── 20260707_customer_order_rpc.sql    # Customer Order RPC
+│       └── 20260707_happy_hour_and_payment.sql # Checkout RPC
+├── .env.local            # Supabase Keys + PromptPay ID
+├── ROADMAP.md            # สรุปความคืบหน้าการพัฒนาทั้งหมด
 ├── package.json          # รายการไลบรารีและคำสั่งรันระบบ
 └── tsconfig.json         # การตั้งค่ารูปแบบภาษา TypeScript
 ```
