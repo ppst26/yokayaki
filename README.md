@@ -54,3 +54,4 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 NEXT_PUBLIC_PROMPTPAY_ID=0899999999
 ```
+# yokayaki
