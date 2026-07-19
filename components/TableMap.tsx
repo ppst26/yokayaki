@@ -27,7 +27,6 @@ export const TableMap: React.FC = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'floor' | 'kitchen' | 'stock' | 'menu' | 'promo' | 'dashboard'>('floor');
-  const [lowStockItems, setLowStockItems] = useState<{ name: string; stock: number }[]>([]);
 
   // Fetch tables from Supabase
   const fetchTables = async () => {
@@ -82,29 +81,11 @@ export const TableMap: React.FC = () => {
     }
   };
 
-  // ดึงรายการสต็อกต่ำ (สำหรับ Widget แจ้งเตือนบน Header)
-  const fetchLowStockItems = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('menu_items')
-        .select('name, stock')
-        .eq('is_stock_tracked', true)
-        .lte('stock', 5)
-        .order('stock', { ascending: true });
 
-      if (error) throw error;
-      if (data) setLowStockItems(data);
-    } catch (err) {
-      console.error('Error fetching low-stock items:', err);
-    }
-  };
 
   // Real-time subscription & Inactivity Auto-Lock
   useEffect(() => {
     fetchTables();
-    if (employee?.role === 'owner') {
-      fetchLowStockItems();
-    }
 
     // Subscribe to real-time changes in tables table
     const tableChannel = supabase
@@ -115,20 +96,6 @@ export const TableMap: React.FC = () => {
         (payload) => {
           const updatedTable = payload.new as Table;
           setTables(prev => prev.map(t => t.id === updatedTable.id ? updatedTable : t));
-        }
-      )
-      .subscribe();
-
-    // ติดตามการเปลี่ยนแปลงสต็อกเพื่ออัปเดต Widget แจ้งเตือน
-    const stockChannel = supabase
-      .channel('realtime:stock_alerts')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'menu_items' },
-        () => {
-          if (employee?.role === 'owner') {
-            fetchLowStockItems();
-          }
         }
       )
       .subscribe();
@@ -151,7 +118,6 @@ export const TableMap: React.FC = () => {
 
     return () => {
       tableChannel.unsubscribe();
-      stockChannel.unsubscribe();
       clearTimeout(timeout);
       window.removeEventListener('click', resetTimer);
       window.removeEventListener('mousemove', resetTimer);
@@ -213,19 +179,6 @@ export const TableMap: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3 w-full md:w-auto">
-            {/* Widget แจ้งเตือนสต็อกต่ำ (เจ้าของเท่านั้น) */}
-            {isOwner && lowStockItems.length > 0 && (
-              <button
-                onClick={() => setActiveTab('stock')}
-                className="relative flex items-center gap-2 px-3 py-2 bg-red-950/30 border border-red-900/40 rounded-xl text-red-400 text-xs font-bold hover:bg-red-950/50 transition active:scale-95 cursor-pointer"
-              >
-                <AlertTriangle className="w-4 h-4" />
-                <span>สต็อกใกล้หมด {lowStockItems.length} รายการ</span>
-                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-[10px] font-black text-white rounded-full flex items-center justify-center shadow-md shadow-red-500/30">
-                  {lowStockItems.length}
-                </span>
-              </button>
-            )}
 
             <button
               onClick={fetchTables}
