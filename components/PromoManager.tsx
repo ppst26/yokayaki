@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Plus, Pencil, Trash2, X, Loader2, CheckCircle, AlertTriangle, Tag, Percent, Gift, TicketPercent, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Loader2, CheckCircle, AlertTriangle, Tag, Percent, Gift, TicketPercent, ToggleLeft, ToggleRight, Clock } from 'lucide-react';
 
 interface Promotion {
   id: number;
@@ -18,6 +18,8 @@ interface Promotion {
   start_date: string | null;
   end_date: string | null;
   menu_item_id: number | null;
+  start_time: string | null;
+  end_time: string | null;
 }
 
 type PromoType = 'percentage' | 'fixed' | 'buy_x_get_y';
@@ -35,6 +37,9 @@ const EMPTY_FORM = {
   start_date: '',
   end_date: '',
   menu_item_id: '' as string | number,
+  start_time: '',
+  end_time: '',
+  hasTimeRange: false,
 };
 
 const TYPE_LABELS: Record<PromoType, { label: string; icon: React.ReactNode; color: string }> = {
@@ -121,6 +126,9 @@ export const PromoManager: React.FC = () => {
       start_date: p.start_date || '',
       end_date: p.end_date || '',
       menu_item_id: p.menu_item_id || '',
+      start_time: p.start_time || '',
+      end_time: p.end_time || '',
+      hasTimeRange: !!(p.start_time && p.end_time),
     });
     setShowFormModal(true);
   };
@@ -149,10 +157,17 @@ export const PromoManager: React.FC = () => {
         buy_qty: null,
         free_qty: null,
         menu_item_id: null,
+        start_time: null,
+        end_time: null,
       };
 
       if (formData.type === 'percentage') {
         payload.discount_percent = formData.discount_percent;
+        payload.menu_item_id = formData.menu_item_id || null;
+        if (formData.hasTimeRange && formData.start_time && formData.end_time) {
+          payload.start_time = formData.start_time;
+          payload.end_time = formData.end_time;
+        }
       } else if (formData.type === 'fixed') {
         payload.discount_amount = formData.discount_amount;
         payload.coupon_code = formData.coupon_code.trim().toUpperCase() || null;
@@ -215,7 +230,11 @@ export const PromoManager: React.FC = () => {
   };
 
   const getPromoDescription = (p: Promotion) => {
-    if (p.type === 'percentage') return `ลด ${p.discount_percent}%`;
+    if (p.type === 'percentage') {
+      const menuName = p.menu_item_id ? (menuItems.find(m => m.id === p.menu_item_id)?.name || 'บางเมนู') : 'ทุกเมนู';
+      const timeStr = (p.start_time && p.end_time) ? ` ⏰ ${p.start_time.slice(0,5)}-${p.end_time.slice(0,5)}` : '';
+      return `ลด ${p.discount_percent}% (${menuName})${timeStr}`;
+    }
     if (p.type === 'fixed') return `ลด ${p.discount_amount} บาท` + (p.coupon_code ? ` (โค้ด: ${p.coupon_code})` : '');
     if (p.type === 'buy_x_get_y') {
       const menuItemName = menuItems.find(m => m.id === p.menu_item_id)?.name || 'บางรายการ';
@@ -385,16 +404,77 @@ export const PromoManager: React.FC = () => {
 
               {/* Type-specific fields */}
               {formData.type === 'percentage' && (
-                <div>
-                  <label className="block text-[10px] font-bold text-stone-500 tracking-wider uppercase mb-1.5">เปอร์เซ็นต์ส่วนลด (%)</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="100"
-                    value={formData.discount_percent}
-                    onChange={e => setFormData(prev => ({ ...prev, discount_percent: parseInt(e.target.value, 10) || 0 }))}
-                    className="w-full bg-stone-950 border border-stone-850 focus:border-amber-500/50 focus:outline-none rounded-xl px-4 py-2.5 text-sm text-stone-200"
-                  />
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-stone-500 tracking-wider uppercase mb-1.5">เปอร์เซ็นต์ส่วนลด (%)</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="100"
+                      value={formData.discount_percent}
+                      onChange={e => setFormData(prev => ({ ...prev, discount_percent: parseInt(e.target.value, 10) || 0 }))}
+                      className="w-full bg-stone-950 border border-stone-850 focus:border-amber-500/50 focus:outline-none rounded-xl px-4 py-2.5 text-sm text-stone-200"
+                    />
+                  </div>
+
+                  {/* Menu item selector */}
+                  <div>
+                    <label className="block text-[10px] font-bold text-stone-500 tracking-wider uppercase mb-1.5">เมนูที่ร่วมรายการ</label>
+                    <select
+                      value={formData.menu_item_id}
+                      onChange={e => setFormData(prev => ({ ...prev, menu_item_id: e.target.value ? parseInt(e.target.value, 10) : '' }))}
+                      className="w-full bg-stone-950 border border-stone-850 focus:border-amber-500/50 focus:outline-none rounded-xl px-4 py-2.5 text-sm text-stone-200 cursor-pointer appearance-none"
+                    >
+                      <option value="">ทุกเมนูในร้าน</option>
+                      {menuItems.map(item => (
+                        <option key={item.id} value={item.id}>{item.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Happy Hour time range toggle */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-stone-950/60 border border-stone-850 rounded-xl">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-3.5 h-3.5 text-amber-500" />
+                        <span className="text-xs font-bold text-stone-400">กำหนดช่วงเวลา Happy Hour</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, hasTimeRange: !prev.hasTimeRange, start_time: prev.hasTimeRange ? '' : '17:00', end_time: prev.hasTimeRange ? '' : '19:00' }))}
+                        className={`px-3 py-1 rounded-lg text-xs font-bold border transition cursor-pointer ${
+                          formData.hasTimeRange
+                            ? 'bg-amber-950/20 border-amber-900/40 text-amber-400'
+                            : 'bg-stone-900 border-stone-800 text-stone-500'
+                        }`}
+                      >
+                        {formData.hasTimeRange ? '⏰ เปิดใช้งาน' : 'ปิด'}
+                      </button>
+                    </div>
+
+                    {formData.hasTimeRange && (
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[10px] font-bold text-stone-500 tracking-wider uppercase mb-1.5">เวลาเริ่ม</label>
+                          <input
+                            type="time"
+                            value={formData.start_time}
+                            onChange={e => setFormData(prev => ({ ...prev, start_time: e.target.value }))}
+                            className="w-full bg-stone-950 border border-stone-850 focus:border-amber-500/50 focus:outline-none rounded-xl px-4 py-2.5 text-sm text-stone-200"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-stone-500 tracking-wider uppercase mb-1.5">เวลาสิ้นสุด</label>
+                          <input
+                            type="time"
+                            value={formData.end_time}
+                            onChange={e => setFormData(prev => ({ ...prev, end_time: e.target.value }))}
+                            className="w-full bg-stone-950 border border-stone-850 focus:border-amber-500/50 focus:outline-none rounded-xl px-4 py-2.5 text-sm text-stone-200"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 

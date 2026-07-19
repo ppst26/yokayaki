@@ -292,7 +292,6 @@ export const MenuManager: React.FC = () => {
                   <th className="py-3.5 px-4 text-right">ราคา</th>
                   <th className="py-3.5 px-4 text-center">หมวดหมู่</th>
                   <th className="py-3.5 px-4 text-center">สต็อก</th>
-                  <th className="py-3.5 px-4 text-center">Happy Hour</th>
                   <th className="py-3.5 px-4 text-center">จัดการ</th>
                 </tr>
               </thead>
@@ -358,15 +357,6 @@ export const MenuManager: React.FC = () => {
                         )}
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 text-center">
-                      {item.is_happy_hour ? (
-                        <span className="text-[10px] font-bold text-yellow-400 bg-yellow-950/30 border border-yellow-900/30 px-2 py-0.5 rounded-md">
-                          {item.happy_hour_price}฿
-                        </span>
-                      ) : (
-                        <span className="text-stone-600 text-[10px]">—</span>
-                      )}
-                    </td>
                     <td className="py-3.5 px-4">
                       <div className="flex items-center justify-center gap-2">
                         <button
@@ -389,7 +379,7 @@ export const MenuManager: React.FC = () => {
                 ))}
                 {filteredItems.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="py-16 text-center">
+                    <td colSpan={5} className="py-16 text-center">
                       <UtensilsCrossed className="w-10 h-10 text-stone-700 mx-auto mb-3" />
                       <p className="text-stone-500 font-medium text-xs">ไม่พบรายการเมนูที่ตรงกับคำค้นหา</p>
                     </td>
@@ -490,37 +480,6 @@ export const MenuManager: React.FC = () => {
                 </div>
               </div>
 
-              {/* Happy Hour */}
-              <div className="p-4 bg-stone-950/60 border border-stone-850 rounded-2xl space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-[10px] font-bold text-stone-500 tracking-wider uppercase">Happy Hour</label>
-                  <button
-                    type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, is_happy_hour: !prev.is_happy_hour }))}
-                    className={`px-3 py-1 rounded-lg text-xs font-bold border transition cursor-pointer ${
-                      formData.is_happy_hour
-                        ? 'bg-yellow-950/30 border-yellow-900/40 text-yellow-400'
-                        : 'bg-stone-900 border-stone-800 text-stone-500'
-                    }`}
-                  >
-                    {formData.is_happy_hour ? '🍻 เปิดใช้งาน' : 'ปิด'}
-                  </button>
-                </div>
-                {formData.is_happy_hour && (
-                  <div>
-                    <label className="block text-[10px] font-bold text-stone-500 tracking-wider uppercase mb-1.5">ราคา Happy Hour (บาท)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="1"
-                      value={formData.happy_hour_price || ''}
-                      onChange={e => setFormData(prev => ({ ...prev, happy_hour_price: parseFloat(e.target.value) || 0 }))}
-                      placeholder="ราคาช่วง Happy Hour"
-                      className="w-full bg-stone-900 border border-stone-850 focus:border-yellow-500/50 focus:outline-none rounded-xl px-4 py-2.5 text-sm text-yellow-300 placeholder-stone-600"
-                    />
-                  </div>
-                )}
-              </div>
 
               {/* Action Buttons */}
               <div className="flex gap-2 pt-3 border-t border-stone-850">

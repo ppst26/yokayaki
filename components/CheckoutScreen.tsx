@@ -12,6 +12,7 @@ interface OrderedItem {
   unit_price: number;
   status: string;
   notes?: string;
+  created_at: string;
   menu_items: { id: number; name: string };
 }
 
@@ -35,6 +36,8 @@ interface Promotion {
   start_date: string | null;
   end_date: string | null;
   menu_item_id: number | null;
+  start_time: string | null;
+  end_time: string | null;
 }
 
 interface FreeItemDetail {
@@ -188,8 +191,31 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
       if (promo.min_order_amount > 0 && subtotal < promo.min_order_amount) continue;
 
       if (promo.type === 'percentage' && promo.discount_percent) {
-        const val = Math.round(subtotal * promo.discount_percent / 100);
-        applied.push({ promo, discountValue: val });
+        // Check if this promo has menu/time constraints
+        if (!promo.menu_item_id && !promo.start_time && !promo.end_time) {
+          // Simple: discount whole subtotal
+          const val = Math.round(subtotal * promo.discount_percent / 100);
+          applied.push({ promo, discountValue: val });
+        } else {
+          // Per-item: check menu_item_id and/or time range against each item's created_at
+          let totalDiscount = 0;
+          for (const item of activeItems) {
+            // Filter by menu
+            if (promo.menu_item_id && item.menu_items?.id !== promo.menu_item_id) continue;
+            // Filter by Happy Hour time range
+            if (promo.start_time && promo.end_time) {
+              const orderTime = new Date(item.created_at);
+              const hh = orderTime.getHours().toString().padStart(2, '0');
+              const mm = orderTime.getMinutes().toString().padStart(2, '0');
+              const itemTimeStr = `${hh}:${mm}`;
+              if (itemTimeStr < promo.start_time.slice(0, 5) || itemTimeStr >= promo.end_time.slice(0, 5)) continue;
+            }
+            totalDiscount += Math.round(item.quantity * item.unit_price * promo.discount_percent / 100);
+          }
+          if (totalDiscount > 0) {
+            applied.push({ promo, discountValue: totalDiscount });
+          }
+        }
       } else if (promo.type === 'fixed' && !promo.coupon_code) {
         // Auto-apply fixed discount (no coupon code required)
         applied.push({ promo, discountValue: promo.discount_amount || 0 });
@@ -277,7 +303,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
 
       const { data: items } = await supabase
         .from('order_items')
-        .select('id, quantity, unit_price, status, notes, menu_items(id, name)')
+        .select('id, quantity, unit_price, status, notes, created_at, menu_items(id, name)')
         .eq('order_id', orderData.id)
         .order('id', { ascending: true });
 
