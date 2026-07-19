@@ -3,11 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { LogOut, RefreshCw, ChefHat, User, Layers, ShoppingBag, Receipt, LayoutDashboard, Package, AlertTriangle } from 'lucide-react';
+import { LogOut, RefreshCw, ChefHat, User, Layers, ShoppingBag, Receipt, LayoutDashboard, Package, AlertTriangle, UtensilsCrossed, Tag } from 'lucide-react';
 import { POSOrderScreen } from '@/components/POSOrderScreen';
 import { CheckoutScreen } from '@/components/CheckoutScreen';
 import { StockManager } from '@/components/StockManager';
 import { OwnerDashboard } from '@/components/OwnerDashboard';
+import { KitchenScreen } from '@/components/KitchenScreen';
+import { MenuManager } from '@/components/MenuManager';
+import { PromoManager } from '@/components/PromoManager';
 
 interface Table {
   id: number;
@@ -23,7 +26,7 @@ export const TableMap: React.FC = () => {
   const [actionSelectorTable, setActionSelectorTable] = useState<number | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'floor' | 'stock' | 'dashboard'>('floor');
+  const [activeTab, setActiveTab] = useState<'floor' | 'kitchen' | 'stock' | 'menu' | 'promo' | 'dashboard'>('floor');
   const [lowStockItems, setLowStockItems] = useState<{ name: string; stock: number }[]>([]);
 
   // Fetch tables from Supabase
@@ -244,50 +247,93 @@ export const TableMap: React.FC = () => {
           </div>
         </header>
 
-        {/* Navigation Tabs (Owner เห็น 3 แท็บ, พนักงานทั่วไปเห็นแค่ Floor Map) */}
-        {isOwner && (
-          <nav className="flex items-center gap-2 mb-8 bg-stone-900/40 backdrop-blur-md border border-stone-850 p-1.5 rounded-2xl max-w-lg">
-            <button
-              onClick={() => setActiveTab('floor')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-                activeTab === 'floor'
-                  ? 'bg-amber-500 text-stone-950 shadow-md shadow-amber-500/20'
-                  : 'text-stone-400 hover:text-white hover:bg-stone-800/50'
-              }`}
-            >
-              <Layers className="w-3.5 h-3.5" />
-              <span>แผนผังโต๊ะ</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('stock')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-                activeTab === 'stock'
-                  ? 'bg-amber-500 text-stone-950 shadow-md shadow-amber-500/20'
-                  : 'text-stone-400 hover:text-white hover:bg-stone-800/50'
-              }`}
-            >
-              <Package className="w-3.5 h-3.5" />
-              <span>จัดการสต็อก</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-                activeTab === 'dashboard'
-                  ? 'bg-amber-500 text-stone-950 shadow-md shadow-amber-500/20'
-                  : 'text-stone-400 hover:text-white hover:bg-stone-800/50'
-              }`}
-            >
-              <LayoutDashboard className="w-3.5 h-3.5" />
-              <span>รายงาน / Dashboard</span>
-            </button>
-          </nav>
-        )}
+        {/* Navigation Tabs (Staff see Floor Map & Kitchen, Owner see all 4 tabs) */}
+        <nav className="flex flex-wrap items-center gap-2 mb-8 bg-stone-900/40 backdrop-blur-md border border-stone-850 p-1.5 rounded-2xl max-w-xl">
+          <button
+            onClick={() => setActiveTab('floor')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+              activeTab === 'floor'
+                ? 'bg-amber-500 text-stone-950 shadow-md shadow-amber-500/20'
+                : 'text-stone-400 hover:text-white hover:bg-stone-800/50'
+            }`}
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>แผนผังโต๊ะ</span>
+          </button>
+          
+          <button
+            onClick={() => setActiveTab('kitchen')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+              activeTab === 'kitchen'
+                ? 'bg-amber-500 text-stone-950 shadow-md shadow-amber-500/20'
+                : 'text-stone-400 hover:text-white hover:bg-stone-800/50'
+            }`}
+          >
+            <ChefHat className="w-3.5 h-3.5" />
+            <span>หน้าจอครัว (KDS)</span>
+          </button>
+
+          {isOwner && (
+            <>
+              <button
+                onClick={() => setActiveTab('menu')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                  activeTab === 'menu'
+                    ? 'bg-amber-500 text-stone-950 shadow-md shadow-amber-500/20'
+                    : 'text-stone-400 hover:text-white hover:bg-stone-800/50'
+                }`}
+              >
+                <UtensilsCrossed className="w-3.5 h-3.5" />
+                <span>จัดการเมนู</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('stock')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                  activeTab === 'stock'
+                    ? 'bg-amber-500 text-stone-950 shadow-md shadow-amber-500/20'
+                    : 'text-stone-400 hover:text-white hover:bg-stone-800/50'
+                }`}
+              >
+                <Package className="w-3.5 h-3.5" />
+                <span>ต้นทุนวัตถุดิบ</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('promo')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                  activeTab === 'promo'
+                    ? 'bg-amber-500 text-stone-950 shadow-md shadow-amber-500/20'
+                    : 'text-stone-400 hover:text-white hover:bg-stone-800/50'
+                }`}
+              >
+                <Tag className="w-3.5 h-3.5" />
+                <span>โปรโมชั่น</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('dashboard')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                  activeTab === 'dashboard'
+                    ? 'bg-amber-500 text-stone-950 shadow-md shadow-amber-500/20'
+                    : 'text-stone-400 hover:text-white hover:bg-stone-800/50'
+                }`}
+              >
+                <LayoutDashboard className="w-3.5 h-3.5" />
+                <span>รายงาน / Dashboard</span>
+              </button>
+            </>
+          )}
+        </nav>
 
         {/* Tab Content Rendering */}
         {activeTab === 'stock' && isOwner ? (
           <StockManager />
+        ) : activeTab === 'menu' && isOwner ? (
+          <MenuManager />
+        ) : activeTab === 'promo' && isOwner ? (
+          <PromoManager />
         ) : activeTab === 'dashboard' && isOwner ? (
           <OwnerDashboard />
+        ) : activeTab === 'kitchen' ? (
+          <KitchenScreen />
         ) : (
           <>
             {/* Info Banner / Error message */}

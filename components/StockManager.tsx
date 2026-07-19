@@ -1,199 +1,280 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { Search, Save, ToggleLeft, ToggleRight, Plus, Minus, Loader2, CheckCircle } from 'lucide-react';
+import { Search, Plus, Loader2, CheckCircle, Trash2, Pencil, X, Calendar, DollarSign, AlertTriangle } from 'lucide-react';
 
-interface MenuItem {
-  id: number;
+interface IngredientPurchase {
+  id?: number;
   name: string;
-  price: number;
-  stock: number;
-  is_stock_tracked: boolean;
+  quantity: number;
+  unit: string;
+  cost: number;
+  purchase_date: string;
+  buyer_name: string;
+  created_at?: string;
 }
+
+const EMPTY_FORM: Omit<IngredientPurchase, 'id'> = {
+  name: '',
+  quantity: 1,
+  unit: 'กก.',
+  cost: 0,
+  purchase_date: new Date().toISOString().split('T')[0],
+  buyer_name: '',
+};
 
 export const StockManager: React.FC = () => {
   const { employee } = useAuth();
-  const [items, setItems] = useState<MenuItem[]>([]);
-  const [initialItems, setInitialItems] = useState<MenuItem[]>([]);
+  const [purchases, setPurchases] = useState<IngredientPurchase[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
+  const [dateFilter, setDateFilter] = useState<'today' | 'week' | 'month' | 'all'>('all');
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
-  const fetchStock = async () => {
+  // Modal
+  const [showFormModal, setShowFormModal] = useState(false);
+  const [editingPurchase, setEditingPurchase] = useState<IngredientPurchase | null>(null);
+  const [formData, setFormData] = useState<Omit<IngredientPurchase, 'id'>>(EMPTY_FORM);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Delete
+  const [deleteTarget, setDeleteTarget] = useState<IngredientPurchase | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const showMessage = (text: string, type: 'success' | 'error') => {
+    setMessage({ text, type });
+    setTimeout(() => setMessage(null), 3500);
+  };
+
+  const fetchPurchases = async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('menu_items')
-        .select('id, name, price, stock, is_stock_tracked')
-        .order('id', { ascending: true });
+        .from('item_ingredients')
+        .select('*')
+        .order('purchase_date', { ascending: false })
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-      if (data) {
-        setItems(data as MenuItem[]);
-        setInitialItems(data as MenuItem[]);
-      }
-    } catch (err: any) {
+      if (data) setPurchases(data as IngredientPurchase[]);
+    } catch (err) {
       console.error(err);
-      setMessage({ text: 'ไม่สามารถดึงข้อมูลสต็อกได้', type: 'error' });
+      showMessage('ไม่สามารถดึงข้อมูลต้นทุนวัตถุดิบได้', 'error');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchStock();
-
-    // ติดตามการอัปเดตแบบเรียลไทม์ในตาราง menu_items
-    const channel = supabase
-      .channel('realtime:menu_stock')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'menu_items' },
-        () => {
-          // ดึงข้อมูลใหม่เงียบๆ ข้างหลัง
-          supabase
-            .from('menu_items')
-            .select('id, name, price, stock, is_stock_tracked')
-            .order('id', { ascending: true })
-            .then(({ data }) => {
-              if (data) setItems(data as MenuItem[]);
-            });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      channel.unsubscribe();
-    };
+    fetchPurchases();
   }, []);
 
-  const handleStockChange = (id: number, delta: number) => {
-    setItems(prev => prev.map(item => {
-      if (item.id === id) {
-        const newStock = Math.max(0, item.stock + delta);
-        return { ...item, stock: newStock };
-      }
-      return item;
-    }));
+  const openCreateModal = () => {
+    setEditingPurchase(null);
+    setFormData({
+      ...EMPTY_FORM,
+      buyer_name: employee?.name || 'ไม่ระบุชื่อ',
+      purchase_date: new Date().toISOString().split('T')[0],
+    });
+    setShowFormModal(true);
   };
 
-  const handleStockInputChange = (id: number, val: string) => {
-    const parsed = parseInt(val, 10);
-    const stockVal = isNaN(parsed) ? 0 : Math.max(0, parsed);
-    setItems(prev => prev.map(item => item.id === id ? { ...item, stock: stockVal } : item));
+  const openEditModal = (item: IngredientPurchase) => {
+    setEditingPurchase(item);
+    setFormData({
+      name: item.name,
+      quantity: item.quantity,
+      unit: item.unit,
+      cost: item.cost,
+      purchase_date: item.purchase_date,
+      buyer_name: item.buyer_name,
+    });
+    setShowFormModal(true);
   };
 
-  const handleToggleTracked = (id: number) => {
-    setItems(prev => prev.map(item => item.id === id ? { ...item, is_stock_tracked: !item.is_stock_tracked } : item));
-  };
+  const handleSave = async () => {
+    if (!formData.name.trim()) return showMessage('กรุณากรอกชื่อวัตถุดิบ', 'error');
+    if (formData.quantity <= 0) return showMessage('กรุณากรอกจำนวนให้มากกว่า 0', 'error');
+    if (formData.cost < 0) return showMessage('ต้นทุนไม่สามารถติดลบได้', 'error');
 
-  const saveAllChanges = async () => {
     try {
       setIsSaving(true);
+      const payload = {
+        name: formData.name.trim(),
+        quantity: formData.quantity,
+        unit: formData.unit.trim(),
+        cost: formData.cost,
+        purchase_date: formData.purchase_date,
+        buyer_name: formData.buyer_name,
+      };
 
-      // หารายการที่มีการเปลี่ยนแปลง (สต็อก หรือ is_stock_tracked)
-      const changedItems = items.filter(item => {
-        const original = initialItems.find(o => o.id === item.id);
-        if (!original) return false;
-        return item.stock !== original.stock || item.is_stock_tracked !== original.is_stock_tracked;
-      });
-
-      if (changedItems.length === 0) {
-        setMessage({ text: 'ไม่มีรายการใดที่เปลี่ยนแปลง', type: 'success' });
-        setTimeout(() => setMessage(null), 3000);
-        return;
+      if (editingPurchase?.id) {
+        const { error } = await supabase.from('item_ingredients').update(payload).eq('id', editingPurchase.id);
+        if (error) throw error;
+        showMessage('แก้ไขบันทึกสำเร็จ', 'success');
+      } else {
+        const { error } = await supabase.from('item_ingredients').insert(payload);
+        if (error) throw error;
+        showMessage('บันทึกวัตถุดิบใหม่สำเร็จ', 'success');
       }
-
-      // อัปเดตเฉพาะรายการที่เปลี่ยนแปลงเท่านั้น
-      const updates = changedItems.map(item =>
-        supabase
-          .from('menu_items')
-          .update({ stock: item.stock, is_stock_tracked: item.is_stock_tracked })
-          .eq('id', item.id)
-      );
-      const results = await Promise.all(updates);
-      const hasError = results.some(r => r.error);
-      if (hasError) throw new Error('บางรายการไม่สามารถบันทึกได้');
-
-      // บันทึกประวัติลง stock_logs เฉพาะรายการที่สต็อกเปลี่ยนแปลง
-      const stockChangedItems = changedItems.filter(item => {
-        const original = initialItems.find(o => o.id === item.id);
-        return original && item.stock !== original.stock;
-      });
-
-      if (stockChangedItems.length > 0) {
-        const logEntries = stockChangedItems.map(item => {
-          const original = initialItems.find(o => o.id === item.id)!;
-          return {
-            menu_item_id: item.id,
-            menu_item_name: item.name,
-            employee_name: employee?.name || 'ไม่ระบุชื่อ',
-            old_stock: original.stock,
-            new_stock: item.stock,
-            change_amount: item.stock - original.stock
-          };
-        });
-
-        const { error: logError } = await supabase.from('stock_logs').insert(logEntries);
-        if (logError) {
-          console.error('Error writing stock logs:', logError);
-          // ไม่ throw เพราะสต็อกอัปเดตสำเร็จแล้ว แค่ประวัติเขียนไม่ได้
-        }
-      }
-
-      // อัปเดต initialItems เป็นค่าปัจจุบันหลังบันทึกสำเร็จ
-      setInitialItems([...items]);
-
-      setMessage({ text: `บันทึกสต็อก ${changedItems.length} รายการสำเร็จ` + (stockChangedItems.length > 0 ? ` (บันทึกประวัติ ${stockChangedItems.length} รายการ)` : ''), type: 'success' });
-      setTimeout(() => setMessage(null), 3000);
-    } catch (err: any) {
+      setShowFormModal(false);
+      fetchPurchases();
+    } catch (err) {
       console.error(err);
-      setMessage({ text: 'ไม่สามารถบันทึกการเปลี่ยนแปลงได้', type: 'error' });
+      showMessage('ไม่สามารถบันทึกข้อมูลได้', 'error');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const filteredItems = items.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleDelete = async () => {
+    if (!deleteTarget?.id) return;
+    try {
+      setIsDeleting(true);
+      const { error } = await supabase.from('item_ingredients').delete().eq('id', deleteTarget.id);
+      if (error) throw error;
+      showMessage('ลบรายการจัดซื้อสำเร็จ', 'success');
+      setDeleteTarget(null);
+      fetchPurchases();
+    } catch (err) {
+      console.error(err);
+      showMessage('ไม่สามารถลบรายการได้', 'error');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Filter Logic
+  const getFilteredPurchases = () => {
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const oneWeekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const oneMonthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
+
+    return purchases.filter(item => {
+      const matchSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+
+      let matchDate = true;
+      const itemDate = new Date(item.purchase_date);
+      itemDate.setHours(0, 0, 0, 0);
+
+      if (dateFilter === 'today') {
+        matchDate = item.purchase_date === todayStr;
+      } else if (dateFilter === 'week') {
+        matchDate = itemDate >= oneWeekAgo;
+      } else if (dateFilter === 'month') {
+        matchDate = itemDate >= oneMonthAgo;
+      }
+
+      return matchSearch && matchDate;
+    });
+  };
+
+  const filteredList = getFilteredPurchases();
+
+  // Statistics
+  const todayStr = new Date().toISOString().split('T')[0];
+  const costToday = purchases
+    .filter(item => item.purchase_date === todayStr)
+    .reduce((sum, item) => sum + Number(item.cost), 0);
+
+  const costAll = purchases.reduce((sum, item) => sum + Number(item.cost), 0);
 
   return (
     <div className="bg-stone-950 text-white min-h-[calc(100vh-80px)] p-6">
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="max-w-5xl mx-auto space-y-6">
+
+        {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-bold tracking-tight bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">
-              ระบบจัดการสต็อกสินค้า (Stock Manager)
+              ระบบจัดการต้นทุนวัตถุดิบ (Ingredient Cost Manager)
             </h2>
-            <p className="text-stone-400 text-xs mt-1">อัปเดตจำนวนจานอาหารพร้อมจำหน่ายและสลับโหมดนับสต็อกแบบเรียลไทม์</p>
+            <p className="text-stone-400 text-xs mt-1">บันทึกประวัติการจัดซื้อวัตถุดิบและคำนวณต้นทุนสะสม</p>
           </div>
 
-          <div className="relative w-full md:w-72">
+          <button
+            onClick={openCreateModal}
+            className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-black px-4 py-2.5 rounded-xl text-xs font-extrabold transition active:scale-95 cursor-pointer shadow-md shadow-amber-500/10"
+          >
+            <Plus className="w-4 h-4" />
+            <span>เพิ่มประวัติจัดซื้อ</span>
+          </button>
+        </div>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-stone-900/40 border border-stone-850 rounded-2xl p-5 backdrop-blur-md flex items-center justify-between">
+            <div className="space-y-1">
+              <div className="text-stone-400 text-xs font-medium">ต้นทุนวัตถุดิบจัดซื้อวันนี้</div>
+              <div className="text-2xl font-black text-amber-500">{costToday.toLocaleString()} ฿</div>
+            </div>
+            <div className="p-3 bg-amber-950/30 text-amber-400 rounded-xl border border-amber-900/25">
+              <DollarSign className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="bg-stone-900/40 border border-stone-850 rounded-2xl p-5 backdrop-blur-md flex items-center justify-between">
+            <div className="space-y-1">
+              <div className="text-stone-400 text-xs font-medium">ต้นทุนวัตถุดิบสะสมทั้งหมด</div>
+              <div className="text-2xl font-black text-white">{costAll.toLocaleString()} ฿</div>
+            </div>
+            <div className="p-3 bg-stone-800 text-stone-300 rounded-xl border border-stone-700">
+              <Calendar className="w-5 h-5" />
+            </div>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex gap-2 overflow-x-auto">
+            {(['all', 'today', 'week', 'month'] as const).map(f => (
+              <button
+                key={f}
+                onClick={() => setDateFilter(f)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer border ${
+                  dateFilter === f
+                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+                    : 'bg-stone-900/40 border-stone-850 text-stone-400 hover:text-white hover:bg-stone-800/50'
+                }`}
+              >
+                {f === 'all' && 'ทั้งหมด'}
+                {f === 'today' && 'วันนี้'}
+                {f === 'week' && 'สัปดาห์นี้'}
+                {f === 'month' && 'เดือนนี้'}
+              </button>
+            ))}
+          </div>
+
+          <div className="relative w-full md:w-64">
             <Search className="w-4 h-4 text-stone-500 absolute left-3 top-3" />
             <input
               type="text"
-              placeholder="ค้นหาเมนู..."
+              placeholder="ค้นหาวัตถุดิบ..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full bg-stone-900 border border-stone-800 rounded-xl pl-9 pr-4 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"
+              className="w-full bg-stone-900 border border-stone-800 rounded-xl pl-9 pr-4 py-2.5 text-xs text-stone-200 focus:outline-none focus:border-amber-500/50"
             />
           </div>
         </div>
 
+        {/* Status Message */}
         {message && (
-          <div className={`p-3.5 rounded-xl border text-xs font-semibold ${
+          <div className={`p-3.5 rounded-xl border text-xs font-semibold flex items-center gap-2 ${
             message.type === 'success'
               ? 'bg-emerald-950/20 border-emerald-900/40 text-emerald-400'
               : 'bg-red-950/20 border-red-900/40 text-red-400'
           }`}>
+            {message.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
             {message.text}
           </div>
         )}
 
+        {/* Table */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
@@ -204,82 +285,56 @@ export const StockManager: React.FC = () => {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-stone-800 text-stone-400 text-xs font-bold bg-stone-900/80">
-                    <th className="py-4 px-6">รายการเมนู</th>
-                    <th className="py-4 px-4 text-center">เปิด/ปิด สต็อก</th>
-                    <th className="py-4 px-6 text-center">สต็อกจานพร้อมขาย</th>
+                    <th className="py-4 px-6">วันที่ซื้อ</th>
+                    <th className="py-4 px-6">วัตถุดิบ</th>
+                    <th className="py-4 px-4 text-center">จำนวน</th>
+                    <th className="py-4 px-4 text-right">ราคารวม (฿)</th>
+                    <th className="py-4 px-4">ผู้จัดซื้อ</th>
+                    <th className="py-4 px-4 text-center">จัดการ</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-stone-800/60 text-sm">
-                  {filteredItems.map(item => (
+                <tbody className="divide-y divide-stone-800/60 text-xs">
+                  {filteredList.map(item => (
                     <tr key={item.id} className="hover:bg-stone-900/20 transition-colors">
-                      <td className="py-4 px-6">
-                        <div className="font-bold text-stone-200">{item.name}</div>
-                        <div className="text-stone-500 text-xs mt-0.5">{item.price} บาท</div>
+                      <td className="py-4 px-6 text-stone-300 font-semibold">
+                        {new Date(item.purchase_date + 'T00:00:00').toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' })}
                       </td>
-                      <td className="py-4 px-4 text-center">
-                        <button
-                          onClick={() => handleToggleTracked(item.id)}
-                          className="focus:outline-none inline-flex cursor-pointer transition active:scale-95"
-                        >
-                          {item.is_stock_tracked ? (
-                            <div className="flex items-center gap-1.5 text-emerald-400 font-bold text-xs bg-emerald-950/30 border border-emerald-900/40 px-2.5 py-1 rounded-full">
-                              <ToggleRight className="w-4 h-4" />
-                              <span>นับสต็อก</span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-1.5 text-stone-500 font-bold text-xs bg-stone-900/80 border border-stone-800 px-2.5 py-1 rounded-full">
-                              <ToggleLeft className="w-4 h-4" />
-                              <span>ไม่จำกัด</span>
-                            </div>
-                          )}
-                        </button>
+                      <td className="py-4 px-6 font-bold text-stone-200">
+                        {item.name}
                       </td>
-                      <td className="py-4 px-6">
-                        <div className="flex items-center justify-center gap-3">
+                      <td className="py-4 px-4 text-center font-semibold text-stone-300">
+                        {item.quantity} <span className="text-stone-500">{item.unit}</span>
+                      </td>
+                      <td className="py-4 px-4 text-right font-bold text-amber-500">
+                        {Number(item.cost).toLocaleString()}
+                      </td>
+                      <td className="py-4 px-4 text-stone-400 font-medium">
+                        {item.buyer_name}
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center justify-center gap-2">
                           <button
-                            onClick={() => handleStockChange(item.id, -1)}
-                            disabled={!item.is_stock_tracked}
-                            className={`p-1.5 border rounded-lg active:scale-95 transition ${
-                              item.is_stock_tracked
-                                ? 'bg-stone-800 border-stone-700 hover:bg-stone-700 text-stone-300'
-                                : 'bg-stone-900/30 border-stone-850/50 text-stone-600 cursor-not-allowed'
-                            }`}
+                            onClick={() => openEditModal(item)}
+                            className="p-1.5 bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-300 hover:text-amber-400 rounded-lg transition active:scale-95 cursor-pointer"
+                            title="แก้ไข"
                           >
-                            <Minus className="w-3.5 h-3.5" />
+                            <Pencil className="w-3.5 h-3.5" />
                           </button>
-
-                          <input
-                            type="number"
-                            min="0"
-                            value={item.stock}
-                            disabled={!item.is_stock_tracked}
-                            onChange={e => handleStockInputChange(item.id, e.target.value)}
-                            className={`w-16 text-center py-1.5 text-sm font-bold border rounded-lg focus:outline-none ${
-                              item.is_stock_tracked
-                                ? 'bg-stone-950 border-stone-800 text-white focus:border-amber-500/50'
-                                : 'bg-stone-900/10 border-stone-900/50 text-stone-600 cursor-not-allowed'
-                            }`}
-                          />
-
                           <button
-                            onClick={() => handleStockChange(item.id, 1)}
-                            disabled={!item.is_stock_tracked}
-                            className={`p-1.5 border rounded-lg active:scale-95 transition ${
-                              item.is_stock_tracked
-                                ? 'bg-stone-800 border-stone-700 hover:bg-stone-700 text-stone-300'
-                                : 'bg-stone-900/30 border-stone-850/50 text-stone-600 cursor-not-allowed'
-                            }`}
+                            onClick={() => setDeleteTarget(item)}
+                            className="p-1.5 bg-stone-800 hover:bg-red-950/40 border border-stone-700 hover:border-red-900/40 text-stone-400 hover:text-red-400 rounded-lg transition active:scale-95 cursor-pointer"
+                            title="ลบ"
                           >
-                            <Plus className="w-3.5 h-3.5" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </td>
                     </tr>
                   ))}
-                  {filteredItems.length === 0 && (
+                  {filteredList.length === 0 && (
                     <tr>
-                      <td colSpan={3} className="py-12 text-center text-stone-500 font-medium text-xs">
-                        ไม่พบรายการเมนูที่ตรงกับคำค้นหา
+                      <td colSpan={6} className="py-16 text-center text-stone-500 font-medium text-xs">
+                        ไม่พบรายการจัดซื้อวัตถุดิบ
                       </td>
                     </tr>
                   )}
@@ -287,24 +342,165 @@ export const StockManager: React.FC = () => {
               </table>
             </div>
 
-            {/* ปุ่มบันทึกทั้งหมด */}
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={saveAllChanges}
-                disabled={isSaving}
-                className="bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 disabled:from-stone-700 disabled:to-stone-700 text-stone-950 disabled:text-stone-400 px-6 py-3 rounded-2xl font-extrabold text-sm inline-flex items-center gap-2.5 transition active:scale-95 shadow-lg shadow-amber-500/10"
-              >
-                {isSaving ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <CheckCircle className="w-4 h-4" />
-                )}
-                <span>{isSaving ? 'กำลังบันทึก...' : 'บันทึกทั้งหมด'}</span>
-              </button>
+            {/* Count */}
+            <div className="px-5 py-3 bg-stone-900/50 border-t border-stone-850 text-xs text-stone-500 font-medium">
+              แสดง {filteredList.length} จาก {purchases.length} รายการ
             </div>
           </div>
         )}
       </div>
+
+      {/* ============ CREATE/EDIT FORM MODAL ============ */}
+      {showFormModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="w-full max-w-md bg-stone-900 border border-stone-800 rounded-3xl p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-base font-black text-amber-500 flex items-center gap-2">
+                {editingPurchase ? <Pencil className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                <span>{editingPurchase ? 'แก้ไขบันทึกวัตถุดิบ' : 'เพิ่มบันทึกจัดซื้อวัตถุดิบ'}</span>
+              </h3>
+              <button onClick={() => setShowFormModal(false)} className="p-1.5 bg-stone-950 hover:bg-stone-800 rounded-full text-stone-400 cursor-pointer">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* ชื่อวัตถุดิบ */}
+              <div>
+                <label className="block text-[10px] font-bold text-stone-500 tracking-wider uppercase mb-1.5">ชื่อวัตถุดิบ *</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="เช่น แซลมอน, เส้นราเมง, แป้งเกี๊ยว"
+                  className="w-full bg-stone-950 border border-stone-850 focus:border-amber-500/50 focus:outline-none rounded-xl px-4 py-2.5 text-sm text-stone-200 placeholder-stone-600"
+                />
+              </div>
+
+              {/* จำนวน + หน่วย */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-stone-500 tracking-wider uppercase mb-1.5">จำนวน *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    value={formData.quantity || ''}
+                    onChange={e => setFormData(prev => ({ ...prev, quantity: parseFloat(e.target.value) || 0 }))}
+                    placeholder="1"
+                    className="w-full bg-stone-950 border border-stone-850 focus:border-amber-500/50 focus:outline-none rounded-xl px-4 py-2.5 text-sm text-stone-200 placeholder-stone-600"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-stone-500 tracking-wider uppercase mb-1.5">หน่วย *</label>
+                  <input
+                    type="text"
+                    value={formData.unit}
+                    onChange={e => setFormData(prev => ({ ...prev, unit: e.target.value }))}
+                    placeholder="เช่น กก., แพ็ค, ถุง, ลิตร"
+                    className="w-full bg-stone-950 border border-stone-850 focus:border-amber-500/50 focus:outline-none rounded-xl px-4 py-2.5 text-sm text-stone-200 placeholder-stone-600"
+                  />
+                </div>
+              </div>
+
+              {/* ราคารวมต้นทุน */}
+              <div>
+                <label className="block text-[10px] font-bold text-stone-500 tracking-wider uppercase mb-1.5">ราคารวมต้นทุน (บาท) *</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.cost || ''}
+                  onChange={e => setFormData(prev => ({ ...prev, cost: parseFloat(e.target.value) || 0 }))}
+                  placeholder="0"
+                  className="w-full bg-stone-950 border border-stone-850 focus:border-amber-500/50 focus:outline-none rounded-xl px-4 py-2.5 text-sm text-stone-200 placeholder-stone-600"
+                />
+              </div>
+
+              {/* วันที่ซื้อ + ผู้จัดซื้อ */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-stone-500 tracking-wider uppercase mb-1.5">วันที่จัดซื้อ</label>
+                  <input
+                    type="date"
+                    value={formData.purchase_date}
+                    onChange={e => setFormData(prev => ({ ...prev, purchase_date: e.target.value }))}
+                    className="w-full bg-stone-950 border border-stone-850 focus:border-amber-500/50 focus:outline-none rounded-xl px-4 py-2.5 text-sm text-stone-200"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-stone-500 tracking-wider uppercase mb-1.5">ผู้จัดซื้อ</label>
+                  <input
+                    type="text"
+                    value={formData.buyer_name}
+                    onChange={e => setFormData(prev => ({ ...prev, buyer_name: e.target.value }))}
+                    placeholder="ชื่อผู้จัดซื้อ"
+                    className="w-full bg-stone-950 border border-stone-850 focus:border-amber-500/50 focus:outline-none rounded-xl px-4 py-2.5 text-sm text-stone-200 placeholder-stone-600"
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2 pt-3 border-t border-stone-850">
+                <button
+                  type="button"
+                  onClick={() => setShowFormModal(false)}
+                  className="flex-1 py-3 bg-stone-950 hover:bg-stone-900 border border-stone-850 rounded-xl text-stone-400 text-xs font-bold transition active:scale-97 cursor-pointer"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="flex-1 py-3 bg-amber-500 hover:bg-amber-600 disabled:bg-stone-700 disabled:text-stone-400 text-black text-xs font-extrabold rounded-xl transition active:scale-97 flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {isSaving ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <CheckCircle className="w-4 h-4" />
+                  )}
+                  <span>{isSaving ? 'กำลังบันทึก...' : (editingPurchase ? 'บันทึกการแก้ไข' : 'บันทึกวัตถุดิบ')}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============ DELETE CONFIRMATION MODAL ============ */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="w-full max-w-sm bg-stone-900 border border-red-900/30 rounded-3xl p-6 shadow-2xl">
+            <div className="text-center mb-5">
+              <div className="w-14 h-14 bg-red-950/30 border border-red-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Trash2 className="w-7 h-7 text-red-400" />
+              </div>
+              <h3 className="text-base font-black text-white mb-1">ยืนยันการลบประวัติจัดซื้อ</h3>
+              <p className="text-stone-400 text-xs">
+                คุณต้องการลบรายการ <span className="font-bold text-red-400">&quot;{deleteTarget.name}&quot;</span> ใช่หรือไม่?
+              </p>
+              <p className="text-stone-500 text-[10px] mt-1">การดำเนินการนี้ไม่สามารถย้อนกลับได้</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="flex-1 py-3 bg-stone-950 hover:bg-stone-900 border border-stone-850 rounded-xl text-stone-400 text-xs font-bold transition active:scale-97 cursor-pointer"
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="flex-1 py-3 bg-red-600 hover:bg-red-700 disabled:bg-stone-700 text-white text-xs font-extrabold rounded-xl transition active:scale-97 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                <span>{isDeleting ? 'กำลังลบ...' : 'ลบรายการนี้'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

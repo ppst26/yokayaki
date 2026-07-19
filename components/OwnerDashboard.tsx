@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import {
   TrendingUp, ShoppingBag, Trash2, Award,
-  DollarSign, Clock, ClipboardList
+  DollarSign, Clock, ClipboardList, Package
 } from 'lucide-react';
 
 interface VoidLog {
@@ -36,13 +36,14 @@ interface HourlySales {
   amount: number;
 }
 
-interface StockLog {
+interface IngredientPurchase {
   id: number;
-  menu_item_name: string;
-  employee_name: string;
-  old_stock: number;
-  new_stock: number;
-  change_amount: number;
+  name: string;
+  quantity: number;
+  unit: string;
+  cost: number;
+  purchase_date: string;
+  buyer_name: string;
   created_at: string;
 }
 
@@ -51,7 +52,8 @@ export const OwnerDashboard: React.FC = () => {
   const [voidLogs, setVoidLogs] = useState<VoidLog[]>([]);
   const [topSellers, setTopSellers] = useState<ItemSalesCount[]>([]);
   const [hourlySales, setHourlySales] = useState<HourlySales[]>([]);
-  const [stockLogs, setStockLogs] = useState<StockLog[]>([]);
+  const [ingredientPurchases, setIngredientPurchases] = useState<IngredientPurchase[]>([]);
+  const [ingredientCost, setIngredientCost] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const fetchDashboardData = async () => {
@@ -160,14 +162,19 @@ export const OwnerDashboard: React.FC = () => {
 
       setHourlySales(hourlyList);
 
-      // 4. ดึงประวัติการปรับปรุงสต็อกด้วยมือ (Stock Adjustment Logs)
-      const { data: stockLogData, error: stockLogError } = await supabase
-        .from('stock_logs')
+      // 4. ดึงข้อมูลประวัติจัดซื้อวัตถุดิบของวันนี้
+      const todayDateStr = todayStart.toISOString().split('T')[0];
+      const { data: purchaseData, error: purchaseError } = await supabase
+        .from('item_ingredients')
         .select('*')
+        .gte('purchase_date', todayDateStr)
         .order('created_at', { ascending: false });
 
-      if (stockLogError) throw stockLogError;
-      setStockLogs((stockLogData || []) as StockLog[]);
+      if (purchaseError) throw purchaseError;
+
+      const totalPurchasedCost = (purchaseData || []).reduce((sum: number, item: any) => sum + parseFloat(item.cost), 0);
+      setIngredientCost(totalPurchasedCost);
+      setIngredientPurchases((purchaseData || []) as IngredientPurchase[]);
 
     } catch (err) {
       console.error('Error fetching dashboard analytics:', err);
@@ -225,21 +232,23 @@ export const OwnerDashboard: React.FC = () => {
 
               <div className="bg-stone-900/40 border border-stone-850 rounded-2xl p-5 backdrop-blur-md flex items-center justify-between">
                 <div className="space-y-1">
-                  <div className="text-stone-400 text-xs font-medium">สแกนจ่าย PromptPay</div>
-                  <div className="text-2xl font-black text-amber-500">{payments.promptpayTotal.toLocaleString()} ฿</div>
+                  <div className="text-stone-400 text-xs font-medium">ต้นทุนวัตถุดิบวันนี้</div>
+                  <div className="text-2xl font-black text-amber-500">{ingredientCost.toLocaleString()} ฿</div>
                 </div>
                 <div className="p-3 bg-amber-950/30 text-amber-400 rounded-xl border border-amber-900/25">
-                  <TrendingUp className="w-5 h-5" />
+                  <Package className="w-5 h-5" />
                 </div>
               </div>
 
               <div className="bg-stone-900/40 border border-stone-850 rounded-2xl p-5 backdrop-blur-md flex items-center justify-between">
                 <div className="space-y-1">
-                  <div className="text-stone-400 text-xs font-medium">ยอดเงินสดในเก๊ะ</div>
-                  <div className="text-2xl font-black text-stone-200">{payments.cashTotal.toLocaleString()} ฿</div>
+                  <div className="text-stone-400 text-xs font-medium">กำไรสุทธิวันนี้ (Net Profit)</div>
+                  <div className={`text-2xl font-black ${(payments.netTotal - ingredientCost - totalWaste) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {(payments.netTotal - ingredientCost - totalWaste).toLocaleString()} ฿
+                  </div>
                 </div>
                 <div className="p-3 bg-stone-850 text-stone-300 rounded-xl border border-stone-800">
-                  <ShoppingBag className="w-5 h-5" />
+                  <TrendingUp className="w-5 h-5" />
                 </div>
               </div>
 
@@ -382,11 +391,19 @@ export const OwnerDashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* ตารางแสดงประวัติการปรับปรุงสต็อกด้วยมือ (Stock Adjustment Audit Log) */}
+            {/* ตารางแสดงประวัติการจัดซื้อวัตถุดิบวันนี้ */}
             <div className="bg-stone-900/40 border border-stone-850 rounded-2xl p-6 backdrop-blur-md space-y-6">
-              <div className="flex items-center gap-2 border-b border-stone-800 pb-4">
-                <ClipboardList className="w-4 h-4 text-blue-400" />
-                <h3 className="text-sm font-bold text-stone-200">ประวัติการปรับปรุงสต็อกด้วยมือ (Stock Adjustment Log)</h3>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-800 pb-4">
+                <div className="flex items-center gap-2">
+                  <ClipboardList className="w-4 h-4 text-blue-400" />
+                  <h3 className="text-sm font-bold text-stone-200">ประวัติการจัดซื้อวัตถุดิบวันนี้ (Daily Ingredients Purchases)</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-stone-400 font-medium">ต้นทุนวัตถุดิบวันนี้:</span>
+                  <span className="text-sm font-black text-amber-400 bg-amber-950/20 border border-amber-900/40 px-3 py-1 rounded-xl">
+                    {ingredientCost.toLocaleString()} ฿
+                  </span>
+                </div>
               </div>
 
               <div className="overflow-x-auto">
@@ -394,38 +411,28 @@ export const OwnerDashboard: React.FC = () => {
                   <thead>
                     <tr className="text-stone-400 text-xs font-bold border-b border-stone-800 pb-3">
                       <th className="py-2.5">เวลา</th>
-                      <th className="py-2.5">ชื่อเมนู</th>
-                      <th className="py-2.5 text-center">สต็อกเดิม</th>
-                      <th className="py-2.5 text-center">สต็อกใหม่</th>
-                      <th className="py-2.5 text-center">จำนวนที่ปรับ</th>
-                      <th className="py-2.5">ผู้ดำเนินการ</th>
+                      <th className="py-2.5">วัตถุดิบ</th>
+                      <th className="py-2.5 text-center">จำนวน</th>
+                      <th className="py-2.5 text-right">ยอดรวมต้นทุน</th>
+                      <th className="py-2.5">ผู้จัดซื้อ</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-stone-850 text-xs text-stone-300">
-                    {stockLogs.map(log => (
+                    {ingredientPurchases.map(log => (
                       <tr key={log.id} className="hover:bg-stone-900/10 transition-colors">
                         <td className="py-3 font-semibold text-stone-500">
-                          {new Date(log.created_at).toLocaleString('th-TH', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' })}
+                          {new Date(log.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
                         </td>
-                        <td className="py-3 font-bold text-stone-200">{log.menu_item_name}</td>
-                        <td className="py-3 text-center font-bold">{log.old_stock}</td>
-                        <td className="py-3 text-center font-bold">{log.new_stock}</td>
-                        <td className="py-3 text-center">
-                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
-                            log.change_amount > 0
-                              ? 'text-emerald-400 bg-emerald-950/30 border-emerald-900/30'
-                              : 'text-red-400 bg-red-950/30 border-red-900/30'
-                          }`}>
-                            {log.change_amount > 0 ? `+${log.change_amount}` : log.change_amount}
-                          </span>
-                        </td>
-                        <td className="py-3 font-medium text-stone-400">{log.employee_name}</td>
+                        <td className="py-3 font-bold text-stone-200">{log.name}</td>
+                        <td className="py-3 text-center font-bold">{log.quantity} {log.unit}</td>
+                        <td className="py-3 text-right font-black text-amber-500">{Number(log.cost).toLocaleString()} ฿</td>
+                        <td className="py-3 font-medium text-stone-400">{log.buyer_name}</td>
                       </tr>
                     ))}
-                    {stockLogs.length === 0 && (
+                    {ingredientPurchases.length === 0 && (
                       <tr>
-                        <td colSpan={6} className="py-8 text-center text-stone-500 font-medium text-xs">
-                          ยังไม่มีประวัติการปรับปรุงสต็อกด้วยมือ
+                        <td colSpan={5} className="py-8 text-center text-stone-500 font-medium text-xs">
+                          ยังไม่มีการบันทึกจัดซื้อวัตถุดิบในวันนี้
                         </td>
                       </tr>
                     )}
