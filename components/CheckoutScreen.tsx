@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { ArrowLeft, CreditCard, Banknote, Search, UserPlus, Receipt, Printer, X } from 'lucide-react';
+import { ArrowLeft, CreditCard, Banknote, Search, UserPlus, Receipt, Printer, X, Tag, TicketPercent } from 'lucide-react';
 import QRCode from 'react-qr-code';
 
 interface OrderedItem {
@@ -11,13 +11,41 @@ interface OrderedItem {
   quantity: number;
   unit_price: number;
   status: string;
-  menu_items: { name: string };
+  notes?: string;
+  menu_items: { id: number; name: string };
 }
 
 interface LoyaltyMember {
   phone_number: string;
   name: string;
   points: number;
+}
+
+interface Promotion {
+  id: number;
+  name: string;
+  type: 'percentage' | 'fixed' | 'buy_x_get_y';
+  discount_percent: number | null;
+  discount_amount: number | null;
+  coupon_code: string | null;
+  buy_qty: number | null;
+  free_qty: number | null;
+  min_order_amount: number;
+  is_active: boolean;
+  start_date: string | null;
+  end_date: string | null;
+  menu_item_id: number | null;
+}
+
+interface FreeItemDetail {
+  name: string;
+  qty: number;
+}
+
+interface AppliedPromo {
+  promo: Promotion;
+  discountValue: number;
+  freeItems?: FreeItemDetail[];
 }
 
 interface CheckoutScreenProps {
@@ -86,10 +114,19 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
   const [showReceipt, setShowReceipt] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // Promotions
+  const [allPromos, setAllPromos] = useState<Promotion[]>([]);
+  const [appliedPromos, setAppliedPromos] = useState<AppliedPromo[]>([]);
+  const [couponInput, setCouponInput] = useState('');
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponApplied, setCouponApplied] = useState<Promotion | null>(null);
+
   // Computed values
   const activeItems = orderedItems.filter(i => i.status !== 'voided');
   const subtotal = activeItems.reduce((s, i) => s + (i.quantity * i.unit_price), 0);
-  const discount = pointsToRedeem; // 1 point = 1 baht
+  const promoDiscount = appliedPromos.reduce((s, ap) => s + ap.discountValue, 0);
+  const loyaltyDiscount = pointsToRedeem; // 1 point = 1 baht
+  const discount = promoDiscount + loyaltyDiscount;
   const netAmount = Math.max(0, subtotal - discount);
   const cashNum = parseFloat(cashReceived) || 0;
   const transferAmount = Math.max(0, netAmount - cashNum);
@@ -100,7 +137,126 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
 
   useEffect(() => {
     fetchOrderData();
+    fetchPromotions();
   }, []);
+
+  // Re-calculate promos when subtotal or items change
+  useEffect(() => {
+    if (subtotal > 0 && allPromos.length > 0) {
+      autoApplyPromotions();
+    }
+  }, [subtotal, allPromos, couponApplied, orderedItems]);
+
+  const fetchPromotions = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const { data, error } = await supabase
+        .from('promotions')
+        .select('*')
+        .eq('is_active', true);
+
+      if (error) throw error;
+      if (data) {
+        // Filter by date range
+        const validPromos = (data as Promotion[]).filter(p => {
+          if (p.start_date && p.start_date > today) return false;
+          if (p.end_date && p.end_date < today) return false;
+          return true;
+        });
+        setAllPromos(validPromos);
+      }
+    } catch (err) {
+      console.error('Error fetching promotions:', err);
+    }
+  };
+
+  const autoApplyPromotions = () => {
+    const applied: AppliedPromo[] = [];
+
+    for (const promo of allPromos) {
+      // Skip coupon-code promos unless explicitly applied
+      if (promo.type === 'fixed' && promo.coupon_code) {
+        if (couponApplied?.id === promo.id) {
+          // Coupon was manually applied
+          if (promo.min_order_amount > 0 && subtotal < promo.min_order_amount) continue;
+          applied.push({ promo, discountValue: promo.discount_amount || 0 });
+        }
+        continue;
+      }
+
+      // Check min order
+      if (promo.min_order_amount > 0 && subtotal < promo.min_order_amount) continue;
+
+      if (promo.type === 'percentage' && promo.discount_percent) {
+        const val = Math.round(subtotal * promo.discount_percent / 100);
+        applied.push({ promo, discountValue: val });
+      } else if (promo.type === 'fixed' && !promo.coupon_code) {
+        // Auto-apply fixed discount (no coupon code required)
+        applied.push({ promo, discountValue: promo.discount_amount || 0 });
+      } else if (promo.type === 'buy_x_get_y' && promo.buy_qty && promo.free_qty) {
+        // Count free items: for each menu, every (buy+free) items give free_qty free
+        let totalFreeValue = 0;
+        const freeItemsList: FreeItemDetail[] = [];
+        
+        // Group items by menu name to calculate buy-X-get-Y
+        const menuGroups: Record<string, { qty: number; price: number; id: number }> = {};
+        for (const item of activeItems) {
+          const name = item.menu_items?.name || '';
+          const menuId = item.menu_items?.id;
+          if (!menuGroups[name]) menuGroups[name] = { qty: 0, price: item.unit_price, id: menuId };
+          menuGroups[name].qty += item.quantity;
+        }
+        
+        for (const [menuName, group] of Object.entries(menuGroups)) {
+          // If a specific menu_item_id is set, only apply to that menu item
+          if (promo.menu_item_id && group.id !== promo.menu_item_id) {
+            continue;
+          }
+          
+          const setSize = promo.buy_qty + promo.free_qty;
+          const freeSets = Math.floor(group.qty / setSize);
+          const freeQtyForThisMenu = freeSets * promo.free_qty;
+          
+          if (freeQtyForThisMenu > 0) {
+            totalFreeValue += freeQtyForThisMenu * group.price;
+            freeItemsList.push({
+              name: menuName,
+              qty: freeQtyForThisMenu
+            });
+          }
+        }
+        
+        if (totalFreeValue > 0) {
+          applied.push({ promo, discountValue: totalFreeValue, freeItems: freeItemsList });
+        }
+      }
+    }
+
+    setAppliedPromos(applied);
+  };
+
+  const applyCoupon = () => {
+    const code = couponInput.trim().toUpperCase();
+    if (!code) { setCouponError('กรุณากรอกรหัสคูปอง'); return; }
+
+    const found = allPromos.find(p => p.coupon_code?.toUpperCase() === code);
+    if (!found) {
+      setCouponError('ไม่พบรหัสคูปองนี้ หรือหมดอายุแล้ว');
+      return;
+    }
+    if (found.min_order_amount > 0 && subtotal < found.min_order_amount) {
+      setCouponError(`ยอดสั่งขั้นต่ำ ${found.min_order_amount} บาท`);
+      return;
+    }
+    setCouponError(null);
+    setCouponApplied(found);
+  };
+
+  const removeCoupon = () => {
+    setCouponApplied(null);
+    setCouponInput('');
+    setCouponError(null);
+  };
 
   const fetchOrderData = async () => {
     try {
@@ -121,7 +277,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
 
       const { data: items } = await supabase
         .from('order_items')
-        .select('id, quantity, unit_price, status, menu_items(name)')
+        .select('id, quantity, unit_price, status, notes, menu_items(id, name)')
         .eq('order_id', orderData.id)
         .order('id', { ascending: true });
 
@@ -236,14 +392,33 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
           </div>
           <div className="border-t border-dashed border-gray-400 my-2" />
           {activeItems.map(item => (
-            <div key={item.id} className="flex justify-between text-[11px] py-0.5">
-              <span>- {item.menu_items?.name} x{item.quantity}</span>
-              <span>{(item.quantity * item.unit_price).toLocaleString()}</span>
+            <div key={item.id} className="py-0.5">
+              <div className="flex justify-between text-[11px]">
+                <span>- {item.menu_items?.name} x{item.quantity}</span>
+                <span>{(item.quantity * item.unit_price).toLocaleString()}</span>
+              </div>
+              {item.notes && (
+                <div className="text-[10px] text-gray-500 pl-3">
+                  *{item.notes}
+                </div>
+              )}
             </div>
           ))}
           <div className="border-t border-dashed border-gray-400 my-2" />
           <div className="flex justify-between text-[11px]"><span>ยอดรวม:</span><span>{subtotal.toLocaleString()} บาท</span></div>
-          {discount > 0 && <div className="flex justify-between text-[11px] text-red-600"><span>ส่วนลดแต้ม:</span><span>-{discount.toLocaleString()} บาท</span></div>}
+          {appliedPromos.map(ap => (
+            <div key={ap.promo.id} className="text-red-600">
+              <div className="flex justify-between text-[11px]">
+                <span>โปรโม: {ap.promo.name}</span><span>-{ap.discountValue.toLocaleString()} บาท</span>
+              </div>
+              {ap.freeItems && ap.freeItems.map((fi, idx) => (
+                <div key={idx} className="text-[10px] pl-3 text-gray-500">
+                  └ ฟรี: {fi.name} x{fi.qty}
+                </div>
+              ))}
+            </div>
+          ))}
+          {loyaltyDiscount > 0 && <div className="flex justify-between text-[11px] text-red-600"><span>ส่วนลดแต้ม:</span><span>-{loyaltyDiscount.toLocaleString()} บาท</span></div>}
           <div className="flex justify-between font-bold text-sm mt-1"><span>รวมทั้งสิ้น:</span><span>{netAmount.toLocaleString()} บาท</span></div>
           <div className="border-t border-dashed border-gray-400 my-2" />
           <p className="text-[10px]">ชำระโดย:</p>
@@ -321,12 +496,19 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
             <h2 className="text-base font-bold text-stone-300 mb-4">สรุปรายการอาหาร</h2>
             <div className="space-y-2 max-h-[40vh] overflow-y-auto pr-2">
               {activeItems.map(item => (
-                <div key={item.id} className="flex justify-between items-center p-3 rounded-xl bg-stone-950/50 border border-stone-900 text-sm">
-                  <div>
-                    <span className="font-semibold text-stone-200">{item.menu_items?.name}</span>
-                    <span className="text-stone-500 ml-2">x{item.quantity}</span>
+                <div key={item.id} className="p-3 rounded-xl bg-stone-950/50 border border-stone-900 text-sm space-y-1">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="font-semibold text-stone-200">{item.menu_items?.name}</span>
+                      <span className="text-stone-500 ml-2">x{item.quantity}</span>
+                    </div>
+                    <span className="font-bold text-amber-500">{(item.quantity * item.unit_price).toLocaleString()} ฿</span>
                   </div>
-                  <span className="font-bold text-amber-500">{(item.quantity * item.unit_price).toLocaleString()} ฿</span>
+                  {item.notes && (
+                    <div className="text-xs text-amber-500/80 font-medium">
+                      โน้ต: {item.notes}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -336,10 +518,23 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
                 <span className="text-stone-400">ยอดรวม ({activeItems.reduce((s, i) => s + i.quantity, 0)} ชิ้น)</span>
                 <span className="text-stone-200 font-bold">{subtotal.toLocaleString()} บาท</span>
               </div>
-              {discount > 0 && (
+              {appliedPromos.map(ap => (
+                <div key={ap.promo.id} className="text-sm space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-fuchsia-400 flex items-center gap-1"><Tag className="w-3 h-3" />{ap.promo.name}</span>
+                    <span className="text-fuchsia-400 font-bold">-{ap.discountValue.toLocaleString()} บาท</span>
+                  </div>
+                  {ap.freeItems && ap.freeItems.map((fi, idx) => (
+                    <div key={idx} className="text-xs text-stone-500 pl-4 font-semibold">
+                      • ฟรี: {fi.name} x{fi.qty}
+                    </div>
+                  ))}
+                </div>
+              ))}
+              {loyaltyDiscount > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-emerald-400">ส่วนลดแต้มสมาชิก</span>
-                  <span className="text-emerald-400 font-bold">-{discount.toLocaleString()} บาท</span>
+                  <span className="text-emerald-400 font-bold">-{loyaltyDiscount.toLocaleString()} บาท</span>
                 </div>
               )}
               <div className="flex justify-between text-lg pt-2 border-t border-stone-800">
@@ -412,6 +607,43 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
                     </button>
                   </div>
                 </div>
+              )}
+            </div>
+
+            {/* Coupon Code */}
+            <div className="bg-stone-900/40 border border-stone-800 rounded-2xl p-5">
+              <h3 className="text-sm font-bold text-stone-300 mb-3 flex items-center gap-2">
+                <TicketPercent className="w-4 h-4 text-fuchsia-500" />
+                คูปองส่วนลด
+              </h3>
+              {couponApplied ? (
+                <div className="p-3 bg-fuchsia-950/20 border border-fuchsia-900/30 rounded-xl flex items-center justify-between">
+                  <div>
+                    <p className="text-fuchsia-400 text-sm font-bold">{couponApplied.name}</p>
+                    <p className="text-fuchsia-500/70 text-xs">โค้ด: {couponApplied.coupon_code} • ลด {couponApplied.discount_amount} บาท</p>
+                  </div>
+                  <button onClick={removeCoupon} className="p-1 text-stone-500 hover:text-red-400 cursor-pointer"><X className="w-4 h-4" /></button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder='รหัสคูปอง เช่น "YOKA50"'
+                      value={couponInput}
+                      onChange={e => { setCouponInput(e.target.value.toUpperCase()); setCouponError(null); }}
+                      className="flex-1 bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-stone-600 focus:border-fuchsia-500/50 focus:outline-none transition uppercase"
+                    />
+                    <button
+                      onClick={applyCoupon}
+                      disabled={!couponInput.trim()}
+                      className="px-4 py-2.5 bg-fuchsia-600 hover:bg-fuchsia-500 disabled:opacity-40 rounded-xl text-sm font-bold text-white transition active:scale-95 cursor-pointer"
+                    >
+                      ใช้คูปอง
+                    </button>
+                  </div>
+                  {couponError && <p className="text-red-400 text-xs mt-2 font-medium">{couponError}</p>}
+                </>
               )}
             </div>
 
