@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import {
   Receipt, X, CreditCard, Banknote, ArrowLeftRight,
-  Tag, Gift, TrendingUp, RefreshCw, ChevronRight, Clock
+  Tag, Gift, TrendingUp, RefreshCw, ChevronRight, Clock, Trash2
 } from 'lucide-react';
 
 // ========== Interfaces ==========
@@ -43,11 +43,25 @@ interface OrderItemDetail {
   menu_items: { name: string } | null;
 }
 
+interface VoidLog {
+  id: number;
+  employee_name: string;
+  menu_name: string;
+  quantity: number;
+  total_amount: number;
+  reason: string;
+  restored_stock: boolean;
+  created_at: string;
+}
+
 // ========== Component ==========
 
 export const SalesHistory: React.FC = () => {
+  const [activeSubTab, setActiveSubTab] = useState<'sales' | 'voids'>('sales');
   const [orders, setOrders] = useState<CompletedOrder[]>([]);
+  const [voidLogs, setVoidLogs] = useState<VoidLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [voidLoading, setVoidLoading] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<CompletedOrder | null>(null);
   const [orderItems, setOrderItems] = useState<OrderItemDetail[]>([]);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -136,6 +150,35 @@ export const SalesHistory: React.FC = () => {
     }
   };
 
+  const fetchVoidLogs = async () => {
+    try {
+      setVoidLoading(true);
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+
+      const { data, error } = await supabase
+        .from('void_logs')
+        .select('*')
+        .gte('created_at', todayStart.toISOString())
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setVoidLogs((data || []) as VoidLog[]);
+    } catch (err) {
+      console.error('Error fetching void logs:', err);
+    } finally {
+      setVoidLoading(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    if (activeSubTab === 'sales') {
+      await fetchTodayOrders();
+    } else {
+      await fetchVoidLogs();
+    }
+  };
+
   const fetchOrderDetail = async (order: CompletedOrder) => {
     try {
       setDetailLoading(true);
@@ -159,6 +202,7 @@ export const SalesHistory: React.FC = () => {
 
   useEffect(() => {
     fetchTodayOrders();
+    fetchVoidLogs();
   }, []);
 
   // ========== Computed Values ==========
@@ -203,142 +247,247 @@ export const SalesHistory: React.FC = () => {
 
   return (
     <div className="bg-stone-950 text-white min-h-[calc(100vh-80px)] p-6">
-      <div className="max-w-5xl mx-auto space-y-8">
+      <div className="max-w-5xl mx-auto space-y-6">
 
         {/* ส่วนหัว */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-850 pb-6">
           <div>
             <h2 className="text-xl font-bold tracking-tight bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">
-              ประวัติการขายวันนี้
+              ระบบประวัติและตรวจสอบ (Sales & Audit History)
             </h2>
             <p className="text-stone-400 text-xs mt-1">
-              รายการบิลที่ปิดแล้วทั้งหมดของวันนี้ — กดเพื่อดูรายละเอียดแต่ละบิล
+              ตรวจสอบยอดขายรายบิล และประวัติการทำรายการยกเลิกออเดอร์ในวันนี้
             </p>
           </div>
           <button
-            onClick={fetchTodayOrders}
-            className="px-4 py-2 bg-stone-900 border border-stone-800 rounded-xl text-xs font-bold text-stone-300 hover:text-white transition active:scale-95 cursor-pointer flex items-center gap-2"
+            onClick={handleRefresh}
+            className="px-4 py-2.5 bg-stone-900 border border-stone-800 rounded-xl text-xs font-bold text-stone-300 hover:text-white transition active:scale-95 cursor-pointer flex items-center gap-2"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
+            <RefreshCw className={`w-3.5 h-3.5 ${(loading || voidLoading) ? 'animate-spin' : ''}`} />
             รีเฟรชข้อมูล
           </button>
         </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-3 border-amber-500 border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : (
-          <>
-            {/* แถบสรุปสถิติ */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div className="bg-stone-900/40 border border-stone-850 rounded-2xl p-5 backdrop-blur-md flex items-center justify-between">
-                <div className="space-y-1">
-                  <div className="text-stone-400 text-xs font-medium">จำนวนบิลปิดแล้ว</div>
-                  <div className="text-2xl font-black text-white">{totalBills} <span className="text-sm font-bold text-stone-500">บิล</span></div>
-                </div>
-                <div className="p-3 bg-blue-950/30 text-blue-400 rounded-xl border border-blue-900/25">
-                  <Receipt className="w-5 h-5" />
-                </div>
-              </div>
+        {/* แถบ Tab ย่อย */}
+        <div className="flex gap-2 border-b border-stone-900 pb-3">
+          <button
+            onClick={() => setActiveSubTab('sales')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer border ${
+              activeSubTab === 'sales'
+                ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+                : 'bg-stone-900/40 border-stone-850 text-stone-400 hover:text-white'
+            }`}
+          >
+            <span className="flex items-center gap-2">
+              <Receipt className="w-3.5 h-3.5" />
+              ยอดขายวันนี้
+            </span>
+          </button>
+          <button
+            onClick={() => setActiveSubTab('voids')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer border ${
+              activeSubTab === 'voids'
+                ? 'bg-red-500/10 border-red-500/30 text-red-400'
+                : 'bg-stone-900/40 border-stone-850 text-stone-400 hover:text-white'
+            }`}
+          >
+            <span className="flex items-center gap-2">
+              <Trash2 className="w-3.5 h-3.5" />
+              ประวัติการยกเลิก (Void Logs)
+            </span>
+          </button>
+        </div>
 
-              <div className="bg-stone-900/40 border border-stone-850 rounded-2xl p-5 backdrop-blur-md flex items-center justify-between">
-                <div className="space-y-1">
-                  <div className="text-stone-400 text-xs font-medium">ยอดขายรวมวันนี้</div>
-                  <div className="text-2xl font-black text-emerald-400">{totalRevenue.toLocaleString()} <span className="text-sm font-bold text-stone-500">฿</span></div>
-                </div>
-                <div className="p-3 bg-emerald-950/30 text-emerald-400 rounded-xl border border-emerald-900/25">
-                  <TrendingUp className="w-5 h-5" />
-                </div>
-              </div>
-
-              <div className="bg-stone-900/40 border border-stone-850 rounded-2xl p-5 backdrop-blur-md flex items-center justify-between">
-                <div className="space-y-1">
-                  <div className="text-stone-400 text-xs font-medium">ส่วนลดโปรโมชั่นรวม</div>
-                  <div className="text-2xl font-black text-amber-500">{totalDiscount.toLocaleString()} <span className="text-sm font-bold text-stone-500">฿</span></div>
-                </div>
-                <div className="p-3 bg-amber-950/30 text-amber-400 rounded-xl border border-amber-900/25">
-                  <Tag className="w-5 h-5" />
-                </div>
-              </div>
+        {activeSubTab === 'sales' ? (
+          loading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="w-8 h-8 border-3 border-amber-500 border-t-transparent rounded-full animate-spin" />
             </div>
+          ) : (
+            <>
+              {/* แถบสรุปสถิติ */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div className="bg-stone-900/40 border border-stone-850 rounded-2xl p-5 backdrop-blur-md flex items-center justify-between">
+                  <div className="space-y-1">
+                    <div className="text-stone-400 text-xs font-medium">จำนวนบิลปิดแล้ว</div>
+                    <div className="text-2xl font-black text-white">{totalBills} <span className="text-sm font-bold text-stone-500">บิล</span></div>
+                  </div>
+                  <div className="p-3 bg-blue-950/30 text-blue-400 rounded-xl border border-blue-900/25">
+                    <Receipt className="w-5 h-5" />
+                  </div>
+                </div>
 
-            {/* รายชื่อบิล */}
-            <div className="bg-stone-900/40 border border-stone-850 rounded-2xl backdrop-blur-md overflow-hidden">
+                <div className="bg-stone-900/40 border border-stone-850 rounded-2xl p-5 backdrop-blur-md flex items-center justify-between">
+                  <div className="space-y-1">
+                    <div className="text-stone-400 text-xs font-medium">ยอดขายรวมวันนี้</div>
+                    <div className="text-2xl font-black text-emerald-400">{totalRevenue.toLocaleString()} <span className="text-sm font-bold text-stone-500">฿</span></div>
+                  </div>
+                  <div className="p-3 bg-emerald-950/30 text-emerald-400 rounded-xl border border-emerald-900/25">
+                    <TrendingUp className="w-5 h-5" />
+                  </div>
+                </div>
+
+                <div className="bg-stone-900/40 border border-stone-850 rounded-2xl p-5 backdrop-blur-md flex items-center justify-between">
+                  <div className="space-y-1">
+                    <div className="text-stone-400 text-xs font-medium">ส่วนลดโปรโมชั่นรวม</div>
+                    <div className="text-2xl font-black text-amber-500">{totalDiscount.toLocaleString()} <span className="text-sm font-bold text-stone-500">฿</span></div>
+                  </div>
+                  <div className="p-3 bg-amber-950/30 text-amber-400 rounded-xl border border-amber-900/25">
+                    <Tag className="w-5 h-5" />
+                  </div>
+                </div>
+              </div>
+
+              {/* รายชื่อบิล */}
+              <div className="bg-stone-900/40 border border-stone-850 rounded-2xl backdrop-blur-md overflow-hidden">
+                <div className="px-6 py-4 border-b border-stone-800">
+                  <h3 className="text-sm font-bold text-stone-200 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-amber-500" />
+                    รายการบิลที่ปิดแล้ว ({totalBills} บิล)
+                  </h3>
+                </div>
+
+                <div className="divide-y divide-stone-850">
+                  {orders.map(order => (
+                    <button
+                      key={order.id}
+                      onClick={() => fetchOrderDetail(order)}
+                      className="w-full px-6 py-4 flex items-center justify-between hover:bg-stone-900/40 transition-colors cursor-pointer group"
+                    >
+                      <div className="flex items-center gap-4">
+                        {/* หมายเลขบิล */}
+                        <div className="w-10 h-10 bg-stone-800/60 border border-stone-750 rounded-xl flex items-center justify-center">
+                          <span className="text-xs font-black text-stone-300">T{order.table_id}</span>
+                        </div>
+
+                        <div className="text-left">
+                          <div className="text-xs font-bold text-stone-200">
+                            ORD-{order.id}
+                            <span className="text-stone-500 font-medium ml-2">โต๊ะ {order.table_id}</span>
+                          </div>
+                          <div className="text-[10px] text-stone-500 font-semibold mt-0.5">
+                            ปิดบิลเวลา {order.payment ? formatTime(order.payment.created_at) : formatTime(order.created_at)} น.
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-4">
+                        {/* Promotion badges */}
+                        {order.promos.length > 0 && (
+                          <div className="hidden sm:flex items-center gap-1.5">
+                            {order.promos.slice(0, 2).map(promo => (
+                              <span key={promo.id} className="text-[10px] font-bold text-amber-400 bg-amber-950/30 border border-amber-900/30 px-2 py-0.5 rounded-full truncate max-w-[120px]">
+                                🏷️ {promo.promotion_name}
+                              </span>
+                            ))}
+                            {order.promos.length > 2 && (
+                              <span className="text-[10px] font-bold text-stone-500">+{order.promos.length - 2}</span>
+                            )}
+                          </div>
+                        )}
+
+                        {/* ยอดสุทธิ + วิธีชำระ */}
+                        <div className="text-right">
+                          <div className="text-sm font-black text-white">
+                            {(order.payment?.net_amount || 0).toLocaleString()} ฿
+                          </div>
+                          {order.payment && (
+                            <div className="flex items-center justify-end gap-1 text-[10px] text-stone-500 font-semibold mt-0.5">
+                              {getPaymentIcon(order.payment.payment_method)}
+                              <span>{getPaymentLabel(order.payment.payment_method)}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <ChevronRight className="w-4 h-4 text-stone-600 group-hover:text-stone-400 transition-colors" />
+                      </div>
+                    </button>
+                  ))}
+
+                  {orders.length === 0 && (
+                    <div className="py-16 text-center">
+                      <Receipt className="w-10 h-10 text-stone-700 mx-auto mb-3" />
+                      <p className="text-stone-500 text-xs font-semibold">ยังไม่มีบิลที่ปิดแล้วในวันนี้</p>
+                      <p className="text-stone-600 text-[10px] mt-1">บิลจะแสดงที่นี่หลังจากปิดการขายและชำระเงินเสร็จ</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )
+        ) : (
+          voidLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="w-8 h-8 border-3 border-amber-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : (
+            <div className="bg-stone-900/40 border border-stone-850 rounded-2xl overflow-hidden backdrop-blur-md">
               <div className="px-6 py-4 border-b border-stone-800">
                 <h3 className="text-sm font-bold text-stone-200 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-amber-500" />
-                  รายการบิลที่ปิดแล้ว ({totalBills} บิล)
+                  <Trash2 className="w-4 h-4 text-red-500" />
+                  ประวัติการยกเลิกรายการอาหารวันนี้ ({voidLogs.length} รายการ)
                 </h3>
               </div>
 
-              <div className="divide-y divide-stone-850">
-                {orders.map(order => (
-                  <button
-                    key={order.id}
-                    onClick={() => fetchOrderDetail(order)}
-                    className="w-full px-6 py-4 flex items-center justify-between hover:bg-stone-900/40 transition-colors cursor-pointer group"
-                  >
-                    <div className="flex items-center gap-4">
-                      {/* หมายเลขบิล */}
-                      <div className="w-10 h-10 bg-stone-800/60 border border-stone-750 rounded-xl flex items-center justify-center">
-                        <span className="text-xs font-black text-stone-300">T{order.table_id}</span>
-                      </div>
-
-                      <div className="text-left">
-                        <div className="text-xs font-bold text-stone-200">
-                          ORD-{order.id}
-                          <span className="text-stone-500 font-medium ml-2">โต๊ะ {order.table_id}</span>
-                        </div>
-                        <div className="text-[10px] text-stone-500 font-semibold mt-0.5">
-                          ปิดบิลเวลา {order.payment ? formatTime(order.payment.created_at) : formatTime(order.created_at)} น.
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                      {/* Promotion badges */}
-                      {order.promos.length > 0 && (
-                        <div className="hidden sm:flex items-center gap-1.5">
-                          {order.promos.slice(0, 2).map(promo => (
-                            <span key={promo.id} className="text-[10px] font-bold text-amber-400 bg-amber-950/30 border border-amber-900/30 px-2 py-0.5 rounded-full truncate max-w-[120px]">
-                              🏷️ {promo.promotion_name}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-stone-800 text-stone-400 text-xs font-bold bg-stone-900/50">
+                      <th className="py-3.5 px-6">เวลา</th>
+                      <th className="py-3.5 px-4">รายการอาหาร</th>
+                      <th className="py-3.5 px-4 text-center">จำนวน</th>
+                      <th className="py-3.5 px-4 text-right">มูลค่าสูญเสีย</th>
+                      <th className="py-3.5 px-4">สาเหตุ</th>
+                      <th className="py-3.5 px-4 text-center">คืนคลัง</th>
+                      <th className="py-3.5 px-6">ผู้ทำรายการ</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-stone-850 text-xs">
+                    {voidLogs.map(log => (
+                      <tr key={log.id} className="hover:bg-stone-900/20 transition-colors">
+                        <td className="py-4 px-6 text-stone-500 font-semibold">
+                          {formatTime(log.created_at)} น.
+                        </td>
+                        <td className="py-4 px-4 font-bold text-stone-200">
+                          {log.menu_name}
+                        </td>
+                        <td className="py-4 px-4 text-center font-bold text-stone-300">
+                          {log.quantity}
+                        </td>
+                        <td className="py-4 px-4 text-right font-black text-stone-100">
+                          {Number(log.total_amount).toLocaleString()} ฿
+                        </td>
+                        <td className="py-4 px-4 text-stone-400">
+                          {log.reason}
+                        </td>
+                        <td className="py-4 px-4 text-center">
+                          {log.restored_stock ? (
+                            <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/20 border border-emerald-900/30 px-2 py-0.5 rounded-full">
+                              คืนสต็อก
                             </span>
-                          ))}
-                          {order.promos.length > 2 && (
-                            <span className="text-[10px] font-bold text-stone-500">+{order.promos.length - 2}</span>
+                          ) : (
+                            <span className="text-[10px] font-bold text-red-400 bg-red-950/20 border border-red-900/30 px-2 py-0.5 rounded-full">
+                              สูญเสีย
+                            </span>
                           )}
-                        </div>
-                      )}
-
-                      {/* ยอดสุทธิ + วิธีชำระ */}
-                      <div className="text-right">
-                        <div className="text-sm font-black text-white">
-                          {(order.payment?.net_amount || 0).toLocaleString()} ฿
-                        </div>
-                        {order.payment && (
-                          <div className="flex items-center justify-end gap-1 text-[10px] text-stone-500 font-semibold mt-0.5">
-                            {getPaymentIcon(order.payment.payment_method)}
-                            <span>{getPaymentLabel(order.payment.payment_method)}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      <ChevronRight className="w-4 h-4 text-stone-600 group-hover:text-stone-400 transition-colors" />
-                    </div>
-                  </button>
-                ))}
-
-                {orders.length === 0 && (
-                  <div className="py-16 text-center">
-                    <Receipt className="w-10 h-10 text-stone-700 mx-auto mb-3" />
-                    <p className="text-stone-500 text-xs font-semibold">ยังไม่มีบิลที่ปิดแล้วในวันนี้</p>
-                    <p className="text-stone-600 text-[10px] mt-1">บิลจะแสดงที่นี่หลังจากปิดการขายและชำระเงินเสร็จ</p>
-                  </div>
-                )}
+                        </td>
+                        <td className="py-4 px-6 text-stone-400 font-medium">
+                          {log.employee_name}
+                        </td>
+                      </tr>
+                    ))}
+                    {voidLogs.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="py-16 text-center text-stone-500 font-semibold text-xs">
+                          ยังไม่มีการบันทึกรายการยกเลิกอาหารในวันนี้
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
-          </>
+          )
         )}
       </div>
 
