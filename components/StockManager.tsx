@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { Search, Plus, Loader2, CheckCircle, Trash2, Pencil, X, Calendar, DollarSign, AlertTriangle, ChevronRight, ArrowLeft, ShoppingCart } from 'lucide-react';
+import { Search, Plus, Loader2, CheckCircle, Trash2, Pencil, X, Calendar, DollarSign, AlertTriangle, ChevronRight, ArrowLeft, ShoppingCart, ChevronDown } from 'lucide-react';
 
 interface IngredientPurchase {
   id?: number;
@@ -36,6 +36,23 @@ const EMPTY_FORM: Omit<IngredientPurchase, 'id'> = {
 
 type MonthFilter = 'this_month' | 'last_month';
 
+// รายการวัตถุดิบเริ่มต้น (สำหรับร้านอาหารญี่ปุ่น)
+const DEFAULT_INGREDIENTS = [
+  'แซลมอน', 'หมูสามชั้น', 'สะโพกไก่', 'เนื้อวัว', 'กุ้ง', 'ปลาหมึก',
+  'เส้นราเมง', 'เส้นอุด้ง', 'เส้นโซบะ', 'ข้าวญี่ปุ่น',
+  'แป้งเกี๊ยว', 'แป้งเทมปุระ', 'เต้าหู้', 'สาหร่ายนอริ',
+  'ซอสโชยุ', 'ซอสเทอริยากิ', 'มิโซะ', 'วาซาบิ', 'ขิงดอง',
+  'น้ำมันงา', 'น้ำส้มสายชู', 'มิริน', 'สาเก',
+  'ผักรวม', 'ต้นหอม', 'กระเทียม', 'หอมใหญ่',
+  'เบียร์สด', 'น้ำแข็ง', 'ถ่าน',
+];
+
+// รายการหน่วยที่ใช้บ่อย
+const DEFAULT_UNITS = [
+  'กก.', 'กรัม', 'ขีด', 'ชิ้น', 'แพ็ค', 'ถุง',
+  'ลิตร', 'ขวด', 'กล่อง', 'แผง', 'ถัง', 'ลัง', 'มัด',
+];
+
 export const StockManager: React.FC = () => {
   const { employee } = useAuth();
   const [purchases, setPurchases] = useState<IngredientPurchase[]>([]);
@@ -56,6 +73,17 @@ export const StockManager: React.FC = () => {
 
   // Drill-down view (หน้ารายละเอียดของวันนั้น)
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
+  // Dropdown states สำหรับ Form Modal
+  const [showNameDropdown, setShowNameDropdown] = useState(false);
+  const [showUnitDropdown, setShowUnitDropdown] = useState(false);
+  const [nameSearch, setNameSearch] = useState('');
+  const [newIngredientName, setNewIngredientName] = useState('');
+  const [ingredientCatalog, setIngredientCatalog] = useState<string[]>([]);
+  const [customUnits, setCustomUnits] = useState<string[]>([]);
+  const [newUnitName, setNewUnitName] = useState('');
+  const nameDropdownRef = useRef<HTMLDivElement>(null);
+  const unitDropdownRef = useRef<HTMLDivElement>(null);
 
   const showMessage = (text: string, type: 'success' | 'error') => {
     setMessage({ text, type });
@@ -106,12 +134,57 @@ export const StockManager: React.FC = () => {
     }
   };
 
+  // ดึงรายชื่อวัตถุดิบทั้งหมดจาก DB เพื่อสร้าง catalog
+  const fetchIngredientCatalog = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('item_ingredients')
+        .select('name')
+        .order('name');
+      if (error) throw error;
+      // รวม DB names + defaults ให้ไม่ซ้ำกัน
+      const dbNames = (data || []).map((d: { name: string }) => d.name);
+      const allNames = Array.from(new Set([...DEFAULT_INGREDIENTS, ...dbNames])).sort((a, b) => a.localeCompare(b, 'th'));
+      setIngredientCatalog(allNames);
+    } catch {
+      // Fallback ใช้แค่ defaults
+      setIngredientCatalog([...DEFAULT_INGREDIENTS].sort((a, b) => a.localeCompare(b, 'th')));
+    }
+  };
+
   useEffect(() => {
     fetchPurchases();
+    fetchIngredientCatalog();
     // เมื่อเปลี่ยน filter ให้ปิด drill-down view
     setSelectedDate(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [monthFilter]);
+
+  // ปิด dropdown เมื่อคลิกข้างนอก
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (nameDropdownRef.current && !nameDropdownRef.current.contains(e.target as Node)) {
+        setShowNameDropdown(false);
+      }
+      if (unitDropdownRef.current && !unitDropdownRef.current.contains(e.target as Node)) {
+        setShowUnitDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // รายการหน่วยทั้งหมด (default + custom)
+  const allUnits = useMemo(() => {
+    return Array.from(new Set([...DEFAULT_UNITS, ...customUnits]));
+  }, [customUnits]);
+
+  // กรองชื่อวัตถุดิบตาม search
+  const filteredCatalog = useMemo(() => {
+    if (!nameSearch.trim()) return ingredientCatalog;
+    const term = nameSearch.toLowerCase();
+    return ingredientCatalog.filter(n => n.toLowerCase().includes(term));
+  }, [ingredientCatalog, nameSearch]);
 
   const openCreateModal = () => {
     setEditingPurchase(null);
@@ -568,16 +641,105 @@ export const StockManager: React.FC = () => {
           </div>
 
           <div className="space-y-4">
-            {/* ชื่อวัตถุดิบ */}
-            <div>
+            {/* ชื่อวัตถุดิบ — Dropdown */}
+            <div ref={nameDropdownRef} className="relative">
               <label className="block text-[10px] font-bold text-stone-500 tracking-wider uppercase mb-1.5">ชื่อวัตถุดิบ *</label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="เช่น แซลมอน, เส้นราเมง, แป้งเกี๊ยว"
-                className="w-full bg-stone-950 border border-stone-850 focus:border-amber-500/50 focus:outline-none rounded-xl px-4 py-2.5 text-sm text-stone-200 placeholder-stone-600"
-              />
+              <button
+                type="button"
+                onClick={() => { setShowNameDropdown(!showNameDropdown); setNameSearch(''); }}
+                className={`w-full bg-stone-950 border rounded-xl px-4 py-2.5 text-sm text-left flex items-center justify-between cursor-pointer transition ${
+                  showNameDropdown ? 'border-amber-500/50' : 'border-stone-850 hover:border-stone-700'
+                }`}
+              >
+                <span className={formData.name ? 'text-stone-200' : 'text-stone-600'}>
+                  {formData.name || 'เลือกวัตถุดิบ...'}
+                </span>
+                <ChevronDown className={`w-4 h-4 text-stone-500 transition-transform ${showNameDropdown ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showNameDropdown && (
+                <div className="absolute z-20 mt-1 w-full bg-stone-950 border border-stone-800 rounded-xl shadow-2xl overflow-hidden">
+                  {/* ช่องค้นหาใน dropdown */}
+                  <div className="p-2 border-b border-stone-800">
+                    <div className="relative">
+                      <Search className="w-3.5 h-3.5 text-stone-500 absolute left-2.5 top-2.5" />
+                      <input
+                        type="text"
+                        placeholder="ค้นหาวัตถุดิบ..."
+                        value={nameSearch}
+                        onChange={e => setNameSearch(e.target.value)}
+                        className="w-full bg-stone-900 border border-stone-800 rounded-lg pl-8 pr-3 py-2 text-xs text-stone-200 focus:outline-none focus:border-amber-500/50 placeholder-stone-600"
+                        autoFocus
+                      />
+                    </div>
+                  </div>
+
+                  {/* รายการวัตถุดิบ */}
+                  <div className="max-h-40 overflow-y-auto">
+                    {filteredCatalog.map(name => (
+                      <button
+                        key={name}
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({ ...prev, name }));
+                          setShowNameDropdown(false);
+                        }}
+                        className={`w-full text-left px-4 py-2.5 text-xs transition cursor-pointer ${
+                          formData.name === name
+                            ? 'bg-amber-500/10 text-amber-400 font-bold'
+                            : 'text-stone-300 hover:bg-stone-900 hover:text-white'
+                        }`}
+                      >
+                        {name}
+                      </button>
+                    ))}
+                    {filteredCatalog.length === 0 && (
+                      <div className="px-4 py-3 text-xs text-stone-500 text-center">ไม่พบรายการ</div>
+                    )}
+                  </div>
+
+                  {/* เพิ่มวัตถุดิบใหม่ */}
+                  <div className="p-2 border-t border-stone-800">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="พิมพ์ชื่อวัตถุดิบใหม่..."
+                        value={newIngredientName}
+                        onChange={e => setNewIngredientName(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter' && newIngredientName.trim()) {
+                            const trimmed = newIngredientName.trim();
+                            if (!ingredientCatalog.includes(trimmed)) {
+                              setIngredientCatalog(prev => [...prev, trimmed].sort((a, b) => a.localeCompare(b, 'th')));
+                            }
+                            setFormData(prev => ({ ...prev, name: trimmed }));
+                            setNewIngredientName('');
+                            setShowNameDropdown(false);
+                          }
+                        }}
+                        className="flex-1 bg-stone-900 border border-stone-800 rounded-lg px-3 py-2 text-xs text-stone-200 focus:outline-none focus:border-amber-500/50 placeholder-stone-600"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const trimmed = newIngredientName.trim();
+                          if (trimmed) {
+                            if (!ingredientCatalog.includes(trimmed)) {
+                              setIngredientCatalog(prev => [...prev, trimmed].sort((a, b) => a.localeCompare(b, 'th')));
+                            }
+                            setFormData(prev => ({ ...prev, name: trimmed }));
+                            setNewIngredientName('');
+                            setShowNameDropdown(false);
+                          }
+                        }}
+                        className="px-3 py-2 bg-amber-500/10 border border-amber-500/30 rounded-lg text-amber-400 text-xs font-bold hover:bg-amber-500/20 transition cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* จำนวน + หน่วย */}
@@ -594,15 +756,87 @@ export const StockManager: React.FC = () => {
                   className="w-full bg-stone-950 border border-stone-850 focus:border-amber-500/50 focus:outline-none rounded-xl px-4 py-2.5 text-sm text-stone-200 placeholder-stone-600"
                 />
               </div>
-              <div>
+              {/* หน่วย — Dropdown */}
+              <div ref={unitDropdownRef} className="relative">
                 <label className="block text-[10px] font-bold text-stone-500 tracking-wider uppercase mb-1.5">หน่วย *</label>
-                <input
-                  type="text"
-                  value={formData.unit}
-                  onChange={e => setFormData(prev => ({ ...prev, unit: e.target.value }))}
-                  placeholder="เช่น กก., แพ็ค, ถุง, ลิตร"
-                  className="w-full bg-stone-950 border border-stone-850 focus:border-amber-500/50 focus:outline-none rounded-xl px-4 py-2.5 text-sm text-stone-200 placeholder-stone-600"
-                />
+                <button
+                  type="button"
+                  onClick={() => setShowUnitDropdown(!showUnitDropdown)}
+                  className={`w-full bg-stone-950 border rounded-xl px-4 py-2.5 text-sm text-left flex items-center justify-between cursor-pointer transition ${
+                    showUnitDropdown ? 'border-amber-500/50' : 'border-stone-850 hover:border-stone-700'
+                  }`}
+                >
+                  <span className={formData.unit ? 'text-stone-200' : 'text-stone-600'}>
+                    {formData.unit || 'เลือกหน่วย...'}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 text-stone-500 transition-transform ${showUnitDropdown ? 'rotate-180' : ''}`} />
+                </button>
+
+                {showUnitDropdown && (
+                  <div className="absolute z-20 mt-1 w-full bg-stone-950 border border-stone-800 rounded-xl shadow-2xl overflow-hidden">
+                    {/* รายการหน่วย */}
+                    <div className="max-h-40 overflow-y-auto">
+                      {allUnits.map(unit => (
+                        <button
+                          key={unit}
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({ ...prev, unit }));
+                            setShowUnitDropdown(false);
+                          }}
+                          className={`w-full text-left px-4 py-2.5 text-xs transition cursor-pointer ${
+                            formData.unit === unit
+                              ? 'bg-amber-500/10 text-amber-400 font-bold'
+                              : 'text-stone-300 hover:bg-stone-900 hover:text-white'
+                          }`}
+                        >
+                          {unit}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* เพิ่มหน่วยใหม่ */}
+                    <div className="p-2 border-t border-stone-800">
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="หน่วยใหม่..."
+                          value={newUnitName}
+                          onChange={e => setNewUnitName(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter' && newUnitName.trim()) {
+                              const trimmed = newUnitName.trim();
+                              if (!allUnits.includes(trimmed)) {
+                                setCustomUnits(prev => [...prev, trimmed]);
+                              }
+                              setFormData(prev => ({ ...prev, unit: trimmed }));
+                              setNewUnitName('');
+                              setShowUnitDropdown(false);
+                            }
+                          }}
+                          className="flex-1 bg-stone-900 border border-stone-800 rounded-lg px-3 py-2 text-xs text-stone-200 focus:outline-none focus:border-amber-500/50 placeholder-stone-600"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const trimmed = newUnitName.trim();
+                            if (trimmed) {
+                              if (!allUnits.includes(trimmed)) {
+                                setCustomUnits(prev => [...prev, trimmed]);
+                              }
+                              setFormData(prev => ({ ...prev, unit: trimmed }));
+                              setNewUnitName('');
+                              setShowUnitDropdown(false);
+                            }
+                          }}
+                          className="px-3 py-2 bg-amber-500/10 border border-amber-500/30 rounded-lg text-amber-400 text-xs font-bold hover:bg-amber-500/20 transition cursor-pointer"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
