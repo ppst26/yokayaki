@@ -3,17 +3,19 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { ArrowLeft, Plus, Minus, Trash2, ShieldAlert, ShoppingBag, History, HelpCircle, QrCode, X } from 'lucide-react';
+import { ArrowLeft, Plus, Minus, Trash2, ShieldAlert, ShoppingBag, History, HelpCircle, QrCode, X, ClipboardList } from 'lucide-react';
 import QRCode from 'react-qr-code';
 interface MenuItem {
   id: number;
   name: string;
   price: number;
   stock: number;
+  category: string;
 }
 
 interface CartItem extends MenuItem {
   quantity: number;
+  notes?: string;
 }
 
 interface OrderedItem {
@@ -21,6 +23,7 @@ interface OrderedItem {
   quantity: number;
   unit_price: number;
   status: 'pending' | 'served' | 'voided';
+  notes?: string;
   menu_items: {
     name: string;
   };
@@ -45,6 +48,8 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
   const [isLoadingOrder, setIsLoadingOrder] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('ทั้งหมด');
+  const [noteEditTarget, setNoteEditTarget] = useState<{ index: number; notes: string } | null>(null);
   
   // Void Modal States
   const [voidTarget, setVoidTarget] = useState<OrderedItem | null>(null);
@@ -95,7 +100,7 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
       setIsLoadingMenu(true);
       const { data, error } = await supabase
         .from('menu_items')
-        .select('id, name, price, stock')
+        .select('id, name, price, stock, category')
         .order('id', { ascending: true });
         
       if (error) throw error;
@@ -133,6 +138,7 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
             quantity,
             unit_price,
             status,
+            notes,
             menu_items (
               name
             )
@@ -192,25 +198,54 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
   }, [tableId]);
 
   // Cart operations
-  const addToCart = (item: MenuItem) => {
+  const addToCart = (item: MenuItem, notes?: string) => {
     if (item.stock === 0) return;
     
     setCart(prev => {
-      const existing = prev.find(i => i.id === item.id);
+      const itemNotes = notes || '';
+      const existing = prev.find(i => i.id === item.id && (i.notes || '') === itemNotes);
+      const totalQtyInCart = prev.filter(i => i.id === item.id).reduce((sum, i) => sum + i.quantity, 0);
+
       if (existing) {
-        if (existing.quantity >= item.stock) {
+        if (totalQtyInCart >= item.stock) {
           setErrorMsg(`ไม่สามารถสั่งได้มากกว่าสต็อกคงเหลือ (${item.stock} จาน)`);
           setTimeout(() => setErrorMsg(null), 3000);
           return prev;
         }
-        return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i);
+        return prev.map(i => (i.id === item.id && (i.notes || '') === itemNotes) ? { ...i, quantity: i.quantity + 1 } : i);
       }
-      return [...prev, { ...item, quantity: 1 }];
+
+      if (totalQtyInCart >= item.stock) {
+        setErrorMsg(`ไม่สามารถสั่งได้มากกว่าสต็อกคงเหลือ (${item.stock} จาน)`);
+        setTimeout(() => setErrorMsg(null), 3000);
+        return prev;
+      }
+      return [...prev, { ...item, quantity: 1, notes: itemNotes }];
     });
   };
 
-  const removeFromCart = (id: number) => {
-    setCart(prev => prev.map(i => i.id === id ? { ...i, quantity: i.quantity - 1 } : i).filter(i => i.quantity > 0));
+  const removeFromCart = (id: number, notes?: string) => {
+    const itemNotes = notes || '';
+    setCart(prev => prev.map(i => (i.id === id && (i.notes || '') === itemNotes) ? { ...i, quantity: i.quantity - 1 } : i).filter(i => i.quantity > 0));
+  };
+
+  const updateCartItemNotes = (index: number, newNotes: string) => {
+    setCart(prev => {
+      const target = prev[index];
+      if (!target) return prev;
+      
+      const otherIndex = prev.findIndex((item, i) => i !== index && item.id === target.id && (item.notes || '') === newNotes);
+      if (otherIndex !== -1) {
+        return prev.map((item, i) => {
+          if (i === otherIndex) {
+            return { ...item, quantity: item.quantity + target.quantity };
+          }
+          return item;
+        }).filter((_, i) => i !== index);
+      }
+      
+      return prev.map((item, i) => i === index ? { ...item, notes: newNotes } : item);
+    });
   };
 
   const clearCart = () => setCart([]);
@@ -231,7 +266,8 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
           p_table_id: tableId,
           p_menu_item_id: item.id,
           p_quantity: item.quantity,
-          p_unit_price: item.price
+          p_unit_price: item.price,
+          p_notes: item.notes || null
         });
 
         if (rpcError || !success) {
@@ -333,6 +369,23 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
           </div>
         )}
 
+        {/* Category Selection Tabs */}
+        <div className="flex gap-2 overflow-x-auto pb-4 mb-6 scrollbar-thin scrollbar-thumb-stone-800 scrollbar-track-transparent">
+          {['ทั้งหมด', ...Array.from(new Set(menuItems.map(item => item.category).filter(Boolean)))].map(cat => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-5 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap border transition duration-150 active:scale-95 cursor-pointer ${
+                selectedCategory === cat
+                  ? 'bg-amber-500 text-black border-amber-500 shadow-md shadow-amber-500/10'
+                  : 'bg-stone-900/40 hover:bg-stone-900/80 border-stone-800/80 hover:border-stone-700 text-stone-300'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
         {/* Menu Grid */}
         <div>
           <h2 className="text-base font-bold text-stone-400 tracking-wider mb-4 flex items-center gap-2">
@@ -348,74 +401,76 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {menuItems.map(item => {
-                const isSoldOut = item.stock === 0;
-                const isUrgent = item.stock > 0 && item.stock <= 3;
-                const cartQty = cart.find(c => c.id === item.id)?.quantity || 0;
-                const remainingAvailable = item.stock - cartQty;
+              {menuItems
+                .filter(item => selectedCategory === 'ทั้งหมด' || item.category === selectedCategory)
+                .map(item => {
+                  const isSoldOut = item.stock === 0;
+                  const isUrgent = item.stock > 0 && item.stock <= 3;
+                  const cartQty = cart.find(c => c.id === item.id)?.quantity || 0;
+                  const remainingAvailable = item.stock - cartQty;
 
-                return (
-                  <div
-                    key={item.id}
-                    className={`p-5 rounded-2xl border transition-all duration-300 relative overflow-hidden ${
-                      isSoldOut
-                        ? 'bg-stone-950/80 border-stone-900 opacity-55'
-                        : 'bg-stone-900/40 hover:bg-stone-900/80 border-stone-800/80 hover:border-stone-700'
-                    }`}
-                  >
-                    <div className="flex justify-between items-start mb-10">
-                      <div className="pr-4">
-                        <h3 className="font-bold text-lg text-stone-100 group-hover:text-white transition-colors">
-                          {item.name}
-                        </h3>
-                        <p className="text-amber-500 font-extrabold text-base mt-1">
-                          {item.price} <span className="text-xs font-semibold text-stone-400">บาท</span>
-                        </p>
+                  return (
+                    <div
+                      key={item.id}
+                      className={`p-5 rounded-2xl border transition-all duration-300 relative overflow-hidden ${
+                        isSoldOut
+                          ? 'bg-stone-950/80 border-stone-900 opacity-55'
+                          : 'bg-stone-900/40 hover:bg-stone-900/80 border-stone-800/80 hover:border-stone-700'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start mb-10">
+                        <div className="pr-4">
+                          <h3 className="font-bold text-lg text-stone-100 group-hover:text-white transition-colors">
+                            {item.name}
+                          </h3>
+                          <p className="text-amber-500 font-extrabold text-base mt-1">
+                            {item.price} <span className="text-xs font-semibold text-stone-400">บาท</span>
+                          </p>
+                        </div>
+
+                        {/* Stock Badges */}
+                        <div>
+                          {isSoldOut ? (
+                            <span className="text-[10px] font-black tracking-widest px-2.5 py-1 bg-red-950/40 border border-red-900/50 text-red-500 rounded-lg uppercase">
+                              SOLD OUT
+                            </span>
+                          ) : isUrgent ? (
+                            <span className="text-[10px] font-black px-2.5 py-1 bg-orange-950/40 border border-orange-900/50 text-orange-500 rounded-lg animate-pulse whitespace-nowrap">
+                              ด่วน! เหลือ {item.stock} จาน
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-bold px-2 py-0.5 bg-stone-950/80 border border-stone-850 text-stone-400 rounded-md">
+                              สต็อก: {item.stock}
+                            </span>
+                          )}
+                        </div>
                       </div>
 
-                      {/* Stock Badges */}
-                      <div>
-                        {isSoldOut ? (
-                          <span className="text-[10px] font-black tracking-widest px-2.5 py-1 bg-red-950/40 border border-red-900/50 text-red-500 rounded-lg uppercase">
-                            SOLD OUT
-                          </span>
-                        ) : isUrgent ? (
-                          <span className="text-[10px] font-black px-2.5 py-1 bg-orange-950/40 border border-orange-900/50 text-orange-500 rounded-lg animate-pulse whitespace-nowrap">
-                            ด่วน! เหลือ {item.stock} จาน
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-bold px-2 py-0.5 bg-stone-950/80 border border-stone-850 text-stone-400 rounded-md">
-                            สต็อก: {item.stock}
-                          </span>
-                        )}
+                      <div className="flex justify-between items-center mt-4">
+                        {/* Cart qty indicator inside card */}
+                        <div>
+                          {cartQty > 0 && (
+                            <span className="text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-1 rounded-lg">
+                              เลือกแล้ว {cartQty}
+                            </span>
+                          )}
+                        </div>
+
+                        <button
+                          disabled={isSoldOut || remainingAvailable <= 0}
+                          onClick={() => addToCart(item)}
+                          className={`p-2.5 rounded-xl transition duration-150 active:scale-95 flex items-center justify-center ${
+                            isSoldOut || remainingAvailable <= 0
+                              ? 'bg-stone-900 border border-stone-850 text-stone-600 cursor-not-allowed'
+                              : 'bg-amber-500 hover:bg-amber-600 text-black shadow-md shadow-amber-500/10'
+                          }`}
+                        >
+                          <Plus className="w-5 h-5 stroke-[2.5]" />
+                        </button>
                       </div>
                     </div>
-
-                    <div className="flex justify-between items-center mt-4">
-                      {/* Cart qty indicator inside card */}
-                      <div>
-                        {cartQty > 0 && (
-                          <span className="text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-1 rounded-lg">
-                            เลือกแล้ว {cartQty}
-                          </span>
-                        )}
-                      </div>
-
-                      <button
-                        disabled={isSoldOut || remainingAvailable <= 0}
-                        onClick={() => addToCart(item)}
-                        className={`p-2.5 rounded-xl transition duration-150 active:scale-95 flex items-center justify-center ${
-                          isSoldOut || remainingAvailable <= 0
-                            ? 'bg-stone-900 border border-stone-850 text-stone-600 cursor-not-allowed'
-                            : 'bg-amber-500 hover:bg-amber-600 text-black shadow-md shadow-amber-500/10'
-                        }`}
-                      >
-                        <Plus className="w-5 h-5 stroke-[2.5]" />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
           )}
         </div>
@@ -446,25 +501,42 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
               <p className="text-stone-500 text-sm text-center py-10 font-medium">ยังไม่มีรายการอาหารในตะกร้า</p>
             ) : (
               <div className="space-y-3 max-h-[30vh] overflow-y-auto pr-2">
-                {cart.map(item => (
-                  <div key={item.id} className="flex justify-between items-center bg-stone-900/30 border border-stone-900 p-3.5 rounded-xl">
-                    <div className="pr-4 flex-1">
-                      <h4 className="font-bold text-sm text-stone-200 line-clamp-1">{item.name}</h4>
-                      <p className="text-xs text-amber-500/90 font-bold mt-0.5">{item.price * item.quantity} บาท</p>
+                {cart.map((item, index) => (
+                  <div key={`${item.id}-${item.notes || ''}-${index}`} className="flex flex-col bg-stone-900/30 border border-stone-900 p-3.5 rounded-xl gap-2">
+                    <div className="flex justify-between items-center">
+                      <div className="pr-4 flex-1">
+                        <h4 className="font-bold text-sm text-stone-200 line-clamp-1">{item.name}</h4>
+                        <p className="text-xs text-amber-500/90 font-bold mt-0.5">{item.price * item.quantity} บาท</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => removeFromCart(item.id, item.notes)}
+                          className="p-1.5 bg-stone-900 border border-stone-800 hover:bg-stone-800 rounded-lg text-stone-400"
+                        >
+                          <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
+                        </button>
+                        <span className="text-sm font-bold text-stone-200">{item.quantity}</span>
+                        <button
+                          onClick={() => addToCart(item, item.notes)}
+                          className="p-1.5 bg-stone-900 border border-stone-800 hover:bg-stone-800 rounded-lg text-stone-400"
+                        >
+                          <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    {/* Notes line */}
+                    <div className="flex items-center justify-between border-t border-stone-900/40 pt-2 text-xs">
+                      {item.notes ? (
+                        <span className="text-amber-400/80 font-medium">โน้ต: {item.notes}</span>
+                      ) : (
+                        <span className="text-stone-500 font-medium">ไม่มีโน้ตพิเศษ</span>
+                      )}
                       <button
-                        onClick={() => removeFromCart(item.id)}
-                        className="p-1.5 bg-stone-900 border border-stone-800 hover:bg-stone-800 rounded-lg text-stone-400"
+                        onClick={() => setNoteEditTarget({ index, notes: item.notes || '' })}
+                        className="text-stone-400 hover:text-amber-400 font-bold flex items-center gap-1 transition"
                       >
-                        <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
-                      </button>
-                      <span className="text-sm font-bold text-stone-200">{item.quantity}</span>
-                      <button
-                        onClick={() => addToCart(item)}
-                        className="p-1.5 bg-stone-900 border border-stone-800 hover:bg-stone-800 rounded-lg text-stone-400"
-                      >
-                        <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <ClipboardList className="w-3.5 h-3.5" />
+                        <span>แก้ไขโน้ต</span>
                       </button>
                     </div>
                   </div>
@@ -548,6 +620,11 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
                             x{item.quantity}
                           </span>
                         </div>
+                        {item.notes && (
+                          <div className="text-xs text-amber-500/80 font-semibold mt-0.5">
+                            โน้ต: {item.notes}
+                          </div>
+                        )}
                         <span className="text-[10px] text-stone-500 mt-1 block">
                           ราคาหน่วยละ {item.unit_price} บาท {isVoided && '(ยกเลิกแล้ว)'}
                         </span>
@@ -580,7 +657,7 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
               <span>ยืนยันการยกเลิกรายการอาหาร (Void)</span>
             </h3>
             <p className="text-stone-400 text-sm mb-6 leading-relaxed">
-              คุณกำลังจะยกเลิกรายการ <span className="font-bold text-white">{voidTarget.menu_items?.name}</span> จำนวน <span className="font-bold text-white">{voidTarget.quantity} จาน</span> (มูลค่าความเสียหาย {voidTarget.quantity * voidTarget.unit_price} บาท)
+              คุณกำลังจะยกเลิกรายการ <span className="font-bold text-white">{voidTarget.menu_items?.name}</span> จำนวน <span className="font-bold text-white">{voidTarget.quantity} จาน</span> {voidTarget.notes && <>โน้ต: <span className="text-amber-400 font-semibold">"{voidTarget.notes}"</span></>} (มูลค่าความเสียหาย {voidTarget.quantity * voidTarget.unit_price} บาท)
             </p>
 
             <form onSubmit={handleVoidSubmit} className="space-y-4">
@@ -675,6 +752,94 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
             
             <div className="mt-6 text-center">
               <p className="text-[10px] text-stone-500 font-mono break-all px-4">{qrSessionId}</p>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* NOTE EDIT MODAL */}
+      {noteEditTarget !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="w-full max-w-md bg-stone-900 border border-stone-800 rounded-3xl p-6 shadow-2xl relative">
+            <h3 className="text-lg font-black text-amber-500 flex items-center gap-2 mb-2">
+              <ClipboardList className="w-5 h-5" />
+              <span>ระบุโน้ตพิเศษ</span>
+            </h3>
+            <p className="text-stone-400 text-xs mb-4">
+              ระบุข้อกำหนดพิเศษของลูกค้าสำหรับเมนู <span className="font-bold text-white">{cart[noteEditTarget.index]?.name}</span>
+            </p>
+
+            <div className="space-y-4">
+              {/* Quick Note Buttons */}
+              <div>
+                <label className="block text-xs font-bold text-stone-400 tracking-wider uppercase mb-2">
+                  ตัวเลือกด่วน
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {['ไม่ใส่ผัก', 'เผ็ดน้อย', 'เผ็ดมาก', 'แยกซอส', 'ไม่ใส่ซอส', 'พิเศษ'].map(quickNote => {
+                    const currentNotes = noteEditTarget.notes || '';
+                    const isSelected = currentNotes.split(', ').includes(quickNote);
+
+                    return (
+                      <button
+                        key={quickNote}
+                        type="button"
+                        onClick={() => {
+                          let updatedNotes = '';
+                          if (isSelected) {
+                            updatedNotes = currentNotes
+                              .split(', ')
+                              .filter(n => n !== quickNote)
+                              .join(', ');
+                          } else {
+                            updatedNotes = currentNotes ? `${currentNotes}, ${quickNote}` : quickNote;
+                          }
+                          setNoteEditTarget(prev => prev ? { ...prev, notes: updatedNotes } : null);
+                        }}
+                        className={`px-3 py-2 rounded-xl text-xs font-semibold border transition ${
+                          isSelected
+                            ? 'bg-amber-500/10 border-amber-500/40 text-amber-400'
+                            : 'bg-stone-950 border-stone-850 text-stone-400 hover:border-stone-700'
+                        }`}
+                      >
+                        {quickNote}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Custom Text Area */}
+              <div>
+                <label className="block text-xs font-bold text-stone-400 tracking-wider uppercase mb-2">
+                  ระบุรายละเอียดอื่นๆ
+                </label>
+                <textarea
+                  value={noteEditTarget.notes}
+                  onChange={(e) => setNoteEditTarget(prev => prev ? { ...prev, notes: e.target.value } : null)}
+                  placeholder="เช่น หวานน้อย, ขอวาซาบิเยอะๆ..."
+                  className="w-full bg-stone-950 border border-stone-850 focus:border-stone-700 focus:outline-none rounded-xl p-3 text-sm text-stone-200 placeholder-stone-600 h-20 resize-none"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4 border-t border-stone-850">
+                <button
+                  type="button"
+                  onClick={() => setNoteEditTarget(null)}
+                  className="flex-1 py-3 bg-stone-950 hover:bg-stone-900 border border-stone-850 rounded-xl text-stone-400 text-sm font-bold active:scale-97 transition"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateCartItemNotes(noteEditTarget.index, noteEditTarget.notes);
+                    setNoteEditTarget(null);
+                  }}
+                  className="flex-1 py-3 bg-amber-500 hover:bg-amber-600 text-black text-sm font-extrabold rounded-xl active:scale-97 transition shadow-md shadow-amber-500/10"
+                >
+                  บันทึกโน้ต
+                </button>
+              </div>
             </div>
           </div>
         </div>

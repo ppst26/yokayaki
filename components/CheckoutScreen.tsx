@@ -373,6 +373,15 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
       else if (cashNum >= netAmount) method = 'cash';
       else method = 'promptpay';
 
+      // Build promotion payload for sales history tracking
+      const promoPayload = appliedPromos.map(ap => ({
+        promotion_id: ap.promo.id,
+        promotion_name: ap.promo.name,
+        promotion_type: ap.promo.type,
+        discount_value: ap.discountValue,
+        free_items: ap.freeItems || null,
+      }));
+
       const { data: success, error } = await supabase.rpc('complete_checkout', {
         p_order_id: orderId,
         p_payment_method: method,
@@ -382,6 +391,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
         p_points_earned: pointsEarned,
         p_points_redeemed: pointsToRedeem,
         p_phone_number: member?.phone_number || null,
+        p_applied_promos: JSON.stringify(promoPayload),
       });
 
       if (error) throw error;

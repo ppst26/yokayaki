@@ -1,6 +1,6 @@
 # 🗺️ Yokayaki POS — Development Roadmap
 
-> Last Updated: 2026-07-07  
+> Last Updated: 2026-07-20  
 > Stack: Next.js 16 (Turbopack) + Supabase + TailwindCSS 4 + TypeScript
 
 ---
@@ -12,9 +12,12 @@
 | 1 | Core Foundation & Security | ✅ เสร็จสมบูรณ์ |
 | 2 | Ordering & Stock Management | ✅ เสร็จสมบูรณ์ |
 | 3 | Dynamic QR Ordering Sessions | ✅ เสร็จสมบูรณ์ |
-| 4 | Happy Hour & Loyalty | ✅ โค้ดเสร็จ (รอรัน SQL) |
-| 5 | Checkout & PromptPay QR | ✅ โค้ดเสร็จ (รอรัน SQL) |
-| 6 | Owner Reports & EOD Audit | ⬜ ยังไม่เริ่ม |
+| 4 | Happy Hour & Loyalty | ✅ เสร็จสมบูรณ์ |
+| 5 | Checkout & PromptPay QR | ✅ เสร็จสมบูรณ์ |
+| 6 | หมวดหมู่เมนู (Menu Categories) | ✅ เสร็จสมบูรณ์ |
+| 7 | โน้ตพิเศษ (Special Notes) | ✅ เสร็จสมบูรณ์ |
+| 8 | หน้าจอครัว (Kitchen Display System) | ✅ เสร็จสมบูรณ์ |
+| 9 | Owner Reports & EOD Audit | ⬜ ยังไม่เริ่ม |
 
 ---
 
@@ -80,7 +83,7 @@
 
 ---
 
-## Phase 4 & 5: Happy Hour, Loyalty & Checkout ✅ (รอรัน SQL)
+## Phase 4 & 5: Happy Hour, Loyalty & Checkout ✅
 
 **เป้าหมาย:** Happy Hour ลดราคาตามเวลา, ระบบสมาชิกสะสมแต้ม, หน้าเช็คบิลรับเงิน Multi-Payment, PromptPay QR, พิมพ์ใบเสร็จ
 
@@ -100,7 +103,65 @@
 
 ---
 
-## Phase 6: Owner Reports & EOD Audit ⬜
+## Phase 6: หมวดหมู่เมนู (Menu Categories) ✅
+
+**เป้าหมาย:** จัดกลุ่มเมนูอาหารตามหมวดหมู่ (เส้น, ซาซิมิ, ของทอด, ของหวาน, หม้อไฟ) เพื่อให้กดสั่งได้เร็วขึ้น
+
+### ไฟล์ที่สร้าง/แก้ไข
+| ไฟล์ | ประเภท | คำอธิบาย |
+|------|--------|----------|
+| [20260719_menu_categories.sql](file:///c:/Users/PP/Desktop/React/yokayaki/supabase/migrations/20260719_menu_categories.sql) | SQL | เพิ่มฟิลด์ `category` ในตาราง `menu_items`, จัดกลุ่มเมนูเดิม, Seed เมนูใหม่ตามหมวดหมู่ |
+| [components/POSOrderScreen.tsx](file:///c:/Users/PP/Desktop/React/yokayaki/components/POSOrderScreen.tsx) | Component | เพิ่มแท็บหมวดหมู่แนวนอนกรองเมนู |
+| [app/customer/[session_id]/page.tsx](file:///c:/Users/PP/Desktop/React/yokayaki/app/customer/%5Bsession_id%5D/page.tsx) | Page | เพิ่มแท็บหมวดหมู่ Sticky สไตล์ Mobile-First |
+| [components/StockManager.tsx](file:///c:/Users/PP/Desktop/React/yokayaki/components/StockManager.tsx) | Component | แสดงป้ายหมวดหมู่ข้างชื่อเมนู, ปรับ realtime query |
+
+### ผลลัพธ์
+- ✅ หมวดหมู่: ย่าง, เส้น, ซาซิมิ, ของทอด, ของหวาน, หม้อไฟ, เครื่องดื่ม, อื่นๆ
+- ✅ แท็บกรองหมวดหมู่แบบสไลด์แนวนอนทั้งฝั่งพนักงานและลูกค้า
+- ✅ Seed เมนูตัวอย่างใหม่ (ราเมง, เทมปุระ, โมจิ, สุกี้ยากี้ ฯลฯ)
+
+---
+
+## Phase 7: โน้ตพิเศษ (Special Notes) ✅
+
+**เป้าหมาย:** ให้ลูกค้าและพนักงานระบุข้อกำหนดพิเศษ เช่น "ไม่ผัก", "เผ็ดน้อย" ในแต่ละจาน
+
+### ไฟล์ที่สร้าง/แก้ไข
+| ไฟล์ | ประเภท | คำอธิบาย |
+|------|--------|----------|
+| [20260720_special_notes.sql](file:///c:/Users/PP/Desktop/React/yokayaki/supabase/migrations/20260720_special_notes.sql) | SQL | เพิ่มคอลัมน์ `notes` ในตาราง `order_items`, อัปเดต RPC ทั้ง 2 ฟังก์ชัน |
+| [components/POSOrderScreen.tsx](file:///c:/Users/PP/Desktop/React/yokayaki/components/POSOrderScreen.tsx) | Component | ปุ่มแก้ไขโน้ตใน Cart + ปุ่มลัดด่วน (ไม่ผัก, เผ็ดน้อย, เผ็ดมาก, แยกซอส) + ช่องพิมพ์เอง |
+| [app/customer/[session_id]/page.tsx](file:///c:/Users/PP/Desktop/React/yokayaki/app/customer/%5Bsession_id%5D/page.tsx) | Page | Bottom Drawer ตะกร้า + Note Modal สำหรับลูกค้ามือถือ |
+| [components/CheckoutScreen.tsx](file:///c:/Users/PP/Desktop/React/yokayaki/components/CheckoutScreen.tsx) | Component | แสดงโน้ตในสรุปบิลและใบเสร็จพิมพ์ |
+
+### ผลลัพธ์
+- ✅ เมนูเดียวกันแต่โน้ตต่างกันแยกรายการในตะกร้าอัตโนมัติ
+- ✅ ปุ่มลัดโน้ตยอดฮิต 6 ตัวเลือก + ช่องพิมพ์เองอิสระ
+- ✅ ลูกค้ามือถือเปิดตะกร้าแบบ Drawer สไลด์ขึ้นจากด้านล่าง
+- ✅ โน้ตพิเศษแสดงบนใบเสร็จ Thermal Printer
+
+---
+
+## Phase 8: หน้าจอครัว — Kitchen Display System (KDS) ✅
+
+**เป้าหมาย:** แสดงรายการอาหารที่รอปรุงในครัวแบบเรียลไทม์ จัดกลุ่มตามโต๊ะ พร้อมเสียงแจ้งเตือนเมื่อมีออเดอร์ใหม่
+
+### ไฟล์ที่สร้าง/แก้ไข
+| ไฟล์ | ประเภท | คำอธิบาย |
+|------|--------|----------|
+| [components/KitchenScreen.tsx](file:///c:/Users/PP/Desktop/React/yokayaki/components/KitchenScreen.tsx) | Component | หน้าจอครัว: จัดกลุ่มตามโต๊ะ, เวลารอ, เสียง Chime (Web Audio API), ปุ่มเสิร์ฟ |
+| [components/TableMap.tsx](file:///c:/Users/PP/Desktop/React/yokayaki/components/TableMap.tsx) | Component | เพิ่มแท็บ "หน้าจอครัว" สำหรับทั้ง Staff และ Owner |
+
+### ผลลัพธ์
+- ✅ Table Cards: จัดกลุ่มออเดอร์แยกตามโต๊ะ เรียงตามเวลาสั่ง (เก่าก่อน)
+- ✅ Wait Timer: ไฮไลต์สีเหลือง (8+ นาที) หรือสีแดงกระพริบ (15+ นาที)
+- ✅ เสียงแจ้งเตือน Chime (Web Audio API Synthesizer) เมื่อมีออเดอร์ใหม่เข้า พร้อมปุ่มเปิด/ปิดเสียง
+- ✅ ปุ่ม "เสิร์ฟ" รายจาน หรือ "เสิร์ฟทั้งหมดของโต๊ะ" ในคลิกเดียว
+- ✅ Staff เห็นแท็บ: ผังโต๊ะ + หน้าจอครัว | Owner เห็น: ผังโต๊ะ + ครัว + สต็อก + Dashboard
+
+---
+
+## Phase 9: Owner Reports & EOD Audit ⬜
 
 **เป้าหมาย:** หน้ารายงานยอดขายรายชั่วโมง, ประวัติ Void, สถิติเมนูยอดนิยม สำหรับ Owner เท่านั้น
 
@@ -125,9 +186,12 @@ yokayaki/
 │           └── page.tsx               # Customer Mobile Order Portal
 ├── components/
 │   ├── PinPad.tsx                     # PIN 6-digit Input
-│   ├── TableMap.tsx                   # Floor Map + Action Selector
-│   ├── POSOrderScreen.tsx             # POS Order + Cart + Void + QR
-│   └── CheckoutScreen.tsx             # Checkout + Loyalty + PromptPay QR
+│   ├── TableMap.tsx                   # Floor Map + Action Selector + Nav Tabs
+│   ├── POSOrderScreen.tsx             # POS Order + Cart + Notes + Void + QR
+│   ├── CheckoutScreen.tsx             # Checkout + Loyalty + PromptPay QR
+│   ├── StockManager.tsx               # Stock Management (Owner)
+│   ├── OwnerDashboard.tsx             # Owner Reports Dashboard
+│   └── KitchenScreen.tsx              # Kitchen Display System (KDS)
 ├── context/
 │   └── AuthContext.tsx                # PIN Auth + Session Management
 ├── lib/
@@ -136,7 +200,9 @@ yokayaki/
 │   ├── 20260705_init_schema.sql       # 9 Tables + Seeds + RPC + RLS
 │   ├── 20260707_void_order_item.sql   # Void RPC + RLS
 │   ├── 20260707_customer_order_rpc.sql # Customer Order RPC + RLS
-│   └── 20260707_happy_hour_and_payment.sql # Happy Hour + Checkout RPC
+│   ├── 20260707_happy_hour_and_payment.sql # Happy Hour + Checkout RPC
+│   ├── 20260719_menu_categories.sql   # Menu Categories + Seed Items
+│   └── 20260720_special_notes.sql     # Notes Column + RPC Update
 ├── docs/superpowers/
 │   ├── plans/                         # Development Plans
 │   └── specs/                         # Feature Specifications (order.md, etc.)
@@ -151,9 +217,9 @@ yokayaki/
 
 | ฟังก์ชัน | คำอธิบาย | SECURITY |
 |----------|----------|----------|
-| `place_order_item` | พนักงานสั่งอาหาร + หักสต็อก atomic | DEFINER |
+| `place_order_item` | พนักงานสั่งอาหาร + หักสต็อก atomic + รองรับโน้ตพิเศษ | DEFINER |
 | `void_order_item` | ยกเลิกรายการ + คืน/ไม่คืนสต็อก + log | DEFINER |
-| `customer_place_order_item` | ลูกค้าสั่งผ่าน QR + ตรวจ session + หักสต็อก | DEFINER |
+| `customer_place_order_item` | ลูกค้าสั่งผ่าน QR + ตรวจ session + หักสต็อก + รองรับโน้ตพิเศษ | DEFINER |
 | `complete_checkout` | ปิดบิล + บันทึก payment + อัปเดตแต้ม + เคลียร์โต๊ะ | DEFINER |
 
 ---
@@ -165,9 +231,10 @@ yokayaki/
 | `employees` | พนักงาน (owner/staff) + PIN Hash |
 | `tables` | โต๊ะ 1-4 (vacant/occupied/checking_out) |
 | `qr_sessions` | เซสชัน QR สำหรับลูกค้า (UUID + หมดอายุ) |
-| `menu_items` | รายการเมนู + สต็อก + ราคา Happy Hour |
+| `menu_items` | รายการเมนู + สต็อก + ราคา Happy Hour + หมวดหมู่ (category) |
 | `orders` | ออเดอร์ (active/completed/voided) |
-| `order_items` | รายการย่อยในออเดอร์ (pending/served/voided) |
+| `order_items` | รายการย่อยในออเดอร์ (pending/served/voided) + โน้ตพิเศษ |
 | `void_logs` | ประวัติการยกเลิก + เหตุผล + คืนสต็อกหรือไม่ |
 | `loyalty_members` | สมาชิก (เบอร์โทร + ชื่อ + แต้ม) |
 | `payments` | ธุรกรรมชำระเงิน (cash/promptpay/mixed) |
+
