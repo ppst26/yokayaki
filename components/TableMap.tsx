@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { LogOut, RefreshCw, ChefHat, User, Layers, ShoppingBag, Receipt, LayoutDashboard, Package, AlertTriangle, UtensilsCrossed, Tag, History } from 'lucide-react';
+import { LogOut, RefreshCw, ChefHat, User, Layers, ShoppingBag, Receipt, LayoutDashboard, Package, AlertTriangle, UtensilsCrossed, Tag, History, Users } from 'lucide-react';
 import { POSOrderScreen } from '@/components/POSOrderScreen';
 import { CheckoutScreen } from '@/components/CheckoutScreen';
 import { StockManager } from '@/components/StockManager';
@@ -12,6 +12,7 @@ import { KitchenScreen } from '@/components/KitchenScreen';
 import { MenuManager } from '@/components/MenuManager';
 import { PromoManager } from '@/components/PromoManager';
 import { SalesHistory } from '@/components/SalesHistory';
+import { LoyaltyManager } from '@/components/LoyaltyManager';
 
 interface Table {
   id: number;
@@ -27,7 +28,7 @@ export const TableMap: React.FC = () => {
   const [actionSelectorTable, setActionSelectorTable] = useState<number | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'floor' | 'kitchen' | 'history' | 'stock' | 'menu' | 'promo' | 'dashboard'>('floor');
+  const [activeTab, setActiveTab] = useState<'floor' | 'kitchen' | 'history' | 'stock' | 'menu' | 'promo' | 'dashboard' | 'loyalty'>('floor');
 
   // Fetch tables from Supabase
   const fetchTables = async () => {
@@ -285,12 +286,25 @@ export const TableMap: React.FC = () => {
                 <LayoutDashboard className="w-3.5 h-3.5" />
                 <span>รายงาน / Dashboard</span>
               </button>
+              <button
+                onClick={() => setActiveTab('loyalty')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                  activeTab === 'loyalty'
+                    ? 'bg-amber-500 text-stone-950 shadow-md shadow-amber-500/20'
+                    : 'text-stone-400 hover:text-white hover:bg-stone-800/50'
+                }`}
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>สมาชิก</span>
+              </button>
             </>
           )}
         </nav>
 
         {/* Tab Content Rendering */}
-        {activeTab === 'stock' && isOwner ? (
+        {activeTab === 'loyalty' && isOwner ? (
+          <LoyaltyManager />
+        ) : activeTab === 'stock' && isOwner ? (
           <StockManager />
         ) : activeTab === 'menu' && isOwner ? (
           <MenuManager />

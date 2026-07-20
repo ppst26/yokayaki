@@ -134,7 +134,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
   const cashNum = parseFloat(cashReceived) || 0;
   const transferAmount = Math.max(0, netAmount - cashNum);
   const changeAmount = cashNum > netAmount ? cashNum - netAmount : 0;
-  const pointsEarned = Math.floor(netAmount / 25); // 25 baht = 1 point
+  const pointsEarned = Math.floor(netAmount / 100) * 10; // 100 baht = 10 points
 
   const promptPayId = process.env.NEXT_PUBLIC_PROMPTPAY_ID || '0899999999';
 
@@ -391,7 +391,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
         p_points_earned: pointsEarned,
         p_points_redeemed: pointsToRedeem,
         p_phone_number: member?.phone_number || null,
-        p_applied_promos: JSON.stringify(promoPayload),
+        p_applied_promos: promoPayload,
       });
 
       if (error) throw error;
