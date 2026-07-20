@@ -34,7 +34,7 @@ const EMPTY_FORM: Omit<IngredientPurchase, 'id'> = {
   buyer_name: '',
 };
 
-type MonthFilter = 'this_month' | 'last_month';
+type MonthFilter = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'last_month';
 
 // รายการวัตถุดิบเริ่มต้น (สำหรับร้านอาหารญี่ปุ่น)
 const DEFAULT_INGREDIENTS = [
@@ -93,21 +93,47 @@ export const StockManager: React.FC = () => {
   // คำนวณช่วงวันที่จาก filter
   const getDateRange = (filter: MonthFilter): { start: string; end: string } => {
     const now = new Date();
-    if (filter === 'this_month') {
-      const start = new Date(now.getFullYear(), now.getMonth(), 1);
-      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      return {
-        start: start.toISOString().split('T')[0],
-        end: end.toISOString().split('T')[0],
-      };
-    } else {
-      // เดือนที่แล้ว
-      const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const end = new Date(now.getFullYear(), now.getMonth(), 0);
-      return {
-        start: start.toISOString().split('T')[0],
-        end: end.toISOString().split('T')[0],
-      };
+    const todayStr = now.toISOString().split('T')[0];
+
+    switch (filter) {
+      case 'today':
+        return { start: todayStr, end: todayStr };
+
+      case 'yesterday': {
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yStr = yesterday.toISOString().split('T')[0];
+        return { start: yStr, end: yStr };
+      }
+
+      case 'this_week': {
+        const day = now.getDay(); // 0=Sun
+        const diff = day === 0 ? 6 : day - 1; // shift to Monday
+        const weekStart = new Date(now);
+        weekStart.setDate(weekStart.getDate() - diff);
+        return {
+          start: weekStart.toISOString().split('T')[0],
+          end: todayStr,
+        };
+      }
+
+      case 'this_month': {
+        const start = new Date(now.getFullYear(), now.getMonth(), 1);
+        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        return {
+          start: start.toISOString().split('T')[0],
+          end: end.toISOString().split('T')[0],
+        };
+      }
+
+      case 'last_month': {
+        const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const end = new Date(now.getFullYear(), now.getMonth(), 0);
+        return {
+          start: start.toISOString().split('T')[0],
+          end: end.toISOString().split('T')[0],
+        };
+      }
     }
   };
 
@@ -301,14 +327,25 @@ export const StockManager: React.FC = () => {
   // === ข้อมูลของ Drill-down view ===
   const selectedGroup = selectedDate ? dailyGroups.find(g => g.date === selectedDate) : null;
 
-  // === ชื่อเดือนสำหรับ filter ===
-  const getMonthLabel = (filter: MonthFilter): string => {
+  // === ชื่อช่วงเวลาสำหรับ filter ===
+  const getFilterLabel = (filter: MonthFilter): string => {
     const now = new Date();
-    if (filter === 'this_month') {
-      return now.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
-    } else {
-      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      return lastMonth.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
+    switch (filter) {
+      case 'today':
+        return 'วันนี้ (' + now.toLocaleDateString('th-TH', { day: '2-digit', month: 'short' }) + ')';
+      case 'yesterday': {
+        const y = new Date(now);
+        y.setDate(y.getDate() - 1);
+        return 'เมื่อวาน (' + y.toLocaleDateString('th-TH', { day: '2-digit', month: 'short' }) + ')';
+      }
+      case 'this_week':
+        return 'สัปดาห์นี้';
+      case 'this_month':
+        return now.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
+      case 'last_month': {
+        const lm = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        return lm.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
+      }
     }
   };
 
@@ -489,7 +526,7 @@ export const StockManager: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-stone-900/40 border border-stone-850 rounded-2xl p-5 backdrop-blur-md flex items-center justify-between">
             <div className="space-y-1">
-              <div className="text-stone-400 text-xs font-medium">ต้นทุนวัตถุดิบ — {getMonthLabel(monthFilter)}</div>
+              <div className="text-stone-400 text-xs font-medium">ต้นทุนวัตถุดิบ — {getFilterLabel(monthFilter)}</div>
               <div className="text-2xl font-black text-amber-500">{totalCost.toLocaleString()} ฿</div>
             </div>
             <div className="p-3 bg-amber-950/30 text-amber-400 rounded-xl border border-amber-900/25">
@@ -507,19 +544,22 @@ export const StockManager: React.FC = () => {
           </div>
         </div>
 
-        {/* Filters — เดือนนี้ / เดือนที่แล้ว + ช่องค้นหา */}
+        {/* Filters — วันนี้ / เมื่อวาน / สัปดาห์นี้ / เดือนนี้ / เดือนที่แล้ว + ช่องค้นหา */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex gap-2">
-            {(['this_month', 'last_month'] as const).map(f => (
+          <div className="flex gap-2 overflow-x-auto">
+            {(['today', 'yesterday', 'this_week', 'this_month', 'last_month'] as const).map(f => (
               <button
                 key={f}
                 onClick={() => setMonthFilter(f)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer border ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer border whitespace-nowrap ${
                   monthFilter === f
                     ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
                     : 'bg-stone-900/40 border-stone-850 text-stone-400 hover:text-white hover:bg-stone-800/50'
                 }`}
               >
+                {f === 'today' && 'วันนี้'}
+                {f === 'yesterday' && 'เมื่อวาน'}
+                {f === 'this_week' && 'สัปดาห์นี้'}
                 {f === 'this_month' && 'เดือนนี้'}
                 {f === 'last_month' && 'เดือนที่แล้ว'}
               </button>
