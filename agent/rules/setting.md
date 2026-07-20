@@ -1,10 +1,33 @@
-## Agent Communication Rules
+## 🗣️ Agent Communication Rules (กฎการสื่อสาร)
 
 - สื่อสารกับผู้ใช้เป็นภาษาไทย แต่คิดและทำงานเบื้องหลังเป็นภาษาอังกฤษ
 - ตอบคำถามและอธิบายให้ผู้ใช้ ภาษาไทย เสมอ
 - เวลา คิด วิเคราะห์ code หรือทำงานเบื้องหลัง (reasoning) — ให้ใช้ ภาษาอังกฤษ เพื่อประหยัด token สูงสุด
-- ตั้งชื่อตัวแปร ฟังก์ชัน โครงสร้าง และ interface — ใช้ ภาษาอังกฤษ เสมอ เพื่อความเข้ากันได้กับ NextJS, React, TypeScript, Tailwind CSS ecosystem
-- comment ใน source code — ให้เป็นไปตามสไตล์ที่มีอยู่ใน codebase ปัจจุบัน (โปรเจ็คนี้ให้คอมเม้นส่วนใหญ่เป็นภาษาไทย ดังนั้นเขียนภาษาไทยได้ ไม่ต้องเปลี่ยน)
-- เมื่อทำการเสร็จสิ้นคำสั่ง ให้ทำการ commmit code ทุกครั้ง
+- เมื่อทำการเสร็จสิ้นคำสั่ง ให้ทำการ commit code ทุกครั้ง
+
+---
+
+## 📝 Naming Conventions (กฎการตั้งชื่อ)
+
+### ภาษาที่ใช้ตั้งชื่อ
+- ตั้งชื่อตัวแปร ฟังก์ชัน โครงสร้าง และ interface — ใช้ **ภาษาอังกฤษ** เสมอ เพื่อความเข้ากันได้กับ Next.js, React, TypeScript, TailwindCSS ecosystem
+- comment ใน source code — ให้เป็นไปตามสไตล์ที่มีอยู่ใน codebase ปัจจุบัน (โปรเจกต์นี้คอมเม้นเป็น **ภาษาไทย** เป็นหลัก ดังนั้นเขียนภาษาไทยได้ ไม่ต้องเปลี่ยน)
+
+### File Naming Convention
+| ประเภทไฟล์ | รูปแบบ | ตัวอย่าง |
+|------------|--------|----------|
+| React Components | **PascalCase**.tsx | `POSOrderScreen.tsx`, `PinPad.tsx` |
+| Context Providers | **PascalCase**.tsx | `AuthContext.tsx` |
+| Utility / Lib | **camelCase**.ts | `supabase.ts` |
+| SQL Migrations | **YYYYMMDD**_description.sql | `20260720_promotions.sql` |
+| Config files | **lowercase** dot notation | `next.config.ts`, `tsconfig.json` |
+
+### Import Path Convention
+- ใช้ **`@/`** alias สำหรับ import ทุกครั้ง (ตั้งค่าใน `tsconfig.json` → `paths: { "@/*": ["./*"] }`)
+- ตัวอย่าง:
+  ```typescript
+  import { supabase } from '@/lib/supabase';
+  import { useAuth } from '@/context/AuthContext';
+  ```
 
 ---
