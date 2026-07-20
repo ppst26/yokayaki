@@ -18,6 +18,7 @@
 | 7 | โน้ตพิเศษ (Special Notes) | ✅ เสร็จสมบูรณ์ |
 | 8 | หน้าจอครัว (Kitchen Display System) | ✅ เสร็จสมบูรณ์ |
 | 9 | Owner Reports & EOD Audit | ✅ เสร็จสมบูรณ์ |
+| 10 | CRM & Loyalty Management | ✅ เสร็จสมบูรณ์ |
 
 ---
 
@@ -183,6 +184,27 @@
 
 ---
 
+## Phase 10: CRM & Loyalty Management ✅
+
+**เป้าหมาย:** เพิ่มระบบสมาชิก CRM ย่อยในการนำทางหลักของ Owner, มีระบบดูรายชื่อลูกค้า, ตรวจสอบประวัติบิลซื้อสะสม, ปรับปรุงแต้มด้วยมือพร้อมบันทึกประวัติเหตุผล (Audit Logs)
+
+### ไฟล์ที่สร้าง/แก้ไข
+| ไฟล์ | ประเภท | คำอธิบาย |
+|------|--------|----------|
+| [supabase/migrations/20260721_loyalty_crm.sql](file:///c:/Users/PP/Desktop/React/yokayaki/supabase/migrations/20260721_loyalty_crm.sql) | SQL | ตาราง `points_logs`, คอลัมน์ `phone_number` บน `payments` และอัปเดต `complete_checkout` |
+| [components/LoyaltyManager.tsx](file:///c:/Users/PP/Desktop/React/yokayaki/components/LoyaltyManager.tsx) | Component | ส่วนต่อประสานงานสมาชิก: แสดงสถิติ, ค้นหา, แก้ไข/ลบสมาชิก, ประวัติบิลที่ชำระ, และการทำรายการปรับแต่งแต้มสะสม |
+| [components/TableMap.tsx](file:///c:/Users/PP/Desktop/React/yokayaki/components/TableMap.tsx) | Component | เพิ่มแท็บ "สมาชิก" สำหรับระดับ Owner |
+| [components/CheckoutScreen.tsx](file:///c:/Users/PP/Desktop/React/yokayaki/components/CheckoutScreen.tsx) | Component | อัปเดตการคิดคำนวณแต้มเป็น **ทุก 100 บาท = 10 แต้ม** |
+
+### ผลลัพธ์
+- ✅ สมัครสมาชิกใหม่ได้ในหน้าเช็คบิลพนักงานเหมือนเดิม
+- ✅ แท็บ "สมาชิก" ในการนำทางหลักของ Owner สามารถดูรายชื่อผู้เป็นสมาชิกทั้งหมด
+- ✅ หน้าต่างเจาะลึก (Drill-down) ข้อมูลสมาชิก ดูประวัติบิลชำระเงินย้อนหลังได้แบบไม่ต้องลงลึกถึงรายการอาหาร
+- ✅ ฟังก์ชั่นปรับแต่งแต้มสะสมด้วยมือ (เพิ่ม/ลดแต้ม) พร้อมบันทึกผู้ทำรายการและเหตุผลลงใน `points_logs`
+- ✅ พนักงานทั่วไปไม่สามารถเข้าถึงหน้าต่างจัดการสมาชิกได้
+
+---
+
 ## 📁 โครงสร้างไฟล์โปรเจกต์ (Project Structure)
 
 ```
@@ -200,7 +222,8 @@ yokayaki/
 │   ├── CheckoutScreen.tsx             # Checkout + Loyalty + PromptPay QR
 │   ├── StockManager.tsx               # Stock Management (Owner)
 │   ├── OwnerDashboard.tsx             # Owner Reports Dashboard
-│   └── KitchenScreen.tsx              # Kitchen Display System (KDS)
+│   ├── KitchenScreen.tsx              # Kitchen Display System (KDS)
+│   └── LoyaltyManager.tsx             # Loyalty CRM Manager (Owner)
 ├── context/
 │   └── AuthContext.tsx                # PIN Auth + Session Management
 ├── lib/
@@ -211,7 +234,8 @@ yokayaki/
 │   ├── 20260707_customer_order_rpc.sql # Customer Order RPC + RLS
 │   ├── 20260707_happy_hour_and_payment.sql # Happy Hour + Checkout RPC
 │   ├── 20260719_menu_categories.sql   # Menu Categories + Seed Items
-│   └── 20260720_special_notes.sql     # Notes Column + RPC Update
+│   ├── 20260720_special_notes.sql     # Notes Column + RPC Update
+│   └── 20260721_loyalty_crm.sql       # Points Logs + updated Checkout RPC
 ├── docs/superpowers/
 │   ├── plans/                         # Development Plans
 │   └── specs/                         # Feature Specifications (order.md, etc.)
@@ -245,5 +269,6 @@ yokayaki/
 | `order_items` | รายการย่อยในออเดอร์ (pending/served/voided) + โน้ตพิเศษ |
 | `void_logs` | ประวัติการยกเลิก + เหตุผล + คืนสต็อกหรือไม่ |
 | `loyalty_members` | สมาชิก (เบอร์โทร + ชื่อ + แต้ม) |
-| `payments` | ธุรกรรมชำระเงิน (cash/promptpay/mixed) |
+| `payments` | ธุรกรรมชำระเงิน (cash/promptpay/mixed) + phone_number |
+| `points_logs` | ประวัติการปรับแต้มสมาชิกด้วยมือ (Audit Log) |
 
