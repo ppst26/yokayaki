@@ -190,22 +190,22 @@ export const KitchenScreen: React.FC = () => {
 
   const getWaitTimeColorClass = (createdAt: string) => {
     const minutes = Math.floor((new Date().getTime() - new Date(createdAt).getTime()) / 60000);
-    if (minutes >= 15) return 'text-red-400 bg-red-950/30 border-red-900/30 animate-pulse';
-    if (minutes >= 8) return 'text-orange-400 bg-orange-950/30 border-orange-900/30';
-    return 'text-stone-400 bg-stone-900/80 border-stone-800';
+    if (minutes >= 15) return 'text-rose-800 bg-rose-100 border-rose-300 animate-pulse font-bold';
+    if (minutes >= 8) return 'text-amber-800 bg-amber-100 border-amber-300 font-bold';
+    return 'text-slate-600 bg-slate-100 border-slate-200';
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* KDS Header Controls */}
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-stone-900/20 border border-stone-850 p-4 rounded-2xl">
-        <div className="flex items-center gap-2.5">
-          <div className="p-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-xl">
-            <ChefHat className="w-5 h-5" />
+      <div className="flex flex-wrap items-center justify-between gap-4 bg-white border border-slate-200/80 p-4 rounded-2xl shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-red-50 border border-red-100 text-red-600 rounded-xl">
+            <ChefHat className="w-5 h-5 stroke-[2]" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-stone-100">รายการรับงานในครัว (KDS)</h2>
-            <p className="text-xs text-stone-400 mt-0.5">จัดการออเดอร์เรียลไทม์ที่รอปรุงในครัว</p>
+            <h2 className="text-base font-extrabold text-slate-900">รายการรับงานในครัว (KDS)</h2>
+            <p className="text-xs text-slate-500 font-semibold mt-0.5">ออเดอร์เรียลไทม์ที่รอปรุงในครัว</p>
           </div>
         </div>
 
@@ -213,10 +213,10 @@ export const KitchenScreen: React.FC = () => {
           {/* Mute Button */}
           <button
             onClick={() => setMuteSound(!muteSound)}
-            className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-xs font-semibold cursor-pointer active:scale-95 transition ${
+            className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-xs font-bold cursor-pointer active:scale-95 transition ${
               muteSound
-                ? 'bg-red-950/20 border-red-900/30 text-red-400 hover:bg-red-950/30'
-                : 'bg-emerald-950/20 border-emerald-900/30 text-emerald-400 hover:bg-emerald-950/30'
+                ? 'bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100'
+                : 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
             }`}
           >
             {muteSound ? (
@@ -235,7 +235,7 @@ export const KitchenScreen: React.FC = () => {
           {/* Refresh Button */}
           <button
             onClick={() => fetchKdsItems(true)}
-            className="p-2 bg-stone-900 hover:bg-stone-800 border border-stone-800 text-stone-300 hover:text-white rounded-xl transition active:scale-95 cursor-pointer"
+            className="p-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 hover:text-slate-900 rounded-xl transition active:scale-95 cursor-pointer shadow-xs"
             title="รีเฟรชคิวครัว"
           >
             <RefreshCw className="w-4 h-4" />
@@ -244,21 +244,21 @@ export const KitchenScreen: React.FC = () => {
       </div>
 
       {errorMsg && (
-        <div className="p-4 bg-red-950/30 border border-red-900/50 text-red-400 rounded-2xl text-sm font-semibold">
+        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs font-semibold">
           {errorMsg}
         </div>
       )}
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-24">
-          <Loader2 className="w-10 h-10 text-amber-500 animate-spin mb-4" />
-          <p className="text-stone-500 text-sm">กำลังอัปเดตออเดอร์ในครัว...</p>
+          <Loader2 className="w-10 h-10 text-red-600 animate-spin mb-4" />
+          <p className="text-slate-500 text-xs font-medium">กำลังอัปเดตออเดอร์ในครัว...</p>
         </div>
       ) : Object.keys(groupedByTable).length === 0 ? (
-        <div className="text-center py-32 bg-stone-900/20 border border-stone-850/80 border-dashed rounded-3xl">
-          <ChefHat className="w-16 h-16 text-stone-700 mx-auto mb-4 stroke-[1.2]" />
-          <h3 className="text-lg font-bold text-stone-400">ยังไม่มีรายการออเดอร์รอปรุง</h3>
-          <p className="text-stone-500 text-xs mt-1">เมื่อลูกค้าสั่งอาหารหรือพนักงานคีย์เข้าระบบ รายการจะปรากฏที่นี่ทันที</p>
+        <div className="text-center py-24 bg-white border border-slate-200/80 border-dashed rounded-3xl p-6 shadow-xs">
+          <ChefHat className="w-16 h-16 text-slate-300 mx-auto mb-4 stroke-[1.2]" />
+          <h3 className="text-base font-extrabold text-slate-700">ยังไม่มีรายการออเดอร์รอปรุง</h3>
+          <p className="text-slate-400 text-xs mt-1 font-medium">เมื่อลูกค้าหรือพนักงานส่งออเดอร์ รายการจะปรากฏที่นี่ทันทีแบบเรียลไทม์</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -272,13 +272,13 @@ export const KitchenScreen: React.FC = () => {
             return (
               <div
                 key={tableId}
-                className="bg-stone-900/30 border border-stone-800 rounded-3xl overflow-hidden flex flex-col justify-between"
+                className="bg-white border border-slate-200/80 rounded-2xl overflow-hidden flex flex-col justify-between shadow-sm"
               >
                 {/* Table Card Header */}
-                <div className="p-4 bg-stone-900/70 border-b border-stone-850 flex items-center justify-between">
+                <div className="p-4 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-black text-white">โต๊ะ {tableId}</h3>
-                    <p className="text-[10px] text-stone-500 mt-0.5">มีทั้งหมด {tableItems.length} รายการ</p>
+                    <h3 className="text-base font-black text-slate-900">โต๊ะ {tableId}</h3>
+                    <p className="text-[11px] text-slate-500 font-semibold mt-0.5">รวม {tableItems.length} รายการ</p>
                   </div>
                   {/* Timer widget */}
                   <div className={`flex items-center gap-1 px-2.5 py-1 text-xs font-bold border rounded-lg ${getWaitTimeColorClass(oldestOrderTime)}`}>
@@ -292,43 +292,43 @@ export const KitchenScreen: React.FC = () => {
                   {tableItems.map(item => (
                     <div
                       key={item.id}
-                      className="p-3 bg-stone-950/60 border border-stone-850 rounded-2xl flex items-start justify-between gap-4"
+                      className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl flex items-start justify-between gap-4 text-xs"
                     >
                       <div className="space-y-1 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-stone-100 text-base">{item.menu_items?.name}</span>
-                          <span className="text-xs font-extrabold text-amber-500 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-lg whitespace-nowrap">
+                          <span className="font-bold text-slate-900 text-sm">{item.menu_items?.name}</span>
+                          <span className="text-xs font-extrabold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-lg whitespace-nowrap">
                             x{item.quantity} จาน
                           </span>
                         </div>
                         {/* Note badge */}
                         {item.notes && (
-                          <div className="text-xs text-orange-400 font-extrabold bg-orange-950/20 border border-orange-900/30 px-2.5 py-1 rounded-lg mt-1 select-none">
+                          <div className="text-[11px] text-amber-800 font-bold bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg mt-1 select-none">
                             โน้ต: {item.notes}
                           </div>
                         )}
-                        <div className="text-[10px] text-stone-500">
-                          {item.menu_items?.category || 'เมนู'} • สั่งตอน {new Date(item.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.
+                        <div className="text-[10px] text-slate-400 font-medium">
+                          {item.menu_items?.category || 'เมนู'} • สั่งเมื่อ {new Date(item.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.
                         </div>
                       </div>
 
                       {/* Individual serve button */}
                       <button
                         onClick={() => serveItem(item.id)}
-                        className="p-2 bg-stone-900 hover:bg-emerald-500/10 border border-stone-800 hover:border-emerald-500/20 text-stone-400 hover:text-emerald-400 rounded-xl active:scale-95 transition cursor-pointer"
+                        className="p-2 bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 text-slate-500 hover:text-emerald-700 rounded-xl active:scale-95 transition cursor-pointer shadow-xs"
                         title="เสิร์ฟจานนี้"
                       >
-                        <CheckCircle2 className="w-5 h-5" />
+                        <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                       </button>
                     </div>
                   ))}
                 </div>
 
                 {/* Table Card Footer / Serve All */}
-                <div className="p-4 bg-stone-900/10 border-t border-stone-850">
+                <div className="p-4 bg-slate-50 border-t border-slate-200/80">
                   <button
                     onClick={() => serveAllTableItems(Number(tableId), itemIds)}
-                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-black text-xs font-extrabold rounded-xl active:scale-97 transition shadow-md shadow-emerald-600/10 flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-extrabold rounded-xl active:scale-97 transition shadow-sm shadow-red-600/20 flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     <span>เสิร์ฟทั้งหมดของโต๊ะ {tableId}</span>
@@ -342,3 +342,4 @@ export const KitchenScreen: React.FC = () => {
     </div>
   );
 };
+
