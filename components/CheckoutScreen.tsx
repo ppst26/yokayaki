@@ -477,14 +477,14 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
         <div className="flex gap-3 mt-6 print:hidden">
           <button
             onClick={() => window.print()}
-            className="flex items-center gap-2 bg-amber-500 text-black px-6 py-3 rounded-xl font-bold text-sm hover:bg-amber-400 active:scale-95 transition"
+            className="flex items-center gap-2 bg-red-600 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-red-700 active:scale-95 transition shadow-sm cursor-pointer"
           >
             <Printer className="w-4 h-4" />
             พิมพ์ใบเสร็จ
           </button>
           <button
             onClick={onBack}
-            className="flex items-center gap-2 bg-stone-800 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-stone-700 active:scale-95 transition"
+            className="flex items-center gap-2 bg-slate-100 text-slate-700 border border-slate-200 px-6 py-3 rounded-xl font-bold text-sm hover:bg-slate-200 active:scale-95 transition cursor-pointer"
           >
             กลับหน้าผังโต๊ะ
           </button>
@@ -496,52 +496,52 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-stone-950 flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-stone-900 via-neutral-950 to-black text-white p-6">
-      <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen bg-gray-100 text-slate-800 p-6 font-sans">
+      <div className="max-w-4xl mx-auto">
         {/* Header */}
         <header className="flex items-center gap-4 mb-8">
-          <button onClick={onBack} className="p-3 bg-stone-900/80 border border-stone-800 rounded-2xl hover:bg-stone-800 transition active:scale-95 text-stone-300">
+          <button onClick={onBack} className="p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition active:scale-95 text-slate-700 shadow-xs">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-xl md:text-2xl font-extrabold tracking-tight flex items-center gap-2">
-              <Receipt className="w-6 h-6 text-amber-500" />
+            <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <Receipt className="w-6 h-6 text-red-600" />
               ชำระเงิน / เช็คบิล
             </h1>
-            <p className="text-sm text-stone-400 font-semibold mt-0.5">โต๊ะ {tableId} • ออเดอร์ #{orderId}</p>
+            <p className="text-xs text-slate-500 font-semibold mt-0.5">ประจำ <span className="text-red-600 font-bold">โต๊ะ {tableId}</span> • ออเดอร์ #{orderId}</p>
           </div>
         </header>
 
         {errorMsg && (
-          <div className="mb-6 p-4 bg-red-950/30 border border-red-900/50 text-red-400 rounded-2xl text-sm font-semibold flex items-center gap-3">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
+          <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs font-semibold flex items-center gap-3">
+            <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
             <span>{errorMsg}</span>
           </div>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* LEFT: Order Summary */}
-          <div className="bg-stone-900/40 border border-stone-800 rounded-2xl p-5">
-            <h2 className="text-base font-bold text-stone-300 mb-4">สรุปรายการอาหาร</h2>
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm">
+            <h2 className="text-base font-extrabold text-slate-900 mb-4 pb-2 border-b border-slate-100">สรุปรายการอาหาร</h2>
             <div className="space-y-2 max-h-[40vh] overflow-y-auto pr-2">
               {activeItems.map(item => (
-                <div key={item.id} className="p-3 rounded-xl bg-stone-950/50 border border-stone-900 text-sm space-y-1">
+                <div key={item.id} className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-xs space-y-1">
                   <div className="flex justify-between items-center">
                     <div>
-                      <span className="font-semibold text-stone-200">{item.menu_items?.name}</span>
-                      <span className="text-stone-500 ml-2">x{item.quantity}</span>
+                      <span className="font-bold text-slate-900">{item.menu_items?.name}</span>
+                      <span className="text-slate-500 ml-2 font-semibold">x{item.quantity}</span>
                     </div>
-                    <span className="font-bold text-amber-500">{(item.quantity * item.unit_price).toLocaleString()} ฿</span>
+                    <span className="font-extrabold text-red-600">{(item.quantity * item.unit_price).toLocaleString()} ฿</span>
                   </div>
                   {item.notes && (
-                    <div className="text-xs text-amber-500/80 font-medium">
+                    <div className="text-[11px] text-amber-700 font-semibold">
                       โน้ต: {item.notes}
                     </div>
                   )}
@@ -549,33 +549,33 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
               ))}
             </div>
 
-            <div className="mt-4 pt-4 border-t border-stone-800 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-stone-400">ยอดรวม ({activeItems.reduce((s, i) => s + i.quantity, 0)} ชิ้น)</span>
-                <span className="text-stone-200 font-bold">{subtotal.toLocaleString()} บาท</span>
+            <div className="mt-6 pt-4 border-t border-slate-100 space-y-2">
+              <div className="flex justify-between text-xs font-semibold">
+                <span className="text-slate-500">ยอดรวม ({activeItems.reduce((s, i) => s + i.quantity, 0)} ชิ้น)</span>
+                <span className="text-slate-800 font-bold">{subtotal.toLocaleString()} บาท</span>
               </div>
               {appliedPromos.map(ap => (
-                <div key={ap.promo.id} className="text-sm space-y-1">
+                <div key={ap.promo.id} className="text-xs space-y-1">
                   <div className="flex justify-between">
-                    <span className="text-fuchsia-400 flex items-center gap-1"><Tag className="w-3 h-3" />{ap.promo.name}</span>
-                    <span className="text-fuchsia-400 font-bold">-{ap.discountValue.toLocaleString()} บาท</span>
+                    <span className="text-red-600 font-semibold flex items-center gap-1"><Tag className="w-3 h-3" />{ap.promo.name}</span>
+                    <span className="text-red-600 font-extrabold">-{ap.discountValue.toLocaleString()} บาท</span>
                   </div>
                   {ap.freeItems && ap.freeItems.map((fi, idx) => (
-                    <div key={idx} className="text-xs text-stone-500 pl-4 font-semibold">
+                    <div key={idx} className="text-[11px] text-slate-500 pl-4 font-semibold">
                       • ฟรี: {fi.name} x{fi.qty}
                     </div>
                   ))}
                 </div>
               ))}
               {loyaltyDiscount > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-emerald-400">ส่วนลดแต้มสมาชิก</span>
-                  <span className="text-emerald-400 font-bold">-{loyaltyDiscount.toLocaleString()} บาท</span>
+                <div className="flex justify-between text-xs font-semibold">
+                  <span className="text-emerald-600">ส่วนลดแต้มสมาชิก</span>
+                  <span className="text-emerald-600 font-extrabold">-{loyaltyDiscount.toLocaleString()} บาท</span>
                 </div>
               )}
-              <div className="flex justify-between text-lg pt-2 border-t border-stone-800">
-                <span className="font-bold text-white">ยอดสุทธิ</span>
-                <span className="font-extrabold text-amber-500">{netAmount.toLocaleString()} บาท</span>
+              <div className="flex justify-between items-center text-lg pt-3 border-t border-slate-100">
+                <span className="font-extrabold text-slate-900">ยอดสุทธิรวม</span>
+                <span className="font-black text-2xl text-red-600">{netAmount.toLocaleString()} บาท</span>
               </div>
             </div>
           </div>
@@ -583,8 +583,8 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
           {/* RIGHT: Payment Controls */}
           <div className="space-y-5">
             {/* Loyalty Member Lookup */}
-            <div className="bg-stone-900/40 border border-stone-800 rounded-2xl p-5">
-              <h3 className="text-sm font-bold text-stone-300 mb-3">สมาชิกสะสมแต้ม (ไม่บังคับ)</h3>
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm">
+              <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3">สมาชิกสะสมแต้ม (CRM)</h3>
               <div className="flex gap-2">
                 <input
                   type="tel"
@@ -592,51 +592,51 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
                   placeholder="เบอร์โทรศัพท์ 10 หลัก"
                   value={phoneInput}
                   onChange={e => setPhoneInput(e.target.value.replace(/\D/g, ''))}
-                  className="flex-1 bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-stone-600 focus:border-amber-500/50 focus:outline-none transition"
+                  className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-red-500 focus:outline-none transition font-semibold"
                 />
                 <button
                   onClick={searchMember}
                   disabled={phoneInput.length !== 10 || isSearchingMember}
-                  className="px-4 py-2.5 bg-stone-800 hover:bg-stone-700 disabled:opacity-50 rounded-xl text-sm font-bold transition active:scale-95"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 transition active:scale-95"
                 >
                   <Search className="w-4 h-4" />
                 </button>
               </div>
 
               {member && (
-                <div className="mt-3 p-3 bg-emerald-950/30 border border-emerald-900/30 rounded-xl">
-                  <p className="text-emerald-400 text-sm font-bold">สมาชิก: {member.name}</p>
-                  <p className="text-emerald-500/80 text-xs mt-1">แต้มคงเหลือ: <span className="font-bold text-emerald-400">{member.points} แต้ม</span></p>
+                <div className="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                  <p className="text-emerald-800 text-xs font-bold">สมาชิก: {member.name}</p>
+                  <p className="text-emerald-700 text-[11px] mt-0.5">แต้มคงเหลือ: <span className="font-extrabold">{member.points} แต้ม</span></p>
                   <div className="flex items-center gap-2 mt-2">
-                    <label className="text-xs text-stone-400">ใช้แต้ม:</label>
+                    <label className="text-xs text-slate-600 font-semibold">ใช้แต้ม:</label>
                     <input
                       type="number"
                       min={0}
                       max={Math.min(member.points, subtotal)}
                       value={pointsToRedeem}
                       onChange={e => setPointsToRedeem(Math.min(Number(e.target.value) || 0, member.points, subtotal))}
-                      className="w-24 bg-stone-950 border border-stone-800 rounded-lg px-3 py-1.5 text-sm text-white focus:border-amber-500/50 focus:outline-none"
+                      className="w-24 bg-white border border-slate-200 rounded-lg px-3 py-1 text-xs font-bold text-slate-800 focus:border-red-500 focus:outline-none"
                     />
-                    <span className="text-xs text-stone-500">(1 แต้ม = 1 บาท)</span>
+                    <span className="text-[11px] text-slate-400">(1 แต้ม = 1 บาท)</span>
                   </div>
                 </div>
               )}
 
               {showRegister && !member && (
-                <div className="mt-3 p-3 bg-blue-950/20 border border-blue-900/30 rounded-xl">
-                  <p className="text-blue-400 text-xs mb-2">ไม่พบสมาชิก สมัครใหม่?</p>
+                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+                  <p className="text-blue-800 text-xs font-semibold mb-2">ไม่พบสมาชิก สมัครใหม่?</p>
                   <div className="flex gap-2">
                     <input
                       type="text"
                       placeholder="ชื่อลูกค้า"
                       value={registerName}
                       onChange={e => setRegisterName(e.target.value)}
-                      className="flex-1 bg-stone-950 border border-stone-800 rounded-lg px-3 py-2 text-sm text-white placeholder:text-stone-600 focus:border-blue-500/50 focus:outline-none"
+                      className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:border-blue-500 focus:outline-none"
                     />
                     <button
                       onClick={registerMember}
                       disabled={!registerName.trim()}
-                      className="flex items-center gap-1 px-3 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg text-xs font-bold transition active:scale-95"
+                      className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 rounded-lg text-xs font-bold transition active:scale-95 shadow-xs"
                     >
                       <UserPlus className="w-3.5 h-3.5" />
                       สมัคร
@@ -647,18 +647,18 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
             </div>
 
             {/* Coupon Code */}
-            <div className="bg-stone-900/40 border border-stone-800 rounded-2xl p-5">
-              <h3 className="text-sm font-bold text-stone-300 mb-3 flex items-center gap-2">
-                <TicketPercent className="w-4 h-4 text-fuchsia-500" />
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm">
+              <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                <TicketPercent className="w-4 h-4 text-red-600" />
                 คูปองส่วนลด
               </h3>
               {couponApplied ? (
-                <div className="p-3 bg-fuchsia-950/20 border border-fuchsia-900/30 rounded-xl flex items-center justify-between">
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-center justify-between">
                   <div>
-                    <p className="text-fuchsia-400 text-sm font-bold">{couponApplied.name}</p>
-                    <p className="text-fuchsia-500/70 text-xs">โค้ด: {couponApplied.coupon_code} • ลด {couponApplied.discount_amount} บาท</p>
+                    <p className="text-red-700 text-xs font-bold">{couponApplied.name}</p>
+                    <p className="text-red-600/80 text-[11px]">โค้ด: {couponApplied.coupon_code} • ลด {couponApplied.discount_amount} บาท</p>
                   </div>
-                  <button onClick={removeCoupon} className="p-1 text-stone-500 hover:text-red-400 cursor-pointer"><X className="w-4 h-4" /></button>
+                  <button onClick={removeCoupon} className="p-1 text-slate-400 hover:text-red-600 cursor-pointer"><X className="w-4 h-4" /></button>
                 </div>
               ) : (
                 <>
@@ -668,25 +668,25 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
                       placeholder='รหัสคูปอง เช่น "YOKA50"'
                       value={couponInput}
                       onChange={e => { setCouponInput(e.target.value.toUpperCase()); setCouponError(null); }}
-                      className="flex-1 bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-stone-600 focus:border-fuchsia-500/50 focus:outline-none transition uppercase"
+                      className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 font-semibold focus:border-red-500 focus:outline-none transition uppercase"
                     />
                     <button
                       onClick={applyCoupon}
                       disabled={!couponInput.trim()}
-                      className="px-4 py-2.5 bg-fuchsia-600 hover:bg-fuchsia-500 disabled:opacity-40 rounded-xl text-sm font-bold text-white transition active:scale-95 cursor-pointer"
+                      className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-40 rounded-xl text-xs font-bold text-white transition active:scale-95 cursor-pointer shadow-xs"
                     >
                       ใช้คูปอง
                     </button>
                   </div>
-                  {couponError && <p className="text-red-400 text-xs mt-2 font-medium">{couponError}</p>}
+                  {couponError && <p className="text-rose-600 text-xs mt-2 font-medium">{couponError}</p>}
                 </>
               )}
             </div>
 
             {/* Cash Input */}
-            <div className="bg-stone-900/40 border border-stone-800 rounded-2xl p-5">
-              <h3 className="text-sm font-bold text-stone-300 mb-3 flex items-center gap-2">
-                <Banknote className="w-4 h-4 text-emerald-500" />
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm">
+              <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                <Banknote className="w-4 h-4 text-emerald-600" />
                 เงินสดรับ
               </h3>
               <input
@@ -696,32 +696,33 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
                 placeholder="0"
                 value={cashReceived}
                 onChange={e => setCashReceived(e.target.value)}
-                className="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 text-2xl font-bold text-white text-right placeholder:text-stone-700 focus:border-emerald-500/50 focus:outline-none transition"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-2xl font-black text-slate-900 text-right focus:border-emerald-500 focus:outline-none transition"
               />
+
               <div className="flex gap-2 mt-2">
                 {[100, 500, 1000].map(amt => (
-                  <button key={amt} onClick={() => setCashReceived(String(amt))} className="flex-1 py-2 bg-stone-800 hover:bg-stone-700 rounded-lg text-xs font-bold text-stone-300 transition active:scale-95">
+                  <button key={amt} onClick={() => setCashReceived(String(amt))} className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 transition active:scale-95">
                     {amt}
                   </button>
                 ))}
-                <button onClick={() => setCashReceived(String(netAmount))} className="flex-1 py-2 bg-emerald-900/40 hover:bg-emerald-800/40 border border-emerald-800/40 rounded-lg text-xs font-bold text-emerald-400 transition active:scale-95">
+                <button onClick={() => setCashReceived(String(netAmount))} className="flex-1 py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-bold text-emerald-700 transition active:scale-95">
                   เต็มจำนวน
                 </button>
               </div>
 
               {/* Change calculation */}
               {cashNum > 0 && changeAmount > 0 && (
-                <div className="mt-3 p-3 bg-emerald-950/30 border border-emerald-900/30 rounded-xl flex justify-between items-center">
-                  <span className="text-emerald-400 text-sm font-semibold">เงินทอน</span>
-                  <span className="text-emerald-400 font-extrabold text-lg">{changeAmount.toLocaleString()} บาท</span>
+                <div className="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex justify-between items-center">
+                  <span className="text-emerald-800 text-xs font-bold">เงินทอน</span>
+                  <span className="text-emerald-700 font-black text-lg">{changeAmount.toLocaleString()} บาท</span>
                 </div>
               )}
 
               {/* Transfer remaining */}
               {cashNum > 0 && cashNum < netAmount && (
-                <div className="mt-3 p-3 bg-blue-950/20 border border-blue-900/30 rounded-xl flex justify-between items-center">
-                  <span className="text-blue-400 text-sm font-semibold">ยอดค้างชำระ (โอน)</span>
-                  <span className="text-blue-400 font-extrabold text-lg">{transferAmount.toLocaleString()} บาท</span>
+                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-xl flex justify-between items-center">
+                  <span className="text-blue-800 text-xs font-bold">ยอดค้างชำระ (โอน)</span>
+                  <span className="text-blue-700 font-black text-lg">{transferAmount.toLocaleString()} บาท</span>
                 </div>
               )}
             </div>
@@ -732,9 +733,9 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
               {(cashNum < netAmount) && netAmount > 0 && (
                 <button
                   onClick={() => setShowQrModal(true)}
-                  className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-extrabold text-sm rounded-2xl transition active:scale-98 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/10"
+                  className="w-full py-3.5 bg-slate-800 hover:bg-slate-900 text-white font-extrabold text-xs rounded-xl transition active:scale-98 flex items-center justify-center gap-2 shadow-sm"
                 >
-                  <CreditCard className="w-5 h-5" />
+                  <CreditCard className="w-4 h-4" />
                   สร้าง QR พร้อมเพย์ ({transferAmount.toLocaleString()} บาท)
                 </button>
               )}
@@ -743,11 +744,11 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
               <button
                 onClick={processPayment}
                 disabled={isProcessing || netAmount <= 0}
-                className="w-full py-4 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 disabled:from-stone-800 disabled:to-stone-800 text-black font-extrabold text-sm rounded-2xl transition active:scale-98 flex items-center justify-center gap-2 shadow-lg shadow-amber-500/10"
+                className="w-full py-4 bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white font-extrabold text-sm rounded-xl transition active:scale-98 flex items-center justify-center gap-2 shadow-md shadow-red-600/20 cursor-pointer"
               >
                 {isProcessing ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     กำลังบันทึก...
                   </>
                 ) : (
@@ -764,20 +765,21 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
 
       {/* PromptPay QR Modal */}
       {showQrModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-stone-900 border border-stone-800 rounded-3xl w-full max-w-sm p-6 shadow-2xl relative">
-            <button onClick={() => setShowQrModal(false)} className="absolute top-4 right-4 p-2 bg-stone-950 hover:bg-stone-800 rounded-full text-stone-400 hover:text-white transition">
-              <X className="w-5 h-5" />
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-sm p-6 shadow-xl relative text-center">
+            <button onClick={() => setShowQrModal(false)} className="absolute top-4 right-4 p-2 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-500 transition">
+              <X className="w-4 h-4" />
             </button>
-            <h3 className="text-xl font-extrabold text-white mb-1 text-center">PromptPay QR</h3>
-            <p className="text-stone-400 text-xs text-center mb-5">สแกนเพื่อชำระเงิน {transferAmount.toLocaleString()} บาท</p>
-            <div className="bg-white p-4 rounded-2xl flex items-center justify-center">
-              <QRCode value={generatePromptPayQR(promptPayId, transferAmount)} size={220} level="H" />
+            <h3 className="text-lg font-black text-slate-900 mb-1">PromptPay QR</h3>
+            <p className="text-slate-500 text-xs mb-5 font-medium">สแกนเพื่อชำระเงิน {transferAmount.toLocaleString()} บาท</p>
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 inline-block">
+              <QRCode value={generatePromptPayQR(promptPayId, transferAmount)} size={200} level="H" />
             </div>
-            <p className="text-center text-[10px] text-stone-500 mt-4">Yokayaki Izakaya • PromptPay</p>
+            <p className="text-center text-[10px] text-slate-400 mt-4 font-semibold">Yokayaki Izakaya • PromptPay</p>
           </div>
         </div>
       )}
     </div>
   );
 };
+
