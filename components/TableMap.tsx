@@ -150,156 +150,184 @@ export const TableMap: React.FC = () => {
   const isOwner = employee?.role === 'owner';
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-stone-900 via-neutral-950 to-black text-white p-6 relative selection:bg-amber-500/30">
-      {/* Background neon glows */}
-      <div className="absolute top-10 left-10 w-72 h-72 bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-amber-500/5 rounded-full blur-[150px] pointer-events-none" />
-
-      <div className="max-w-6xl mx-auto relative z-10">
-        {/* Header */}
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pb-6 border-b border-stone-800/80">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-stone-900 border border-stone-800 rounded-xl flex items-center justify-center text-amber-500 shadow-md">
-              <ChefHat className="w-6 h-6 stroke-[1.8]" />
+    <div className="min-h-screen bg-gray-100 text-slate-800 flex flex-col md:flex-row font-sans">
+      {/* Left Sidebar Navigation */}
+      <aside className="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-slate-200 p-5 flex flex-col justify-between shadow-sm shrink-0 md:sticky md:top-0 md:h-screen">
+        <div>
+          {/* Logo & Brand */}
+          <div className="flex items-center gap-3 mb-8 pb-4 border-b border-slate-100">
+            <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-red-600/20">
+              <ChefHat className="w-6 h-6 stroke-[2]" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-stone-100 to-stone-400 bg-clip-text text-transparent">
-                YOKAYAKI POS
+              <h1 className="text-xl font-black tracking-tight text-slate-900">
+                YOKAYAKI <span className="text-red-600">POS</span>
               </h1>
-              <div className="flex items-center gap-2 mt-1 text-sm text-stone-400 font-medium">
-                <User className="w-4 h-4 text-amber-500/80" />
-                <span>พนักงาน:</span>
-                <span className="text-amber-500 font-semibold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                  {employee?.name}
-                </span>
-                <span className="text-stone-500">•</span>
-                <span className="text-stone-300 uppercase text-xs tracking-wider bg-stone-800 px-1.5 py-0.5 rounded border border-stone-700">
-                  {employee?.role}
-                </span>
-              </div>
+              <p className="text-[11px] font-semibold text-slate-400 tracking-wider">MANAGEMENT SYSTEM</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 w-full md:w-auto">
-
+          {/* Navigation Links */}
+          <nav className="space-y-1">
             <button
-              onClick={fetchTables}
-              disabled={isSyncing}
-              className="p-2.5 bg-stone-900/60 hover:bg-stone-800 border border-stone-800/80 rounded-xl transition duration-150 active:scale-95 text-stone-300 hover:text-white flex items-center gap-2 text-sm font-medium"
-              title="รีเฟรชข้อมูลโต๊ะ"
+              onClick={() => setActiveTab('floor')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
+                activeTab === 'floor'
+                  ? 'bg-red-50 text-red-600 border border-red-100 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
             >
-              <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin text-amber-500' : ''}`} />
-              <span>ซิงค์โต๊ะ</span>
+              <Layers className="w-4 h-4" />
+              <span>แผนผังโต๊ะ</span>
             </button>
             
             <button
-              onClick={logout}
-              className="flex items-center justify-center gap-2 bg-gradient-to-r from-red-950/40 to-stone-900 hover:from-red-900/40 hover:to-stone-800 border border-red-900/40 hover:border-red-800/50 px-4 py-2.5 rounded-xl transition duration-150 active:scale-95 text-red-400 hover:text-red-300 text-sm font-bold ml-auto md:ml-0"
+              onClick={() => setActiveTab('kitchen')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
+                activeTab === 'kitchen'
+                  ? 'bg-red-50 text-red-600 border border-red-100 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
             >
-              <LogOut className="w-4 h-4" />
-              <span>สลับพนักงาน (Logout)</span>
+              <ChefHat className="w-4 h-4" />
+              <span>หน้าจอครัว (KDS)</span>
             </button>
+
+            <button
+              onClick={() => setActiveTab('history')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
+                activeTab === 'history'
+                  ? 'bg-red-50 text-red-600 border border-red-100 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <History className="w-4 h-4" />
+              <span>ประวัติการขาย</span>
+            </button>
+
+            {isOwner && (
+              <>
+                <div className="pt-4 pb-1">
+                  <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-3">OWNER CONTROLS</p>
+                </div>
+
+                <button
+                  onClick={() => setActiveTab('menu')}
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
+                    activeTab === 'menu'
+                      ? 'bg-red-50 text-red-600 border border-red-100 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <UtensilsCrossed className="w-4 h-4" />
+                  <span>จัดการเมนู</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('stock')}
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
+                    activeTab === 'stock'
+                      ? 'bg-red-50 text-red-600 border border-red-100 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <Package className="w-4 h-4" />
+                  <span>ต้นทุนวัตถุดิบ</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('promo')}
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
+                    activeTab === 'promo'
+                      ? 'bg-red-50 text-red-600 border border-red-100 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <Tag className="w-4 h-4" />
+                  <span>โปรโมชั่น</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('dashboard')}
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
+                    activeTab === 'dashboard'
+                      ? 'bg-red-50 text-red-600 border border-red-100 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span>รายงาน / Dashboard</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('loyalty')}
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
+                    activeTab === 'loyalty'
+                      ? 'bg-red-50 text-red-600 border border-red-100 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <Users className="w-4 h-4" />
+                  <span>สมาชิก</span>
+                </button>
+              </>
+            )}
+          </nav>
+        </div>
+
+        {/* Footer: Logged in Employee Info + Logout */}
+        <div className="pt-6 border-t border-slate-100 space-y-3 mt-6">
+          <div className="flex items-center gap-3 p-2.5 bg-slate-50 rounded-xl border border-slate-200/70">
+            <div className="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center font-bold text-xs">
+              {employee?.name?.charAt(0) || 'E'}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-bold text-slate-800 truncate">{employee?.name}</p>
+              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{employee?.role}</p>
+            </div>
           </div>
+
+          <button
+            onClick={logout}
+            className="w-full flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-red-600 hover:bg-red-50 transition duration-150"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>ออกจากระบบ (Logout)</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content Stage */}
+      <main className="flex-1 p-6 overflow-y-auto max-w-7xl">
+        {/* Top Action Bar */}
+        <header className="flex flex-row justify-between items-center mb-6 pb-4 border-b border-slate-200/80">
+          <div>
+            <h2 className="text-2xl font-extrabold text-slate-900">
+              {activeTab === 'floor' && 'ผังโต๊ะอาหาร'}
+              {activeTab === 'kitchen' && 'หน้าจอห้องครัว (KDS)'}
+              {activeTab === 'history' && 'ประวัติการขาย'}
+              {activeTab === 'menu' && 'จัดการเมนูอาหาร'}
+              {activeTab === 'stock' && 'ต้นทุนวัตถุดิบ & สต็อก'}
+              {activeTab === 'promo' && 'จัดการโปรโมชั่น'}
+              {activeTab === 'dashboard' && 'รายงาน & แดชบอร์ด'}
+              {activeTab === 'loyalty' && 'ระบบสมาชิก & CRM'}
+            </h2>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              {activeTab === 'floor' && 'เลือกโต๊ะที่ต้องการสั่งอาหารหรือเช็คบิล'}
+              {activeTab === 'kitchen' && 'รายการอาหารที่ต้องจัดทำตามลำดับออเดอร์'}
+            </p>
+          </div>
+
+          <button
+            onClick={fetchTables}
+            disabled={isSyncing}
+            className="p-2.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl transition duration-150 active:scale-95 text-slate-700 hover:text-slate-900 flex items-center gap-2 text-xs font-bold shadow-xs"
+            title="รีเฟรชข้อมูลโต๊ะ"
+          >
+            <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin text-red-600' : ''}`} />
+            <span>รีเฟรชข้อมูล</span>
+          </button>
         </header>
-
-        {/* Navigation Tabs (Staff see Floor Map & Kitchen, Owner see all 4 tabs) */}
-        <nav className="flex flex-wrap items-center gap-2 mb-8 bg-stone-900/40 backdrop-blur-md border border-stone-850 p-1.5 rounded-2xl max-w-xl">
-          <button
-            onClick={() => setActiveTab('floor')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-              activeTab === 'floor'
-                ? 'bg-amber-500 text-stone-950 shadow-md shadow-amber-500/20'
-                : 'text-stone-400 hover:text-white hover:bg-stone-800/50'
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span>แผนผังโต๊ะ</span>
-          </button>
-          
-          <button
-            onClick={() => setActiveTab('kitchen')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-              activeTab === 'kitchen'
-                ? 'bg-amber-500 text-stone-950 shadow-md shadow-amber-500/20'
-                : 'text-stone-400 hover:text-white hover:bg-stone-800/50'
-            }`}
-          >
-            <ChefHat className="w-3.5 h-3.5" />
-            <span>หน้าจอครัว (KDS)</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('history')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-              activeTab === 'history'
-                ? 'bg-amber-500 text-stone-950 shadow-md shadow-amber-500/20'
-                : 'text-stone-400 hover:text-white hover:bg-stone-800/50'
-            }`}
-          >
-            <History className="w-3.5 h-3.5" />
-            <span>ประวัติการขาย</span>
-          </button>
-
-          {isOwner && (
-            <>
-              <button
-                onClick={() => setActiveTab('menu')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-                  activeTab === 'menu'
-                    ? 'bg-amber-500 text-stone-950 shadow-md shadow-amber-500/20'
-                    : 'text-stone-400 hover:text-white hover:bg-stone-800/50'
-                }`}
-              >
-                <UtensilsCrossed className="w-3.5 h-3.5" />
-                <span>จัดการเมนู</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('stock')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-                  activeTab === 'stock'
-                    ? 'bg-amber-500 text-stone-950 shadow-md shadow-amber-500/20'
-                    : 'text-stone-400 hover:text-white hover:bg-stone-800/50'
-                }`}
-              >
-                <Package className="w-3.5 h-3.5" />
-                <span>ต้นทุนวัตถุดิบ</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('promo')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-                  activeTab === 'promo'
-                    ? 'bg-amber-500 text-stone-950 shadow-md shadow-amber-500/20'
-                    : 'text-stone-400 hover:text-white hover:bg-stone-800/50'
-                }`}
-              >
-                <Tag className="w-3.5 h-3.5" />
-                <span>โปรโมชั่น</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('dashboard')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-                  activeTab === 'dashboard'
-                    ? 'bg-amber-500 text-stone-950 shadow-md shadow-amber-500/20'
-                    : 'text-stone-400 hover:text-white hover:bg-stone-800/50'
-                }`}
-              >
-                <LayoutDashboard className="w-3.5 h-3.5" />
-                <span>รายงาน / Dashboard</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('loyalty')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-                  activeTab === 'loyalty'
-                    ? 'bg-amber-500 text-stone-950 shadow-md shadow-amber-500/20'
-                    : 'text-stone-400 hover:text-white hover:bg-stone-800/50'
-                }`}
-              >
-                <Users className="w-3.5 h-3.5" />
-                <span>สมาชิก</span>
-              </button>
-            </>
-          )}
-        </nav>
 
         {/* Tab Content Rendering */}
         {activeTab === 'loyalty' && isOwner ? (
@@ -320,34 +348,34 @@ export const TableMap: React.FC = () => {
           <>
             {/* Info Banner / Error message */}
             {errorMsg && (
-              <div className="mb-6 p-4 bg-red-950/30 border border-red-900/50 text-red-400 rounded-2xl text-sm font-semibold flex items-center gap-3 animate-fade-in">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
+              <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs font-semibold flex items-center gap-3 animate-fade-in">
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
                 <span>{errorMsg}</span>
               </div>
             )}
 
             {/* Legend / Status Indicators */}
-            <div className="flex flex-wrap gap-4 mb-8 bg-stone-900/30 backdrop-blur-md border border-stone-850 p-4 rounded-2xl text-xs font-semibold text-stone-400 max-w-lg">
-              <div className="flex items-center gap-2 mr-2">
-                <span className="w-3.5 h-3.5 rounded-full bg-stone-950 border border-stone-800 flex items-center justify-center"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" /></span>
+            <div className="flex flex-wrap gap-4 mb-6 bg-white border border-slate-200/80 p-3.5 rounded-2xl text-xs font-semibold text-slate-600 shadow-xs max-w-lg">
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-emerald-500 shadow-xs" />
                 <span>ว่าง (Vacant)</span>
               </div>
-              <div className="flex items-center gap-2 mr-2">
-                <span className="w-3.5 h-3.5 rounded-full bg-stone-950 border border-stone-800 flex items-center justify-center"><span className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" /></span>
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-amber-500 shadow-xs" />
                 <span>มีลูกค้า (Occupied)</span>
               </div>
-              <div className="flex items-center gap-2 mr-2">
-                <span className="w-3.5 h-3.5 rounded-full bg-stone-950 border border-stone-800 flex items-center justify-center"><span className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)] animate-pulse" /></span>
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-rose-500 animate-pulse" />
                 <span>รอเช็คบิล (Checking Out)</span>
               </div>
             </div>
 
             {/* Tables Floor Plan Grid */}
-            <main className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
               {tables.length === 0 ? (
                 [...Array(4)].map((_, i) => (
-                  <div key={i} className="h-44 rounded-3xl bg-stone-900/40 border border-stone-800/60 animate-pulse flex items-center justify-center">
-                    <div className="w-10 h-10 border-2 border-stone-800 border-t-transparent rounded-full animate-spin" />
+                  <div key={i} className="h-44 rounded-2xl bg-white border border-slate-200 animate-pulse flex items-center justify-center shadow-xs">
+                    <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
                   </div>
                 ))
               ) : (
@@ -356,22 +384,22 @@ export const TableMap: React.FC = () => {
                   const isOccupied = table.status === 'occupied';
                   const isCheckingOut = table.status === 'checking_out';
 
-                  let cardStyle = 'bg-stone-900/40 border-stone-800/80 text-stone-400 hover:border-stone-700 hover:bg-stone-900/60 hover:text-stone-300';
-                  let badgeStyle = 'bg-stone-950 text-stone-400 border-stone-800';
-                  let glowIndicator = 'bg-stone-700';
+                  let cardStyle = 'bg-white border-slate-200 text-slate-700 hover:border-slate-300';
+                  let badgeStyle = 'bg-slate-100 text-slate-600 border-slate-200';
+                  let glowIndicator = 'bg-slate-400';
 
                   if (isVacant) {
-                    cardStyle = 'bg-stone-900/30 border-emerald-950/60 text-emerald-500/90 hover:border-emerald-800/60 hover:bg-emerald-950/10 shadow-[inset_0_1px_0_rgba(16,185,129,0.05)]';
-                    badgeStyle = 'bg-emerald-950/40 text-emerald-400 border-emerald-900/40';
-                    glowIndicator = 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]';
+                    cardStyle = 'bg-white border-slate-200 text-slate-800 hover:border-red-400 hover:shadow-md';
+                    badgeStyle = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                    glowIndicator = 'bg-emerald-500';
                   } else if (isOccupied) {
-                    cardStyle = 'bg-stone-900/30 border-blue-950/60 text-blue-500/95 hover:border-blue-800/60 hover:bg-blue-950/10 shadow-[inset_0_1px_0_rgba(59,130,246,0.05)] font-bold';
-                    badgeStyle = 'bg-blue-950/40 text-blue-400 border-blue-900/40';
-                    glowIndicator = 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]';
+                    cardStyle = 'bg-amber-50/60 border-amber-300 text-amber-900 shadow-sm font-bold hover:border-amber-400';
+                    badgeStyle = 'bg-amber-100 text-amber-800 border-amber-300';
+                    glowIndicator = 'bg-amber-500';
                   } else if (isCheckingOut) {
-                    cardStyle = 'bg-gradient-to-b from-amber-950/20 to-stone-900/40 border-amber-500/50 text-amber-500 hover:border-amber-400 hover:bg-amber-950/10 shadow-[0_0_15px_rgba(245,158,11,0.1)] font-extrabold animate-pulse';
-                    badgeStyle = 'bg-amber-950/50 text-amber-400 border-amber-900/50';
-                    glowIndicator = 'bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,1)] animate-ping';
+                    cardStyle = 'bg-rose-50/70 border-rose-300 text-rose-900 shadow-sm font-extrabold hover:border-rose-400 animate-pulse';
+                    badgeStyle = 'bg-rose-100 text-rose-800 border-rose-300';
+                    glowIndicator = 'bg-rose-500 animate-ping';
                   }
 
                   return (
@@ -385,18 +413,18 @@ export const TableMap: React.FC = () => {
                           setSelectedTableId(table.id);
                         }
                       }}
-                      className={`group relative h-44 rounded-3xl border flex flex-col items-center justify-center gap-4 transition-all duration-300 active:scale-98 shadow-lg cursor-pointer overflow-hidden ${cardStyle}`}
+                      className={`group relative h-44 rounded-2xl border p-5 flex flex-col items-center justify-center gap-3 transition-all duration-200 active:scale-98 shadow-sm cursor-pointer overflow-hidden ${cardStyle}`}
                     >
                       <span className="absolute top-4 right-4 flex h-3 w-3">
                         <span className={`rounded-full h-3 w-3 ${glowIndicator}`} />
                       </span>
 
-                      <span className="text-stone-500 text-xs font-semibold tracking-widest uppercase opacity-60">TABLE</span>
-                      <span className="text-4xl font-black tracking-tight drop-shadow-sm group-hover:scale-105 transition-transform duration-200">
+                      <span className="text-slate-400 text-[11px] font-bold tracking-widest uppercase">TABLE</span>
+                      <span className="text-3xl font-black tracking-tight text-slate-900 group-hover:scale-105 transition-transform duration-200">
                         โต๊ะ {table.id}
                       </span>
                       
-                      <span className={`text-xs font-bold tracking-wide px-3 py-1 rounded-full border shadow-sm transition-colors duration-200 ${badgeStyle}`}>
+                      <span className={`text-xs font-bold tracking-wide px-3 py-1 rounded-full border shadow-xs transition-colors duration-200 ${badgeStyle}`}>
                         {table.status === 'vacant' && 'ว่าง (Vacant)'}
                         {table.status === 'occupied' && 'มีลูกค้า (Occupied)'}
                         {table.status === 'checking_out' && 'รอเช็คบิล'}
@@ -405,34 +433,34 @@ export const TableMap: React.FC = () => {
                   );
                 })
               )}
-            </main>
+            </div>
           </>
         )}
-      </div>
+      </main>
 
       {/* Action Selector Modal for occupied tables */}
       {actionSelectorTable !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-stone-900 border border-stone-800 rounded-3xl w-full max-w-xs p-6 shadow-2xl space-y-4">
-            <h3 className="text-lg font-extrabold text-white text-center">โต๊ะ {actionSelectorTable}</h3>
-            <p className="text-stone-400 text-xs text-center">เลือกสิ่งที่ต้องการทำ</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-xs p-6 shadow-xl space-y-4">
+            <h3 className="text-lg font-extrabold text-slate-900 text-center">โต๊ะ {actionSelectorTable}</h3>
+            <p className="text-slate-500 text-xs text-center font-medium">เลือกทำรายการ</p>
             <button
               onClick={() => { setSelectedTableId(actionSelectorTable); setActionSelectorTable(null); }}
-              className="w-full py-3.5 bg-stone-800 hover:bg-stone-700 border border-stone-700 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition active:scale-95"
+              className="w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition active:scale-95 border border-slate-200"
             >
-              <ShoppingBag className="w-5 h-5 text-amber-500" />
+              <ShoppingBag className="w-5 h-5 text-red-600" />
               สั่งอาหารเพิ่ม
             </button>
             <button
               onClick={() => { setCheckoutTableId(actionSelectorTable); setActionSelectorTable(null); }}
-              className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-black rounded-2xl text-sm font-extrabold flex items-center justify-center gap-2 transition active:scale-95 shadow-lg shadow-amber-500/10"
+              className="w-full py-3.5 bg-red-600 hover:bg-red-700 text-white rounded-2xl text-sm font-extrabold flex items-center justify-center gap-2 transition active:scale-95 shadow-md shadow-red-600/20"
             >
               <Receipt className="w-5 h-5" />
               ชำระเงิน / เช็คบิล
             </button>
             <button
               onClick={() => setActionSelectorTable(null)}
-              className="w-full py-2 text-stone-500 text-xs font-bold hover:text-stone-300 transition"
+              className="w-full py-2 text-slate-400 text-xs font-bold hover:text-slate-600 transition"
             >
               ยกเลิก
             </button>
@@ -442,3 +470,4 @@ export const TableMap: React.FC = () => {
     </div>
   );
 };
+
