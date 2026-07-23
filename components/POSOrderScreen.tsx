@@ -337,48 +337,50 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-stone-900 via-neutral-950 to-black text-white flex flex-col lg:flex-row relative selection:bg-amber-500/30">
+    <div className="min-h-screen bg-gray-100 text-slate-800 flex flex-col lg:flex-row relative font-sans">
       
       {/* LEFT AREA: Menu Selection */}
-      <div className="flex-1 p-6 lg:border-r border-stone-850 flex flex-col overflow-y-auto">
-        <header className="flex items-center gap-4 mb-8">
+      <div className="flex-1 p-6 lg:border-r border-slate-200 flex flex-col overflow-y-auto max-w-6xl">
+        {/* Top Header */}
+        <header className="flex items-center gap-4 mb-6 pb-4 border-b border-slate-200/80">
           <button
             onClick={onBack}
-            className="p-3 bg-stone-900/80 border border-stone-800 rounded-2xl hover:bg-stone-800 transition active:scale-95 text-stone-300"
+            className="p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition active:scale-95 text-slate-700 shadow-xs"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex-1">
-            <h1 className="text-xl md:text-2xl font-extrabold tracking-tight">สั่งอาหาร</h1>
-            <p className="text-sm text-stone-400 font-semibold mt-0.5">โต๊ะ {tableId}</p>
+            <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">สั่งอาหาร (POS Order)</h1>
+            <p className="text-xs text-slate-500 font-semibold mt-0.5">ประจำ <span className="text-red-600 font-bold">โต๊ะ {tableId}</span></p>
           </div>
+
           <button
             onClick={generateQrSession}
             disabled={isGeneratingQr}
-            className="flex items-center gap-2 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 px-4 py-2 rounded-xl border border-emerald-500/30 transition-colors font-semibold text-sm whitespace-nowrap"
+            className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-xl border border-red-200 transition-colors font-bold text-xs shadow-xs whitespace-nowrap cursor-pointer"
           >
             <QrCode className="w-4 h-4" />
-            <span>{isGeneratingQr ? 'กำลังสร้าง...' : 'สร้าง QR ลูกค้า'}</span>
+            <span>{isGeneratingQr ? 'กำลังสร้าง...' : 'สร้าง QR Code ให้ลูกค้า'}</span>
           </button>
         </header>
 
         {errorMsg && (
-          <div className="mb-6 p-4 bg-red-950/30 border border-red-900/50 text-red-400 rounded-2xl text-sm font-semibold flex items-center gap-3 animate-fade-in">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
+          <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs font-semibold flex items-center gap-3 animate-fade-in">
+            <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
             <span>{errorMsg}</span>
           </div>
         )}
 
         {/* Category Selection Tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-4 mb-6 scrollbar-thin scrollbar-thumb-stone-800 scrollbar-track-transparent">
+        <div className="flex gap-2 overflow-x-auto pb-4 mb-6 scrollbar-thin">
           {['ทั้งหมด', ...Array.from(new Set(menuItems.map(item => item.category).filter(Boolean)))].map(cat => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-5 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap border transition duration-150 active:scale-95 cursor-pointer ${
+              className={`px-5 py-2.5 rounded-xl font-bold text-xs whitespace-nowrap border transition duration-150 active:scale-95 cursor-pointer ${
                 selectedCategory === cat
-                  ? 'bg-amber-500 text-black border-amber-500 shadow-md shadow-amber-500/10'
-                  : 'bg-stone-900/40 hover:bg-stone-900/80 border-stone-800/80 hover:border-stone-700 text-stone-300'
+                  ? 'bg-red-600 text-white border-red-600 shadow-sm shadow-red-600/20'
+                  : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900'
               }`}
             >
               {cat}
@@ -387,20 +389,20 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
         </div>
 
         {/* Menu Grid */}
-        <div>
-          <h2 className="text-base font-bold text-stone-400 tracking-wider mb-4 flex items-center gap-2">
-            <ShoppingBag className="w-4 h-4 text-amber-500" />
-            <span>รายการอาหารและเครื่องดื่ม (MENU)</span>
+        <div className="flex-1">
+          <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
+            <ShoppingBag className="w-4 h-4 text-red-600" />
+            <span>รายการอาหารและเครื่องดื่ม</span>
           </h2>
           
           {isLoadingMenu ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-32 bg-stone-900/40 border border-stone-800/60 rounded-2xl animate-pulse" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-36 bg-white border border-slate-200 rounded-2xl animate-pulse shadow-xs" />
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {menuItems
                 .filter(item => selectedCategory === 'ทั้งหมด' || item.category === selectedCategory)
                 .map(item => {
@@ -412,45 +414,45 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
                   return (
                     <div
                       key={item.id}
-                      className={`p-5 rounded-2xl border transition-all duration-300 relative overflow-hidden ${
+                      className={`p-5 rounded-2xl border transition-all duration-200 relative overflow-hidden flex flex-col justify-between shadow-xs ${
                         isSoldOut
-                          ? 'bg-stone-950/80 border-stone-900 opacity-55'
-                          : 'bg-stone-900/40 hover:bg-stone-900/80 border-stone-800/80 hover:border-stone-700'
+                          ? 'bg-slate-50 border-slate-200 opacity-60'
+                          : 'bg-white hover:shadow-md border-slate-200/80 hover:border-slate-300'
                       }`}
                     >
-                      <div className="flex justify-between items-start mb-10">
-                        <div className="pr-4">
-                          <h3 className="font-bold text-lg text-stone-100 group-hover:text-white transition-colors">
+                      <div className="flex justify-between items-start mb-6">
+                        <div className="pr-2">
+                          <h3 className="font-bold text-base text-slate-900 leading-snug">
                             {item.name}
                           </h3>
-                          <p className="text-amber-500 font-extrabold text-base mt-1">
-                            {item.price} <span className="text-xs font-semibold text-stone-400">บาท</span>
+                          <p className="text-red-600 font-extrabold text-lg mt-1">
+                            {item.price} <span className="text-xs font-semibold text-slate-500">บาท</span>
                           </p>
                         </div>
 
                         {/* Stock Badges */}
                         <div>
                           {isSoldOut ? (
-                            <span className="text-[10px] font-black tracking-widest px-2.5 py-1 bg-red-950/40 border border-red-900/50 text-red-500 rounded-lg uppercase">
+                            <span className="text-[10px] font-extrabold tracking-wider px-2 py-1 bg-rose-100 text-rose-800 border border-rose-200 rounded-lg uppercase">
                               SOLD OUT
                             </span>
                           ) : isUrgent ? (
-                            <span className="text-[10px] font-black px-2.5 py-1 bg-orange-950/40 border border-orange-900/50 text-orange-500 rounded-lg animate-pulse whitespace-nowrap">
-                              ด่วน! เหลือ {item.stock} จาน
+                            <span className="text-[10px] font-bold px-2 py-1 bg-amber-100 text-amber-800 border border-amber-300 rounded-lg animate-pulse whitespace-nowrap">
+                              เหลือ {item.stock} จาน
                             </span>
                           ) : (
-                            <span className="text-[10px] font-bold px-2 py-0.5 bg-stone-950/80 border border-stone-850 text-stone-400 rounded-md">
+                            <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-100 border border-slate-200 text-slate-600 rounded-md">
                               สต็อก: {item.stock}
                             </span>
                           )}
                         </div>
                       </div>
 
-                      <div className="flex justify-between items-center mt-4">
+                      <div className="flex justify-between items-center pt-3 border-t border-slate-100">
                         {/* Cart qty indicator inside card */}
                         <div>
                           {cartQty > 0 && (
-                            <span className="text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-1 rounded-lg">
+                            <span className="text-xs font-bold text-red-600 bg-red-50 border border-red-200 px-2 py-1 rounded-lg">
                               เลือกแล้ว {cartQty}
                             </span>
                           )}
@@ -459,13 +461,13 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
                         <button
                           disabled={isSoldOut || remainingAvailable <= 0}
                           onClick={() => addToCart(item)}
-                          className={`p-2.5 rounded-xl transition duration-150 active:scale-95 flex items-center justify-center ${
+                          className={`p-2.5 rounded-xl transition duration-150 active:scale-95 flex items-center justify-center cursor-pointer ${
                             isSoldOut || remainingAvailable <= 0
-                              ? 'bg-stone-900 border border-stone-850 text-stone-600 cursor-not-allowed'
-                              : 'bg-amber-500 hover:bg-amber-600 text-black shadow-md shadow-amber-500/10'
+                              ? 'bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed'
+                              : 'bg-red-600 hover:bg-red-700 text-white shadow-sm shadow-red-600/20'
                           }`}
                         >
-                          <Plus className="w-5 h-5 stroke-[2.5]" />
+                          <Plus className="w-4 h-4 stroke-[2.5]" />
                         </button>
                       </div>
                     </div>
@@ -477,19 +479,19 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
       </div>
 
       {/* RIGHT AREA: Cart & Current Order Status */}
-      <div className="w-full lg:w-[420px] bg-stone-950 border-t lg:border-t-0 lg:border-l border-stone-850 p-6 flex flex-col justify-between overflow-y-auto">
+      <div className="w-full lg:w-[400px] bg-white border-t lg:border-t-0 lg:border-l border-slate-200 p-6 flex flex-col justify-between shadow-sm overflow-y-auto shrink-0">
         <div>
           {/* Section 1: Cart Items */}
-          <div className="mb-8 border-b border-stone-900 pb-6">
+          <div className="mb-8 border-b border-slate-100 pb-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold text-stone-200 flex items-center gap-2">
-                <ShoppingBag className="w-5 h-5 text-amber-500" />
+              <h2 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                <ShoppingBag className="w-4 h-4 text-red-600" />
                 <span>ตะกร้าสินค้า (Cart)</span>
               </h2>
               {cart.length > 0 && (
                 <button
                   onClick={clearCart}
-                  className="text-stone-500 hover:text-red-400 text-xs font-semibold flex items-center gap-1 transition"
+                  className="text-slate-400 hover:text-red-600 text-xs font-semibold flex items-center gap-1 transition"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   ล้างตะกร้า
@@ -498,45 +500,45 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
             </div>
 
             {cart.length === 0 ? (
-              <p className="text-stone-500 text-sm text-center py-10 font-medium">ยังไม่มีรายการอาหารในตะกร้า</p>
+              <p className="text-slate-400 text-xs text-center py-8 font-medium bg-slate-50 rounded-2xl border border-slate-100">ยังไม่มีรายการอาหารในตะกร้า</p>
             ) : (
-              <div className="space-y-3 max-h-[30vh] overflow-y-auto pr-2">
+              <div className="space-y-3 max-h-[32vh] overflow-y-auto pr-1">
                 {cart.map((item, index) => (
-                  <div key={`${item.id}-${item.notes || ''}-${index}`} className="flex flex-col bg-stone-900/30 border border-stone-900 p-3.5 rounded-xl gap-2">
+                  <div key={`${item.id}-${item.notes || ''}-${index}`} className="flex flex-col bg-slate-50 border border-slate-200/80 p-3.5 rounded-xl gap-2">
                     <div className="flex justify-between items-center">
-                      <div className="pr-4 flex-1">
-                        <h4 className="font-bold text-sm text-stone-200 line-clamp-1">{item.name}</h4>
-                        <p className="text-xs text-amber-500/90 font-bold mt-0.5">{item.price * item.quantity} บาท</p>
+                      <div className="pr-3 flex-1">
+                        <h4 className="font-bold text-xs text-slate-900 line-clamp-1">{item.name}</h4>
+                        <p className="text-xs text-red-600 font-extrabold mt-0.5">{item.price * item.quantity} บาท</p>
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         <button
                           onClick={() => removeFromCart(item.id, item.notes)}
-                          className="p-1.5 bg-stone-900 border border-stone-800 hover:bg-stone-800 rounded-lg text-stone-400"
+                          className="p-1 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg text-slate-700 shadow-xs"
                         >
                           <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
                         </button>
-                        <span className="text-sm font-bold text-stone-200">{item.quantity}</span>
+                        <span className="text-xs font-extrabold text-slate-900 px-1">{item.quantity}</span>
                         <button
                           onClick={() => addToCart(item, item.notes)}
-                          className="p-1.5 bg-stone-900 border border-stone-800 hover:bg-stone-800 rounded-lg text-stone-400"
+                          className="p-1 bg-red-600 hover:bg-red-700 rounded-lg text-white shadow-xs"
                         >
                           <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                         </button>
                       </div>
                     </div>
                     {/* Notes line */}
-                    <div className="flex items-center justify-between border-t border-stone-900/40 pt-2 text-xs">
+                    <div className="flex items-center justify-between border-t border-slate-200/60 pt-2 text-xs">
                       {item.notes ? (
-                        <span className="text-amber-400/80 font-medium">โน้ต: {item.notes}</span>
+                        <span className="text-amber-700 font-semibold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">โน้ต: {item.notes}</span>
                       ) : (
-                        <span className="text-stone-500 font-medium">ไม่มีโน้ตพิเศษ</span>
+                        <span className="text-slate-400 font-medium">ไม่มีโน้ตพิเศษ</span>
                       )}
                       <button
                         onClick={() => setNoteEditTarget({ index, notes: item.notes || '' })}
-                        className="text-stone-400 hover:text-amber-400 font-bold flex items-center gap-1 transition"
+                        className="text-slate-500 hover:text-red-600 font-bold flex items-center gap-1 transition"
                       >
                         <ClipboardList className="w-3.5 h-3.5" />
-                        <span>แก้ไขโน้ต</span>
+                        <span>โน้ต</span>
                       </button>
                     </div>
                   </div>
@@ -545,36 +547,36 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
             )}
 
             {cart.length > 0 && (
-              <div className="mt-6 pt-4 border-t border-stone-900">
+              <div className="mt-6 pt-4 border-t border-slate-100">
                 <div className="flex justify-between items-center mb-4">
-                  <span className="text-sm text-stone-400 font-bold">ยอดรวมตะกร้า:</span>
-                  <span className="text-xl font-extrabold text-amber-500">
+                  <span className="text-xs text-slate-500 font-bold">ยอดรวมตะกร้า:</span>
+                  <span className="text-2xl font-black text-red-600">
                     {cart.reduce((sum, i) => sum + (i.price * i.quantity), 0)} บาท
                   </span>
                 </div>
                 <button
                   disabled={isSubmitting}
                   onClick={confirmOrder}
-                  className="w-full py-4 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 disabled:from-stone-900 disabled:to-stone-900 text-black font-extrabold text-sm rounded-2xl transition duration-150 active:scale-98 flex items-center justify-center gap-2 shadow-lg shadow-amber-500/10 cursor-pointer"
+                  className="w-full py-3.5 bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white font-extrabold text-sm rounded-xl transition duration-150 active:scale-98 flex items-center justify-center gap-2 shadow-md shadow-red-600/20 cursor-pointer"
                 >
                   {isSubmitting ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                      <span>กำลังยิงคำสั่งเข้าครัว...</span>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>กำลังส่งออเดอร์...</span>
                     </>
                   ) : (
-                    <span>สั่งอาหารเข้าระบบ (Direct Fire)</span>
+                    <span>สั่งอาหารเข้าระบบ (Send Order)</span>
                   )}
                 </button>
               </div>
             )}
           </div>
 
-          {/* Section 2: Currently Ordered Items (Void Manager) */}
+          {/* Section 2: Currently Ordered Items (Active Order) */}
           <div>
-            <h2 className="text-lg font-bold text-stone-200 mb-2 flex items-center gap-2">
-              <History className="w-5 h-5 text-amber-500" />
-              <span>อาหารที่ส่งครัวไปแล้ว (Active Order)</span>
+            <h2 className="text-base font-extrabold text-slate-900 mb-3 flex items-center gap-2">
+              <History className="w-4 h-4 text-red-600" />
+              <span>อาหารที่ส่งครัวแล้ว (Active Order)</span>
             </h2>
 
             {/* Summary bar */}
@@ -584,56 +586,53 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
               const totalAmt = activeItems.reduce((s, i) => s + (i.quantity * i.unit_price), 0);
               if (totalQty === 0) return null;
               return (
-                <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center justify-between text-sm">
-                  <span className="text-amber-400 font-semibold">สั่งไปแล้วทั้งหมด: <span className="text-white font-bold">{totalQty} ชิ้น</span></span>
-                  <span className="text-amber-500 font-extrabold">{totalAmt.toLocaleString()} บาท</span>
+                <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-xl flex items-center justify-between text-xs font-bold">
+                  <span className="text-slate-700">สั่งไปแล้ว: <span className="text-red-600 font-extrabold">{totalQty} ชิ้น</span></span>
+                  <span className="text-red-600 font-extrabold">{totalAmt.toLocaleString()} บาท</span>
                 </div>
               );
             })()}
 
             {isLoadingOrder ? (
               <div className="space-y-2">
-                <div className="h-10 bg-stone-900/30 border border-stone-800/40 rounded-xl animate-pulse" />
-                <div className="h-10 bg-stone-900/30 border border-stone-800/40 rounded-xl animate-pulse" />
+                <div className="h-10 bg-slate-100 rounded-xl animate-pulse" />
+                <div className="h-10 bg-slate-100 rounded-xl animate-pulse" />
               </div>
             ) : orderedItems.length === 0 ? (
-              <p className="text-stone-500 text-sm text-center py-10 font-medium">ยังไม่มีรายการสั่งซื้อก่อนหน้านี้</p>
+              <p className="text-slate-400 text-xs text-center py-6 font-medium bg-slate-50 rounded-2xl border border-slate-100">ยังไม่มีรายการสั่งซื้อก่อนหน้านี้</p>
             ) : (
-              <div className="space-y-2.5 max-h-[35vh] overflow-y-auto pr-2">
+              <div className="space-y-2 max-h-[30vh] overflow-y-auto pr-1">
                 {orderedItems.map(item => {
                   const isVoided = item.status === 'voided';
                   return (
                     <div
                       key={item.id}
-                      className={`flex justify-between items-center p-3 rounded-xl border ${
+                      className={`flex justify-between items-center p-3 rounded-xl border text-xs ${
                         isVoided
-                          ? 'bg-red-950/15 border-red-900/30 text-red-500/70 line-through opacity-70'
-                          : 'bg-stone-900/20 border-stone-900 text-stone-200'
+                          ? 'bg-rose-50/50 border-rose-200 text-rose-400 line-through opacity-70'
+                          : 'bg-slate-50 border-slate-200/80 text-slate-800'
                       }`}
                     >
-                      <div className="pr-4 flex-1">
+                      <div className="pr-2 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-stone-300">
+                          <span className="font-bold text-slate-900">
                             {item.menu_items?.name}
                           </span>
-                          <span className="text-xs font-semibold text-stone-500 bg-stone-950 px-1.5 py-0.5 rounded border border-stone-850">
+                          <span className="text-[11px] font-extrabold text-red-600 bg-red-50 px-1.5 py-0.2 rounded border border-red-100">
                             x{item.quantity}
                           </span>
                         </div>
                         {item.notes && (
-                          <div className="text-xs text-amber-500/80 font-semibold mt-0.5">
+                          <div className="text-[11px] text-amber-700 font-semibold mt-0.5">
                             โน้ต: {item.notes}
                           </div>
                         )}
-                        <span className="text-[10px] text-stone-500 mt-1 block">
-                          ราคาหน่วยละ {item.unit_price} บาท {isVoided && '(ยกเลิกแล้ว)'}
-                        </span>
                       </div>
                       
                       {!isVoided && (
                         <button
                           onClick={() => setVoidTarget(item)}
-                          className="px-2.5 py-1.5 bg-stone-900 hover:bg-red-950/40 border border-stone-800 hover:border-red-900/30 text-stone-400 hover:text-red-400 rounded-lg text-xs font-bold transition flex items-center gap-1 active:scale-95"
+                          className="px-2.5 py-1 bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 text-slate-500 hover:text-rose-600 rounded-lg text-xs font-bold transition flex items-center gap-1 active:scale-95 shadow-xs"
                         >
                           <ShieldAlert className="w-3.5 h-3.5" />
                           <span>Void</span>
@@ -648,22 +647,22 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
         </div>
       </div>
 
-      {/* VOID DIALOG MODAL (Glassmorphic) */}
+      {/* VOID DIALOG MODAL */}
       {voidTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="w-full max-w-md bg-stone-900 border border-stone-800 rounded-3xl p-6 shadow-2xl relative">
-            <h3 className="text-lg font-black text-red-400 flex items-center gap-2 mb-2">
-              <ShieldAlert className="w-5 h-5 text-red-400 stroke-[2.5]" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
+          <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-6 shadow-xl relative">
+            <h3 className="text-lg font-extrabold text-rose-600 flex items-center gap-2 mb-2">
+              <ShieldAlert className="w-5 h-5 text-rose-600 stroke-[2.5]" />
               <span>ยืนยันการยกเลิกรายการอาหาร (Void)</span>
             </h3>
-            <p className="text-stone-400 text-sm mb-6 leading-relaxed">
-              คุณกำลังจะยกเลิกรายการ <span className="font-bold text-white">{voidTarget.menu_items?.name}</span> จำนวน <span className="font-bold text-white">{voidTarget.quantity} จาน</span> {voidTarget.notes && <>โน้ต: <span className="text-amber-400 font-semibold">"{voidTarget.notes}"</span></>} (มูลค่าความเสียหาย {voidTarget.quantity * voidTarget.unit_price} บาท)
+            <p className="text-slate-600 text-xs mb-5 leading-relaxed">
+              ยกเลิกรายการ <span className="font-bold text-slate-900">{voidTarget.menu_items?.name}</span> จำนวน <span className="font-bold text-slate-900">{voidTarget.quantity} จาน</span> (มูลค่า {voidTarget.quantity * voidTarget.unit_price} บาท)
             </p>
 
             <form onSubmit={handleVoidSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-stone-400 tracking-wider uppercase mb-2">
-                  ระบุสาเหตุความล่าช้า/ยกเลิก
+                <label className="block text-[11px] font-bold text-slate-400 tracking-wider uppercase mb-2">
+                  ระบุสาเหตุการยกเลิก
                 </label>
                 <div className="grid grid-cols-1 gap-2">
                   {[
@@ -676,10 +675,10 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
                       key={opt.val}
                       type="button"
                       onClick={() => setVoidReason(opt.val)}
-                      className={`w-full py-3 px-4 rounded-xl text-sm font-semibold border text-left transition ${
+                      className={`w-full py-2.5 px-3.5 rounded-xl text-xs font-semibold border text-left transition ${
                         voidReason === opt.val
-                          ? 'bg-red-500/10 border-red-500/40 text-red-400'
-                          : 'bg-stone-950 border-stone-850 text-stone-400 hover:border-stone-700'
+                          ? 'bg-red-50 border-red-300 text-red-600 font-bold'
+                          : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                       }`}
                     >
                       {opt.label}
@@ -695,12 +694,12 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
                     value={customReason}
                     onChange={(e) => setCustomReason(e.target.value)}
                     placeholder="กรอกเหตุผลอื่นเพิ่มเติม..."
-                    className="w-full bg-stone-950 border border-stone-850 focus:border-stone-750 focus:outline-none rounded-xl p-3 text-sm text-stone-200 placeholder-stone-600 h-20 resize-none"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-red-500 focus:outline-none rounded-xl p-3 text-xs text-slate-800 placeholder-slate-400 h-20 resize-none"
                   />
                 </div>
               )}
 
-              <div className="flex gap-3 pt-4 border-t border-stone-850">
+              <div className="flex gap-3 pt-4 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => {
@@ -708,19 +707,19 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
                     setVoidReason('');
                     setCustomReason('');
                   }}
-                  className="flex-1 py-3 bg-stone-950 hover:bg-stone-900 border border-stone-850 rounded-xl text-stone-400 text-sm font-bold active:scale-97 transition"
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl active:scale-97 transition"
                 >
                   ยกเลิก
                 </button>
                 <button
                   type="submit"
                   disabled={isVoiding || !voidReason}
-                  className="flex-1 py-3 bg-red-500 hover:bg-red-600 disabled:bg-stone-800 text-black text-sm font-extrabold rounded-xl active:scale-97 transition flex items-center justify-center gap-1 shadow-md shadow-red-500/10"
+                  className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:bg-slate-300 text-white text-xs font-extrabold rounded-xl active:scale-97 transition flex items-center justify-center gap-1 shadow-md shadow-rose-600/20"
                 >
                   {isVoiding ? (
-                    <span>กำลังบันทึกประวัติ Void...</span>
+                    <span>กำลังบันทึก Void...</span>
                   ) : (
-                    <span>กดยืนยัน Void</span>
+                    <span>ยืนยัน Void</span>
                   )}
                 </button>
               </div>
@@ -731,47 +730,48 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
 
       {/* QR Modal */}
       {showQrModal && qrSessionId && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-stone-900 border border-stone-800 rounded-3xl w-full max-w-sm p-6 shadow-2xl relative">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-sm p-6 shadow-xl relative text-center">
             <button
               onClick={() => setShowQrModal(false)}
-              className="absolute top-4 right-4 p-2 bg-stone-950 hover:bg-stone-800 rounded-full text-stone-400 hover:text-white transition"
+              className="absolute top-4 right-4 p-2 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-500 transition"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
-            <h3 className="text-xl font-extrabold text-white mb-2 text-center">QR Code สำหรับลูกค้า</h3>
-            <p className="text-stone-400 text-xs text-center mb-6">โต๊ะ {tableId} • สแกนเพื่อสั่งอาหาร (หมดอายุใน 2 ชม.)</p>
+            <h3 className="text-lg font-black text-slate-900 mb-1">QR Code สำหรับลูกค้า</h3>
+            <p className="text-slate-500 text-xs mb-5 font-medium">โต๊ะ {tableId} • สแกนเพื่อสั่งอาหาร (หมดอายุใน 2 ชม.)</p>
             
-            <div className="bg-white p-4 rounded-2xl flex items-center justify-center">
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 inline-block">
               <QRCode
                 value={`${window.location.origin}/customer/${qrSessionId}`}
-                size={220}
+                size={200}
                 level="H"
               />
             </div>
             
-            <div className="mt-6 text-center">
-              <p className="text-[10px] text-stone-500 font-mono break-all px-4">{qrSessionId}</p>
+            <div className="mt-4">
+              <p className="text-[10px] text-slate-400 font-mono break-all">{qrSessionId}</p>
             </div>
           </div>
         </div>
       )}
+
       {/* NOTE EDIT MODAL */}
       {noteEditTarget !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="w-full max-w-md bg-stone-900 border border-stone-800 rounded-3xl p-6 shadow-2xl relative">
-            <h3 className="text-lg font-black text-amber-500 flex items-center gap-2 mb-2">
-              <ClipboardList className="w-5 h-5" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
+          <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-6 shadow-xl relative">
+            <h3 className="text-lg font-black text-slate-900 flex items-center gap-2 mb-2">
+              <ClipboardList className="w-5 h-5 text-red-600" />
               <span>ระบุโน้ตพิเศษ</span>
             </h3>
-            <p className="text-stone-400 text-xs mb-4">
-              ระบุข้อกำหนดพิเศษของลูกค้าสำหรับเมนู <span className="font-bold text-white">{cart[noteEditTarget.index]?.name}</span>
+            <p className="text-slate-500 text-xs mb-4">
+              ข้อกำหนดพิเศษสำหรับเมนู <span className="font-bold text-slate-900">{cart[noteEditTarget.index]?.name}</span>
             </p>
 
             <div className="space-y-4">
               {/* Quick Note Buttons */}
               <div>
-                <label className="block text-xs font-bold text-stone-400 tracking-wider uppercase mb-2">
+                <label className="block text-[11px] font-bold text-slate-400 tracking-wider uppercase mb-2">
                   ตัวเลือกด่วน
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -795,10 +795,10 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
                           }
                           setNoteEditTarget(prev => prev ? { ...prev, notes: updatedNotes } : null);
                         }}
-                        className={`px-3 py-2 rounded-xl text-xs font-semibold border transition ${
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition ${
                           isSelected
-                            ? 'bg-amber-500/10 border-amber-500/40 text-amber-400'
-                            : 'bg-stone-950 border-stone-850 text-stone-400 hover:border-stone-700'
+                            ? 'bg-red-50 border-red-300 text-red-600 font-bold'
+                            : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                         }`}
                       >
                         {quickNote}
@@ -810,22 +810,22 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
 
               {/* Custom Text Area */}
               <div>
-                <label className="block text-xs font-bold text-stone-400 tracking-wider uppercase mb-2">
+                <label className="block text-[11px] font-bold text-slate-400 tracking-wider uppercase mb-2">
                   ระบุรายละเอียดอื่นๆ
                 </label>
                 <textarea
                   value={noteEditTarget.notes}
                   onChange={(e) => setNoteEditTarget(prev => prev ? { ...prev, notes: e.target.value } : null)}
                   placeholder="เช่น หวานน้อย, ขอวาซาบิเยอะๆ..."
-                  className="w-full bg-stone-950 border border-stone-850 focus:border-stone-700 focus:outline-none rounded-xl p-3 text-sm text-stone-200 placeholder-stone-600 h-20 resize-none"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-red-500 focus:outline-none rounded-xl p-3 text-xs text-slate-800 placeholder-slate-400 h-20 resize-none"
                 />
               </div>
 
-              <div className="flex gap-3 pt-4 border-t border-stone-850">
+              <div className="flex gap-3 pt-4 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setNoteEditTarget(null)}
-                  className="flex-1 py-3 bg-stone-950 hover:bg-stone-900 border border-stone-850 rounded-xl text-stone-400 text-sm font-bold active:scale-97 transition"
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl active:scale-97 transition"
                 >
                   ยกเลิก
                 </button>
@@ -835,7 +835,7 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
                     updateCartItemNotes(noteEditTarget.index, noteEditTarget.notes);
                     setNoteEditTarget(null);
                   }}
-                  className="flex-1 py-3 bg-amber-500 hover:bg-amber-600 text-black text-sm font-extrabold rounded-xl active:scale-97 transition shadow-md shadow-amber-500/10"
+                  className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-extrabold rounded-xl active:scale-97 transition shadow-md shadow-red-600/20"
                 >
                   บันทึกโน้ต
                 </button>
@@ -847,3 +847,5 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
     </div>
   );
 };
+
+
