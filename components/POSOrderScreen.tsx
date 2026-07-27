@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { ArrowLeft, Plus, Minus, Trash2, ShieldAlert, ShoppingBag, History, HelpCircle, QrCode, X, ClipboardList } from 'lucide-react';
+import { ArrowLeft, Plus, Minus, Trash2, ShieldAlert, ShoppingBag, History, HelpCircle, QrCode, X, ClipboardList, UtensilsCrossed, AlertTriangle } from 'lucide-react';
 import QRCode from 'react-qr-code';
 interface MenuItem {
   id: number;
@@ -11,6 +11,7 @@ interface MenuItem {
   price: number;
   stock: number;
   category: string;
+  image_url?: string | null;
 }
 
 interface CartItem extends MenuItem {
@@ -34,6 +35,17 @@ interface POSOrderScreenProps {
   onBack: () => void;
 }
 
+interface VoidLog {
+  id: number;
+  employee_name: string;
+  menu_name: string;
+  quantity: number;
+  total_amount: number;
+  reason: string;
+  restored_stock: boolean;
+  created_at: string;
+}
+
 export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack }) => {
   const { employee } = useAuth();
   
@@ -55,7 +67,11 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
   const [voidTarget, setVoidTarget] = useState<OrderedItem | null>(null);
   const [voidReason, setVoidReason] = useState<string>('');
   const [customReason, setCustomReason] = useState<string>('');
+  const [voidQuantity, setVoidQuantity] = useState<number>(1);
   const [isVoiding, setIsVoiding] = useState(false);
+
+  // Void Logs States
+  const [voidLogs, setVoidLogs] = useState<VoidLog[]>([]);
 
   // QR Modal States
   const [showQrModal, setShowQrModal] = useState(false);
@@ -100,7 +116,7 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
       setIsLoadingMenu(true);
       const { data, error } = await supabase
         .from('menu_items')
-        .select('id, name, price, stock, category')
+        .select('*')
         .order('id', { ascending: true });
         
       if (error) throw error;
@@ -166,6 +182,7 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
   useEffect(() => {
     fetchMenu();
     fetchActiveOrder();
+    fetchVoidLogs();
 
     // Subscribe to menu changes for realtime stock sync
     const menuChannel = supabase
@@ -310,11 +327,12 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
       setIsVoiding(true);
       setErrorMsg(null);
 
-      // Call void_order_item database function
+      // Call void_order_item database function (with partial void quantity)
       const { data: success, error: voidError } = await supabase.rpc('void_order_item', {
         p_order_item_id: voidTarget.id,
         p_employee_name: employee?.name || 'Unknown Staff',
-        p_reason: finalReason
+        p_reason: finalReason,
+        p_void_quantity: voidQuantity
       });
 
       if (voidError) throw voidError;
@@ -323,8 +341,10 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
         setVoidTarget(null);
         setVoidReason('');
         setCustomReason('');
+        setVoidQuantity(1);
         await fetchActiveOrder();
         await fetchMenu();
+        await fetchVoidLogs();
       } else {
         setErrorMsg('ไม่สามารถดำเนินการยกเลิกรายการอาหารได้');
       }
@@ -336,11 +356,29 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
     }
   };
 
+  // Fetch Void Logs (today only)
+  const fetchVoidLogs = async () => {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const { data, error } = await supabase
+        .from('void_logs')
+        .select('*')
+        .gte('created_at', today.toISOString())
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setVoidLogs((data || []) as VoidLog[]);
+    } catch (err) {
+      console.error('Error fetching void logs:', err);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100 text-slate-800 flex flex-col lg:flex-row relative font-sans">
+    <div className="w-full text-slate-800 flex flex-col lg:flex-row relative font-sans min-h-screen flex-1 bg-white">
       
       {/* LEFT AREA: Menu Selection */}
-      <div className="flex-1 p-6 lg:border-r border-slate-200 flex flex-col overflow-y-auto max-w-6xl">
+      <div className="flex-1 p-6 lg:border-r border-slate-200 flex flex-col overflow-y-auto">
         {/* Top Header */}
         <header className="flex items-center gap-4 mb-6 pb-4 border-b border-slate-200/80">
           <button
@@ -396,13 +434,13 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
           </h2>
           
           {isLoadingMenu ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {[...Array(6)].map((_, i) => (
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+              {[...Array(8)].map((_, i) => (
                 <div key={i} className="h-36 bg-white border border-slate-200 rounded-2xl animate-pulse shadow-xs" />
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
               {menuItems
                 .filter(item => selectedCategory === 'ทั้งหมด' || item.category === selectedCategory)
                 .map(item => {
@@ -414,37 +452,57 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
                   return (
                     <div
                       key={item.id}
-                      className={`p-5 rounded-2xl border transition-all duration-200 relative overflow-hidden flex flex-col justify-between shadow-xs ${
+                      className={`p-3 sm:p-4 rounded-2xl border transition-all duration-200 relative overflow-hidden flex flex-col justify-between shadow-xs ${
                         isSoldOut
                           ? 'bg-slate-50 border-slate-200 opacity-60'
                           : 'bg-white hover:shadow-md border-slate-200/80 hover:border-slate-300'
                       }`}
                     >
-                      <div className="flex justify-between items-start mb-6">
-                        <div className="pr-2">
-                          <h3 className="font-bold text-base text-slate-900 leading-snug">
-                            {item.name}
-                          </h3>
-                          <p className="text-red-600 font-extrabold text-lg mt-1">
-                            {item.price} <span className="text-xs font-semibold text-slate-500">บาท</span>
-                          </p>
-                        </div>
+                      {/* Image Area (1:1 Aspect Ratio) */}
+                      <div className="w-full aspect-square relative rounded-xl overflow-hidden bg-slate-100 border border-slate-100 mb-3 flex items-center justify-center group">
+                        {item.image_url ? (
+                          <img
+                            src={item.image_url}
+                            alt={item.name}
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            onError={(e) => {
+                              (e.target as HTMLElement).style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center text-slate-300 gap-1">
+                            <UtensilsCrossed className="w-8 h-8 stroke-[1.5]" />
+                            <span className="text-[10px] font-semibold text-slate-400">ไม่มีรูปภาพ</span>
+                          </div>
+                        )}
 
-                        {/* Stock Badges */}
-                        <div>
+                        {/* Stock Badge Overlay */}
+                        <div className="absolute top-2 right-2 z-10">
                           {isSoldOut ? (
-                            <span className="text-[10px] font-extrabold tracking-wider px-2 py-1 bg-rose-100 text-rose-800 border border-rose-200 rounded-lg uppercase">
+                            <span className="text-[10px] font-extrabold tracking-wider px-2 py-0.5 bg-rose-900/90 text-rose-100 backdrop-blur-xs rounded-lg uppercase shadow-xs">
                               SOLD OUT
                             </span>
                           ) : isUrgent ? (
-                            <span className="text-[10px] font-bold px-2 py-1 bg-amber-100 text-amber-800 border border-amber-300 rounded-lg animate-pulse whitespace-nowrap">
+                            <span className="text-[10px] font-bold px-2 py-0.5 bg-amber-500 text-stone-950 font-black rounded-lg shadow-xs animate-pulse">
                               เหลือ {item.stock} จาน
                             </span>
                           ) : (
-                            <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-100 border border-slate-200 text-slate-600 rounded-md">
+                            <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-900/75 text-white backdrop-blur-xs rounded-md shadow-xs">
                               สต็อก: {item.stock}
                             </span>
                           )}
+                        </div>
+                      </div>
+
+                      {/* Info Area */}
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="pr-2">
+                          <h3 className="font-bold text-sm text-slate-900 leading-snug">
+                            {item.name}
+                          </h3>
+                          <p className="text-red-600 font-extrabold text-base mt-0.5">
+                            {item.price} <span className="text-xs font-semibold text-slate-500">บาท</span>
+                          </p>
                         </div>
                       </div>
 
@@ -479,7 +537,7 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
       </div>
 
       {/* RIGHT AREA: Cart & Current Order Status */}
-      <div className="w-full lg:w-[400px] bg-white border-t lg:border-t-0 lg:border-l border-slate-200 p-6 flex flex-col justify-between shadow-sm overflow-y-auto shrink-0">
+      <div className="w-full lg:w-[400px] bg-white border-t lg:border-t-0 lg:border-l border-slate-200 p-6 flex flex-col justify-between shadow-xs overflow-y-auto shrink-0 self-stretch min-h-full">
         <div>
           {/* Section 1: Cart Items */}
           <div className="mb-8 border-b border-slate-100 pb-6">
@@ -631,7 +689,7 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
                       
                       {!isVoided && (
                         <button
-                          onClick={() => setVoidTarget(item)}
+                          onClick={() => { setVoidTarget(item); setVoidQuantity(item.quantity); }}
                           className="px-2.5 py-1 bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 text-slate-500 hover:text-rose-600 rounded-lg text-xs font-bold transition flex items-center gap-1 active:scale-95 shadow-xs"
                         >
                           <ShieldAlert className="w-3.5 h-3.5" />
@@ -644,6 +702,47 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
               </div>
             )}
           </div>
+
+          {/* Section 3: Void Logs (Today) */}
+          {voidLogs.length > 0 && (
+            <div className="mt-6">
+              <h2 className="text-xs font-extrabold text-rose-500/80 flex items-center gap-1.5 mb-3 tracking-wide uppercase">
+                <AlertTriangle className="w-3.5 h-3.5" />
+                <span>รายการที่ยกเลิกบิลนี้ ({voidLogs.length})</span>
+              </h2>
+              <div className="space-y-2 max-h-[25vh] overflow-y-auto pr-1">
+                {voidLogs.map(log => (
+                  <div
+                    key={log.id}
+                    className="p-2.5 bg-rose-50/60 border border-rose-100 rounded-xl text-xs"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <span className="font-bold text-slate-800">{log.menu_name}</span>
+                        <span className="text-rose-500 font-extrabold ml-1.5">x{log.quantity}</span>
+                      </div>
+                      <span className="font-extrabold text-rose-600 whitespace-nowrap">
+                        -{log.total_amount.toLocaleString()} ฿
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                      <span className="text-[10px] font-semibold text-slate-500 bg-white px-1.5 py-0.5 rounded border border-slate-100">
+                        {log.reason}
+                      </span>
+                      {log.restored_stock && (
+                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
+                          คืนสต็อกแล้ว
+                        </span>
+                      )}
+                      <span className="text-[10px] text-slate-400 ml-auto">
+                        {log.employee_name} • {new Date(log.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -655,9 +754,51 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
               <ShieldAlert className="w-5 h-5 text-rose-600 stroke-[2.5]" />
               <span>ยืนยันการยกเลิกรายการอาหาร (Void)</span>
             </h3>
-            <p className="text-slate-600 text-xs mb-5 leading-relaxed">
-              ยกเลิกรายการ <span className="font-bold text-slate-900">{voidTarget.menu_items?.name}</span> จำนวน <span className="font-bold text-slate-900">{voidTarget.quantity} จาน</span> (มูลค่า {voidTarget.quantity * voidTarget.unit_price} บาท)
+            <p className="text-slate-600 text-xs mb-3 leading-relaxed">
+              ยกเลิกรายการ <span className="font-bold text-slate-900">{voidTarget.menu_items?.name}</span> (สั่งทั้งหมด {voidTarget.quantity} จาน • ราคา {voidTarget.unit_price} บาท/จาน)
             </p>
+
+            {/* Void Quantity Selector */}
+            <div className="mb-5 p-3.5 bg-slate-50 border border-slate-200 rounded-2xl">
+              <label className="block text-[11px] font-bold text-slate-400 tracking-wider uppercase mb-2.5">
+                จำนวนที่ต้องการยกเลิก (Void)
+              </label>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setVoidQuantity(q => Math.max(1, q - 1))}
+                  disabled={voidQuantity <= 1}
+                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-slate-200 hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-white text-slate-700 font-bold text-lg transition active:scale-95 shadow-xs cursor-pointer disabled:cursor-not-allowed"
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                <div className="flex-1 text-center">
+                  <span className="text-2xl font-black text-rose-600">{voidQuantity}</span>
+                  <span className="text-xs font-semibold text-slate-400 ml-1">/ {voidTarget.quantity} จาน</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setVoidQuantity(q => Math.min(voidTarget.quantity, q + 1))}
+                  disabled={voidQuantity >= voidTarget.quantity}
+                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-slate-200 hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-white text-slate-700 font-bold text-lg transition active:scale-95 shadow-xs cursor-pointer disabled:cursor-not-allowed"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="mt-2.5 flex items-center justify-between text-xs">
+                <span className="font-semibold text-slate-500">
+                  มูลค่าที่ยกเลิก:
+                </span>
+                <span className="font-extrabold text-rose-600">
+                  {(voidQuantity * voidTarget.unit_price).toLocaleString()} บาท
+                </span>
+              </div>
+              {voidQuantity < voidTarget.quantity && (
+                <div className="mt-1.5 text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100 text-center">
+                  เหลือในออเดอร์: {voidTarget.quantity - voidQuantity} จาน ({((voidTarget.quantity - voidQuantity) * voidTarget.unit_price).toLocaleString()} บาท)
+                </div>
+              )}
+            </div>
 
             <form onSubmit={handleVoidSubmit} className="space-y-4">
               <div>
@@ -706,6 +847,7 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
                     setVoidTarget(null);
                     setVoidReason('');
                     setCustomReason('');
+                    setVoidQuantity(1);
                   }}
                   className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl active:scale-97 transition"
                 >

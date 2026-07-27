@@ -20,6 +20,7 @@ interface MenuItem {
   price: number;
   stock: number;
   category: string;
+  image_url?: string | null;
 }
 
 interface CartItem extends MenuItem {
@@ -84,7 +85,7 @@ export default function CustomerOrderPortal() {
       // 2. Fetch Menu
       const { data: menuData, error: menuError } = await supabase
         .from('menu_items')
-        .select('id, name, price, stock, category')
+        .select('*')
         .order('id', { ascending: true });
 
       if (menuError) throw menuError;
@@ -291,7 +292,7 @@ export default function CustomerOrderPortal() {
       )}
 
       {/* Menu List */}
-      <main className="p-4 space-y-4">
+      <main className="p-3 sm:p-4 grid grid-cols-2 gap-3 sm:gap-4">
         {menuItems
           .filter(item => selectedCategory === 'ทั้งหมด' || item.category === selectedCategory)
           .map(item => {
@@ -300,37 +301,56 @@ export default function CustomerOrderPortal() {
             const isLowStock = item.stock > 0 && item.stock <= 3;
 
             return (
-              <div key={item.id} className={`p-4 rounded-2xl border flex flex-col gap-3 transition-colors ${isSoldOut ? 'bg-stone-900/40 border-stone-800 opacity-60' : 'bg-stone-900 border-stone-800'}`}>
-                <div className="flex justify-between items-start gap-4">
+              <div key={item.id} className={`p-3 rounded-2xl border flex flex-col justify-between gap-2.5 transition-colors ${isSoldOut ? 'bg-stone-900/40 border-stone-800 opacity-60' : 'bg-stone-900 border-stone-800'}`}>
+                <div className="flex flex-col gap-2">
+                  {/* Thumbnail / Image */}
+                  {item.image_url && (
+                    <div className="w-full aspect-square rounded-xl overflow-hidden bg-stone-800 border border-stone-800 relative">
+                      <img
+                        src={item.image_url}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                      />
+                      {isSoldOut ? (
+                        <span className="absolute top-2 right-2 text-[9px] font-black tracking-wider bg-red-950/90 text-red-400 backdrop-blur-xs px-2 py-0.5 rounded">SOLD OUT</span>
+                      ) : isLowStock ? (
+                        <span className="absolute top-2 right-2 text-[9px] font-bold tracking-wider bg-orange-950/90 text-orange-400 backdrop-blur-xs px-2 py-0.5 rounded whitespace-nowrap">เหลือ {item.stock} จาน</span>
+                      ) : null}
+                    </div>
+                  )}
                   <div>
-                    <h3 className="font-bold text-stone-200">{item.name}</h3>
-                    <p className="text-amber-500 font-semibold text-sm mt-1">{item.price} บาท</p>
+                    <div className="flex items-start justify-between gap-1">
+                      <h3 className="font-bold text-xs sm:text-sm text-stone-200 line-clamp-2 leading-snug">{item.name}</h3>
+                      {!item.image_url && (
+                        isSoldOut ? (
+                          <span className="text-[9px] font-black tracking-wider bg-red-950 text-red-400 px-1.5 py-0.5 rounded shrink-0">SOLD OUT</span>
+                        ) : isLowStock ? (
+                          <span className="text-[9px] font-bold tracking-wider bg-orange-950 text-orange-400 px-1.5 py-0.5 rounded shrink-0">เหลือ {item.stock}</span>
+                        ) : null
+                      )}
+                    </div>
+                    <p className="text-amber-500 font-extrabold text-xs sm:text-sm mt-0.5">{item.price} บาท</p>
                   </div>
-                  {isSoldOut ? (
-                    <span className="text-[10px] font-black tracking-wider bg-red-950 text-red-500 px-2 py-1 rounded">SOLD OUT</span>
-                  ) : isLowStock ? (
-                    <span className="text-[10px] font-bold tracking-wider bg-orange-950 text-orange-500 px-2 py-1 rounded whitespace-nowrap">เหลือ {item.stock} จาน</span>
-                  ) : null}
                 </div>
 
                 {!isSoldOut && (
-                  <div className="flex items-center justify-between border-t border-stone-800/50 pt-3 mt-1">
-                    <span className="text-xs text-stone-500">เลือกจำนวน</span>
-                    <div className="flex items-center gap-4 bg-stone-950 rounded-full p-1 border border-stone-800">
+                  <div className="flex items-center justify-between border-t border-stone-800/50 pt-2 mt-1">
+                    <div className="flex items-center gap-2 bg-stone-950 rounded-full p-1 border border-stone-800 w-full justify-between">
                       <button
                         onClick={() => removeFromCart(item.id)}
                         disabled={qty === 0}
-                        className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-900 hover:bg-stone-800 disabled:opacity-50 transition"
+                        className="w-7 h-7 flex items-center justify-center rounded-full bg-stone-900 hover:bg-stone-800 disabled:opacity-50 transition shrink-0"
                       >
-                        <Minus className="w-4 h-4" />
+                        <Minus className="w-3.5 h-3.5" />
                       </button>
-                      <span className="font-bold w-4 text-center">{qty}</span>
+                      <span className="font-bold text-xs text-center">{qty}</span>
                       <button
                         onClick={() => addToCart(item)}
                         disabled={qty >= item.stock}
-                        className="w-8 h-8 flex items-center justify-center rounded-full bg-amber-500 hover:bg-amber-400 text-black disabled:opacity-50 transition"
+                        className="w-7 h-7 flex items-center justify-center rounded-full bg-amber-500 hover:bg-amber-400 text-black disabled:opacity-50 transition shrink-0"
                       >
-                        <Plus className="w-4 h-4" />
+                        <Plus className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
