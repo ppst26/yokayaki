@@ -297,7 +297,7 @@ export const EmployeeManager: React.FC = () => {
   // ========== Render ==========
 
   return (
-    <div className="max-w-4xl space-y-6">
+    <div className="w-full space-y-6">
       {/* Toast Message */}
       {message && (
         <div className={`p-4 rounded-2xl text-xs font-semibold flex items-center gap-3 animate-fade-in ${
@@ -356,7 +356,7 @@ export const EmployeeManager: React.FC = () => {
           ยังไม่มีพนักงานในระบบ
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {employees.map(emp => {
             const isOwnerBadge = emp.role === 'owner';
             const isSelf = currentUser?.id === emp.id;
