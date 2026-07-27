@@ -292,7 +292,7 @@ export default function CustomerOrderPortal() {
       )}
 
       {/* Menu List */}
-      <main className="p-3 sm:p-4 grid grid-cols-2 gap-3 sm:gap-4">
+      <main className="p-3 sm:p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
         {menuItems
           .filter(item => selectedCategory === 'ทั้งหมด' || item.category === selectedCategory)
           .map(item => {

@@ -434,13 +434,13 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
           </h2>
           
           {isLoadingMenu ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
               {[...Array(8)].map((_, i) => (
                 <div key={i} className="h-36 bg-white border border-slate-200 rounded-2xl animate-pulse shadow-xs" />
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
               {menuItems
                 .filter(item => selectedCategory === 'ทั้งหมด' || item.category === selectedCategory)
                 .map(item => {
