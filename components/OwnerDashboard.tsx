@@ -4,8 +4,19 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import {
   TrendingUp, Trash2, Award,
-  DollarSign, Clock, ClipboardList, Package, X, CalendarDays, BarChart3
+  DollarSign, Clock, ClipboardList, Package, X, CalendarDays, BarChart3,
+  Users, CreditCard, Tag, PieChart, Wallet, ArrowUpRight
 } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from '@/components/ui/chart';
+
+const chartConfig: ChartConfig = {
+  amount: {
+    label: "ยอดขาย",
+    color: "#dc2626",
+  },
+};
+
 
 // ========== Interfaces ==========
 
@@ -31,6 +42,36 @@ interface ItemSalesCount {
   name: string;
   quantity: number;
   revenue: number;
+}
+
+interface CategorySalesCount {
+  category: string;
+  quantity: number;
+  revenue: number;
+  percentage: number;
+}
+
+interface MemberStats {
+  memberRevenue: number;
+  nonMemberRevenue: number;
+  memberOrderCount: number;
+  nonMemberOrderCount: number;
+  avgMemberSpend: number;
+  avgNonMemberSpend: number;
+  pointsRedeemed: number;
+}
+
+interface DetailedPaymentSummary {
+  cashTotal: number;
+  cashCount: number;
+  promptpayTotal: number;
+  promptpayCount: number;
+  mixedTotal: number;
+  mixedCount: number;
+  totalSubtotal: number;
+  totalDiscount: number;
+  netTotal: number;
+  orderCount: number;
 }
 
 interface ChartBar {
@@ -248,6 +289,31 @@ export const OwnerDashboard: React.FC = () => {
   const [topSellers, setTopSellers] = useState<ItemSalesCount[]>([]);
   const [chartBars, setChartBars] = useState<ChartBar[]>([]);
 
+  // New states for enhanced analytics
+  const [topSellerTab, setTopSellerTab] = useState<'sellers' | 'categories'>('sellers');
+  const [categorySellers, setCategorySellers] = useState<CategorySalesCount[]>([]);
+  const [memberStats, setMemberStats] = useState<MemberStats>({
+    memberRevenue: 0,
+    nonMemberRevenue: 0,
+    memberOrderCount: 0,
+    nonMemberOrderCount: 0,
+    avgMemberSpend: 0,
+    avgNonMemberSpend: 0,
+    pointsRedeemed: 0,
+  });
+  const [detailedPayments, setDetailedPayments] = useState<DetailedPaymentSummary>({
+    cashTotal: 0,
+    cashCount: 0,
+    promptpayTotal: 0,
+    promptpayCount: 0,
+    mixedTotal: 0,
+    mixedCount: 0,
+    totalSubtotal: 0,
+    totalDiscount: 0,
+    netTotal: 0,
+    orderCount: 0,
+  });
+
   const [ingredientCost, setIngredientCost] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -263,29 +329,55 @@ export const OwnerDashboard: React.FC = () => {
       const startDateStr = toDateInputValue(startDate);
       const endDateStr = toDateInputValue(endDate);
 
-      // 1. ดึงยอดจ่ายตามช่วงเวลา
+      // 1. ดึงยอดจ่ายตามช่วงเวลา (รวมฟิลด์ส่วนลด/แต้ม/สมาชิก)
       const { data: payData, error: payError } = await supabase
         .from('payments')
-        .select('payment_method, net_amount')
+        .select('payment_method, subtotal, discount_amount, net_amount, points_redeemed, phone_number')
         .gte('created_at', startISO)
         .lte('created_at', endISO);
 
       if (payError) throw payError;
 
-      let cashTotal = 0;
-      let promptpayTotal = 0;
-      let netTotal = 0;
+      let cashTotal = 0, cashCount = 0;
+      let promptpayTotal = 0, promptpayCount = 0;
+      let mixedTotal = 0, mixedCount = 0;
+      let netTotal = 0, totalSubtotal = 0, totalDiscount = 0;
 
-      payData?.forEach((p: { payment_method: string; net_amount: number | string }) => {
-        const amt = parseFloat(p.net_amount as string);
-        netTotal += amt;
+      let memberRevenue = 0, memberOrderCount = 0;
+      let nonMemberRevenue = 0, nonMemberOrderCount = 0;
+      let totalPointsRedeemed = 0;
+
+      payData?.forEach((p: any) => {
+        const net = parseFloat(p.net_amount as string) || 0;
+        const sub = parseFloat(p.subtotal as string) || 0;
+        const disc = parseFloat(p.discount_amount as string) || 0;
+        const pts = parseInt(p.points_redeemed as string) || 0;
+
+        netTotal += net;
+        totalSubtotal += sub;
+        totalDiscount += disc;
+        totalPointsRedeemed += pts;
+
         if (p.payment_method === 'cash') {
-          cashTotal += amt;
+          cashTotal += net;
+          cashCount++;
         } else if (p.payment_method === 'promptpay') {
-          promptpayTotal += amt;
+          promptpayTotal += net;
+          promptpayCount++;
         } else if (p.payment_method === 'mixed') {
-          cashTotal += amt * 0.5;
-          promptpayTotal += amt * 0.5;
+          mixedTotal += net;
+          mixedCount++;
+          cashTotal += net * 0.5;
+          promptpayTotal += net * 0.5;
+        }
+
+        // Member vs Non-Member
+        if (p.phone_number && p.phone_number.trim() !== '') {
+          memberRevenue += net;
+          memberOrderCount++;
+        } else {
+          nonMemberRevenue += net;
+          nonMemberOrderCount++;
         }
       });
 
@@ -294,6 +386,25 @@ export const OwnerDashboard: React.FC = () => {
         promptpayTotal,
         netTotal,
         orderCount: payData?.length || 0
+      });
+
+      setDetailedPayments({
+        cashTotal, cashCount,
+        promptpayTotal, promptpayCount,
+        mixedTotal, mixedCount,
+        totalSubtotal, totalDiscount,
+        netTotal,
+        orderCount: payData?.length || 0
+      });
+
+      setMemberStats({
+        memberRevenue,
+        nonMemberRevenue,
+        memberOrderCount,
+        nonMemberOrderCount,
+        avgMemberSpend: memberOrderCount > 0 ? Math.round(memberRevenue / memberOrderCount) : 0,
+        avgNonMemberSpend: nonMemberOrderCount > 0 ? Math.round(nonMemberRevenue / nonMemberOrderCount) : 0,
+        pointsRedeemed: totalPointsRedeemed,
       });
 
       // 2. ดึงประวัติ Void Logs ตามช่วงเวลา
@@ -307,7 +418,7 @@ export const OwnerDashboard: React.FC = () => {
       if (voidError) throw voidError;
       setVoidLogs((voidData || []) as VoidLog[]);
 
-      // 3. ดึงยอดสั่งอาหารที่เสิร์ฟสำเร็จตามช่วงเวลา
+      // 3. ดึงยอดสั่งอาหารที่เสิร์ฟสำเร็จตามช่วงเวลา (รวม category)
       const { data: salesData, error: salesError } = await supabase
         .from('order_items')
         .select(`
@@ -317,7 +428,8 @@ export const OwnerDashboard: React.FC = () => {
           status,
           created_at,
           menu_items (
-            name
+            name,
+            category
           )
         `)
         .eq('status', 'served')
@@ -327,19 +439,33 @@ export const OwnerDashboard: React.FC = () => {
       if (salesError) throw salesError;
 
       const itemMap: { [key: string]: { quantity: number; revenue: number } } = {};
+      const categoryMap: { [key: string]: { quantity: number; revenue: number } } = {};
       const rawSalesForChart: { created_at: string; revenue: number }[] = [];
+      let totalSalesNet = 0;
 
-      salesData?.forEach((item: { quantity: number; unit_price: number; discount_applied: number; created_at: string; menu_items: { name: string }[] | { name: string } | null }) => {
+      salesData?.forEach((item: any) => {
         const mi = item.menu_items;
         const name = Array.isArray(mi) ? mi[0]?.name : mi?.name || 'ไม่ทราบชื่อ';
+        const category = Array.isArray(mi) ? mi[0]?.category : mi?.category || 'อื่นๆ';
         const qty = item.quantity;
         const rev = (item.unit_price * qty) - item.discount_applied;
 
+        totalSalesNet += rev;
+
+        // Item aggregation
         if (itemMap[name]) {
           itemMap[name].quantity += qty;
           itemMap[name].revenue += rev;
         } else {
           itemMap[name] = { quantity: qty, revenue: rev };
+        }
+
+        // Category aggregation
+        if (categoryMap[category]) {
+          categoryMap[category].quantity += qty;
+          categoryMap[category].revenue += rev;
+        } else {
+          categoryMap[category] = { quantity: qty, revenue: rev };
         }
 
         rawSalesForChart.push({ created_at: item.created_at, revenue: rev });
@@ -352,6 +478,15 @@ export const OwnerDashboard: React.FC = () => {
       })).sort((a, b) => b.quantity - a.quantity);
 
       setTopSellers(topList);
+
+      const categoryList = Object.keys(categoryMap).map(cat => ({
+        category: cat,
+        quantity: categoryMap[cat].quantity,
+        revenue: categoryMap[cat].revenue,
+        percentage: totalSalesNet > 0 ? Math.round((categoryMap[cat].revenue / totalSalesNet) * 100) : 0
+      })).sort((a, b) => b.revenue - a.revenue);
+
+      setCategorySellers(categoryList);
 
       // Adaptive chart bars
       const bars = groupSalesForChart(rawSalesForChart, startDate, endDate);
@@ -428,29 +563,28 @@ export const OwnerDashboard: React.FC = () => {
   // ========== Render ==========
 
   return (
-    <div className="bg-stone-950 text-white min-h-[calc(100vh-80px)] p-6">
-      <div className="max-w-6xl mx-auto space-y-8">
-        {/* ส่วนหัวรายงาน */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-850 pb-6">
+    <div className="space-y-8 font-sans w-full">
+      {/* ส่วนหัวรายงาน */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm">
           <div>
-            <h2 className="text-xl font-bold tracking-tight bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">
+            <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
               รายงานวิเคราะห์ยอดขายและระบบตรวจสอบ (Owner Dashboard)
             </h2>
-            <p className="text-stone-400 text-xs mt-1">วิเคราะห์ข้อมูลยอดขาย รายละเอียดธุรกรรม และประวัติสูญเสียวัตถุดิบ</p>
+            <p className="text-slate-500 text-xs font-medium mt-0.5">วิเคราะห์ข้อมูลยอดขาย รายละเอียดธุรกรรม และประวัติสูญเสียวัตถุดิบ</p>
           </div>
           <button
             onClick={fetchDashboardData}
-            className="px-4 py-2 bg-stone-900 border border-stone-800 rounded-xl text-xs font-bold text-stone-300 hover:text-white transition active:scale-95 cursor-pointer"
+            className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-xs font-extrabold text-slate-700 hover:text-slate-900 transition active:scale-95 cursor-pointer shadow-xs"
           >
             รีเฟรชข้อมูลแดชบอร์ด
           </button>
         </div>
 
         {/* ========== Date Range Filter ========== */}
-        <div className="bg-stone-900/40 border border-stone-850 rounded-2xl p-5 backdrop-blur-md space-y-4">
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-4">
           <div className="flex items-center gap-2 mb-1">
-            <CalendarDays className="w-4 h-4 text-amber-500" />
-            <span className="text-sm font-bold text-stone-200">ช่วงเวลารายงาน</span>
+            <CalendarDays className="w-4 h-4 text-red-600" />
+            <span className="text-sm font-extrabold text-slate-900">ช่วงเวลารายงาน</span>
           </div>
 
           {/* Preset Buttons */}
@@ -459,10 +593,10 @@ export const OwnerDashboard: React.FC = () => {
               <button
                 key={p.key}
                 onClick={() => handlePreset(p.key)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer border ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all duration-200 cursor-pointer border ${
                   activePreset === p.key
-                    ? 'bg-amber-500/20 text-amber-400 border-amber-500/40 shadow-[0_0_12px_rgba(245,158,11,0.15)]'
-                    : 'bg-stone-900 text-stone-400 border-stone-800 hover:text-stone-200 hover:border-stone-700'
+                    ? 'bg-red-600 text-white border-red-600 shadow-xs'
+                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
                 }`}
               >
                 {p.label}
@@ -471,215 +605,392 @@ export const OwnerDashboard: React.FC = () => {
           </div>
 
           {/* Custom Date Pickers */}
-          <div className="flex flex-wrap items-center gap-3 text-xs">
-            <span className="text-stone-500 font-medium">จาก</span>
+          <div className="flex flex-wrap items-center gap-3 text-xs font-semibold">
+            <span className="text-slate-500 font-medium">จาก</span>
             <input
               type="date"
               value={toDateInputValue(startDate)}
               min={getMinDate()}
               max={toDateInputValue(endDate)}
               onChange={e => handleCustomDateChange('start', e.target.value)}
-              className="bg-stone-950 border border-stone-800 rounded-xl px-3 py-2 text-stone-200 text-xs font-medium focus:border-amber-500/50 focus:outline-none cursor-pointer [color-scheme:dark]"
+              className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs font-semibold focus:border-red-500 focus:outline-none cursor-pointer"
             />
-            <span className="text-stone-500 font-medium">ถึง</span>
+            <span className="text-slate-500 font-medium">ถึง</span>
             <input
               type="date"
               value={toDateInputValue(endDate)}
               min={toDateInputValue(startDate)}
               max={toDateInputValue(new Date())}
               onChange={e => handleCustomDateChange('end', e.target.value)}
-              className="bg-stone-950 border border-stone-800 rounded-xl px-3 py-2 text-stone-200 text-xs font-medium focus:border-amber-500/50 focus:outline-none cursor-pointer [color-scheme:dark]"
+              className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs font-semibold focus:border-red-500 focus:outline-none cursor-pointer"
             />
           </div>
         </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-3 border-amber-500 border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-3 border-red-600 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
           <>
             {/* ========== กล่องสรุปสถิติตัวเลข ========== */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-stone-900/40 border border-stone-850 rounded-2xl p-5 backdrop-blur-md flex items-center justify-between">
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
                 <div className="space-y-1">
-                  <div className="text-stone-400 text-xs font-medium">ยอดขายสุทธิ</div>
-                  <div className="text-2xl font-black text-white">{payments.netTotal.toLocaleString()} ฿</div>
+                  <div className="text-slate-500 text-xs font-semibold">ยอดขายสุทธิ</div>
+                  <div className="text-2xl font-black text-slate-900">{payments.netTotal.toLocaleString()} ฿</div>
                 </div>
-                <div className="p-3 bg-emerald-950/30 text-emerald-400 rounded-xl border border-emerald-900/25">
+                <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100">
                   <DollarSign className="w-5 h-5" />
                 </div>
               </div>
 
-              <div className="bg-stone-900/40 border border-stone-850 rounded-2xl p-5 backdrop-blur-md flex items-center justify-between">
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
                 <div className="space-y-1">
-                  <div className="text-stone-400 text-xs font-medium">ต้นทุนวัตถุดิบ</div>
-                  <div className="text-2xl font-black text-amber-500">{ingredientCost.toLocaleString()} ฿</div>
+                  <div className="text-slate-500 text-xs font-semibold">ต้นทุนวัตถุดิบ</div>
+                  <div className="text-2xl font-black text-slate-800">{ingredientCost.toLocaleString()} ฿</div>
                 </div>
-                <div className="p-3 bg-amber-950/30 text-amber-400 rounded-xl border border-amber-900/25">
+                <div className="p-3 bg-amber-50 text-amber-600 rounded-xl border border-amber-100">
                   <Package className="w-5 h-5" />
                 </div>
               </div>
 
-              <div className="bg-stone-900/40 border border-stone-850 rounded-2xl p-5 backdrop-blur-md flex items-center justify-between">
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
                 <div className="space-y-1">
-                  <div className="text-stone-400 text-xs font-medium">กำไรสุทธิ (Net Profit)</div>
-                  <div className={`text-2xl font-black ${(payments.netTotal - ingredientCost - totalWaste) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  <div className="text-slate-500 text-xs font-semibold">กำไรสุทธิ (Net Profit)</div>
+                  <div className={`text-2xl font-black ${(payments.netTotal - ingredientCost - totalWaste) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                     {(payments.netTotal - ingredientCost - totalWaste).toLocaleString()} ฿
                   </div>
                 </div>
-                <div className="p-3 bg-stone-850 text-stone-300 rounded-xl border border-stone-800">
+                <div className="p-3 bg-slate-100 text-slate-700 rounded-xl border border-slate-200">
                   <TrendingUp className="w-5 h-5" />
                 </div>
               </div>
 
-              <div className="bg-stone-900/40 border border-stone-850 rounded-2xl p-5 backdrop-blur-md flex items-center justify-between">
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
                 <div className="space-y-1">
-                  <div className="text-stone-400 text-xs font-medium">จำนวนออเดอร์ปิดบิล</div>
-                  <div className="text-2xl font-black text-white">{payments.orderCount} บิล</div>
+                  <div className="text-slate-500 text-xs font-semibold">จำนวนออเดอร์ปิดบิล</div>
+                  <div className="text-2xl font-black text-slate-900">{payments.orderCount} บิล</div>
                 </div>
-                <div className="p-3 bg-blue-950/30 text-blue-400 rounded-xl border border-blue-900/25">
+                <div className="p-3 bg-blue-50 text-blue-600 rounded-xl border border-blue-100">
                   <Clock className="w-5 h-5" />
                 </div>
               </div>
             </div>
 
-            {/* ========== กราฟ Adaptive + เมนูขายดี ========== */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* กราฟแท่ง Adaptive */}
-              <div className="bg-stone-900/40 border border-stone-850 rounded-2xl p-6 backdrop-blur-md lg:col-span-2 space-y-6">
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4 text-amber-500" />
-                  <h3 className="text-sm font-bold text-stone-200">{chartTitle}</h3>
-                </div>
-
-                {chartBars.length > 0 ? (
-                  <div className="h-64 flex items-end justify-between gap-1 pt-6 px-1 border-b border-stone-800 relative overflow-x-auto">
-                    {chartBars.map((data, idx) => {
-                      const pct = (data.amount / maxBarAmount) * 100;
-                      return (
-                        <div key={`${data.label}-${idx}`} className="flex-1 flex flex-col items-center group relative h-full justify-end min-w-[18px]">
-                          {/* Tooltip on hover */}
-                          <div className="absolute bottom-full mb-2 bg-stone-950 border border-stone-800 text-stone-200 text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 whitespace-nowrap shadow-xl">
-                            {data.amount.toLocaleString()} ฿
-                          </div>
-                          <div
-                            style={{ height: `${Math.max(4, pct)}%` }}
-                            className="w-full bg-gradient-to-t from-amber-600 to-amber-400 group-hover:from-amber-500 group-hover:to-yellow-400 rounded-t transition-all duration-300 shadow-[0_0_10px_rgba(245,158,11,0.1)]"
-                          />
-                          <span className={`font-semibold mt-2 text-stone-500 ${chartBars.length > 15 ? 'text-[7px]' : 'text-[10px]'}`}>
-                            {data.label}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="h-64 flex items-center justify-center text-stone-500 text-xs font-semibold">
-                    ไม่มีข้อมูลยอดขายในช่วงเวลานี้
-                  </div>
-                )}
+            {/* ========== กราฟ Adaptive (Full Width) ========== */}
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-6 w-full">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-red-600" />
+                <h3 className="text-xs font-extrabold text-slate-800">{chartTitle}</h3>
               </div>
 
-              {/* การจัดอันดับสินค้าขายดี */}
-              <div className="bg-stone-900/40 border border-stone-850 rounded-2xl p-6 backdrop-blur-md space-y-6">
-                <div className="flex items-center gap-2">
-                  <Award className="w-4 h-4 text-yellow-500" />
-                  <h3 className="text-sm font-bold text-stone-200">จัดอันดับเมนูขายดี</h3>
+              {chartBars.length > 0 ? (
+                <ChartContainer config={chartConfig} className="h-72 w-full">
+                  <BarChart data={chartBars} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
+                    <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis
+                      dataKey="label"
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={8}
+                      tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }}
+                    />
+                    <YAxis
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={8}
+                      tickFormatter={(val) => `${val.toLocaleString()} ฿`}
+                      tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }}
+                    />
+                    <ChartTooltip
+                      cursor={{ fill: 'rgba(241, 245, 249, 0.6)' }}
+                      content={<ChartTooltipContent formatter={(value) => `${Number(value).toLocaleString()} ฿`} />}
+                    />
+                    <Bar
+                      dataKey="amount"
+                      fill="var(--color-amount)"
+                      radius={[6, 6, 0, 0]}
+                    />
+                  </BarChart>
+                </ChartContainer>
+              ) : (
+                <div className="h-64 flex items-center justify-center text-slate-400 text-xs font-medium">
+                  ไม่มีข้อมูลยอดขายในช่วงเวลานี้
                 </div>
+              )}
+            </div>
 
-                <div className="space-y-4">
-                  {topSellers.slice(0, 5).map((item, idx) => (
-                    <div key={item.name} className="flex items-center justify-between border-b border-stone-850 pb-3 last:border-0 last:pb-0">
-                      <div className="flex items-center gap-3">
-                        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${
-                          idx === 0 ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/20' :
-                          idx === 1 ? 'bg-stone-200/20 text-stone-200 border border-stone-300/20' :
-                          'bg-stone-800 text-stone-400'
-                        }`}>
-                          {idx + 1}
-                        </span>
-                        <span className="text-xs font-bold text-stone-300">{item.name}</span>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-xs font-black text-white">{item.quantity} จาน</div>
-                        <div className="text-[10px] text-stone-500 font-semibold">{item.revenue.toLocaleString()} ฿</div>
-                      </div>
+            {/* ========== Row 1: เมนูขายดี&หมวดหมู่ (Card 1) + สมาชิก vs ทั่วไป (Card 2) ========== */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Card 1: การจัดอันดับสินค้าขายดี & สัดส่วนหมวดหมู่ */}
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-5">
+                <div>
+                  {/* Card 1 Header + Badge Tabs */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+                    <div className="flex items-center gap-2">
+                      {topSellerTab === 'sellers' ? (
+                        <Award className="w-4 h-4 text-amber-500" />
+                      ) : (
+                        <PieChart className="w-4 h-4 text-purple-600" />
+                      )}
+                      <h3 className="text-xs font-extrabold text-slate-800">
+                        {topSellerTab === 'sellers' ? 'จัดอันดับเมนูขายดี' : 'สัดส่วนยอดขายตามหมวดหมู่'}
+                      </h3>
                     </div>
-                  ))}
-                  {topSellers.length === 0 && (
-                    <div className="text-center py-10 text-stone-500 text-xs font-semibold">
-                      ยังไม่มีรายการจำหน่ายในช่วงเวลานี้
+
+                    {/* Badge Tabs */}
+                    <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/80 self-start sm:self-auto">
+                      <button
+                        onClick={() => setTopSellerTab('sellers')}
+                        className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                          topSellerTab === 'sellers'
+                            ? 'bg-white text-slate-900 shadow-xs'
+                            : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                      >
+                        🏆 รายการขายดี
+                      </button>
+                      <button
+                        onClick={() => setTopSellerTab('categories')}
+                        className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                          topSellerTab === 'categories'
+                            ? 'bg-white text-slate-900 shadow-xs'
+                            : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                      >
+                        📊 หมวดหมู่
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Tab 1: Top Sellers */}
+                  {topSellerTab === 'sellers' ? (
+                    <div className="space-y-4">
+                      {topSellers.slice(0, 5).map((item, idx) => (
+                        <div key={item.name} className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+                          <div className="flex items-center gap-3">
+                            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${
+                              idx === 0 ? 'bg-amber-100 text-amber-700 border border-amber-200' :
+                              idx === 1 ? 'bg-slate-100 text-slate-700 border border-slate-200' :
+                              'bg-slate-50 text-slate-500 border border-slate-200'
+                            }`}>
+                              {idx + 1}
+                            </span>
+                            <span className="text-xs font-bold text-slate-800">{item.name}</span>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-xs font-black text-slate-900">{item.quantity} จาน</div>
+                            <div className="text-[10px] text-slate-400 font-semibold">{item.revenue.toLocaleString()} ฿</div>
+                          </div>
+                        </div>
+                      ))}
+                      {topSellers.length === 0 && (
+                        <div className="text-center py-10 text-slate-400 text-xs font-medium">
+                          ยังไม่มีรายการจำหน่ายในช่วงเวลานี้
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    /* Tab 2: Category Breakdown */
+                    <div className="space-y-4">
+                      {categorySellers.map((cat) => (
+                        <div key={cat.category} className="space-y-1.5 border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="font-bold text-slate-800">{cat.category}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-slate-500 font-semibold text-[11px]">{cat.quantity} จาน</span>
+                              <span className="font-black text-slate-900">{cat.revenue.toLocaleString()} ฿ ({cat.percentage}%)</span>
+                            </div>
+                          </div>
+                          {/* Progress bar */}
+                          <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-purple-600 rounded-full transition-all duration-300"
+                              style={{ width: `${Math.min(100, Math.max(0, cat.percentage))}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                      {categorySellers.length === 0 && (
+                        <div className="text-center py-10 text-slate-400 text-xs font-medium">
+                          ยังไม่มีข้อมูลหมวดหมู่ในช่วงเวลานี้
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Card 2: สถิติลูกค้าสมาชิก vs ทั่วไป */}
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-5">
+                <div>
+                  <div className="flex items-center gap-2 mb-6">
+                    <Users className="w-4 h-4 text-sky-600" />
+                    <h3 className="text-xs font-extrabold text-slate-800">สถิติลูกค้าสมาชิก vs ทั่วไป (Member Insights)</h3>
+                  </div>
+
+                  {/* Visual Revenue Bar Comparison */}
+                  <div className="space-y-2 mb-6 bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                    <div className="flex justify-between text-xs font-bold mb-1">
+                      <span className="text-amber-600 flex items-center gap-1">
+                        👑 สมาชิก: {memberStats.memberRevenue.toLocaleString()} ฿ (
+                        {payments.netTotal > 0 ? Math.round((memberStats.memberRevenue / payments.netTotal) * 100) : 0}%)
+                      </span>
+                      <span className="text-sky-600 flex items-center gap-1">
+                        👤 ทั่วไป: {memberStats.nonMemberRevenue.toLocaleString()} ฿ (
+                        {payments.netTotal > 0 ? Math.round((memberStats.nonMemberRevenue / payments.netTotal) * 100) : 0}%)
+                      </span>
+                    </div>
+                    {/* Split Bar */}
+                    <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden flex">
+                      <div
+                        className="bg-amber-500 h-full transition-all duration-300"
+                        style={{ width: `${payments.netTotal > 0 ? Math.round((memberStats.memberRevenue / payments.netTotal) * 100) : 50}%` }}
+                      />
+                      <div
+                        className="bg-sky-500 h-full transition-all duration-300"
+                        style={{ width: `${payments.netTotal > 0 ? Math.round((memberStats.nonMemberRevenue / payments.netTotal) * 100) : 50}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Stats Breakdown */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-3.5 bg-amber-50/60 border border-amber-200/80 rounded-xl space-y-1">
+                      <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider">ยอดซื้อเฉลี่ย / บิลสมาชิก</p>
+                      <p className="text-lg font-black text-amber-800">{memberStats.avgMemberSpend.toLocaleString()} ฿</p>
+                      <p className="text-[10px] text-amber-600 font-semibold">{memberStats.memberOrderCount} บิล</p>
+                    </div>
+
+                    <div className="p-3.5 bg-sky-50/60 border border-sky-200/80 rounded-xl space-y-1">
+                      <p className="text-[10px] font-bold text-sky-700 uppercase tracking-wider">ยอดซื้อเฉลี่ย / บิลทั่วไป</p>
+                      <p className="text-lg font-black text-sky-800">{memberStats.avgNonMemberSpend.toLocaleString()} ฿</p>
+                      <p className="text-[10px] text-sky-600 font-semibold">{memberStats.nonMemberOrderCount} บิล</p>
+                    </div>
+                  </div>
+
+                  {/* Points Redeemed Metric */}
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="font-semibold text-slate-500">แต้มสมาชิกที่ถูกแลกในบิล:</span>
+                    <span className="font-black text-amber-600 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+                      {memberStats.pointsRedeemed.toLocaleString()} แต้ม ({memberStats.pointsRedeemed.toLocaleString()} ฿)
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ========== Row 2: ช่องทางชำระเงิน & ส่วนลด (Card 3) + สรุป Void Logs (Card 4) ========== */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+              {/* Card 3: สรุปช่องทางชำระเงิน & ส่วนลด */}
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-5">
+                <div>
+                  <div className="flex items-center gap-2 mb-6">
+                    <Wallet className="w-4 h-4 text-emerald-600" />
+                    <h3 className="text-xs font-extrabold text-slate-800">สรุปช่องทางชำระเงิน & ส่วนลด (Payment & Discounts)</h3>
+                  </div>
+
+                  {/* Payment methods breakdown */}
+                  <div className="grid grid-cols-3 gap-3 mb-5">
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-center space-y-1">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase">💵 เงินสด</span>
+                      <p className="text-sm font-black text-slate-900">{detailedPayments.cashTotal.toLocaleString()} ฿</p>
+                      <span className="text-[10px] text-slate-400 font-semibold">{detailedPayments.cashCount} บิล</span>
+                    </div>
+
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-center space-y-1">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase">📱 PromptPay</span>
+                      <p className="text-sm font-black text-slate-900">{detailedPayments.promptpayTotal.toLocaleString()} ฿</p>
+                      <span className="text-[10px] text-slate-400 font-semibold">{detailedPayments.promptpayCount} บิล</span>
+                    </div>
+
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-center space-y-1">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase">🔀 ชำระผสม</span>
+                      <p className="text-sm font-black text-slate-900">{detailedPayments.mixedTotal.toLocaleString()} ฿</p>
+                      <span className="text-[10px] text-slate-400 font-semibold">{detailedPayments.mixedCount} บิล</span>
+                    </div>
+                  </div>
+
+                  {/* Discounts Summary */}
+                  <div className="p-3.5 bg-rose-50/60 border border-rose-200/80 rounded-xl flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-extrabold text-rose-800">ส่วนลดการตลาดรวมที่ให้ลูกค้า</p>
+                      <p className="text-[10px] font-medium text-rose-600">จากโปรโมชั่นและส่วนลดแต้มสมาชิก</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-base font-black text-rose-700">-{detailedPayments.totalDiscount.toLocaleString()} ฿</p>
+                      <p className="text-[10px] font-semibold text-slate-500">จากยอดก่อนลด {detailedPayments.totalSubtotal.toLocaleString()} ฿</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 4: Void Logs Summary Card (Compact) */}
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-5">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <Trash2 className="w-4 h-4 text-rose-600" />
+                      <h3 className="text-xs font-extrabold text-slate-800">สรุปการยกเลิกรายการอาหาร (Void Summary)</h3>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-black text-rose-700 bg-rose-50 border border-rose-200 px-3 py-1 rounded-xl">
+                        สูญเสีย {totalWaste.toLocaleString()} ฿
+                      </span>
+                      <span className="text-xs font-bold text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1 rounded-xl">
+                        {voidCount} ครั้ง
+                      </span>
+                    </div>
+                  </div>
+
+                  {voidCount > 0 ? (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {topVoidItems.map(([menuName, qty], idx) => {
+                          const medals = ['🥇', '🥈', '🥉'];
+                          return (
+                            <div key={menuName} className="flex items-center gap-2.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5">
+                              <span className="text-base">{medals[idx]}</span>
+                              <div className="min-w-0 flex-1">
+                                <div className="text-xs font-bold text-slate-900 truncate">{menuName}</div>
+                                <div className="text-[10px] text-slate-500 font-semibold">{qty} ครั้ง</div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <button
+                        onClick={() => setShowVoidModal(true)}
+                        className="w-full py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-xs font-extrabold text-slate-700 hover:text-slate-900 transition cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+                      >
+                        <ClipboardList className="w-3.5 h-3.5 text-red-600" />
+                        ดูรายละเอียดทั้งหมด ({voidCount} รายการ)
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-center py-10 text-slate-400 text-xs font-medium">
+                      ไม่มีการยกเลิกรายการอาหารในช่วงเวลานี้
                     </div>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* ========== Void Logs Summary Card ========== */}
-            <div className="bg-stone-900/40 border border-stone-850 rounded-2xl p-6 backdrop-blur-md space-y-5">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
-                  <Trash2 className="w-4 h-4 text-red-500" />
-                  <h3 className="text-sm font-bold text-stone-200">สรุปการยกเลิกรายการอาหาร (Void Summary)</h3>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-black text-red-400 bg-red-950/20 border border-red-900/40 px-3 py-1 rounded-xl">
-                    สูญเสีย {totalWaste.toLocaleString()} ฿
-                  </span>
-                  <span className="text-xs font-bold text-stone-400 bg-stone-900 border border-stone-800 px-3 py-1 rounded-xl">
-                    {voidCount} ครั้ง
-                  </span>
-                </div>
-              </div>
-
-              {voidCount > 0 ? (
-                <>
-                  {/* Top 3 voided items */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {topVoidItems.map(([menuName, qty], idx) => {
-                      const medals = ['🥇', '🥈', '🥉'];
-                      return (
-                        <div key={menuName} className="flex items-center gap-3 bg-stone-950/50 border border-stone-850 rounded-xl px-4 py-3">
-                          <span className="text-lg">{medals[idx]}</span>
-                          <div>
-                            <div className="text-xs font-bold text-stone-200">{menuName}</div>
-                            <div className="text-[10px] text-stone-500 font-semibold">{qty} ครั้ง</div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* View all button */}
-                  <button
-                    onClick={() => setShowVoidModal(true)}
-                    className="w-full py-2.5 bg-stone-900 border border-stone-800 rounded-xl text-xs font-bold text-stone-400 hover:text-white hover:border-stone-700 transition cursor-pointer flex items-center justify-center gap-2"
-                  >
-                    <ClipboardList className="w-3.5 h-3.5" />
-                    ดูรายละเอียดทั้งหมด ({voidCount} รายการ)
-                  </button>
-                </>
-              ) : (
-                <div className="text-center py-6 text-stone-500 text-xs font-semibold">
-                  ไม่มีการยกเลิกรายการอาหารในช่วงเวลานี้
-                </div>
-              )}
-            </div>
-
             {/* ========== Void Logs Modal ========== */}
             {showVoidModal && (
-              <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowVoidModal(false)}>
-                <div className="bg-stone-950 border border-stone-800 rounded-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+              <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4" onClick={() => setShowVoidModal(false)}>
+                <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-4xl max-h-[85vh] overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>
                   {/* Modal Header */}
-                  <div className="flex items-center justify-between px-6 py-4 border-b border-stone-800">
+                  <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
                     <div className="flex items-center gap-2">
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                      <h3 className="text-sm font-bold text-stone-200">ประวัติการยกเลิกรายการอาหาร (Void Audit Log)</h3>
+                      <Trash2 className="w-4 h-4 text-rose-600" />
+                      <h3 className="text-sm font-extrabold text-slate-900">ประวัติการยกเลิกรายการอาหาร (Void Audit Log)</h3>
                     </div>
                     <button
                       onClick={() => setShowVoidModal(false)}
-                      className="p-1.5 text-stone-400 hover:text-white rounded-lg hover:bg-stone-800 transition cursor-pointer"
+                      className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition cursor-pointer"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -689,44 +1000,44 @@ export const OwnerDashboard: React.FC = () => {
                   <div className="overflow-auto max-h-[calc(85vh-60px)] p-6">
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className="text-stone-400 text-xs font-bold border-b border-stone-800 pb-3">
-                          <th className="py-2.5">เวลา</th>
-                          <th className="py-2.5">รายการอาหาร</th>
-                          <th className="py-2.5 text-center">จำนวน</th>
-                          <th className="py-2.5 text-right">มูลค่า</th>
-                          <th className="py-2.5">สาเหตุการยกเลิก</th>
-                          <th className="py-2.5 text-center">คืนสต็อก</th>
-                          <th className="py-2.5">พนักงาน</th>
+                        <tr className="text-slate-700 text-xs font-extrabold border-b border-slate-200 pb-3 bg-slate-50">
+                          <th className="py-2.5 px-3">เวลา</th>
+                          <th className="py-2.5 px-3">รายการอาหาร</th>
+                          <th className="py-2.5 px-3 text-center">จำนวน</th>
+                          <th className="py-2.5 px-3 text-right">มูลค่า</th>
+                          <th className="py-2.5 px-3">สาเหตุการยกเลิก</th>
+                          <th className="py-2.5 px-3 text-center">คืนสต็อก</th>
+                          <th className="py-2.5 px-3">พนักงาน</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-stone-850 text-xs text-stone-300">
+                      <tbody className="divide-y divide-slate-100 text-xs text-slate-800">
                         {voidLogs.map(log => (
-                          <tr key={log.id} className="hover:bg-stone-900/10 transition-colors">
-                            <td className="py-3 font-semibold text-stone-500">
+                          <tr key={log.id} className="hover:bg-slate-50/80 transition-colors">
+                            <td className="py-3 px-3 font-semibold text-slate-500">
                               {new Date(log.created_at).toLocaleDateString('th-TH', { day: '2-digit', month: 'short' })}{' '}
                               {new Date(log.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
                             </td>
-                            <td className="py-3 font-bold text-stone-200">{log.menu_name}</td>
-                            <td className="py-3 text-center font-bold">{log.quantity}</td>
-                            <td className="py-3 text-right font-black text-stone-100">{log.total_amount} ฿</td>
-                            <td className="py-3 text-stone-400">{log.reason}</td>
-                            <td className="py-3 text-center">
+                            <td className="py-3 px-3 font-bold text-slate-900">{log.menu_name}</td>
+                            <td className="py-3 px-3 text-center font-bold text-slate-700">{log.quantity}</td>
+                            <td className="py-3 px-3 text-right font-black text-rose-600">{log.total_amount} ฿</td>
+                            <td className="py-3 px-3 text-slate-600 font-medium">{log.reason}</td>
+                            <td className="py-3 px-3 text-center">
                               {log.restored_stock ? (
-                                <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/30 border border-emerald-900/30 px-2 py-0.5 rounded-full">
+                                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
                                   คืนสต็อก
                                 </span>
                               ) : (
-                                <span className="text-[10px] font-bold text-red-400 bg-red-950/30 border border-red-900/30 px-2 py-0.5 rounded-full">
+                                <span className="text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full">
                                   วัตถุดิบเสียเปล่า
                                 </span>
                               )}
                             </td>
-                            <td className="py-3 font-medium text-stone-400">{log.employee_name}</td>
+                            <td className="py-3 px-3 font-medium text-slate-500">{log.employee_name}</td>
                           </tr>
                         ))}
                         {voidLogs.length === 0 && (
                           <tr>
-                            <td colSpan={7} className="py-8 text-center text-stone-500 font-medium text-xs">
+                            <td colSpan={7} className="py-8 text-center text-slate-400 font-medium text-xs">
                               ไม่มีบันทึกประวัติการยกเลิกรายการอาหาร
                             </td>
                           </tr>
@@ -741,7 +1052,7 @@ export const OwnerDashboard: React.FC = () => {
 
           </>
         )}
-      </div>
     </div>
   );
 };
+
