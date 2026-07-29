@@ -88,10 +88,11 @@ export default function CustomerOrderPortal() {
     }
   }, [sessionId]);
 
-  // Realtime subscription for table status changes (Checking out sync)
+  // Realtime subscriptions for table status, order items, and menu changes
   useEffect(() => {
     if (!tableId) return;
 
+    // 1. Listen to table status changes (e.g. checking_out, occupied, vacant)
     const tableChannel = supabase
       .channel(`realtime:customer_table_${tableId}`)
       .on(
@@ -105,8 +106,38 @@ export default function CustomerOrderPortal() {
       )
       .subscribe();
 
+    // 2. Listen to order_items changes (e.g. kitchen marks item as served or voided)
+    const orderItemsChannel = supabase
+      .channel(`realtime:customer_order_items_${tableId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'order_items' },
+        () => {
+          fetchOrderedItems(tableId);
+        }
+      )
+      .subscribe();
+
+    // 3. Listen to menu_items changes (e.g. stock or price update)
+    const menuChannel = supabase
+      .channel(`realtime:customer_menu_items`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'menu_items' },
+        async () => {
+          const { data: menuData } = await supabase
+            .from('menu_items')
+            .select('*')
+            .order('id', { ascending: true });
+          if (menuData) setMenuItems(menuData as MenuItem[]);
+        }
+      )
+      .subscribe();
+
     return () => {
       tableChannel.unsubscribe();
+      orderItemsChannel.unsubscribe();
+      menuChannel.unsubscribe();
     };
   }, [tableId]);
 
