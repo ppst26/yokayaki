@@ -79,6 +79,13 @@ interface ChartBar {
   amount: number;
 }
 
+interface PromotionStat {
+  promotion_name: string;
+  promotion_type: string;
+  usage_count: number;
+  total_discount_value: number;
+}
+
 
 
 type PresetKey = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'last_month' | '3_months' | '6_months' | 'custom';
@@ -317,6 +324,12 @@ export const OwnerDashboard: React.FC = () => {
   const [ingredientCost, setIngredientCost] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  // New states for Marketing & Promotions Analytics
+  const [marketingTab, setMarketingTab] = useState<'promotions' | 'loyalty'>('promotions');
+  const [promotionStats, setPromotionStats] = useState<PromotionStat[]>([]);
+  const [totalPromoDiscount, setTotalPromoDiscount] = useState<number>(0);
+  const [promoOrderCount, setPromoOrderCount] = useState<number>(0);
+
   // Void modal state
   const [showVoidModal, setShowVoidModal] = useState(false);
 
@@ -406,6 +419,52 @@ export const OwnerDashboard: React.FC = () => {
         avgNonMemberSpend: nonMemberOrderCount > 0 ? Math.round(nonMemberRevenue / nonMemberOrderCount) : 0,
         pointsRedeemed: totalPointsRedeemed,
       });
+
+      // 1.5. ดึงประวัติการใช้โปรโมชั่นตามช่วงเวลา
+      const { data: promoData, error: promoError } = await supabase
+        .from('payment_promotions')
+        .select('promotion_name, promotion_type, discount_value')
+        .gte('created_at', startISO)
+        .lte('created_at', endISO);
+
+      if (promoError) {
+        console.error('Error fetching payment promotions:', promoError);
+      } else {
+        const promoMap: Record<string, { promotion_type: string; usage_count: number; total_discount_value: number }> = {};
+        let totalDisc = 0;
+
+        promoData?.forEach((p: any) => {
+          const name = p.promotion_name || 'ไม่ระบุชื่อโปรโมชั่น';
+          const disc = parseFloat(p.discount_value as string) || 0;
+          const type = p.promotion_type || 'percentage';
+
+          totalDisc += disc;
+
+          if (promoMap[name]) {
+            promoMap[name].usage_count += 1;
+            promoMap[name].total_discount_value += disc;
+          } else {
+            promoMap[name] = {
+              promotion_type: type,
+              usage_count: 1,
+              total_discount_value: disc,
+            };
+          }
+        });
+
+        const sortedPromos: PromotionStat[] = Object.entries(promoMap)
+          .map(([name, data]) => ({
+            promotion_name: name,
+            promotion_type: data.promotion_type,
+            usage_count: data.usage_count,
+            total_discount_value: data.total_discount_value,
+          }))
+          .sort((a, b) => b.usage_count - a.usage_count || b.total_discount_value - a.total_discount_value);
+
+        setPromotionStats(sortedPromos);
+        setTotalPromoDiscount(totalDisc);
+        setPromoOrderCount(promoData?.length || 0);
+      }
 
       // 2. ดึงประวัติ Void Logs ตามช่วงเวลา
       const { data: voidData, error: voidError } = await supabase
