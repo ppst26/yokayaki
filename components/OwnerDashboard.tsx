@@ -881,61 +881,155 @@ export const OwnerDashboard: React.FC = () => {
                 </div>
               </div>
 
-              {/* Card 2: สถิติลูกค้าสมาชิก vs ทั่วไป */}
+              {/* Card 2: วิเคราะห์การตลาด & โปรโมชั่น (Hybrid Marketing & Loyalty Card) */}
               <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-5">
                 <div>
-                  <div className="flex items-center gap-2 mb-6">
-                    <Users className="w-4 h-4 text-sky-600" />
-                    <h3 className="text-xs font-extrabold text-slate-800">สถิติลูกค้าสมาชิก vs ทั่วไป (Member Insights)</h3>
-                  </div>
-
-                  {/* Visual Revenue Bar Comparison */}
-                  <div className="space-y-2 mb-6 bg-slate-50 border border-slate-100 p-4 rounded-xl">
-                    <div className="flex justify-between text-xs font-bold mb-1">
-                      <span className="text-amber-600 flex items-center gap-1">
-                        👑 สมาชิก: {memberStats.memberRevenue.toLocaleString()} ฿ (
-                        {payments.netTotal > 0 ? Math.round((memberStats.memberRevenue / payments.netTotal) * 100) : 0}%)
-                      </span>
-                      <span className="text-sky-600 flex items-center gap-1">
-                        👤 ทั่วไป: {memberStats.nonMemberRevenue.toLocaleString()} ฿ (
-                        {payments.netTotal > 0 ? Math.round((memberStats.nonMemberRevenue / payments.netTotal) * 100) : 0}%)
-                      </span>
-                    </div>
-                    {/* Split Bar */}
-                    <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden flex">
-                      <div
-                        className="bg-amber-500 h-full transition-all duration-300"
-                        style={{ width: `${payments.netTotal > 0 ? Math.round((memberStats.memberRevenue / payments.netTotal) * 100) : 50}%` }}
-                      />
-                      <div
-                        className="bg-sky-500 h-full transition-all duration-300"
-                        style={{ width: `${payments.netTotal > 0 ? Math.round((memberStats.nonMemberRevenue / payments.netTotal) * 100) : 50}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Stats Breakdown */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-3.5 bg-amber-50/60 border border-amber-200/80 rounded-xl space-y-1">
-                      <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider">ยอดซื้อเฉลี่ย / บิลสมาชิก</p>
-                      <p className="text-lg font-black text-amber-800">{memberStats.avgMemberSpend.toLocaleString()} ฿</p>
-                      <p className="text-[10px] text-amber-600 font-semibold">{memberStats.memberOrderCount} บิล</p>
+                  {/* Card Header & Badge Tabs */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+                    <div className="flex items-center gap-2">
+                      {marketingTab === 'promotions' ? (
+                        <Tag className="w-4 h-4 text-purple-600" />
+                      ) : (
+                        <Users className="w-4 h-4 text-sky-600" />
+                      )}
+                      <h3 className="text-xs font-extrabold text-slate-800">
+                        วิเคราะห์การตลาด & โปรโมชั่น (Marketing & Loyalty Insights)
+                      </h3>
                     </div>
 
-                    <div className="p-3.5 bg-sky-50/60 border border-sky-200/80 rounded-xl space-y-1">
-                      <p className="text-[10px] font-bold text-sky-700 uppercase tracking-wider">ยอดซื้อเฉลี่ย / บิลทั่วไป</p>
-                      <p className="text-lg font-black text-sky-800">{memberStats.avgNonMemberSpend.toLocaleString()} ฿</p>
-                      <p className="text-[10px] text-sky-600 font-semibold">{memberStats.nonMemberOrderCount} บิล</p>
+                    {/* Badge Tabs */}
+                    <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/80 self-start sm:self-auto">
+                      <button
+                        onClick={() => setMarketingTab('promotions')}
+                        className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                          marketingTab === 'promotions'
+                            ? 'bg-white text-slate-900 shadow-xs'
+                            : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                      >
+                        🏷️ โปรโมชั่นยอดฮิต
+                      </button>
+                      <button
+                        onClick={() => setMarketingTab('loyalty')}
+                        className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                          marketingTab === 'loyalty'
+                            ? 'bg-white text-slate-900 shadow-xs'
+                            : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                      >
+                        👑 พฤติกรรมสมาชิก & แต้ม
+                      </button>
                     </div>
                   </div>
 
-                  {/* Points Redeemed Metric */}
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span className="font-semibold text-slate-500">แต้มสมาชิกที่ถูกแลกในบิล:</span>
-                    <span className="font-black text-amber-600 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
-                      {memberStats.pointsRedeemed.toLocaleString()} แต้ม ({memberStats.pointsRedeemed.toLocaleString()} ฿)
-                    </span>
-                  </div>
+                  {/* Tab 1: Promotions Analytics */}
+                  {marketingTab === 'promotions' ? (
+                    <div className="space-y-4">
+                      {promotionStats.slice(0, 5).map((promo, idx) => (
+                        <div key={promo.promotion_name} className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
+                              idx === 0 ? 'bg-purple-100 text-purple-700 border border-purple-200' :
+                              idx === 1 ? 'bg-slate-100 text-slate-700 border border-slate-200' :
+                              'bg-slate-50 text-slate-500 border border-slate-200'
+                            }`}>
+                              {idx + 1}
+                            </span>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs font-bold text-slate-800 truncate">{promo.promotion_name}</span>
+                                <span className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded-md border shrink-0 ${
+                                  promo.promotion_type === 'percentage' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                                  promo.promotion_type === 'fixed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                  'bg-amber-50 text-amber-700 border-amber-200'
+                                }`}>
+                                  {promo.promotion_type === 'percentage' ? '% ส่วนลด' : promo.promotion_type === 'fixed' ? 'ลดคงที่' : 'แถมสินค้า'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <div className="text-xs font-black text-slate-900">{promo.usage_count} บิล</div>
+                            <div className="text-[10px] text-purple-600 font-bold">-{promo.total_discount_value.toLocaleString()} ฿</div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {promotionStats.length > 0 ? (
+                        <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs bg-purple-50/50 p-3 rounded-xl border border-purple-100">
+                          <span className="font-semibold text-purple-900">ส่วนลดโปรโมชั่นรวม ({promoOrderCount} บิล):</span>
+                          <span className="font-black text-purple-700">
+                            -{totalPromoDiscount.toLocaleString()} ฿
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="text-center py-10 text-slate-400 text-xs font-medium">
+                          ยังไม่มีรายการใช้งานโปรโมชั่นในช่วงเวลานี้
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    /* Tab 2: Loyalty & Points Analytics */
+                    <div className="space-y-5">
+                      {/* Visual Revenue Bar Comparison */}
+                      <div className="space-y-2 bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                        <div className="flex justify-between text-xs font-bold mb-1">
+                          <span className="text-amber-600 flex items-center gap-1">
+                            👑 สมาชิก: {memberStats.memberRevenue.toLocaleString()} ฿ (
+                            {payments.netTotal > 0 ? Math.round((memberStats.memberRevenue / payments.netTotal) * 100) : 0}%)
+                          </span>
+                          <span className="text-sky-600 flex items-center gap-1">
+                            👤 ทั่วไป: {memberStats.nonMemberRevenue.toLocaleString()} ฿ (
+                            {payments.netTotal > 0 ? Math.round((memberStats.nonMemberRevenue / payments.netTotal) * 100) : 0}%)
+                          </span>
+                        </div>
+                        {/* Split Bar */}
+                        <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden flex">
+                          <div
+                            className="bg-amber-500 h-full transition-all duration-300"
+                            style={{ width: `${payments.netTotal > 0 ? Math.round((memberStats.memberRevenue / payments.netTotal) * 100) : 50}%` }}
+                          />
+                          <div
+                            className="bg-sky-500 h-full transition-all duration-300"
+                            style={{ width: `${payments.netTotal > 0 ? Math.round((memberStats.nonMemberRevenue / payments.netTotal) * 100) : 50}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Stats Breakdown */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="p-3.5 bg-amber-50/60 border border-amber-200/80 rounded-xl space-y-1">
+                          <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider">ยอดซื้อเฉลี่ย / บิลสมาชิก</p>
+                          <p className="text-lg font-black text-amber-800">{memberStats.avgMemberSpend.toLocaleString()} ฿</p>
+                          <p className="text-[10px] text-amber-600 font-semibold">{memberStats.memberOrderCount} บิล</p>
+                        </div>
+
+                        <div className="p-3.5 bg-sky-50/60 border border-sky-200/80 rounded-xl space-y-1">
+                          <p className="text-[10px] font-bold text-sky-700 uppercase tracking-wider">ยอดซื้อเฉลี่ย / บิลทั่วไป</p>
+                          <p className="text-lg font-black text-sky-800">{memberStats.avgNonMemberSpend.toLocaleString()} ฿</p>
+                          <p className="text-[10px] text-sky-600 font-semibold">{memberStats.nonMemberOrderCount} บิล</p>
+                        </div>
+                      </div>
+
+                      {/* Points Discount Highlight */}
+                      <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-extrabold text-amber-900">มูลค่าส่วนลดจากการใช้แต้มสะสม</p>
+                          <p className="text-[10px] font-semibold text-amber-700 mt-0.5">
+                            ลูกค้าแลกแต้มรวม {memberStats.pointsRedeemed.toLocaleString()} แต้ม
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-black text-amber-600">-{memberStats.pointsRedeemed.toLocaleString()} ฿</p>
+                          <p className="text-[10px] font-bold text-slate-500">
+                            {detailedPayments.totalDiscount > 0
+                              ? `คิดเป็น ${Math.round((memberStats.pointsRedeemed / detailedPayments.totalDiscount) * 100)}% ของส่วนลดรวม`
+                              : 'ส่วนลดแลกแต้ม'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
