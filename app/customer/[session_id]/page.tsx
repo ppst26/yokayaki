@@ -3,7 +3,23 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { ShoppingBag, Plus, Minus, ChefHat, AlertCircle, RefreshCw, ClipboardList, X } from 'lucide-react';
+import { 
+  ShoppingBag, 
+  Plus, 
+  Minus, 
+  ChefHat, 
+  AlertCircle, 
+  RefreshCw, 
+  ClipboardList, 
+  X,
+  Home,
+  UtensilsCrossed,
+  Tag,
+  Clock,
+  Sparkles,
+  CheckCircle2,
+  ChevronRight
+} from 'lucide-react';
 
 interface OrderedItem {
   id: number;
@@ -28,13 +44,30 @@ interface CartItem extends MenuItem {
   notes?: string;
 }
 
+interface Promotion {
+  id: number;
+  name: string;
+  type: 'percentage' | 'fixed' | 'buy_x_get_y';
+  discount_percent: number | null;
+  discount_amount: number | null;
+  min_order_amount: number;
+  is_active: boolean;
+  image_url: string | null;
+  start_time: string | null;
+  end_time: string | null;
+}
+
+type CustomerTab = 'home' | 'order' | 'ordered' | 'promotions';
+
 export default function CustomerOrderPortal() {
   const params = useParams();
   const sessionId = params.session_id as string;
 
+  const [activeTab, setActiveTab] = useState<CustomerTab>('home');
   const [tableId, setTableId] = useState<number | null>(null);
   const [sessionValid, setSessionValid] = useState<boolean | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orderedItems, setOrderedItems] = useState<OrderedItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -46,11 +79,11 @@ export default function CustomerOrderPortal() {
 
   useEffect(() => {
     if (sessionId) {
-      verifySessionAndFetchMenu();
+      verifySessionAndFetchData();
     }
   }, [sessionId]);
 
-  const verifySessionAndFetchMenu = async () => {
+  const verifySessionAndFetchData = async () => {
     try {
       setIsLoading(true);
       setErrorMsg(null);
@@ -64,12 +97,7 @@ export default function CustomerOrderPortal() {
 
       if (sessionError) throw sessionError;
       
-      if (!sessionData) {
-        setSessionValid(false);
-        return;
-      }
-
-      if (sessionData.status !== 'active') {
+      if (!sessionData || sessionData.status !== 'active') {
         setSessionValid(false);
         return;
       }
@@ -91,13 +119,29 @@ export default function CustomerOrderPortal() {
       if (menuError) throw menuError;
       if (menuData) setMenuItems(menuData as MenuItem[]);
 
-      // 3. Fetch ordered items for this table
+      // 3. Fetch Active Promotions
+      fetchPromotions();
+
+      // 4. Fetch ordered items for this table
       await fetchOrderedItems(sessionData.table_id);
     } catch (err) {
       console.error('Error loading portal:', err);
       setErrorMsg('เกิดข้อผิดพลาดในการโหลดระบบสั่งอาหาร');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchPromotions = async () => {
+    try {
+      const { data } = await supabase
+        .from('promotions')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+      if (data) setPromotions(data as Promotion[]);
+    } catch (err) {
+      console.error('Error fetching promotions:', err);
     }
   };
 
@@ -118,6 +162,8 @@ export default function CustomerOrderPortal() {
           .order('id', { ascending: true });
 
         if (items) setOrderedItems(items as unknown as OrderedItem[]);
+      } else {
+        setOrderedItems([]);
       }
     } catch (err) {
       console.error('Error fetching ordered items:', err);
@@ -213,11 +259,12 @@ export default function CustomerOrderPortal() {
 
       if (allSuccess) {
         setCart([]);
-        await verifySessionAndFetchMenu();
+        if (tableId) await fetchOrderedItems(tableId);
+        setActiveTab('ordered');
         alert('ส่งรายการสั่งซื้อเข้าครัวสำเร็จ!');
       } else {
         setErrorMsg(`ออเดอร์ล้มเหลวจำนวน ${failCount} รายการ อาจเป็นเพราะสต็อกหมดหรือเซสชันหมดอายุ`);
-        await verifySessionAndFetchMenu();
+        verifySessionAndFetchData();
       }
     } catch (err: any) {
       console.error('Error confirming order:', err);
@@ -227,247 +274,545 @@ export default function CustomerOrderPortal() {
     }
   };
 
-  // Render Loader
+  // Helper for Promo short description
+  const getPromoShortDesc = (promo: Promotion) => {
+    if (promo.type === 'percentage') {
+      return `รับส่วนลด ${promo.discount_percent}% เมื่อทานครบ ฿${promo.min_order_amount.toLocaleString()}`;
+    }
+    if (promo.type === 'fixed') {
+      return `ส่วนลดพิเศษ ฿${promo.discount_amount} เมื่อสั่งอาหารครบ ฿${promo.min_order_amount.toLocaleString()}`;
+    }
+    if (promo.type === 'buy_x_get_y') {
+      return `โปรโมชั่นพิเศษ ซื้อ 2 แถม 1 (เฉพาะเมนูที่ร่วมรายการ)`;
+    }
+    return 'โปรโมชั่นพิเศษสำหรับลูกค้า Yokayaki';
+  };
+
+  // Render Loader (Light Theme)
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-stone-950 flex flex-col items-center justify-center">
-        <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-amber-500 mt-4 font-semibold animate-pulse">กำลังตรวจสอบสิทธิ์...</p>
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
+        <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-slate-600 mt-4 font-bold text-sm animate-pulse">กำลังดาวน์โหลดเมนู Yokayaki...</p>
       </div>
     );
   }
 
-  // Render Invalid Session
+  // Render Invalid Session (Light Theme)
   if (sessionValid === false) {
     return (
-      <div className="min-h-screen bg-stone-950 flex flex-col items-center justify-center p-6 text-center">
-        <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
-        <h1 className="text-2xl font-bold text-white mb-2">QR Code หมดอายุหรือไม่ถูกต้อง</h1>
-        <p className="text-stone-400 mb-6">กรุณาแจ้งพนักงานเพื่อสร้าง QR Code สำหรับสั่งอาหารใหม่ครับ</p>
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
+        <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-md max-w-sm w-full flex flex-col items-center">
+          <div className="w-16 h-16 bg-rose-50 border border-rose-200 rounded-full flex items-center justify-center text-rose-600 mb-4">
+            <AlertCircle className="w-8 h-8" />
+          </div>
+          <h1 className="text-xl font-black text-slate-900 mb-2">QR Code หมดอายุหรือไม่ถูกต้อง</h1>
+          <p className="text-slate-500 text-xs leading-relaxed mb-6">กรุณาสแกนใหม่อีกครั้ง หรือแจ้งพนักงานประจำร้านเพื่อสร้าง QR Code สั่งอาหารชุดใหม่ครับ</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs shadow-xs transition"
+          >
+            ลองใหม่อีกครั้ง
+          </button>
+        </div>
       </div>
     );
   }
 
-  // Render Valid Portal
+  const pendingCount = orderedItems.filter(i => i.status === 'pending').length;
+
   return (
-    <div className="min-h-screen bg-stone-950 text-white pb-32">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-stone-950/80 backdrop-blur-md border-b border-stone-800 p-4 flex items-center justify-between">
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-28">
+      
+      {/* Sticky Top Header */}
+      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-xs">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-amber-500/20 text-amber-500 rounded-full flex items-center justify-center">
+          <div className="w-10 h-10 bg-red-50 border border-red-200 text-red-600 rounded-2xl flex items-center justify-center shadow-xs">
             <ChefHat className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="font-extrabold text-lg leading-tight">Yokayaki</h1>
-            <p className="text-amber-500 text-xs font-bold tracking-widest uppercase">โต๊ะ {tableId}</p>
+            <h1 className="font-black text-base leading-tight tracking-tight text-slate-900">Yokayaki</h1>
+            <p className="text-slate-500 text-[11px] font-bold">
+              ประจำ <span className="text-red-600 font-extrabold">โต๊ะ {tableId}</span>
+            </p>
           </div>
         </div>
-        <button onClick={verifySessionAndFetchMenu} className="p-2 text-stone-400 hover:text-white transition bg-stone-900 rounded-full">
+        <button 
+          onClick={verifySessionAndFetchData} 
+          className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition rounded-xl border border-slate-200 active:scale-95 cursor-pointer"
+          title="รีเฟรชข้อมูล"
+        >
           <RefreshCw className="w-4 h-4" />
         </button>
       </header>
 
-      {/* Category Navigation (Horizontal Scroll) */}
-      <div className="sticky top-[73px] z-30 bg-stone-950/95 backdrop-blur-md border-b border-stone-900 px-4 py-3 flex gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        {['ทั้งหมด', ...Array.from(new Set(menuItems.map(item => item.category).filter(Boolean)))].map(cat => (
-          <button
-            key={cat}
-            onClick={() => setSelectedCategory(cat)}
-            className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap border transition duration-150 active:scale-95 cursor-pointer ${
-              selectedCategory === cat
-                ? 'bg-amber-500 text-black border-amber-500 shadow-md shadow-amber-500/10'
-                : 'bg-stone-900/40 hover:bg-stone-900/80 border-stone-850 hover:border-stone-800 text-stone-400'
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-
-      {/* Error Message */}
+      {/* Error Message Toast */}
       {errorMsg && (
-        <div className="m-4 p-3 bg-red-950 border border-red-900 rounded-xl text-red-400 text-sm">
-          {errorMsg}
+        <div className="mx-4 mt-3 p-3.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs font-semibold flex items-center gap-2 animate-fade-in shadow-xs">
+          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          <span>{errorMsg}</span>
         </div>
       )}
 
-      {/* Menu List */}
-      <main className="p-3 sm:p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-        {menuItems
-          .filter(item => selectedCategory === 'ทั้งหมด' || item.category === selectedCategory)
-          .map(item => {
-            const qty = getCartQuantity(item.id);
-            const isSoldOut = item.stock <= 0;
-            const isLowStock = item.stock > 0 && item.stock <= 3;
+      {/* Main Tab Content */}
+      <main className="max-w-md mx-auto p-4">
+        
+        {/* TAB 1: 🏠 หน้าหลัก (Home View) */}
+        {activeTab === 'home' && (
+          <div className="space-y-4 animate-fade-in">
+            {/* Table Welcome Banner */}
+            <div className="bg-gradient-to-br from-red-600 to-orange-600 text-white rounded-3xl p-5 shadow-sm relative overflow-hidden">
+              <div className="relative z-10">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[11px] font-bold tracking-wide uppercase text-white mb-2">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  ยินดีต้อนรับสู่ Yokayaki
+                </span>
+                <h2 className="text-2xl font-black tracking-tight mb-1">สั่งอาหาร โต๊ะ {tableId}</h2>
+                <p className="text-white/80 text-xs font-medium leading-relaxed">
+                  เลือกเมนูที่ชอบและส่งสั่งครัวได้ทันทีจากมือถือของคุณ
+                </p>
 
-            return (
-              <div key={item.id} className={`p-3 rounded-2xl border flex flex-col justify-between gap-2.5 transition-colors ${isSoldOut ? 'bg-stone-900/40 border-stone-800 opacity-60' : 'bg-stone-900 border-stone-800'}`}>
-                <div className="flex flex-col gap-2">
-                  {/* Thumbnail / Image */}
-                  {item.image_url && (
-                    <div className="w-full aspect-square rounded-xl overflow-hidden bg-stone-800 border border-stone-800 relative">
-                      <img
-                        src={item.image_url}
-                        alt={item.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-                      />
-                      {isSoldOut ? (
-                        <span className="absolute top-2 right-2 text-[9px] font-black tracking-wider bg-red-950/90 text-red-400 backdrop-blur-xs px-2 py-0.5 rounded">SOLD OUT</span>
-                      ) : isLowStock ? (
-                        <span className="absolute top-2 right-2 text-[9px] font-bold tracking-wider bg-orange-950/90 text-orange-400 backdrop-blur-xs px-2 py-0.5 rounded whitespace-nowrap">เหลือ {item.stock} จาน</span>
-                      ) : null}
-                    </div>
-                  )}
-                  <div>
-                    <div className="flex items-start justify-between gap-1">
-                      <h3 className="font-bold text-xs sm:text-sm text-stone-200 line-clamp-2 leading-snug">{item.name}</h3>
-                      {!item.image_url && (
-                        isSoldOut ? (
-                          <span className="text-[9px] font-black tracking-wider bg-red-950 text-red-400 px-1.5 py-0.5 rounded shrink-0">SOLD OUT</span>
-                        ) : isLowStock ? (
-                          <span className="text-[9px] font-bold tracking-wider bg-orange-950 text-orange-400 px-1.5 py-0.5 rounded shrink-0">เหลือ {item.stock}</span>
-                        ) : null
-                      )}
-                    </div>
-                    <p className="text-amber-500 font-extrabold text-xs sm:text-sm mt-0.5">{item.price} บาท</p>
-                  </div>
-                </div>
-
-                {!isSoldOut && (
-                  <div className="flex items-center justify-between border-t border-stone-800/50 pt-2 mt-1">
-                    <div className="flex items-center gap-2 bg-stone-950 rounded-full p-1 border border-stone-800 w-full justify-between">
-                      <button
-                        onClick={() => removeFromCart(item.id)}
-                        disabled={qty === 0}
-                        className="w-7 h-7 flex items-center justify-center rounded-full bg-stone-900 hover:bg-stone-800 disabled:opacity-50 transition shrink-0"
-                      >
-                        <Minus className="w-3.5 h-3.5" />
-                      </button>
-                      <span className="font-bold text-xs text-center">{qty}</span>
-                      <button
-                        onClick={() => addToCart(item)}
-                        disabled={qty >= item.stock}
-                        className="w-7 h-7 flex items-center justify-center rounded-full bg-amber-500 hover:bg-amber-400 text-black disabled:opacity-50 transition shrink-0"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                )}
+                <button
+                  onClick={() => setActiveTab('order')}
+                  className="mt-4 inline-flex items-center gap-2 bg-white text-red-600 px-5 py-2.5 rounded-2xl font-extrabold text-xs shadow-md hover:bg-red-50 transition active:scale-95 cursor-pointer"
+                >
+                  <span>เริ่มเลือกสั่งอาหาร</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
-            );
-          })}
-      </main>
-
-      {/* Ordered Items History */}
-      {orderedItems.length > 0 && (() => {
-        const activeItems = orderedItems.filter(i => i.status !== 'voided');
-        const totalQty = activeItems.reduce((s, i) => s + i.quantity, 0);
-        const totalAmt = activeItems.reduce((s, i) => s + (i.quantity * i.unit_price), 0);
-        return (
-          <section className="p-4 pb-8">
-            <h2 className="text-base font-bold text-stone-300 flex items-center gap-2 mb-3">
-              <ClipboardList className="w-4 h-4 text-amber-500" />
-              รายการที่สั่งไปแล้ว
-            </h2>
-            <div className="space-y-2">
-              {orderedItems.map(item => (
-                <div key={item.id} className={`flex justify-between items-center p-3 rounded-xl border text-sm ${
-                  item.status === 'voided'
-                    ? 'bg-red-950/20 border-red-900/30 text-red-500/60 line-through opacity-60'
-                    : 'bg-stone-900/50 border-stone-800 text-stone-300'
-                }`}>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-semibold">{item.menu_items?.name}</span>
-                      <span className="text-stone-500">x{item.quantity}</span>
-                      {item.status === 'voided' && <span className="text-red-500 text-xs font-bold">(ยกเลิก)</span>}
-                    </div>
-                    {item.notes && (
-                      <div className="text-[10px] text-amber-500/80 font-bold mt-0.5">
-                        โน้ต: {item.notes}
-                      </div>
-                    )}
-                  </div>
-                  <span className="font-bold text-amber-500/80">{item.quantity * item.unit_price} ฿</span>
-                </div>
-              ))}
+              <ChefHat className="absolute -right-4 -bottom-4 w-32 h-32 text-white/10" />
             </div>
-            {totalQty > 0 && (
-              <div className="mt-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex justify-between items-center">
-                <span className="text-amber-400 text-sm font-semibold">รวมทั้งหมด ({totalQty} ชิ้น)</span>
-                <span className="text-amber-500 font-extrabold">{totalAmt.toLocaleString()} บาท</span>
+
+            {/* Active Order Summary Status */}
+            {orderedItems.length > 0 && (
+              <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
+                    <ClipboardList className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-xs text-slate-900">รายการสั่งอาหารของคุณ</h3>
+                    <p className="text-[11px] text-slate-500 font-semibold mt-0.5">
+                      {pendingCount > 0 ? (
+                        <span className="text-amber-600 font-bold flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                          กำลังปรุงในครัว {pendingCount} รายการ
+                        </span>
+                      ) : (
+                        <span className="text-emerald-600 font-bold">เสิร์ฟครบทุกรายการแล้ว</span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setActiveTab('ordered')}
+                  className="text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 border border-red-100 px-3 py-1.5 rounded-xl cursor-pointer"
+                >
+                  ดูสถานะ
+                </button>
               </div>
             )}
-          </section>
-        );
-      })()}
 
-      {/* Bottom Cart Drawer */}
+            {/* Active Promotions Carousel Preview */}
+            {promotions.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                    <Tag className="w-4 h-4 text-red-600" />
+                    <span>โปรโมชั่นแนะนำ</span>
+                  </h3>
+                  <button 
+                    onClick={() => setActiveTab('promotions')} 
+                    className="text-xs font-bold text-red-600 hover:underline cursor-pointer"
+                  >
+                    ดูทั้งหมด
+                  </button>
+                </div>
+
+                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
+                  {promotions.slice(0, 3).map(promo => (
+                    <div 
+                      key={promo.id} 
+                      onClick={() => setActiveTab('promotions')}
+                      className="min-w-[240px] max-w-[260px] bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xs shrink-0 cursor-pointer hover:border-red-200 transition"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="px-2 py-0.5 bg-red-50 border border-red-200 text-red-600 rounded-lg text-[10px] font-black">
+                          {promo.type === 'percentage' ? `ลด ${promo.discount_percent}%` : promo.type === 'fixed' ? `ลด ฿${promo.discount_amount}` : 'ซื้อ 2 แถม 1'}
+                        </span>
+                        {promo.start_time && (
+                          <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-0.5">
+                            <Clock className="w-3 h-3" />
+                            {promo.start_time.substring(0, 5)} - {promo.end_time?.substring(0, 5)}
+                          </span>
+                        )}
+                      </div>
+                      <h4 className="font-bold text-xs text-slate-900 truncate">{promo.name}</h4>
+                      <p className="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                        {getPromoShortDesc(promo)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 2: 🍱 สั่งอาหาร (Order Food View) */}
+        {activeTab === 'order' && (
+          <div className="space-y-4 animate-fade-in">
+            {/* Category Filter Chips */}
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+              {['ทั้งหมด', ...Array.from(new Set(menuItems.map(item => item.category).filter(Boolean)))].map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap border transition duration-150 active:scale-95 cursor-pointer ${
+                    selectedCategory === cat
+                      ? 'bg-red-600 text-white border-red-600 shadow-xs shadow-red-600/20'
+                      : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-600'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {/* Menu Grid */}
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              {menuItems
+                .filter(item => selectedCategory === 'ทั้งหมด' || item.category === selectedCategory)
+                .map(item => {
+                  const qty = getCartQuantity(item.id);
+                  const isSoldOut = item.stock <= 0;
+                  const isLowStock = item.stock > 0 && item.stock <= 3;
+
+                  return (
+                    <div 
+                      key={item.id} 
+                      className={`p-3 rounded-2xl border flex flex-col justify-between gap-2.5 transition-all shadow-xs ${
+                        isSoldOut ? 'bg-slate-100 border-slate-200 opacity-60' : 'bg-white border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex flex-col gap-2">
+                        {item.image_url && (
+                          <div className="w-full aspect-square rounded-xl overflow-hidden bg-slate-100 border border-slate-200 relative">
+                            <img
+                              src={item.image_url}
+                              alt={item.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                            />
+                            {isSoldOut ? (
+                              <span className="absolute top-2 right-2 text-[9px] font-black tracking-wider bg-rose-600 text-white px-2 py-0.5 rounded-md shadow-xs">SOLD OUT</span>
+                            ) : isLowStock ? (
+                              <span className="absolute top-2 right-2 text-[9px] font-bold tracking-wider bg-amber-500 text-white px-2 py-0.5 rounded-md shadow-xs">เหลือ {item.stock} จาน</span>
+                            ) : null}
+                          </div>
+                        )}
+                        <div>
+                          <div className="flex items-start justify-between gap-1">
+                            <h3 className="font-bold text-xs text-slate-900 line-clamp-2 leading-snug">{item.name}</h3>
+                            {!item.image_url && (
+                              isSoldOut ? (
+                                <span className="text-[9px] font-black tracking-wider bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded shrink-0">SOLD OUT</span>
+                              ) : isLowStock ? (
+                                <span className="text-[9px] font-bold tracking-wider bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded shrink-0">เหลือ {item.stock}</span>
+                              ) : null
+                            )}
+                          </div>
+                          <p className="text-red-600 font-extrabold text-xs sm:text-sm mt-1">฿{item.price.toLocaleString()}</p>
+                        </div>
+                      </div>
+
+                      {!isSoldOut && (
+                        <div className="flex items-center justify-between border-t border-slate-100 pt-2.5 mt-1">
+                          <div className="flex items-center gap-2 bg-slate-50 rounded-xl p-1 border border-slate-200 w-full justify-between">
+                            <button
+                              onClick={() => removeFromCart(item.id)}
+                              disabled={qty === 0}
+                              className="w-7 h-7 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 disabled:opacity-40 transition active:scale-95 cursor-pointer shadow-xs"
+                            >
+                              <Minus className="w-3.5 h-3.5" />
+                            </button>
+                            <span className="font-extrabold text-xs text-slate-900">{qty}</span>
+                            <button
+                              onClick={() => addToCart(item)}
+                              disabled={qty >= item.stock}
+                              className="w-7 h-7 flex items-center justify-center rounded-lg bg-red-600 hover:bg-red-700 text-white disabled:opacity-40 transition active:scale-95 cursor-pointer shadow-xs"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: 📋 รายการที่สั่งแล้ว (Ordered History View) */}
+        {activeTab === 'ordered' && (
+          <div className="space-y-4 animate-fade-in">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+              <div>
+                <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
+                  <ClipboardList className="w-5 h-5 text-red-600" />
+                  <span>รายการอาหารที่สั่งแล้ว</span>
+                </h2>
+                <p className="text-slate-500 text-xs mt-0.5">ประจำ <span className="font-bold text-red-600">โต๊ะ {tableId}</span></p>
+              </div>
+              <button 
+                onClick={() => tableId && fetchOrderedItems(tableId)} 
+                className="text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-xl border border-red-200 transition cursor-pointer"
+              >
+                อัปเดตสถานะ
+              </button>
+            </div>
+
+            {orderedItems.length === 0 ? (
+              <div className="bg-white border border-slate-200 rounded-3xl p-8 text-center space-y-3 shadow-xs">
+                <div className="w-14 h-14 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto">
+                  <UtensilsCrossed className="w-7 h-7" />
+                </div>
+                <h3 className="font-bold text-slate-700 text-sm">ยังไม่มีรายการสั่งอาหาร</h3>
+                <p className="text-slate-400 text-xs">คุณยังไม่ได้ส่งสั่งอาหารเข้าครัวสำหรับโต๊ะนี้</p>
+                <button
+                  onClick={() => setActiveTab('order')}
+                  className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-bold text-xs shadow-xs transition"
+                >
+                  เลือกสั่งอาหารทันที
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {orderedItems.map(item => {
+                  const isPending = item.status === 'pending';
+                  const isServed = item.status === 'served';
+                  const isVoided = item.status === 'voided';
+
+                  return (
+                    <div 
+                      key={item.id} 
+                      className={`p-3.5 rounded-2xl border text-xs flex justify-between items-start transition-all shadow-xs ${
+                        isVoided 
+                          ? 'bg-rose-50/60 border-rose-200 text-slate-400 line-through' 
+                          : isServed 
+                          ? 'bg-emerald-50/40 border-emerald-200 text-slate-800' 
+                          : 'bg-amber-50/50 border-amber-200 text-slate-900'
+                      }`}
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-sm text-slate-900">{item.menu_items?.name}</span>
+                          <span className="font-extrabold text-slate-500">x{item.quantity}</span>
+                        </div>
+
+                        {item.notes && (
+                          <div className="text-[11px] font-semibold text-red-600 bg-red-50 border border-red-100 px-2 py-0.5 rounded-md inline-block">
+                            โน้ต: {item.notes}
+                          </div>
+                        )}
+
+                        <div className="pt-0.5">
+                          {isPending && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
+                              กำลังปรุงในครัว...
+                            </span>
+                          )}
+                          {isServed && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                              เสิร์ฟแล้ว
+                            </span>
+                          )}
+                          {isVoided && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600 bg-rose-100 px-2 py-0.5 rounded-md">
+                              ยกเลิกรายการแล้ว
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <span className="font-black text-sm text-slate-900">
+                        ฿{(item.quantity * item.unit_price).toLocaleString()}
+                      </span>
+                    </div>
+                  );
+                })}
+
+                {/* Total Bill Summary Card */}
+                {(() => {
+                  const activeItems = orderedItems.filter(i => i.status !== 'voided');
+                  const totalQty = activeItems.reduce((s, i) => s + i.quantity, 0);
+                  const totalAmt = activeItems.reduce((s, i) => s + (i.quantity * i.unit_price), 0);
+
+                  return (
+                    <div className="mt-4 p-4 bg-white border border-slate-200 rounded-2xl shadow-xs flex justify-between items-center">
+                      <div>
+                        <span className="text-slate-500 text-xs font-bold block">ยอดรวมทั้งสิ้น</span>
+                        <span className="text-slate-400 text-[11px] font-semibold">{totalQty} รายการ (ไม่รวมรายการที่ยกเลิก)</span>
+                      </div>
+                      <span className="text-xl font-black text-red-600">฿{totalAmt.toLocaleString()}</span>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 4: 🏷️ โปรโมชั่น (Promotions View) */}
+        {activeTab === 'promotions' && (
+          <div className="space-y-4 animate-fade-in">
+            <div className="pb-2 border-b border-slate-200">
+              <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
+                <Tag className="w-5 h-5 text-red-600" />
+                <span>โปรโมชั่นพิเศษ</span>
+              </h2>
+              <p className="text-slate-500 text-xs mt-0.5">ส่วนลดและข้อเสนอสุดคุ้มจากร้าน Yokayaki</p>
+            </div>
+
+            {promotions.length === 0 ? (
+              <div className="bg-white border border-slate-200 rounded-3xl p-8 text-center space-y-2 shadow-xs">
+                <Tag className="w-10 h-10 text-slate-300 mx-auto" />
+                <h3 className="font-bold text-slate-700 text-sm">ยังไม่มีโปรโมชั่นใหม่ขณะนี้</h3>
+                <p className="text-slate-400 text-xs">ติดตามส่วนลดและข้อเสนอพิเศษได้ที่นี่เร็วๆ นี้</p>
+              </div>
+            ) : (
+              <div className="space-y-3.5">
+                {promotions.map(promo => (
+                  <div key={promo.id} className="bg-white border border-slate-200 rounded-3xl p-4 shadow-xs space-y-3 relative overflow-hidden">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <span className="inline-block px-2.5 py-0.5 bg-red-50 border border-red-200 text-red-600 rounded-lg text-[10px] font-black">
+                          {promo.type === 'percentage' ? `ส่วนลด ${promo.discount_percent}%` : promo.type === 'fixed' ? `ส่วนลด ฿${promo.discount_amount}` : 'ซื้อ 2 แถม 1'}
+                        </span>
+                        <h3 className="font-extrabold text-sm text-slate-900">{promo.name}</h3>
+                      </div>
+
+                      {promo.start_time && (
+                        <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-lg flex items-center gap-1 shrink-0">
+                          <Clock className="w-3 h-3 text-slate-400" />
+                          {promo.start_time.substring(0, 5)} - {promo.end_time?.substring(0, 5)} น.
+                        </span>
+                      )}
+                    </div>
+
+                    {promo.image_url && (
+                      <div className="w-full h-36 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
+                        <img 
+                          src={promo.image_url} 
+                          alt={promo.name} 
+                          className="w-full h-full object-cover"
+                          onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                        />
+                      </div>
+                    )}
+
+                    <p className="text-xs text-slate-600 bg-slate-50 border border-slate-100 p-3 rounded-xl leading-relaxed">
+                      {getPromoShortDesc(promo)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+      </main>
+
+      {/* Floating Cart Summary Bar (Positioned above bottom nav bar when active) */}
+      {cart.length > 0 && !showCartDrawer && (
+        <div className="fixed bottom-16 inset-x-0 z-30 px-4 max-w-md mx-auto">
+          <button 
+            onClick={() => setShowCartDrawer(true)}
+            className="w-full bg-red-600 text-white p-3.5 rounded-2xl shadow-lg flex items-center justify-between hover:bg-red-700 active:scale-98 transition cursor-pointer"
+          >
+            <div className="flex items-center gap-3">
+              <div className="relative bg-white/20 p-2 rounded-xl">
+                <ShoppingBag className="w-5 h-5 text-white" />
+                <span className="absolute -top-1.5 -right-1.5 bg-white text-red-600 text-[10px] font-black w-4 h-4 flex items-center justify-center rounded-full shadow-xs">
+                  {cartItemCount}
+                </span>
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="text-[10px] font-bold text-white/80 uppercase tracking-wider">ดูรายการในตะกร้า</span>
+                <span className="text-xs font-bold text-white">{cartItemCount} รายการ</span>
+              </div>
+            </div>
+            <span className="text-base font-black text-white">฿{cartTotal.toLocaleString()}</span>
+          </button>
+        </div>
+      )}
+
+      {/* Cart Drawer Modal (Light Theme) */}
       {showCartDrawer && cart.length > 0 && (
-        <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm flex items-end animate-fade-in" onClick={() => setShowCartDrawer(false)}>
-          <div className="bg-stone-900 border-t border-stone-800 w-full max-h-[70vh] rounded-t-3xl p-6 shadow-2xl flex flex-col gap-4 animate-slide-up" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center pb-2 border-b border-stone-850">
-              <h3 className="font-extrabold text-lg flex items-center gap-2 text-white">
-                <ShoppingBag className="w-5 h-5 text-amber-500" />
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-end animate-fade-in" onClick={() => setShowCartDrawer(false)}>
+          <div className="bg-white border-t border-slate-200 w-full max-h-[80vh] rounded-t-3xl p-5 shadow-2xl flex flex-col gap-4 max-w-md mx-auto animate-slide-up" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center pb-2 border-b border-slate-200">
+              <h3 className="font-extrabold text-base flex items-center gap-2 text-slate-900">
+                <ShoppingBag className="w-5 h-5 text-red-600" />
                 <span>ตะกร้าของคุณ ({cartItemCount} ชิ้น)</span>
               </h3>
-              <button onClick={() => setShowCartDrawer(false)} className="p-1 bg-stone-950 hover:bg-stone-800 rounded-full text-stone-400">
+              <button onClick={() => setShowCartDrawer(false)} className="p-1.5 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-500 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
             
-            <div className="flex-1 overflow-y-auto space-y-3 pr-1 py-2">
+            <div className="flex-1 overflow-y-auto space-y-3 pr-1 py-1">
               {cart.map((item, index) => (
-                <div key={`${item.id}-${item.notes || ''}-${index}`} className="flex flex-col bg-stone-950/40 border border-stone-850 p-4 rounded-2xl gap-3">
+                <div key={`${item.id}-${item.notes || ''}-${index}`} className="flex flex-col bg-slate-50 border border-slate-200 p-3.5 rounded-2xl gap-2.5">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h4 className="font-bold text-sm text-stone-200">{item.name}</h4>
-                      <p className="text-xs text-amber-500 font-bold mt-1">{item.price * item.quantity} บาท</p>
+                      <h4 className="font-bold text-xs text-slate-900">{item.name}</h4>
+                      <p className="text-xs text-red-600 font-extrabold mt-0.5">฿{(item.price * item.quantity).toLocaleString()}</p>
                     </div>
-                    <div className="flex items-center gap-3 bg-stone-950 border border-stone-850 rounded-full p-1">
+                    <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl p-1 shadow-xs">
                       <button
                         onClick={() => removeFromCart(item.id, item.notes)}
-                        className="w-7 h-7 flex items-center justify-center rounded-full bg-stone-900 text-stone-400"
+                        className="w-6 h-6 flex items-center justify-center rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer"
                       >
-                        <Minus className="w-3.5 h-3.5" />
+                        <Minus className="w-3 h-3" />
                       </button>
-                      <span className="font-bold text-sm w-4 text-center text-stone-200">{item.quantity}</span>
+                      <span className="font-extrabold text-xs w-4 text-center text-slate-900">{item.quantity}</span>
                       <button
                         onClick={() => addToCart(item, item.notes)}
                         disabled={cart.filter(i => i.id === item.id).reduce((s, i) => s + i.quantity, 0) >= item.stock}
-                        className="w-7 h-7 flex items-center justify-center rounded-full bg-amber-500 text-black disabled:opacity-50"
+                        className="w-6 h-6 flex items-center justify-center rounded-lg bg-red-600 text-white disabled:opacity-40 cursor-pointer"
                       >
-                        <Plus className="w-3.5 h-3.5" />
+                        <Plus className="w-3 h-3" />
                       </button>
                     </div>
                   </div>
                   
                   {/* Notes management */}
-                  <div className="flex justify-between items-center border-t border-stone-850/60 pt-2.5 text-xs">
+                  <div className="flex justify-between items-center border-t border-slate-200/80 pt-2 text-[11px]">
                     {item.notes ? (
-                      <span className="text-amber-500/80 font-bold">โน้ต: {item.notes}</span>
+                      <span className="text-red-600 font-bold">โน้ต: {item.notes}</span>
                     ) : (
-                      <span className="text-stone-500">ไม่มีโน้ตพิเศษ</span>
+                      <span className="text-slate-400">ไม่มีโน้ตพิเศษ</span>
                     )}
                     <button
                       onClick={() => setNoteEditTarget({ index, notes: item.notes || '' })}
-                      className="text-amber-500/90 font-bold flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1.5 rounded-xl active:scale-95 transition"
+                      className="text-red-600 font-bold flex items-center gap-1 bg-red-50 border border-red-100 px-2 py-1 rounded-lg cursor-pointer active:scale-95 transition"
                     >
-                      <ClipboardList className="w-3.5 h-3.5" />
-                      <span>{item.notes ? 'แก้ไขโน้ต' : '+ เพิ่มโน้ต'}</span>
+                      <ClipboardList className="w-3 h-3" />
+                      <span>{item.notes ? 'แก้ไขโน้ต' : '+ โน้ตเพิ่ม'}</span>
                     </button>
                   </div>
                 </div>
               ))}
             </div>
             
-            {/* Drawer Total & Confirm button wrapper */}
-            <div className="pt-2 border-t border-stone-850/60">
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-stone-400 font-bold text-sm">ยอดรวมทั้งหมด:</span>
-                <span className="text-xl font-black text-amber-500">{cartTotal} บาท</span>
+            <div className="pt-2 border-t border-slate-200">
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-slate-500 font-bold text-xs">ยอดรวมทั้งสิ้น:</span>
+                <span className="text-xl font-black text-red-600">฿{cartTotal.toLocaleString()}</span>
               </div>
               <button
                 onClick={() => {
@@ -475,136 +820,138 @@ export default function CustomerOrderPortal() {
                   confirmOrder();
                 }}
                 disabled={isSubmitting}
-                className="w-full py-4 bg-amber-500 hover:bg-amber-600 disabled:bg-stone-850 disabled:text-stone-500 text-black font-extrabold text-sm rounded-2xl transition active:scale-98 flex items-center justify-center gap-2 shadow-lg shadow-amber-500/15"
+                className="w-full py-3.5 bg-red-600 hover:bg-red-700 disabled:bg-slate-300 disabled:text-slate-500 text-white font-extrabold text-sm rounded-2xl transition active:scale-98 flex items-center justify-center gap-2 shadow-md shadow-red-600/20 cursor-pointer"
               >
-                {isSubmitting ? 'กำลังส่งคำสั่งซื้อ...' : 'ยืนยันส่งครัว'}
+                {isSubmitting ? 'กำลังส่งคำสั่งซื้อ...' : 'ยืนยันสั่งอาหารส่งเข้าครัว'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Floating Cart Bar */}
-      {cart.length > 0 && !showCartDrawer && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 z-50 bg-gradient-to-t from-stone-950 via-stone-950 to-transparent">
-          <div 
-            onClick={() => setShowCartDrawer(true)}
-            className="bg-amber-500 text-black p-4 rounded-2xl shadow-xl flex items-center justify-between cursor-pointer active:scale-98 transition-all"
-          >
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <ShoppingBag className="w-6 h-6" />
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-amber-500">
-                  {cartItemCount}
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-bold opacity-80">ยอดรวม</span>
-                <span className="font-black leading-none">{cartTotal} บาท</span>
-              </div>
-            </div>
-            
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowCartDrawer(true);
-              }}
-              className="bg-black text-amber-500 px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-stone-900 active:scale-95 transition"
-            >
-              ดูตะกร้าสินค้า
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* NOTE EDIT MODAL (Customer mobile) */}
+      {/* Note Edit Modal (Light Theme) */}
       {noteEditTarget !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="w-full max-w-sm bg-stone-900 border border-stone-800 rounded-3xl p-5 shadow-2xl relative">
-            <h3 className="text-base font-black text-amber-500 flex items-center gap-2 mb-2">
-              <ClipboardList className="w-4 h-4" />
-              <span>ระบุโน้ตพิเศษ</span>
-            </h3>
-            <p className="text-stone-400 text-xs mb-4">
-              ระบุข้อกำหนดพิเศษสำหรับเมนู <span className="font-bold text-white">{cart[noteEditTarget.index]?.name}</span>
-            </p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fade-in">
+          <div className="w-full max-w-sm bg-white border border-slate-200 rounded-3xl p-5 shadow-2xl relative space-y-4">
+            <div>
+              <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                <ClipboardList className="w-4 h-4 text-red-600" />
+                <span>ระบุโน้ตพิเศษ</span>
+              </h3>
+              <p className="text-slate-500 text-xs mt-1">
+                สำหรับเมนู <span className="font-bold text-slate-900">{cart[noteEditTarget.index]?.name}</span>
+              </p>
+            </div>
 
-            <div className="space-y-4">
-              {/* Quick Note Buttons */}
-              <div>
-                <label className="block text-[10px] font-bold text-stone-500 tracking-wider uppercase mb-2">
-                  ตัวเลือกด่วน
-                </label>
-                <div className="flex flex-wrap gap-1.5">
-                  {['ไม่ใส่ผัก', 'เผ็ดน้อย', 'เผ็ดมาก', 'แยกซอส', 'ไม่ใส่ซอส', 'พิเศษ'].map(quickNote => {
-                    const currentNotes = noteEditTarget.notes || '';
-                    const isSelected = currentNotes.split(', ').includes(quickNote);
+            {/* Quick Note Buttons */}
+            <div>
+              <label className="block text-[10px] font-bold text-slate-400 tracking-wider uppercase mb-1.5">
+                ตัวเลือกด่วน
+              </label>
+              <div className="flex flex-wrap gap-1.5">
+                {['ไม่ใส่ผัก', 'เผ็ดน้อย', 'เผ็ดมาก', 'แยกซอส', 'ไม่ใส่ซอส', 'พิเศษ'].map(quickNote => {
+                  const currentNotes = noteEditTarget.notes || '';
+                  const isSelected = currentNotes.split(', ').includes(quickNote);
 
-                    return (
-                      <button
-                        key={quickNote}
-                        type="button"
-                        onClick={() => {
-                          let updatedNotes = '';
-                          if (isSelected) {
-                            updatedNotes = currentNotes
-                              .split(', ')
-                              .filter(n => n !== quickNote)
-                              .join(', ');
-                          } else {
-                            updatedNotes = currentNotes ? `${currentNotes}, ${quickNote}` : quickNote;
-                          }
-                          setNoteEditTarget(prev => prev ? { ...prev, notes: updatedNotes } : null);
-                        }}
-                        className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition ${
-                          isSelected
-                            ? 'bg-amber-500/10 border-amber-500/40 text-amber-400'
-                            : 'bg-stone-950 border-stone-850 text-stone-400 hover:border-stone-750'
-                        }`}
-                      >
-                        {quickNote}
-                      </button>
-                    );
-                  })}
-                </div>
+                  return (
+                    <button
+                      key={quickNote}
+                      type="button"
+                      onClick={() => {
+                        let updatedNotes = '';
+                        if (isSelected) {
+                          updatedNotes = currentNotes
+                            .split(', ')
+                            .filter(n => n !== quickNote)
+                            .join(', ');
+                        } else {
+                          updatedNotes = currentNotes ? `${currentNotes}, ${quickNote}` : quickNote;
+                        }
+                        setNoteEditTarget(prev => prev ? { ...prev, notes: updatedNotes } : null);
+                      }}
+                      className={`px-2.5 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
+                        isSelected
+                          ? 'bg-red-50 border-red-200 text-red-600'
+                          : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      {quickNote}
+                    </button>
+                  );
+                })}
               </div>
+            </div>
 
-              {/* Custom Text Area */}
-              <div>
-                <label className="block text-[10px] font-bold text-stone-500 tracking-wider uppercase mb-2">
-                  ระบุรายละเอียดอื่นๆ
-                </label>
-                <textarea
-                  value={noteEditTarget.notes}
-                  onChange={(e) => setNoteEditTarget(prev => prev ? { ...prev, notes: e.target.value } : null)}
-                  placeholder="เช่น หวานน้อย, ขอวาซาบิเยอะๆ..."
-                  className="w-full bg-stone-950 border border-stone-850 focus:border-stone-750 focus:outline-none rounded-xl p-3 text-xs text-stone-200 placeholder-stone-600 h-16 resize-none"
-                />
-              </div>
+            {/* Custom Text Area */}
+            <div>
+              <label className="block text-[10px] font-bold text-slate-400 tracking-wider uppercase mb-1.5">
+                รายละเอียดอื่นๆ
+              </label>
+              <textarea
+                value={noteEditTarget.notes}
+                onChange={(e) => setNoteEditTarget(prev => prev ? { ...prev, notes: e.target.value } : null)}
+                placeholder="เช่น ขอวาซาบิเพิ่ม, แยกซอสฉ่ำๆ..."
+                className="w-full bg-slate-50 border border-slate-200 focus:border-red-500 focus:outline-none rounded-xl p-3 text-xs text-slate-900 placeholder-slate-400 h-16 resize-none"
+              />
+            </div>
 
-              <div className="flex gap-2 pt-3 border-t border-stone-850">
-                <button
-                  type="button"
-                  onClick={() => setNoteEditTarget(null)}
-                  className="flex-1 py-2.5 bg-stone-950 hover:bg-stone-900 border border-stone-850 rounded-lg text-stone-400 text-xs font-bold active:scale-97 transition"
-                >
-                  ยกเลิก
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    updateCartItemNotes(noteEditTarget.index, noteEditTarget.notes);
-                    setNoteEditTarget(null);
-                  }}
-                  className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 text-black text-xs font-extrabold rounded-lg active:scale-97 transition"
-                >
-                  บันทึกโน้ต
-                </button>
-              </div>
+            <div className="flex gap-2 pt-2 border-t border-slate-200">
+              <button
+                type="button"
+                onClick={() => setNoteEditTarget(null)}
+                className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-600 text-xs font-bold transition cursor-pointer"
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  updateCartItemNotes(noteEditTarget.index, noteEditTarget.notes);
+                  setNoteEditTarget(null);
+                }}
+                className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-extrabold rounded-xl transition cursor-pointer shadow-xs"
+              >
+                บันทึกโน้ต
+              </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Fixed Bottom Navigation Bar */}
+      <nav className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-40 px-3 py-2 shadow-lg">
+        <div className="max-w-md mx-auto flex items-center justify-around">
+          {[
+            { id: 'home', label: 'หน้าหลัก', icon: Home },
+            { id: 'order', label: 'สั่งอาหาร', icon: UtensilsCrossed, badge: cartItemCount },
+            { id: 'ordered', label: 'สั่งแล้ว', icon: ClipboardList, badge: orderedItems.length },
+            { id: 'promotions', label: 'โปรโมชั่น', icon: Tag },
+          ].map(tab => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as CustomerTab)}
+                className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all relative cursor-pointer ${
+                  isActive ? 'text-red-600 font-bold' : 'text-slate-400 font-medium hover:text-slate-600'
+                }`}
+              >
+                <div className="relative">
+                  <Icon className={`w-5 h-5 ${isActive ? 'scale-110' : ''}`} />
+                  {tab.badge ? tab.badge > 0 ? (
+                    <span className="absolute -top-1.5 -right-2.5 bg-red-600 text-white text-[9px] font-black px-1 min-w-[16px] h-4 rounded-full flex items-center justify-center animate-pulse">
+                      {tab.badge}
+                    </span>
+                  ) : null : null}
+                </div>
+                <span className="text-[11px] mt-1 tracking-tight">{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+
     </div>
   );
 }
