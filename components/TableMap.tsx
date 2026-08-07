@@ -28,6 +28,63 @@ export const TableMap: React.FC = () => {
   const [selectedTableId, setSelectedTableId] = useState<number | null>(null);
   const [checkoutTableId, setCheckoutTableId] = useState<number | null>(null);
   const [actionSelectorTable, setActionSelectorTable] = useState<number | null>(null);
+  const [pendingItemCount, setPendingItemCount] = useState<number>(0);
+  const [isCheckingPending, setIsCheckingPending] = useState<boolean>(false);
+
+  // Check pending kitchen items when Action Selector Modal opens for a table
+  useEffect(() => {
+    if (actionSelectorTable === null) {
+      setPendingItemCount(0);
+      return;
+    }
+
+    const checkPendingItems = async () => {
+      try {
+        setIsCheckingPending(true);
+        const { data: orderData } = await supabase
+          .from('orders')
+          .select('id')
+          .eq('table_id', actionSelectorTable)
+          .eq('status', 'active')
+          .maybeSingle();
+
+        if (!orderData) {
+          setPendingItemCount(0);
+          return;
+        }
+
+        const { count, error } = await supabase
+          .from('order_items')
+          .select('id', { count: 'exact', head: true })
+          .eq('order_id', orderData.id)
+          .eq('status', 'pending');
+
+        if (error) throw error;
+        setPendingItemCount(count || 0);
+      } catch (err) {
+        console.error('Error checking pending items:', err);
+      } finally {
+        setIsCheckingPending(false);
+      }
+    };
+
+    checkPendingItems();
+
+    const channel = supabase
+      .channel(`realtime:order_items_modal_${actionSelectorTable}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'order_items' },
+        () => {
+          checkPendingItems();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [actionSelectorTable]);
   const [isSyncing, setIsSyncing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<NavTab>('floor');
@@ -305,26 +362,59 @@ export const TableMap: React.FC = () => {
       {/* Action Selector Modal for occupied tables */}
       {actionSelectorTable !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs">
-          <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl w-full max-w-xs p-6 shadow-xl space-y-4">
-            <h3 className="text-lg font-extrabold text-slate-900 dark:text-neutral-100 text-center">โต๊ะ {actionSelectorTable}</h3>
-            <p className="text-slate-500 dark:text-neutral-400 text-xs text-center font-medium">เลือกทำรายการ</p>
+          <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl w-full max-w-sm p-6 shadow-xl space-y-4">
+            <div className="text-center space-y-1">
+              <h3 className="text-lg font-extrabold text-slate-900 dark:text-neutral-100">โต๊ะ {actionSelectorTable}</h3>
+              <p className="text-slate-500 dark:text-neutral-400 text-xs font-medium">เลือกทำรายการ</p>
+            </div>
+
+            {/* Warning banner if there are pending kitchen orders */}
+            {pendingItemCount > 0 && (
+              <div className="p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-2xl text-xs text-amber-800 dark:text-amber-300 font-semibold flex items-start gap-2.5">
+                <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold">ยังมีออเดอร์ในครัว ({pendingItemCount} รายการ)</p>
+                  <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-0.5 font-normal">
+                    ต้องเสิร์ฟอาหารจากหน้าจอครัวให้ครบก่อน จึงจะกดชำระเงินได้
+                  </p>
+                </div>
+              </div>
+            )}
+
             <button
               onClick={() => { setSelectedTableId(actionSelectorTable); setActionSelectorTable(null); }}
-              className="w-full py-3.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-800 dark:text-neutral-100 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition active:scale-95 border border-slate-200 dark:border-neutral-700"
+              className="w-full py-3.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-800 dark:text-neutral-100 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition active:scale-95 border border-slate-200 dark:border-neutral-700 cursor-pointer"
             >
               <ShoppingBag className="w-5 h-5 text-red-600 dark:text-red-400" />
               สั่งอาหารเพิ่ม
             </button>
+
             <button
-              onClick={() => { setCheckoutTableId(actionSelectorTable); setActionSelectorTable(null); }}
-              className="w-full py-3.5 bg-red-600 hover:bg-red-700 text-white rounded-2xl text-sm font-extrabold flex items-center justify-center gap-2 transition active:scale-95 shadow-md shadow-red-600/20"
+              disabled={pendingItemCount > 0 || isCheckingPending}
+              onClick={() => {
+                if (pendingItemCount > 0) return;
+                setCheckoutTableId(actionSelectorTable);
+                setActionSelectorTable(null);
+              }}
+              className={`w-full py-3.5 rounded-2xl text-sm font-extrabold flex items-center justify-center gap-2 transition active:scale-95 shadow-md ${
+                pendingItemCount > 0 || isCheckingPending
+                  ? 'bg-slate-200 dark:bg-neutral-800 text-slate-400 dark:text-neutral-500 border border-slate-300/80 dark:border-neutral-700 cursor-not-allowed shadow-none opacity-80'
+                  : 'bg-red-600 hover:bg-red-700 text-white shadow-red-600/20 cursor-pointer'
+              }`}
             >
               <Receipt className="w-5 h-5" />
-              ชำระเงิน / เช็คบิล
+              {isCheckingPending ? (
+                <span>กำลังตรวจสอบครัว...</span>
+              ) : pendingItemCount > 0 ? (
+                <span>ยังชำระเงินไม่ได้ (ค้างครัว {pendingItemCount})</span>
+              ) : (
+                <span>ชำระเงิน / เช็คบิล</span>
+              )}
             </button>
+
             <button
               onClick={() => setActionSelectorTable(null)}
-              className="w-full py-2 text-slate-400 dark:text-neutral-500 text-xs font-bold hover:text-slate-600 dark:hover:text-neutral-300 transition"
+              className="w-full py-2 text-slate-400 dark:text-neutral-500 text-xs font-bold hover:text-slate-600 dark:hover:text-neutral-300 transition cursor-pointer"
             >
               ยกเลิก
             </button>

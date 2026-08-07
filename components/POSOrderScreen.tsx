@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { ArrowLeft, Plus, Minus, Trash2, ShieldAlert, ShoppingBag, History, HelpCircle, QrCode, X, ClipboardList, UtensilsCrossed, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Plus, Minus, Trash2, ShieldAlert, ShoppingBag, History, HelpCircle, QrCode, X, ClipboardList, UtensilsCrossed, AlertTriangle, ChevronUp, ChevronDown } from 'lucide-react';
 import QRCode from 'react-qr-code';
 interface MenuItem {
   id: number;
@@ -72,6 +72,9 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
 
   // Void Logs States
   const [voidLogs, setVoidLogs] = useState<VoidLog[]>([]);
+
+  // Mobile UI States
+  const [mobileCartExpanded, setMobileCartExpanded] = useState<boolean>(true);
 
   // QR Modal States
   const [showQrModal, setShowQrModal] = useState(false);
@@ -217,6 +220,7 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
   // Cart operations
   const addToCart = (item: MenuItem, notes?: string) => {
     if (item.stock === 0) return;
+    setMobileCartExpanded(true);
     
     setCart(prev => {
       const itemNotes = notes || '';
@@ -378,7 +382,7 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
     <div className="w-full text-slate-800 flex flex-col lg:flex-row relative font-sans min-h-screen flex-1 bg-white">
       
       {/* LEFT AREA: Menu Selection */}
-      <div className="flex-1 p-6 lg:border-r border-slate-200 flex flex-col overflow-y-auto">
+      <div className="flex-1 p-4 md:p-6 lg:border-r border-slate-200 dark:border-neutral-800 flex flex-col overflow-y-auto pb-48 lg:pb-6">
         {/* Top Header */}
         <header className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200/80 dark:border-neutral-800">
           <button
@@ -538,212 +542,237 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
       </div>
 
       {/* RIGHT AREA: Cart & Current Order Status */}
-      <div className="sticky bottom-0 z-30 lg:static w-full lg:w-[400px] bg-white dark:bg-neutral-900 border-t lg:border-t-0 lg:border-l border-slate-200/90 dark:border-neutral-800 p-4 md:p-6 flex flex-col justify-between shadow-2xl lg:shadow-xs overflow-y-auto shrink-0 max-h-[60vh] lg:max-h-none">
-        <div>
-          {/* Section 1: Cart Items */}
-          <div className="mb-8 border-b border-slate-100 pb-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                <ShoppingBag className="w-4 h-4 text-red-600" />
-                <span>ตะกร้าสินค้า (Cart)</span>
-              </h2>
+      <div className="fixed bottom-0 left-0 right-0 z-40 lg:static w-full lg:w-[400px] bg-white dark:bg-neutral-900 border-t lg:border-t-0 lg:border-l border-slate-200/90 dark:border-neutral-800 shadow-[0_-10px_25px_-5px_rgba(0,0,0,0.15)] lg:shadow-xs shrink-0 transition-all duration-300">
+        {/* Mobile Accordion Handle Bar (Only visible on < lg) */}
+        <div
+          onClick={() => setMobileCartExpanded(!mobileCartExpanded)}
+          className="lg:hidden flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-neutral-800 border-b border-slate-200/80 dark:border-neutral-700 cursor-pointer select-none"
+        >
+          <div className="flex items-center gap-2">
+            <ShoppingBag className="w-4 h-4 text-red-600 dark:text-red-400" />
+            <span className="text-xs font-extrabold text-slate-900 dark:text-neutral-100">
+              ตะกร้าสินค้า ({cart.reduce((sum, i) => sum + i.quantity, 0)} รายการ)
+            </span>
+            {cart.length > 0 && (
+              <span className="text-xs font-black text-red-600 dark:text-red-400 ml-1">
+                {cart.reduce((sum, i) => sum + (i.price * i.quantity), 0)} บ.
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-1 text-slate-500 dark:text-neutral-400 text-xs font-bold">
+            <span>{mobileCartExpanded ? 'ย่อหน้าต่าง' : 'ดูขยาย'}</span>
+            {mobileCartExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+          </div>
+        </div>
+
+        {/* Cart Body & Active Orders */}
+        <div className={`p-4 md:p-6 overflow-y-auto max-h-[60vh] lg:max-h-none ${mobileCartExpanded ? 'block' : 'hidden lg:block'}`}>
+          <div>
+            {/* Section 1: Cart Items */}
+            <div className="mb-8 border-b border-slate-100 dark:border-neutral-800 pb-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-base font-extrabold text-slate-900 dark:text-neutral-100 flex items-center gap-2">
+                  <ShoppingBag className="w-4 h-4 text-red-600 dark:text-red-400" />
+                  <span>ตะกร้าสินค้า (Cart)</span>
+                </h2>
+                {cart.length > 0 && (
+                  <button
+                    onClick={clearCart}
+                    className="text-slate-400 hover:text-red-600 text-xs font-semibold flex items-center gap-1 transition"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    ล้างตะกร้า
+                  </button>
+                )}
+              </div>
+
+              {cart.length === 0 ? (
+                <p className="text-slate-400 dark:text-neutral-500 text-xs text-center py-8 font-medium bg-slate-50 dark:bg-neutral-800/50 rounded-2xl border border-slate-100 dark:border-neutral-800">ยังไม่มีรายการอาหารในตะกร้า</p>
+              ) : (
+                <div className="space-y-3 max-h-[32vh] overflow-y-auto pr-1">
+                  {cart.map((item, index) => (
+                    <div key={`${item.id}-${item.notes || ''}-${index}`} className="flex flex-col bg-slate-50 dark:bg-neutral-800/80 border border-slate-200/80 dark:border-neutral-700/60 p-3.5 rounded-xl gap-2">
+                      <div className="flex justify-between items-center">
+                        <div className="pr-3 flex-1">
+                          <h4 className="font-bold text-xs text-slate-900 dark:text-neutral-100 line-clamp-1">{item.name}</h4>
+                          <p className="text-xs text-red-600 dark:text-red-400 font-extrabold mt-0.5">{item.price * item.quantity} บาท</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => removeFromCart(item.id, item.notes)}
+                            className="p-1 bg-white dark:bg-neutral-700 border border-slate-200 dark:border-neutral-600 hover:bg-slate-100 dark:hover:bg-neutral-600 rounded-lg text-slate-700 dark:text-neutral-200 shadow-xs"
+                          >
+                            <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
+                          </button>
+                          <span className="text-xs font-extrabold text-slate-900 dark:text-neutral-100 px-1">{item.quantity}</span>
+                          <button
+                            onClick={() => addToCart(item, item.notes)}
+                            className="p-1 bg-red-600 hover:bg-red-700 rounded-lg text-white shadow-xs"
+                          >
+                            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                          </button>
+                        </div>
+                      </div>
+                      {/* Notes line */}
+                      <div className="flex items-center justify-between border-t border-slate-200/60 dark:border-neutral-700/60 pt-2 text-xs">
+                        {item.notes ? (
+                          <span className="text-amber-700 dark:text-amber-300 font-semibold bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-900/50">โน้ต: {item.notes}</span>
+                        ) : (
+                          <span className="text-slate-400 dark:text-neutral-500 font-medium">ไม่มีโน้ตพิเศษ</span>
+                        )}
+                        <button
+                          onClick={() => setNoteEditTarget({ index, notes: item.notes || '' })}
+                          className="text-slate-500 hover:text-red-600 dark:hover:text-red-400 font-bold flex items-center gap-1 transition"
+                        >
+                          <ClipboardList className="w-3.5 h-3.5" />
+                          <span>โน้ต</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {cart.length > 0 && (
-                <button
-                  onClick={clearCart}
-                  className="text-slate-400 hover:text-red-600 text-xs font-semibold flex items-center gap-1 transition"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  ล้างตะกร้า
-                </button>
+                <div className="mt-6 pt-4 border-t border-slate-100 dark:border-neutral-800">
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-xs text-slate-500 dark:text-neutral-400 font-bold">ยอดรวมตะกร้า:</span>
+                    <span className="text-2xl font-black text-red-600 dark:text-red-400">
+                      {cart.reduce((sum, i) => sum + (i.price * i.quantity), 0)} บาท
+                    </span>
+                  </div>
+                  <button
+                    disabled={isSubmitting}
+                    onClick={confirmOrder}
+                    className="w-full py-3.5 bg-red-600 hover:bg-red-700 disabled:bg-slate-300 dark:disabled:bg-neutral-800 text-white font-extrabold text-sm rounded-xl transition duration-150 active:scale-98 flex items-center justify-center gap-2 shadow-md shadow-red-600/20 cursor-pointer"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>กำลังส่งออเดอร์...</span>
+                      </>
+                    ) : (
+                      <span>สั่งอาหารเข้าระบบ (Send Order)</span>
+                    )}
+                  </button>
+                </div>
               )}
             </div>
 
-            {cart.length === 0 ? (
-              <p className="text-slate-400 text-xs text-center py-8 font-medium bg-slate-50 rounded-2xl border border-slate-100">ยังไม่มีรายการอาหารในตะกร้า</p>
-            ) : (
-              <div className="space-y-3 max-h-[32vh] overflow-y-auto pr-1">
-                {cart.map((item, index) => (
-                  <div key={`${item.id}-${item.notes || ''}-${index}`} className="flex flex-col bg-slate-50 border border-slate-200/80 p-3.5 rounded-xl gap-2">
-                    <div className="flex justify-between items-center">
-                      <div className="pr-3 flex-1">
-                        <h4 className="font-bold text-xs text-slate-900 line-clamp-1">{item.name}</h4>
-                        <p className="text-xs text-red-600 font-extrabold mt-0.5">{item.price * item.quantity} บาท</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => removeFromCart(item.id, item.notes)}
-                          className="p-1 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg text-slate-700 shadow-xs"
-                        >
-                          <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
-                        </button>
-                        <span className="text-xs font-extrabold text-slate-900 px-1">{item.quantity}</span>
-                        <button
-                          onClick={() => addToCart(item, item.notes)}
-                          className="p-1 bg-red-600 hover:bg-red-700 rounded-lg text-white shadow-xs"
-                        >
-                          <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                        </button>
-                      </div>
-                    </div>
-                    {/* Notes line */}
-                    <div className="flex items-center justify-between border-t border-slate-200/60 pt-2 text-xs">
-                      {item.notes ? (
-                        <span className="text-amber-700 font-semibold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">โน้ต: {item.notes}</span>
-                      ) : (
-                        <span className="text-slate-400 font-medium">ไม่มีโน้ตพิเศษ</span>
-                      )}
-                      <button
-                        onClick={() => setNoteEditTarget({ index, notes: item.notes || '' })}
-                        className="text-slate-500 hover:text-red-600 font-bold flex items-center gap-1 transition"
-                      >
-                        <ClipboardList className="w-3.5 h-3.5" />
-                        <span>โน้ต</span>
-                      </button>
-                    </div>
+            {/* Section 2: Currently Ordered Items (Active Order) */}
+            <div>
+              <h2 className="text-base font-extrabold text-slate-900 dark:text-neutral-100 mb-3 flex items-center gap-2">
+                <History className="w-4 h-4 text-red-600 dark:text-red-400" />
+                <span>อาหารที่ส่งครัวแล้ว (Active Order)</span>
+              </h2>
+
+              {/* Summary bar */}
+              {(() => {
+                const activeItems = orderedItems.filter(i => i.status !== 'voided');
+                const totalQty = activeItems.reduce((s, i) => s + i.quantity, 0);
+                const totalAmt = activeItems.reduce((s, i) => s + (i.quantity * i.unit_price), 0);
+                if (totalQty === 0) return null;
+                return (
+                  <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/40 border border-red-100 dark:border-red-900/50 rounded-xl flex items-center justify-between text-xs font-bold">
+                    <span className="text-slate-700 dark:text-neutral-300">สั่งไปแล้ว: <span className="text-red-600 dark:text-red-400 font-extrabold">{totalQty} ชิ้น</span></span>
+                    <span className="text-red-600 dark:text-red-400 font-extrabold">{totalAmt.toLocaleString()} บาท</span>
                   </div>
-                ))}
-              </div>
-            )}
+                );
+              })()}
 
-            {cart.length > 0 && (
-              <div className="mt-6 pt-4 border-t border-slate-100">
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-xs text-slate-500 font-bold">ยอดรวมตะกร้า:</span>
-                  <span className="text-2xl font-black text-red-600">
-                    {cart.reduce((sum, i) => sum + (i.price * i.quantity), 0)} บาท
-                  </span>
+              {isLoadingOrder ? (
+                <div className="space-y-2">
+                  <div className="h-10 bg-slate-100 dark:bg-neutral-800 rounded-xl animate-pulse" />
+                  <div className="h-10 bg-slate-100 dark:bg-neutral-800 rounded-xl animate-pulse" />
                 </div>
-                <button
-                  disabled={isSubmitting}
-                  onClick={confirmOrder}
-                  className="w-full py-3.5 bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white font-extrabold text-sm rounded-xl transition duration-150 active:scale-98 flex items-center justify-center gap-2 shadow-md shadow-red-600/20 cursor-pointer"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>กำลังส่งออเดอร์...</span>
-                    </>
-                  ) : (
-                    <span>สั่งอาหารเข้าระบบ (Send Order)</span>
-                  )}
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Section 2: Currently Ordered Items (Active Order) */}
-          <div>
-            <h2 className="text-base font-extrabold text-slate-900 mb-3 flex items-center gap-2">
-              <History className="w-4 h-4 text-red-600" />
-              <span>อาหารที่ส่งครัวแล้ว (Active Order)</span>
-            </h2>
-
-            {/* Summary bar */}
-            {(() => {
-              const activeItems = orderedItems.filter(i => i.status !== 'voided');
-              const totalQty = activeItems.reduce((s, i) => s + i.quantity, 0);
-              const totalAmt = activeItems.reduce((s, i) => s + (i.quantity * i.unit_price), 0);
-              if (totalQty === 0) return null;
-              return (
-                <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-xl flex items-center justify-between text-xs font-bold">
-                  <span className="text-slate-700">สั่งไปแล้ว: <span className="text-red-600 font-extrabold">{totalQty} ชิ้น</span></span>
-                  <span className="text-red-600 font-extrabold">{totalAmt.toLocaleString()} บาท</span>
-                </div>
-              );
-            })()}
-
-            {isLoadingOrder ? (
-              <div className="space-y-2">
-                <div className="h-10 bg-slate-100 rounded-xl animate-pulse" />
-                <div className="h-10 bg-slate-100 rounded-xl animate-pulse" />
-              </div>
-            ) : orderedItems.length === 0 ? (
-              <p className="text-slate-400 text-xs text-center py-6 font-medium bg-slate-50 rounded-2xl border border-slate-100">ยังไม่มีรายการสั่งซื้อก่อนหน้านี้</p>
-            ) : (
-              <div className="space-y-2 max-h-[30vh] overflow-y-auto pr-1">
-                {orderedItems.map(item => {
-                  const isVoided = item.status === 'voided';
-                  return (
-                    <div
-                      key={item.id}
-                      className={`flex justify-between items-center p-3 rounded-xl border text-xs ${
-                        isVoided
-                          ? 'bg-rose-50/50 border-rose-200 text-rose-400 line-through opacity-70'
-                          : 'bg-slate-50 border-slate-200/80 text-slate-800'
-                      }`}
-                    >
-                      <div className="pr-2 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-slate-900">
-                            {item.menu_items?.name}
-                          </span>
-                          <span className="text-[11px] font-extrabold text-red-600 bg-red-50 px-1.5 py-0.2 rounded border border-red-100">
-                            x{item.quantity}
-                          </span>
-                        </div>
-                        {item.notes && (
-                          <div className="text-[11px] text-amber-700 font-semibold mt-0.5">
-                            โน้ต: {item.notes}
+              ) : orderedItems.length === 0 ? (
+                <p className="text-slate-400 dark:text-neutral-500 text-xs text-center py-6 font-medium bg-slate-50 dark:bg-neutral-800/50 rounded-2xl border border-slate-100 dark:border-neutral-800">ยังไม่มีรายการสั่งซื้อก่อนหน้านี้</p>
+              ) : (
+                <div className="space-y-2 max-h-[30vh] overflow-y-auto pr-1">
+                  {orderedItems.map(item => {
+                    const isVoided = item.status === 'voided';
+                    return (
+                      <div
+                        key={item.id}
+                        className={`flex justify-between items-center p-3 rounded-xl border text-xs ${
+                          isVoided
+                            ? 'bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/40 text-rose-400 line-through opacity-70'
+                            : 'bg-slate-50 dark:bg-neutral-800/80 border-slate-200/80 dark:border-neutral-700/60 text-slate-800 dark:text-neutral-100'
+                        }`}
+                      >
+                        <div className="pr-2 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-slate-900 dark:text-neutral-100">
+                              {item.menu_items?.name}
+                            </span>
+                            <span className="text-[11px] font-extrabold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 px-1.5 py-0.2 rounded border border-red-100 dark:border-red-900/50">
+                              x{item.quantity}
+                            </span>
                           </div>
+                          {item.notes && (
+                            <div className="text-[11px] text-amber-700 dark:text-amber-300 font-semibold mt-0.5">
+                              โน้ต: {item.notes}
+                            </div>
+                          )}
+                        </div>
+                        
+                        {!isVoided && (
+                          <button
+                            onClick={() => { setVoidTarget(item); setVoidQuantity(item.quantity); }}
+                            className="px-2.5 py-1 bg-white dark:bg-neutral-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-slate-200 dark:border-neutral-600 hover:border-rose-200 dark:hover:border-rose-800 text-slate-500 dark:text-neutral-300 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg text-xs font-bold transition flex items-center gap-1 active:scale-95 shadow-xs"
+                          >
+                            <ShieldAlert className="w-3.5 h-3.5" />
+                            <span>Void</span>
+                          </button>
                         )}
                       </div>
-                      
-                      {!isVoided && (
-                        <button
-                          onClick={() => { setVoidTarget(item); setVoidQuantity(item.quantity); }}
-                          className="px-2.5 py-1 bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 text-slate-500 hover:text-rose-600 rounded-lg text-xs font-bold transition flex items-center gap-1 active:scale-95 shadow-xs"
-                        >
-                          <ShieldAlert className="w-3.5 h-3.5" />
-                          <span>Void</span>
-                        </button>
-                      )}
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Section 3: Void Logs (Today) */}
+            {voidLogs.length > 0 && (
+              <div className="mt-6">
+                <h2 className="text-xs font-extrabold text-rose-500/80 flex items-center gap-1.5 mb-3 tracking-wide uppercase">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span>รายการที่ยกเลิกบิลนี้ ({voidLogs.length})</span>
+                </h2>
+                <div className="space-y-2 max-h-[25vh] overflow-y-auto pr-1">
+                  {voidLogs.map(log => (
+                    <div
+                      key={log.id}
+                      className="p-2.5 bg-rose-50/60 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/40 rounded-xl text-xs"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <span className="font-bold text-slate-800 dark:text-neutral-200">{log.menu_name}</span>
+                          <span className="text-rose-500 font-extrabold ml-1.5">x{log.quantity}</span>
+                        </div>
+                        <span className="font-extrabold text-rose-600 dark:text-rose-400 whitespace-nowrap">
+                          -{log.total_amount.toLocaleString()} ฿
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                        <span className="text-[10px] font-semibold text-slate-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 px-1.5 py-0.5 rounded border border-slate-100 dark:border-neutral-700">
+                          {log.reason}
+                        </span>
+                        {log.restored_stock && (
+                          <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-100 dark:border-emerald-900/50">
+                            คืนสต็อกแล้ว
+                          </span>
+                        )}
+                        <span className="text-[10px] text-slate-400 dark:text-neutral-500 ml-auto">
+                          {log.employee_name} • {new Date(log.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
             )}
           </div>
-
-          {/* Section 3: Void Logs (Today) */}
-          {voidLogs.length > 0 && (
-            <div className="mt-6">
-              <h2 className="text-xs font-extrabold text-rose-500/80 flex items-center gap-1.5 mb-3 tracking-wide uppercase">
-                <AlertTriangle className="w-3.5 h-3.5" />
-                <span>รายการที่ยกเลิกบิลนี้ ({voidLogs.length})</span>
-              </h2>
-              <div className="space-y-2 max-h-[25vh] overflow-y-auto pr-1">
-                {voidLogs.map(log => (
-                  <div
-                    key={log.id}
-                    className="p-2.5 bg-rose-50/60 border border-rose-100 rounded-xl text-xs"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <span className="font-bold text-slate-800">{log.menu_name}</span>
-                        <span className="text-rose-500 font-extrabold ml-1.5">x{log.quantity}</span>
-                      </div>
-                      <span className="font-extrabold text-rose-600 whitespace-nowrap">
-                        -{log.total_amount.toLocaleString()} ฿
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                      <span className="text-[10px] font-semibold text-slate-500 bg-white px-1.5 py-0.5 rounded border border-slate-100">
-                        {log.reason}
-                      </span>
-                      {log.restored_stock && (
-                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
-                          คืนสต็อกแล้ว
-                        </span>
-                      )}
-                      <span className="text-[10px] text-slate-400 ml-auto">
-                        {log.employee_name} • {new Date(log.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

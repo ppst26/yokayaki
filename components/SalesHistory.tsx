@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import {
   Receipt, X, CreditCard, Banknote, ArrowLeftRight,
-  Tag, Gift, TrendingUp, RefreshCw, ChevronRight, Clock, Trash2
+  Tag, Gift, TrendingUp, RefreshCw, ChevronRight, Clock, Trash2, User
 } from 'lucide-react';
 
 // ========== Interfaces ==========
@@ -21,6 +21,8 @@ interface CompletedOrder {
     net_amount: number;
     points_earned: number;
     points_redeemed: number;
+    phone_number?: string | null;
+    member_name?: string | null;
     created_at: string;
   } | null;
   promos: PaymentPromo[];
@@ -32,6 +34,7 @@ interface PaymentPromo {
   promotion_type: 'percentage' | 'fixed' | 'buy_x_get_y';
   discount_value: number;
   free_items: { name: string; qty: number }[] | null;
+  coupon_code?: string | null;
 }
 
 interface OrderItemDetail {
@@ -93,7 +96,7 @@ export const SalesHistory: React.FC = () => {
       const orderIds = orderData.map(o => o.id);
       const { data: paymentData, error: paymentError } = await supabase
         .from('payments')
-        .select('id, order_id, payment_method, subtotal, discount_amount, net_amount, points_earned, points_redeemed, created_at')
+        .select('id, order_id, payment_method, subtotal, discount_amount, net_amount, points_earned, points_redeemed, phone_number, created_at, loyalty_members(name)')
         .in('order_id', orderIds);
 
       if (paymentError) throw paymentError;
@@ -104,7 +107,7 @@ export const SalesHistory: React.FC = () => {
       if (paymentIds.length > 0) {
         const { data: promos, error: promoError } = await supabase
           .from('payment_promotions')
-          .select('id, payment_id, promotion_name, promotion_type, discount_value, free_items')
+          .select('id, payment_id, promotion_name, promotion_type, discount_value, free_items, promotions(coupon_code)')
           .in('payment_id', paymentIds);
 
         if (promoError) throw promoError;
@@ -121,6 +124,7 @@ export const SalesHistory: React.FC = () => {
               promotion_type: pr.promotion_type,
               discount_value: parseFloat(pr.discount_value),
               free_items: pr.free_items,
+              coupon_code: pr.promotions?.coupon_code || null,
             }))
           : [];
 
@@ -136,6 +140,8 @@ export const SalesHistory: React.FC = () => {
             net_amount: parseFloat(payment.net_amount as any),
             points_earned: payment.points_earned,
             points_redeemed: payment.points_redeemed,
+            phone_number: payment.phone_number || null,
+            member_name: (payment.loyalty_members as any)?.name || null,
             created_at: payment.created_at,
           } : null,
           promos,
@@ -587,20 +593,57 @@ export const SalesHistory: React.FC = () => {
                   </div>
                 </div>
 
+                {/* ข้อมูลสมาชิก CRM (ถ้ามี) */}
+                {selectedOrder.payment?.phone_number && (
+                  <div className="space-y-2">
+                    <h4 className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider">ข้อมูลสมาชิก CRM</h4>
+                    <div className="bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/50 rounded-xl p-3.5 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-xs">
+                          <User className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-extrabold text-slate-900 dark:text-neutral-100">
+                            {selectedOrder.payment.member_name ? `คุณ${selectedOrder.payment.member_name}` : 'สมาชิก CRM'}
+                          </p>
+                          <p className="text-[11px] text-slate-500 dark:text-neutral-400 font-semibold">
+                            เบอร์โทร: <span className="font-mono">{selectedOrder.payment.phone_number}</span>
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        {selectedOrder.payment.points_earned > 0 && (
+                          <span className="text-xs font-black text-amber-600 dark:text-amber-400 block">+{selectedOrder.payment.points_earned} แต้ม</span>
+                        )}
+                        {selectedOrder.payment.points_redeemed > 0 && (
+                          <span className="text-[10px] text-rose-600 dark:text-rose-400 font-bold block">ใช้ไป {selectedOrder.payment.points_redeemed} แต้ม</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* โปรโมชั่นที่ใช้ */}
                 {selectedOrder.promos.length > 0 && (
                   <div className="space-y-3">
-                    <h4 className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider">โปรโมชั่นที่ใช้</h4>
+                    <h4 className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider">โปรโมชั่น & คูปองส่วนลดที่ใช้</h4>
                     <div className="space-y-2">
                       {selectedOrder.promos.map(promo => (
                         <div key={promo.id} className="bg-red-50 dark:bg-red-950/40 border border-red-100 dark:border-red-900/50 rounded-xl px-4 py-3">
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Tag className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />
-                              <span className="text-xs font-bold text-red-800 dark:text-red-300">{promo.promotion_name}</span>
-                              <span className="text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/50 px-1.5 py-0.5 rounded">
-                                {getPromoTypeLabel(promo.promotion_type)}
-                              </span>
+                            <div className="space-y-0.5">
+                              <div className="flex items-center gap-2">
+                                <Tag className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />
+                                <span className="text-xs font-bold text-red-800 dark:text-red-300">{promo.promotion_name}</span>
+                                <span className="text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/50 px-1.5 py-0.5 rounded">
+                                  {getPromoTypeLabel(promo.promotion_type)}
+                                </span>
+                              </div>
+                              {promo.coupon_code && (
+                                <p className="text-[11px] text-red-700 dark:text-red-300 font-semibold pl-5">
+                                  รหัสคูปอง: <span className="font-mono font-bold bg-white dark:bg-neutral-800 border border-red-200 dark:border-red-900 px-1.5 py-0.2 rounded text-[10px]">{promo.coupon_code}</span>
+                                </p>
+                              )}
                             </div>
                             <span className="text-xs font-black text-rose-600 dark:text-rose-400">-{promo.discount_value.toLocaleString()} ฿</span>
                           </div>

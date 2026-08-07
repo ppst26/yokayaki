@@ -46,7 +46,7 @@ const EMPTY_FORM = {
 
 const TYPE_LABELS: Record<PromoType, { label: string; icon: React.ReactNode; color: string }> = {
   percentage: { label: 'ลดเปอร์เซ็นต์', icon: <Percent className="w-3.5 h-3.5" />, color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
-  fixed: { label: 'คูปองลดเงิน', icon: <TicketPercent className="w-3.5 h-3.5" />, color: 'text-sky-700 bg-sky-50 border-sky-200' },
+  fixed: { label: 'คูปองส่วนลด', icon: <TicketPercent className="w-3.5 h-3.5" />, color: 'text-sky-700 bg-sky-50 border-sky-200' },
   buy_x_get_y: { label: 'ซื้อ X แถม Y', icon: <Gift className="w-3.5 h-3.5" />, color: 'text-fuchsia-700 bg-fuchsia-50 border-fuchsia-200' },
 };
 
