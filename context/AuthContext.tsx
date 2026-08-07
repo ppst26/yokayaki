@@ -15,6 +15,9 @@ interface AuthContextType {
   isLoading: boolean;
   loginWithPin: (pin: string) => Promise<boolean>;
   logout: () => void;
+  failedAttempts: number;
+  remainingLockoutSeconds: number;
+  isLockedOut: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -77,12 +80,18 @@ function sha256(str: string): string {
   return hl.map(v => (v >>> 0).toString(16).padStart(8, '0')).join('');
 }
 
+const MAX_ATTEMPTS = 3;
+const LOCKOUT_DURATION_MS = 3 * 60 * 1000; // 3 minutes
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [failedAttempts, setFailedAttempts] = useState<number>(0);
+  const [lockoutUntil, setLockoutUntil] = useState<number | null>(null);
+  const [remainingLockoutSeconds, setRemainingLockoutSeconds] = useState<number>(0);
 
-  // Restore session from localStorage on mount
+  // Restore session & lockout from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem('yokayaki_employee');
     if (saved) {
@@ -92,10 +101,61 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.removeItem('yokayaki_employee');
       }
     }
+
+    const savedAttempts = localStorage.getItem('yokayaki_pin_failed_attempts');
+    if (savedAttempts) {
+      setFailedAttempts(parseInt(savedAttempts, 10) || 0);
+    }
+
+    const savedLockout = localStorage.getItem('yokayaki_pin_lockout_until');
+    if (savedLockout) {
+      const lockTime = parseInt(savedLockout, 10);
+      if (!isNaN(lockTime) && lockTime > Date.now()) {
+        setLockoutUntil(lockTime);
+      } else {
+        localStorage.removeItem('yokayaki_pin_lockout_until');
+        localStorage.removeItem('yokayaki_pin_failed_attempts');
+      }
+    }
+
     setIsLoading(false);
   }, []);
 
+  // Lockout countdown timer
+  useEffect(() => {
+    if (!lockoutUntil) {
+      setRemainingLockoutSeconds(0);
+      return;
+    }
+
+    const updateRemaining = () => {
+      const now = Date.now();
+      const diffSeconds = Math.ceil((lockoutUntil - now) / 1000);
+      if (diffSeconds <= 0) {
+        setLockoutUntil(null);
+        setFailedAttempts(0);
+        setRemainingLockoutSeconds(0);
+        setError(null);
+        localStorage.removeItem('yokayaki_pin_lockout_until');
+        localStorage.removeItem('yokayaki_pin_failed_attempts');
+      } else {
+        setRemainingLockoutSeconds(diffSeconds);
+      }
+    };
+
+    updateRemaining();
+    const interval = setInterval(updateRemaining, 1000);
+    return () => clearInterval(interval);
+  }, [lockoutUntil]);
+
+  const isLockedOut = Boolean(lockoutUntil && remainingLockoutSeconds > 0);
+
   const loginWithPin = async (pin: string): Promise<boolean> => {
+    if (isLockedOut) {
+      setError('ระบบถูกล็อคชั่วคราว กรุณารอจนครบกำหนดเวลา');
+      return false;
+    }
+
     try {
       setError(null);
       setIsLoading(true);
@@ -127,11 +187,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         setEmployee(loggedInEmployee);
         localStorage.setItem('yokayaki_employee', JSON.stringify(loggedInEmployee));
+        
+        // Reset failed attempts on success
+        setFailedAttempts(0);
+        setLockoutUntil(null);
+        localStorage.removeItem('yokayaki_pin_failed_attempts');
+        localStorage.removeItem('yokayaki_pin_lockout_until');
+
         setIsLoading(false);
         return true;
       }
 
-      setError('รหัส PIN ไม่ถูกต้อง');
+      // Increment failed attempt counter
+      const newAttempts = failedAttempts + 1;
+      setFailedAttempts(newAttempts);
+      localStorage.setItem('yokayaki_pin_failed_attempts', newAttempts.toString());
+
+      if (newAttempts >= MAX_ATTEMPTS) {
+        const until = Date.now() + LOCKOUT_DURATION_MS;
+        setLockoutUntil(until);
+        localStorage.setItem('yokayaki_pin_lockout_until', until.toString());
+        setError('ระบุรหัส PIN ไม่ถูกต้องเกิน 3 ครั้ง ระบบถูกล็อค 3 นาที');
+      } else {
+        const remaining = MAX_ATTEMPTS - newAttempts;
+        setError(`รหัส PIN ไม่ถูกต้อง (เหลืออีก ${remaining} ครั้ง)`);
+      }
+
       setIsLoading(false);
       return false;
     } catch (err) {
@@ -148,7 +229,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ employee, error, isLoading, loginWithPin, logout }}>
+    <AuthContext.Provider value={{ 
+      employee, 
+      error, 
+      isLoading, 
+      loginWithPin, 
+      logout,
+      failedAttempts,
+      remainingLockoutSeconds,
+      isLockedOut
+    }}>
       {children}
     </AuthContext.Provider>
   );
