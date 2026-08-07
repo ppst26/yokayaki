@@ -43,7 +43,24 @@ interface NewIngredientRow {
 
 type DateFilterType = 'all' | 'today' | 'weekly' | 'monthly' | '3months' | '6months' | 'custom';
 
-const UNIT_OPTIONS = ['กก.', 'ขีด', 'กรัม', 'ถุง', 'แพ็ค', 'แผง', 'ขวด', 'กล่อง', 'ลัง', 'ชิ้น', 'ก้าน', 'ลิตร'];
+const DEFAULT_UNITS = ['กก.', 'ขีด', 'กรัม', 'ถุง', 'แพ็ค', 'แผง', 'ขวด', 'กล่อง', 'ลัง', 'ชิ้น', 'ก้าน', 'ลิตร'];
+
+const DEFAULT_INGREDIENTS = [
+  'แซลมอนสด',
+  'ปลาซาบะ',
+  'เบียร์สด',
+  'เส้นโซบะ',
+  'กุ้งสด',
+  'เนื้อวัวสไลด์',
+  'หมูสามชั้น',
+  'ไก่สะโพก',
+  'ข้าวสารญี่ปุ่น',
+  'ซอสโชยุ',
+  'สาเก',
+  'มิริน',
+  'ผักกาดหอม',
+  'ไข่ไก่',
+];
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -54,6 +71,17 @@ export const IngredientPurchaseManager: React.FC = () => {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [expandedItems, setExpandedItems] = useState<Record<number, IngredientItem[]>>({});
   const [itemsLoading, setItemsLoading] = useState<Record<number, boolean>>({});
+
+  // Dynamic Master Data for Dropdowns
+  const [availableIngredients, setAvailableIngredients] = useState<string[]>(DEFAULT_INGREDIENTS);
+  const [availableUnits, setAvailableUnits] = useState<string[]>(DEFAULT_UNITS);
+
+  // Custom Name / Unit Add Modal State
+  const [customModalState, setCustomModalState] = useState<{
+    type: 'ingredient' | 'unit';
+    rowIndex: number;
+  } | null>(null);
+  const [customValueInput, setCustomValueInput] = useState<string>('');
 
   // Date Filter & Search state
   const [dateFilter, setDateFilter] = useState<DateFilterType>('all');
@@ -73,6 +101,45 @@ export const IngredientPurchaseManager: React.FC = () => {
   const [ingredients, setIngredients] = useState<NewIngredientRow[]>([
     { name: '', unit: 'กก.', quantity: '', pricePerUnit: '' },
   ]);
+
+  // ── Fetch Master Data (Ingredients & Units from Database) ──────────────────
+
+  const fetchMasterData = useCallback(async () => {
+    try {
+      const { data: ingData } = await supabase
+        .from('item_ingredients')
+        .select('name, unit');
+
+      const { data: menuData } = await supabase
+        .from('menu_items')
+        .select('name');
+
+      const namesSet = new Set<string>(DEFAULT_INGREDIENTS);
+      const unitsSet = new Set<string>(DEFAULT_UNITS);
+
+      if (menuData) {
+        menuData.forEach(m => {
+          if (m.name?.trim()) namesSet.add(m.name.trim());
+        });
+      }
+
+      if (ingData) {
+        ingData.forEach(i => {
+          if (i.name?.trim()) namesSet.add(i.name.trim());
+          if (i.unit?.trim()) unitsSet.add(i.unit.trim());
+        });
+      }
+
+      setAvailableIngredients(Array.from(namesSet));
+      setAvailableUnits(Array.from(unitsSet));
+    } catch (err) {
+      console.error('Error fetching master data:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchMasterData();
+  }, [fetchMasterData]);
 
   // ── Fetch purchase orders ──────────────────────────────────────────────────
 
@@ -95,6 +162,29 @@ export const IngredientPurchaseManager: React.FC = () => {
   }, []);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
+
+  // ── Add Custom Ingredient Name or Unit Handler ─────────────────────────────
+
+  const handleConfirmAddCustom = () => {
+    if (!customModalState || !customValueInput.trim()) return;
+    const val = customValueInput.trim();
+    const { type, rowIndex } = customModalState;
+
+    if (type === 'ingredient') {
+      if (!availableIngredients.includes(val)) {
+        setAvailableIngredients(prev => [...prev, val]);
+      }
+      updateRow(rowIndex, 'name', val);
+    } else {
+      if (!availableUnits.includes(val)) {
+        setAvailableUnits(prev => [...prev, val]);
+      }
+      updateRow(rowIndex, 'unit', val);
+    }
+
+    setCustomModalState(null);
+    setCustomValueInput('');
+  };
 
   // ── Filter orders logic ──────────────────────────────────────────────────
 
@@ -597,14 +687,32 @@ export const IngredientPurchaseManager: React.FC = () => {
                 <div className="space-y-2">
                   {ingredients.map((row, idx) => (
                     <div key={idx} className="grid grid-cols-[1fr_80px_100px_90px_32px] gap-2 items-center">
-                      {/* Name */}
-                      <input
-                        type="text"
-                        placeholder="เช่น แซลมอน, เบียร์สด"
+                      {/* Name Dropdown with Add Custom Option */}
+                      <select
                         value={row.name}
-                        onChange={e => updateRow(idx, 'name', e.target.value)}
-                        className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500/50 placeholder:text-zinc-400 border-none"
-                      />
+                        onChange={e => {
+                          const val = e.target.value;
+                          if (val === '__NEW_INGREDIENT__') {
+                            setCustomModalState({ type: 'ingredient', rowIndex: idx });
+                            setCustomValueInput('');
+                          } else {
+                            updateRow(idx, 'name', val);
+                          }
+                        }}
+                        className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500/50 border-none cursor-pointer"
+                      >
+                        <option value="">-- เลือกวัตถุดิบ --</option>
+                        {availableIngredients.map(name => (
+                          <option key={name} value={name}>{name}</option>
+                        ))}
+                        {row.name && !availableIngredients.includes(row.name) && (
+                          <option value={row.name}>{row.name}</option>
+                        )}
+                        <option value="__NEW_INGREDIENT__" className="font-bold text-red-600">
+                          + เพิ่มชื่อวัตถุดิบใหม่...
+                        </option>
+                      </select>
+
                       {/* Quantity */}
                       <input
                         type="number"
@@ -615,14 +723,32 @@ export const IngredientPurchaseManager: React.FC = () => {
                         onChange={e => updateRow(idx, 'quantity', e.target.value)}
                         className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500/50 text-center border-none"
                       />
-                      {/* Unit */}
+
+                      {/* Unit Dropdown with Add Custom Option */}
                       <select
                         value={row.unit}
-                        onChange={e => updateRow(idx, 'unit', e.target.value)}
+                        onChange={e => {
+                          const val = e.target.value;
+                          if (val === '__NEW_UNIT__') {
+                            setCustomModalState({ type: 'unit', rowIndex: idx });
+                            setCustomValueInput('');
+                          } else {
+                            updateRow(idx, 'unit', val);
+                          }
+                        }}
                         className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-2 py-2 text-xs font-semibold text-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500/50 cursor-pointer border-none"
                       >
-                        {UNIT_OPTIONS.map(u => <option key={u} value={u}>{u}</option>)}
+                        {availableUnits.map(u => (
+                          <option key={u} value={u}>{u}</option>
+                        ))}
+                        {row.unit && !availableUnits.includes(row.unit) && (
+                          <option value={row.unit}>{row.unit}</option>
+                        )}
+                        <option value="__NEW_UNIT__" className="font-bold text-red-600">
+                          + เพิ่มหน่วยใหม่...
+                        </option>
                       </select>
+
                       {/* Price per unit */}
                       <input
                         type="number"
@@ -633,6 +759,7 @@ export const IngredientPurchaseManager: React.FC = () => {
                         onChange={e => updateRow(idx, 'pricePerUnit', e.target.value)}
                         className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500/50 text-right border-none"
                       />
+
                       {/* Remove */}
                       <button
                         type="button"
@@ -687,6 +814,71 @@ export const IngredientPurchaseManager: React.FC = () => {
                   ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   : <><PackagePlus className="w-4 h-4" /> บันทึกรายการสั่งซื้อ</>
                 }
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Custom Add Ingredient Name / Unit Sub-Modal ─────────────────────── */}
+      {customModalState && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-sm p-5 shadow-2xl border-none space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-black text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                <Plus className="w-4 h-4 text-red-600 dark:text-red-400" />
+                เพิ่ม{customModalState.type === 'ingredient' ? 'ชื่อวัตถุดิบ' : 'หน่วย'}ใหม่
+              </h4>
+              <button
+                type="button"
+                onClick={() => {
+                  setCustomModalState(null);
+                  setCustomValueInput('');
+                }}
+                className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-full transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5">
+                {customModalState.type === 'ingredient' ? 'ชื่อวัตถุดิบใหม่:' : 'ชื่อหน่วยใหม่:'}
+              </label>
+              <input
+                type="text"
+                autoFocus
+                placeholder={customModalState.type === 'ingredient' ? 'เช่น เนื้อวัวสไลด์ A5, เบียร์คราฟต์' : 'เช่น แกลลอน, กระป๋อง, ถัง'}
+                value={customValueInput}
+                onChange={e => setCustomValueInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleConfirmAddCustom();
+                  }
+                }}
+                className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3.5 py-2 text-xs font-semibold text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500/50 border-none"
+              />
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setCustomModalState(null);
+                  setCustomValueInput('');
+                }}
+                className="flex-1 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-xl text-xs font-bold transition cursor-pointer"
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmAddCustom}
+                disabled={!customValueInput.trim()}
+                className="flex-1 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white rounded-xl text-xs font-bold transition cursor-pointer"
+              >
+                + เพิ่มใหม่
               </button>
             </div>
           </div>
