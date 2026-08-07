@@ -372,23 +372,21 @@ export const StockManager: React.FC = () => {
   // ============================================================
   if (selectedDate && selectedGroup) {
     return (
-      <div className="bg-stone-950 text-white min-h-[calc(100vh-80px)] p-6">
-        <div className="max-w-5xl mx-auto space-y-6">
-
-          {/* Header — กลับ + วันที่ + ยอดรวม */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="space-y-6 font-sans w-full">
+        {/* Header — กลับ + วันที่ + ยอดรวม */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setSelectedDate(null)}
-                className="p-2 bg-stone-900 hover:bg-stone-800 border border-stone-800 rounded-xl text-stone-300 hover:text-white transition active:scale-95 cursor-pointer"
+                className="p-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-slate-700 transition active:scale-95 cursor-pointer shadow-xs"
               >
                 <ArrowLeft className="w-4 h-4" />
               </button>
               <div>
-                <h2 className="text-lg font-bold tracking-tight bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">
+                <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">
                   รายละเอียดจัดซื้อ — {formatDate(selectedDate)}
                 </h2>
-                <p className="text-stone-400 text-xs mt-0.5">
+                <p className="text-slate-500 text-xs font-medium mt-0.5">
                   {selectedGroup.itemCount} รายการ · ยอดรวม {selectedGroup.totalCost.toLocaleString()} ฿
                 </p>
               </div>
@@ -397,21 +395,21 @@ export const StockManager: React.FC = () => {
 
           {/* Summary Card */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-stone-900/40 border border-stone-850 rounded-2xl p-5 backdrop-blur-md flex items-center justify-between">
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
               <div className="space-y-1">
-                <div className="text-stone-400 text-xs font-medium">ยอดรวมวันนี้</div>
-                <div className="text-2xl font-black text-amber-500">{selectedGroup.totalCost.toLocaleString()} ฿</div>
+                <div className="text-slate-500 text-xs font-semibold">ยอดรวมวันนี้</div>
+                <div className="text-2xl font-black text-red-600">{selectedGroup.totalCost.toLocaleString()} ฿</div>
               </div>
-              <div className="p-3 bg-amber-950/30 text-amber-400 rounded-xl border border-amber-900/25">
+              <div className="p-3 bg-red-50 text-red-600 rounded-xl border border-red-100">
                 <DollarSign className="w-5 h-5" />
               </div>
             </div>
-            <div className="bg-stone-900/40 border border-stone-850 rounded-2xl p-5 backdrop-blur-md flex items-center justify-between">
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
               <div className="space-y-1">
-                <div className="text-stone-400 text-xs font-medium">จำนวนรายการจัดซื้อ</div>
-                <div className="text-2xl font-black text-white">{selectedGroup.itemCount} รายการ</div>
+                <div className="text-slate-500 text-xs font-semibold">จำนวนรายการจัดซื้อ</div>
+                <div className="text-2xl font-black text-slate-900">{selectedGroup.itemCount} รายการ</div>
               </div>
-              <div className="p-3 bg-stone-800 text-stone-300 rounded-xl border border-stone-700">
+              <div className="p-3 bg-slate-100 text-slate-700 rounded-xl border border-slate-200">
                 <ShoppingCart className="w-5 h-5" />
               </div>
             </div>
@@ -421,8 +419,8 @@ export const StockManager: React.FC = () => {
           {message && (
             <div className={`p-3.5 rounded-xl border text-xs font-semibold flex items-center gap-2 ${
               message.type === 'success'
-                ? 'bg-emerald-950/20 border-emerald-900/40 text-emerald-400'
-                : 'bg-red-950/20 border-red-900/40 text-red-400'
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                : 'bg-rose-50 border-rose-200 text-rose-800'
             }`}>
               {message.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
               {message.text}
@@ -430,11 +428,11 @@ export const StockManager: React.FC = () => {
           )}
 
           {/* ตารางรายชิ้น */}
-          <div className="bg-stone-900/40 border border-stone-850 rounded-2xl overflow-hidden backdrop-blur-md">
+          <div className="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-stone-800 text-stone-400 text-xs font-bold bg-stone-900/80">
+                  <tr className="border-b border-slate-200 text-slate-700 text-xs font-extrabold bg-slate-50">
                     <th className="py-4 px-6">วัตถุดิบ</th>
                     <th className="py-4 px-4 text-center">จำนวน</th>
                     <th className="py-4 px-4 text-right">ราคา (฿)</th>
@@ -442,33 +440,33 @@ export const StockManager: React.FC = () => {
                     <th className="py-4 px-4 text-center">จัดการ</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-stone-800/60 text-xs">
+                <tbody className="divide-y divide-slate-100 text-xs">
                   {selectedGroup.items.map(item => (
-                    <tr key={item.id} className="hover:bg-stone-900/20 transition-colors">
-                      <td className="py-4 px-6 font-bold text-stone-200">
+                    <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-4 px-6 font-bold text-slate-900">
                         {item.name}
                       </td>
-                      <td className="py-4 px-4 text-center font-semibold text-stone-300">
-                        {item.quantity} <span className="text-stone-500">{item.unit}</span>
+                      <td className="py-4 px-4 text-center font-semibold text-slate-700">
+                        {item.quantity} <span className="text-slate-400">{item.unit}</span>
                       </td>
-                      <td className="py-4 px-4 text-right font-bold text-amber-500">
+                      <td className="py-4 px-4 text-right font-extrabold text-red-600 text-sm">
                         {Number(item.cost).toLocaleString()}
                       </td>
-                      <td className="py-4 px-4 text-stone-400 font-medium">
+                      <td className="py-4 px-4 text-slate-500 font-medium">
                         {item.buyer_name}
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => openEditModal(item)}
-                            className="p-1.5 bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-300 hover:text-amber-400 rounded-lg transition active:scale-95 cursor-pointer"
+                            className="p-1.5 bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-900 rounded-lg transition active:scale-95 cursor-pointer shadow-xs"
                             title="แก้ไข"
                           >
                             <Pencil className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => setDeleteTarget(item)}
-                            className="p-1.5 bg-stone-800 hover:bg-red-950/40 border border-stone-700 hover:border-red-900/40 text-stone-400 hover:text-red-400 rounded-lg transition active:scale-95 cursor-pointer"
+                            className="p-1.5 bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 text-slate-400 hover:text-rose-600 rounded-lg transition active:scale-95 cursor-pointer shadow-xs"
                             title="ลบ"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -482,11 +480,10 @@ export const StockManager: React.FC = () => {
             </div>
 
             {/* Count */}
-            <div className="px-5 py-3 bg-stone-900/50 border-t border-stone-850 text-xs text-stone-500 font-medium">
+            <div className="px-5 py-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 font-semibold">
               ทั้งหมด {selectedGroup.itemCount} รายการ · ยอดรวม {selectedGroup.totalCost.toLocaleString()} ฿
             </div>
           </div>
-        </div>
 
         {/* ============ CREATE/EDIT FORM MODAL ============ */}
         {showFormModal && renderFormModal()}
@@ -501,21 +498,19 @@ export const StockManager: React.FC = () => {
   // RENDER: Main View (ตารางจัดกลุ่มตามวันที่)
   // ============================================================
   return (
-    <div className="bg-stone-950 text-white min-h-[calc(100vh-80px)] p-6">
-      <div className="max-w-5xl mx-auto space-y-6">
-
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-6 font-sans w-full">
+      {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm">
           <div>
-            <h2 className="text-xl font-bold tracking-tight bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">
+            <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
               ระบบจัดการต้นทุนวัตถุดิบ (Ingredient Cost Manager)
             </h2>
-            <p className="text-stone-400 text-xs mt-1">บันทึกประวัติการจัดซื้อวัตถุดิบและคำนวณต้นทุนสะสม</p>
+            <p className="text-slate-500 text-xs font-medium mt-0.5">บันทึกประวัติการจัดซื้อวัตถุดิบและคำนวณต้นทุนสะสม</p>
           </div>
 
           <button
             onClick={openCreateModal}
-            className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-black px-4 py-2.5 rounded-xl text-xs font-extrabold transition active:scale-95 cursor-pointer shadow-md shadow-amber-500/10"
+            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-xl text-xs font-extrabold transition active:scale-95 cursor-pointer shadow-sm shadow-red-600/20"
           >
             <Plus className="w-4 h-4" />
             <span>เพิ่มประวัติจัดซื้อ</span>
@@ -524,21 +519,21 @@ export const StockManager: React.FC = () => {
 
         {/* Summary Cards — เปลี่ยนตาม filter */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-stone-900/40 border border-stone-850 rounded-2xl p-5 backdrop-blur-md flex items-center justify-between">
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
             <div className="space-y-1">
-              <div className="text-stone-400 text-xs font-medium">ต้นทุนวัตถุดิบ — {getFilterLabel(monthFilter)}</div>
-              <div className="text-2xl font-black text-amber-500">{totalCost.toLocaleString()} ฿</div>
+              <div className="text-slate-500 text-xs font-semibold">ต้นทุนวัตถุดิบ — {getFilterLabel(monthFilter)}</div>
+              <div className="text-2xl font-black text-red-600">{totalCost.toLocaleString()} ฿</div>
             </div>
-            <div className="p-3 bg-amber-950/30 text-amber-400 rounded-xl border border-amber-900/25">
+            <div className="p-3 bg-red-50 text-red-600 rounded-xl border border-red-100">
               <DollarSign className="w-5 h-5" />
             </div>
           </div>
-          <div className="bg-stone-900/40 border border-stone-850 rounded-2xl p-5 backdrop-blur-md flex items-center justify-between">
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
             <div className="space-y-1">
-              <div className="text-stone-400 text-xs font-medium">จำนวนวันที่จัดซื้อ</div>
-              <div className="text-2xl font-black text-white">{totalPurchaseDays} วัน</div>
+              <div className="text-slate-500 text-xs font-semibold">จำนวนวันที่จัดซื้อ</div>
+              <div className="text-2xl font-black text-slate-900">{totalPurchaseDays} วัน</div>
             </div>
-            <div className="p-3 bg-stone-800 text-stone-300 rounded-xl border border-stone-700">
+            <div className="p-3 bg-slate-100 text-slate-700 rounded-xl border border-slate-200">
               <Calendar className="w-5 h-5" />
             </div>
           </div>
@@ -551,10 +546,10 @@ export const StockManager: React.FC = () => {
               <button
                 key={f}
                 onClick={() => setMonthFilter(f)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer border whitespace-nowrap ${
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer border whitespace-nowrap ${
                   monthFilter === f
-                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
-                    : 'bg-stone-900/40 border-stone-850 text-stone-400 hover:text-white hover:bg-stone-800/50'
+                    ? 'bg-red-600 text-white border-red-600 shadow-xs'
+                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                 }`}
               >
                 {f === 'today' && 'วันนี้'}
@@ -567,13 +562,13 @@ export const StockManager: React.FC = () => {
           </div>
 
           <div className="relative w-full md:w-64">
-            <Search className="w-4 h-4 text-stone-500 absolute left-3 top-3" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
             <input
               type="text"
               placeholder="ค้นหาวัตถุดิบ..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full bg-stone-900 border border-stone-800 rounded-xl pl-9 pr-4 py-2.5 text-xs text-stone-200 focus:outline-none focus:border-amber-500/50"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-500 font-semibold"
             />
           </div>
         </div>
@@ -582,8 +577,8 @@ export const StockManager: React.FC = () => {
         {message && (
           <div className={`p-3.5 rounded-xl border text-xs font-semibold flex items-center gap-2 ${
             message.type === 'success'
-              ? 'bg-emerald-950/20 border-emerald-900/40 text-emerald-400'
-              : 'bg-red-950/20 border-red-900/40 text-red-400'
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+              : 'bg-rose-50 border-rose-200 text-rose-800'
           }`}>
             {message.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
             {message.text}
@@ -593,14 +588,14 @@ export const StockManager: React.FC = () => {
         {/* Table — จัดกลุ่มตามวันที่ */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
+            <Loader2 className="w-8 h-8 text-red-600 animate-spin" />
           </div>
         ) : (
-          <div className="bg-stone-900/40 border border-stone-850 rounded-2xl overflow-hidden backdrop-blur-md">
+          <div className="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-stone-800 text-stone-400 text-xs font-bold bg-stone-900/80">
+                  <tr className="border-b border-slate-200 text-slate-700 text-xs font-extrabold bg-slate-50">
                     <th className="py-4 px-6">วันที่ซื้อ</th>
                     <th className="py-4 px-4 text-center">จำนวนรายการ</th>
                     <th className="py-4 px-4 text-right">ราคารวม (฿)</th>
@@ -608,35 +603,35 @@ export const StockManager: React.FC = () => {
                     <th className="py-4 px-4 text-center">รายละเอียด</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-stone-800/60 text-xs">
+                <tbody className="divide-y divide-slate-100 text-xs">
                   {dailyGroups.map(group => (
-                    <tr key={group.date} className="hover:bg-stone-900/20 transition-colors">
-                      <td className="py-4 px-6 text-stone-200 font-semibold">
+                    <tr key={group.date} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-4 px-6 text-slate-900 font-bold">
                         {formatDateShort(group.date)}
                       </td>
-                      <td className="py-4 px-4 text-center font-semibold text-stone-300">
-                        {group.itemCount} <span className="text-stone-500">อย่าง</span>
+                      <td className="py-4 px-4 text-center font-semibold text-slate-700">
+                        {group.itemCount} <span className="text-slate-400">อย่าง</span>
                       </td>
-                      <td className="py-4 px-4 text-right font-bold text-amber-500">
+                      <td className="py-4 px-4 text-right font-extrabold text-red-600 text-sm">
                         {group.totalCost.toLocaleString()}
                       </td>
-                      <td className="py-4 px-4 text-stone-400 font-medium">
+                      <td className="py-4 px-4 text-slate-500 font-medium">
                         {group.buyers.join(', ')}
                       </td>
                       <td className="py-4 px-4 text-center">
                         <button
                           onClick={() => setSelectedDate(group.date)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-300 hover:text-amber-400 rounded-lg text-xs font-bold transition active:scale-95 cursor-pointer"
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 hover:text-slate-900 rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer shadow-xs"
                         >
                           <span>ดูรายละเอียด</span>
-                          <ChevronRight className="w-3.5 h-3.5" />
+                          <ChevronRight className="w-3.5 h-3.5 text-red-600" />
                         </button>
                       </td>
                     </tr>
                   ))}
                   {dailyGroups.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="py-16 text-center text-stone-500 font-medium text-xs">
+                      <td colSpan={5} className="py-16 text-center text-slate-400 font-medium text-xs">
                         {searchTerm ? 'ไม่พบรายการที่ค้นหา' : 'ไม่พบรายการจัดซื้อวัตถุดิบ'}
                       </td>
                     </tr>
@@ -646,12 +641,11 @@ export const StockManager: React.FC = () => {
             </div>
 
             {/* Count */}
-            <div className="px-5 py-3 bg-stone-900/50 border-t border-stone-850 text-xs text-stone-500 font-medium">
+            <div className="px-5 py-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 font-semibold">
               แสดง {dailyGroups.length} วัน ({filteredPurchases.length} รายการ) · ยอดรวม {totalCost.toLocaleString()} ฿
             </div>
           </div>
         )}
-      </div>
 
       {/* ============ CREATE/EDIT FORM MODAL ============ */}
       {showFormModal && renderFormModal()}
@@ -667,15 +661,15 @@ export const StockManager: React.FC = () => {
 
   function renderFormModal() {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-        <div className="w-full max-w-md bg-stone-900 border border-stone-800 rounded-3xl p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+        <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-6 shadow-xl relative max-h-[90vh] overflow-y-auto">
           {/* Header */}
-          <div className="flex items-center justify-between mb-5">
-            <h3 className="text-base font-black text-amber-500 flex items-center gap-2">
-              {editingPurchase ? <Pencil className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+          <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100">
+            <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+              {editingPurchase ? <Pencil className="w-4 h-4 text-red-600" /> : <Plus className="w-4 h-4 text-red-600" />}
               <span>{editingPurchase ? 'แก้ไขบันทึกวัตถุดิบ' : 'เพิ่มบันทึกจัดซื้อวัตถุดิบ'}</span>
             </h3>
-            <button onClick={() => setShowFormModal(false)} className="p-1.5 bg-stone-950 hover:bg-stone-800 rounded-full text-stone-400 cursor-pointer">
+            <button onClick={() => setShowFormModal(false)} className="p-1.5 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-500 cursor-pointer">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -683,32 +677,32 @@ export const StockManager: React.FC = () => {
           <div className="space-y-4">
             {/* ชื่อวัตถุดิบ — Dropdown */}
             <div ref={nameDropdownRef} className="relative">
-              <label className="block text-[10px] font-bold text-stone-500 tracking-wider uppercase mb-1.5">ชื่อวัตถุดิบ *</label>
+              <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1.5">ชื่อวัตถุดิบ *</label>
               <button
                 type="button"
                 onClick={() => { setShowNameDropdown(!showNameDropdown); setNameSearch(''); }}
-                className={`w-full bg-stone-950 border rounded-xl px-4 py-2.5 text-sm text-left flex items-center justify-between cursor-pointer transition ${
-                  showNameDropdown ? 'border-amber-500/50' : 'border-stone-850 hover:border-stone-700'
+                className={`w-full bg-slate-50 border rounded-xl px-4 py-2.5 text-xs font-semibold text-left flex items-center justify-between cursor-pointer transition ${
+                  showNameDropdown ? 'border-red-500' : 'border-slate-200 hover:border-slate-300'
                 }`}
               >
-                <span className={formData.name ? 'text-stone-200' : 'text-stone-600'}>
+                <span className={formData.name ? 'text-slate-900' : 'text-slate-400'}>
                   {formData.name || 'เลือกวัตถุดิบ...'}
                 </span>
-                <ChevronDown className={`w-4 h-4 text-stone-500 transition-transform ${showNameDropdown ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${showNameDropdown ? 'rotate-180' : ''}`} />
               </button>
 
               {showNameDropdown && (
-                <div className="absolute z-20 mt-1 w-full bg-stone-950 border border-stone-800 rounded-xl shadow-2xl overflow-hidden">
+                <div className="absolute z-20 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden">
                   {/* ช่องค้นหาใน dropdown */}
-                  <div className="p-2 border-b border-stone-800">
+                  <div className="p-2 border-b border-slate-100">
                     <div className="relative">
-                      <Search className="w-3.5 h-3.5 text-stone-500 absolute left-2.5 top-2.5" />
+                      <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
                       <input
                         type="text"
                         placeholder="ค้นหาวัตถุดิบ..."
                         value={nameSearch}
                         onChange={e => setNameSearch(e.target.value)}
-                        className="w-full bg-stone-900 border border-stone-800 rounded-lg pl-8 pr-3 py-2 text-xs text-stone-200 focus:outline-none focus:border-amber-500/50 placeholder-stone-600"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-red-500 placeholder-slate-400 font-semibold"
                         autoFocus
                       />
                     </div>
@@ -724,22 +718,22 @@ export const StockManager: React.FC = () => {
                           setFormData(prev => ({ ...prev, name }));
                           setShowNameDropdown(false);
                         }}
-                        className={`w-full text-left px-4 py-2.5 text-xs transition cursor-pointer ${
+                        className={`w-full text-left px-4 py-2.5 text-xs font-semibold transition cursor-pointer ${
                           formData.name === name
-                            ? 'bg-amber-500/10 text-amber-400 font-bold'
-                            : 'text-stone-300 hover:bg-stone-900 hover:text-white'
+                            ? 'bg-red-50 text-red-600 font-bold'
+                            : 'text-slate-700 hover:bg-slate-50'
                         }`}
                       >
                         {name}
                       </button>
                     ))}
                     {filteredCatalog.length === 0 && (
-                      <div className="px-4 py-3 text-xs text-stone-500 text-center">ไม่พบรายการ</div>
+                      <div className="px-4 py-3 text-xs text-slate-400 text-center">ไม่พบรายการ</div>
                     )}
                   </div>
 
                   {/* เพิ่มวัตถุดิบใหม่ */}
-                  <div className="p-2 border-t border-stone-800">
+                  <div className="p-2 border-t border-slate-100">
                     <div className="flex gap-2">
                       <input
                         type="text"
@@ -757,7 +751,7 @@ export const StockManager: React.FC = () => {
                             setShowNameDropdown(false);
                           }
                         }}
-                        className="flex-1 bg-stone-900 border border-stone-800 rounded-lg px-3 py-2 text-xs text-stone-200 focus:outline-none focus:border-amber-500/50 placeholder-stone-600"
+                        className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-red-500 placeholder-slate-400 font-semibold"
                       />
                       <button
                         type="button"
@@ -772,7 +766,7 @@ export const StockManager: React.FC = () => {
                             setShowNameDropdown(false);
                           }
                         }}
-                        className="px-3 py-2 bg-amber-500/10 border border-amber-500/30 rounded-lg text-amber-400 text-xs font-bold hover:bg-amber-500/20 transition cursor-pointer"
+                        className="px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-red-600 text-xs font-bold hover:bg-red-100 transition cursor-pointer"
                       >
                         <Plus className="w-3.5 h-3.5" />
                       </button>
@@ -785,7 +779,7 @@ export const StockManager: React.FC = () => {
             {/* จำนวน + หน่วย */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-bold text-stone-500 tracking-wider uppercase mb-1.5">จำนวน *</label>
+                <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1.5">จำนวน *</label>
                 <input
                   type="number"
                   step="0.01"
@@ -793,27 +787,27 @@ export const StockManager: React.FC = () => {
                   value={formData.quantity || ''}
                   onChange={e => setFormData(prev => ({ ...prev, quantity: parseFloat(e.target.value) || 0 }))}
                   placeholder="1"
-                  className="w-full bg-stone-950 border border-stone-850 focus:border-amber-500/50 focus:outline-none rounded-xl px-4 py-2.5 text-sm text-stone-200 placeholder-stone-600"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 placeholder-slate-400"
                 />
               </div>
               {/* หน่วย — Dropdown */}
               <div ref={unitDropdownRef} className="relative">
-                <label className="block text-[10px] font-bold text-stone-500 tracking-wider uppercase mb-1.5">หน่วย *</label>
+                <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1.5">หน่วย *</label>
                 <button
                   type="button"
                   onClick={() => setShowUnitDropdown(!showUnitDropdown)}
-                  className={`w-full bg-stone-950 border rounded-xl px-4 py-2.5 text-sm text-left flex items-center justify-between cursor-pointer transition ${
-                    showUnitDropdown ? 'border-amber-500/50' : 'border-stone-850 hover:border-stone-700'
+                  className={`w-full bg-slate-50 border rounded-xl px-4 py-2.5 text-xs font-semibold text-left flex items-center justify-between cursor-pointer transition ${
+                    showUnitDropdown ? 'border-red-500' : 'border-slate-200 hover:border-slate-300'
                   }`}
                 >
-                  <span className={formData.unit ? 'text-stone-200' : 'text-stone-600'}>
+                  <span className={formData.unit ? 'text-slate-900' : 'text-slate-400'}>
                     {formData.unit || 'เลือกหน่วย...'}
                   </span>
-                  <ChevronDown className={`w-4 h-4 text-stone-500 transition-transform ${showUnitDropdown ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${showUnitDropdown ? 'rotate-180' : ''}`} />
                 </button>
 
                 {showUnitDropdown && (
-                  <div className="absolute z-20 mt-1 w-full bg-stone-950 border border-stone-800 rounded-xl shadow-2xl overflow-hidden">
+                  <div className="absolute z-20 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden">
                     {/* รายการหน่วย */}
                     <div className="max-h-40 overflow-y-auto">
                       {allUnits.map(unit => (
@@ -824,10 +818,10 @@ export const StockManager: React.FC = () => {
                             setFormData(prev => ({ ...prev, unit }));
                             setShowUnitDropdown(false);
                           }}
-                          className={`w-full text-left px-4 py-2.5 text-xs transition cursor-pointer ${
+                          className={`w-full text-left px-4 py-2.5 text-xs font-semibold transition cursor-pointer ${
                             formData.unit === unit
-                              ? 'bg-amber-500/10 text-amber-400 font-bold'
-                              : 'text-stone-300 hover:bg-stone-900 hover:text-white'
+                              ? 'bg-red-50 text-red-600 font-bold'
+                              : 'text-slate-700 hover:bg-slate-50'
                           }`}
                         >
                           {unit}
@@ -836,7 +830,7 @@ export const StockManager: React.FC = () => {
                     </div>
 
                     {/* เพิ่มหน่วยใหม่ */}
-                    <div className="p-2 border-t border-stone-800">
+                    <div className="p-2 border-t border-slate-100">
                       <div className="flex gap-2">
                         <input
                           type="text"
@@ -854,7 +848,7 @@ export const StockManager: React.FC = () => {
                               setShowUnitDropdown(false);
                             }
                           }}
-                          className="flex-1 bg-stone-900 border border-stone-800 rounded-lg px-3 py-2 text-xs text-stone-200 focus:outline-none focus:border-amber-500/50 placeholder-stone-600"
+                          className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-red-500 placeholder-slate-400 font-semibold"
                         />
                         <button
                           type="button"
@@ -869,7 +863,7 @@ export const StockManager: React.FC = () => {
                               setShowUnitDropdown(false);
                             }
                           }}
-                          className="px-3 py-2 bg-amber-500/10 border border-amber-500/30 rounded-lg text-amber-400 text-xs font-bold hover:bg-amber-500/20 transition cursor-pointer"
+                          className="px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-red-600 text-xs font-bold hover:bg-red-100 transition cursor-pointer"
                         >
                           <Plus className="w-3.5 h-3.5" />
                         </button>
@@ -882,46 +876,46 @@ export const StockManager: React.FC = () => {
 
             {/* ราคารวมต้นทุน */}
             <div>
-              <label className="block text-[10px] font-bold text-stone-500 tracking-wider uppercase mb-1.5">ราคารวมต้นทุน (บาท) *</label>
+              <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1.5">ราคารวมต้นทุน (บาท) *</label>
               <input
                 type="number"
                 min="0"
                 value={formData.cost || ''}
                 onChange={e => setFormData(prev => ({ ...prev, cost: parseFloat(e.target.value) || 0 }))}
                 placeholder="0"
-                className="w-full bg-stone-950 border border-stone-850 focus:border-amber-500/50 focus:outline-none rounded-xl px-4 py-2.5 text-sm text-stone-200 placeholder-stone-600"
+                className="w-full bg-slate-50 border border-slate-200 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 placeholder-slate-400"
               />
             </div>
 
             {/* วันที่ซื้อ + ผู้จัดซื้อ */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-bold text-stone-500 tracking-wider uppercase mb-1.5">วันที่จัดซื้อ</label>
+                <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1.5">วันที่จัดซื้อ</label>
                 <input
                   type="date"
                   value={formData.purchase_date}
                   onChange={e => setFormData(prev => ({ ...prev, purchase_date: e.target.value }))}
-                  className="w-full bg-stone-950 border border-stone-850 focus:border-amber-500/50 focus:outline-none rounded-xl px-4 py-2.5 text-sm text-stone-200"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800"
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-stone-500 tracking-wider uppercase mb-1.5">ผู้จัดซื้อ</label>
+                <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1.5">ผู้จัดซื้อ</label>
                 <input
                   type="text"
                   value={formData.buyer_name}
                   onChange={e => setFormData(prev => ({ ...prev, buyer_name: e.target.value }))}
                   placeholder="ชื่อผู้จัดซื้อ"
-                  className="w-full bg-stone-950 border border-stone-850 focus:border-amber-500/50 focus:outline-none rounded-xl px-4 py-2.5 text-sm text-stone-200 placeholder-stone-600"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 placeholder-slate-400"
                 />
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-2 pt-3 border-t border-stone-850">
+            <div className="flex gap-2 pt-3 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => setShowFormModal(false)}
-                className="flex-1 py-3 bg-stone-950 hover:bg-stone-900 border border-stone-850 rounded-xl text-stone-400 text-xs font-bold transition active:scale-97 cursor-pointer"
+                className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl active:scale-97 transition cursor-pointer"
               >
                 ยกเลิก
               </button>
@@ -929,7 +923,7 @@ export const StockManager: React.FC = () => {
                 type="button"
                 onClick={handleSave}
                 disabled={isSaving}
-                className="flex-1 py-3 bg-amber-500 hover:bg-amber-600 disabled:bg-stone-700 disabled:text-stone-400 text-black text-xs font-extrabold rounded-xl transition active:scale-97 flex items-center justify-center gap-2 cursor-pointer"
+                className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white text-xs font-extrabold rounded-xl transition active:scale-97 flex items-center justify-center gap-2 cursor-pointer shadow-sm shadow-red-600/20"
               >
                 {isSaving ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -947,29 +941,29 @@ export const StockManager: React.FC = () => {
 
   function renderDeleteModal() {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-        <div className="w-full max-w-sm bg-stone-900 border border-red-900/30 rounded-3xl p-6 shadow-2xl">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+        <div className="w-full max-w-sm bg-white border border-slate-200 rounded-3xl p-6 shadow-xl">
           <div className="text-center mb-5">
-            <div className="w-14 h-14 bg-red-950/30 border border-red-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Trash2 className="w-7 h-7 text-red-400" />
+            <div className="w-14 h-14 bg-rose-50 border border-rose-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Trash2 className="w-7 h-7 text-rose-600" />
             </div>
-            <h3 className="text-base font-black text-white mb-1">ยืนยันการลบประวัติจัดซื้อ</h3>
-            <p className="text-stone-400 text-xs">
-              คุณต้องการลบรายการ <span className="font-bold text-red-400">&quot;{deleteTarget?.name}&quot;</span> ใช่หรือไม่?
+            <h3 className="text-base font-extrabold text-slate-900 mb-1">ยืนยันการลบประวัติจัดซื้อ</h3>
+            <p className="text-slate-600 text-xs">
+              คุณต้องการลบรายการ <span className="font-bold text-rose-600">&quot;{deleteTarget?.name}&quot;</span> ใช่หรือไม่?
             </p>
-            <p className="text-stone-500 text-[10px] mt-1">การดำเนินการนี้ไม่สามารถย้อนกลับได้</p>
+            <p className="text-slate-400 text-[10px] mt-1 font-medium">การดำเนินการนี้ไม่สามารถย้อนกลับได้</p>
           </div>
           <div className="flex gap-2">
             <button
               onClick={() => setDeleteTarget(null)}
-              className="flex-1 py-3 bg-stone-950 hover:bg-stone-900 border border-stone-850 rounded-xl text-stone-400 text-xs font-bold transition active:scale-97 cursor-pointer"
+              className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl active:scale-97 transition cursor-pointer"
             >
               ยกเลิก
             </button>
             <button
               onClick={handleDelete}
               disabled={isDeleting}
-              className="flex-1 py-3 bg-red-600 hover:bg-red-700 disabled:bg-stone-700 text-white text-xs font-extrabold rounded-xl transition active:scale-97 flex items-center justify-center gap-2 cursor-pointer"
+              className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:bg-slate-300 text-white text-xs font-extrabold rounded-xl transition active:scale-97 flex items-center justify-center gap-2 cursor-pointer shadow-sm shadow-rose-600/20"
             >
               {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
               <span>{isDeleting ? 'กำลังลบ...' : 'ลบรายการนี้'}</span>
@@ -980,3 +974,4 @@ export const StockManager: React.FC = () => {
     );
   }
 };
+

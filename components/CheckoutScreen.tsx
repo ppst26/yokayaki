@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { ArrowLeft, CreditCard, Banknote, Search, UserPlus, Receipt, Printer, X, Tag, TicketPercent } from 'lucide-react';
+import { ArrowLeft, CreditCard, Banknote, Search, UserPlus, Receipt, Printer, X, Tag, TicketPercent, Coins } from 'lucide-react';
 import QRCode from 'react-qr-code';
 
 interface OrderedItem {
@@ -134,7 +134,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
   const cashNum = parseFloat(cashReceived) || 0;
   const transferAmount = Math.max(0, netAmount - cashNum);
   const changeAmount = cashNum > netAmount ? cashNum - netAmount : 0;
-  const pointsEarned = Math.floor(netAmount / 100) * 10; // 100 baht = 10 points
+  const pointsEarned = Math.floor(netAmount / 25); // 25 baht = 1 point
 
   const promptPayId = process.env.NEXT_PUBLIC_PROMPTPAY_ID || '0899999999';
 
@@ -412,9 +412,9 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
   if (showReceipt) {
     const now = new Date();
     return (
-      <div className="min-h-screen bg-stone-950 text-white flex flex-col items-center justify-center p-6">
+      <div className="min-h-screen bg-gray-100 text-slate-800 flex flex-col items-center justify-center p-6">
         {/* Print-only receipt */}
-        <div id="receipt" className="bg-white text-black w-[320px] p-6 rounded-2xl shadow-2xl font-mono text-xs print:shadow-none print:rounded-none print:w-[80mm]">
+        <div id="receipt" className="bg-white text-black w-[320px] p-6 rounded-2xl shadow-xl border border-slate-200 font-mono text-xs print:shadow-none print:rounded-none print:w-[80mm] print:border-none">
           <div className="text-center mb-3">
             <h2 className="text-lg font-black tracking-wider">YOKAYAKI IZAKAYA</h2>
             <p className="text-[10px] text-gray-500">(3-4 Tables Setup)</p>
@@ -484,7 +484,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
           </button>
           <button
             onClick={onBack}
-            className="flex items-center gap-2 bg-slate-100 text-slate-700 border border-slate-200 px-6 py-3 rounded-xl font-bold text-sm hover:bg-slate-200 active:scale-95 transition cursor-pointer"
+            className="flex items-center gap-2 bg-white text-slate-700 border border-slate-300 shadow-xs px-6 py-3 rounded-xl font-bold text-sm hover:bg-slate-50 active:scale-95 transition cursor-pointer"
           >
             กลับหน้าผังโต๊ะ
           </button>
@@ -503,8 +503,8 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 text-slate-800 p-6 font-sans">
-      <div className="max-w-4xl mx-auto">
+    <div className="w-full text-slate-800 font-sans">
+      <div className="w-full">
         {/* Header */}
         <header className="flex items-center gap-4 mb-8">
           <button onClick={onBack} className="p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition active:scale-95 text-slate-700 shadow-xs">
@@ -576,6 +576,24 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
               <div className="flex justify-between items-center text-lg pt-3 border-t border-slate-100">
                 <span className="font-extrabold text-slate-900">ยอดสุทธิรวม</span>
                 <span className="font-black text-2xl text-red-600">{netAmount.toLocaleString()} บาท</span>
+              </div>
+
+              {/* Points Earned Display */}
+              <div className="mt-3 pt-3 border-t border-dashed border-slate-200 flex justify-between items-center bg-amber-50/80 border border-amber-200/80 p-3 rounded-xl">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold">
+                    <Coins className="w-4.5 h-4.5" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-slate-800 block">แต้มที่จะได้รับจากบิลนี้</span>
+                    {member ? (
+                      <span className="text-[11px] text-emerald-600 font-semibold block">สะสมให้: {member.name} ({member.phone_number})</span>
+                    ) : (
+                      <span className="text-[11px] text-slate-400 font-medium block">*ระบุสมาชิก CRM เพื่อสะสมแต้ม</span>
+                    )}
+                  </div>
+                </div>
+                <span className="font-black text-base text-amber-600">+{pointsEarned.toLocaleString()} แต้ม</span>
               </div>
             </div>
           </div>
