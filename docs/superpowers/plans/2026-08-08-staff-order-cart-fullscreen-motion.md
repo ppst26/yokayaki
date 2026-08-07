@@ -1,3 +1,35 @@
+# Fullscreen Motion Cart Panel Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Add a "ดูรายการทั้งหมด" badge button on the cart header bar (`CartPanel.tsx`) that triggers a smooth fullscreen slide-up motion mode on mobile screens.
+
+**Architecture:** Add `isFullScreen` state in `CartPanel.tsx`. Update container classes dynamically when `isFullScreen` is true to `fixed inset-0 z-50 w-full h-full max-h-screen rounded-none bg-white dark:bg-neutral-900 transition-all duration-300 ease-out`. In fullscreen mode, items list expands to fill all available vertical space (`flex-1 max-h-none overflow-y-auto`).
+
+**Tech Stack:** React 19, Next.js 16, TailwindCSS 4, Lucide React (`Maximize2`, `Minimize2`, `ChevronUp`, `ChevronDown`).
+
+## Global Constraints
+
+- Header bar features a badge button: `ดูรายการทั้งหมด ⛶` in compact view, `ย่อหน้าจอ 🗗` in fullscreen view.
+- Fullscreen mode expands to fill 100% viewport (`fixed inset-0 z-50`).
+- Sticky bottom footer ("ส่งเข้าครัว") remains anchored at bottom in both compact and fullscreen modes.
+
+---
+
+### Task 1: Add Fullscreen State & Badge Button to CartPanel
+
+**Files:**
+- Modify: `components/order/CartPanel.tsx:75-265`
+
+**Interfaces:**
+- Consumes: `CartPanelProps`
+- Produces: `CartPanel` component supporting fullscreen slide-up mode and badge toggle button.
+
+- [ ] **Step 1: Add `isFullScreen` state and header badge button in `CartPanel.tsx`**
+
+Modify `components/order/CartPanel.tsx` to add `isFullScreen` state and render badge button:
+
+```tsx
 "use client";
 
 import React, { useState } from 'react';
@@ -14,48 +46,7 @@ import {
   Minimize2,
 } from 'lucide-react';
 
-interface MenuItem {
-  id: number;
-  name: string;
-  price: number;
-  stock: number;
-  category: string;
-  image_url?: string | null;
-}
-
-interface CartItem extends MenuItem {
-  quantity: number;
-  notes?: string;
-}
-
-interface OrderedItem {
-  id: number;
-  quantity: number;
-  unit_price: number;
-  status: 'pending' | 'served' | 'voided';
-  notes?: string;
-  menu_items: {
-    name: string;
-  };
-}
-
-interface CartPanelProps {
-  cart: CartItem[];
-  orderedItems: OrderedItem[];
-  mobileCartExpanded: boolean;
-  setMobileCartExpanded: React.Dispatch<React.SetStateAction<boolean>>;
-  updateCartQty: (index: number, delta: number) => void;
-  removeFromCart: (index: number) => void;
-  openNoteModal: (index: number) => void;
-  setVoidTarget: (item: OrderedItem) => void;
-  setVoidQuantity: (qty: number) => void;
-  setVoidReason: (reason: string) => void;
-  setCustomReason: (reason: string) => void;
-  submitOrder: () => void;
-  isSubmitting: boolean;
-  cartTotal: number;
-  activeOrderItems: OrderedItem[];
-}
+// ... interface definitions remain identical ...
 
 export const CartPanel: React.FC<CartPanelProps> = ({
   cart,
@@ -79,11 +70,11 @@ export const CartPanel: React.FC<CartPanelProps> = ({
 
   const toggleFullScreen = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const nextState = !isFullScreen;
-    setIsFullScreen(nextState);
-    if (nextState) {
-      setMobileCartExpanded(true);
-    }
+    setIsFullScreen(prev => {
+      const nextState = !prev;
+      if (nextState) setMobileCartExpanded(true);
+      return nextState;
+    });
   };
 
   const getContainerStyle = () => {
@@ -104,15 +95,15 @@ export const CartPanel: React.FC<CartPanelProps> = ({
         className="lg:hidden flex items-center justify-between px-4 sm:px-5 py-3.5 bg-slate-50 dark:bg-neutral-800/80 border-b border-slate-200/80 dark:border-neutral-800 cursor-pointer select-none shrink-0"
       >
         <div className="flex items-center gap-2">
-          <ShoppingBag className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0" />
-          <span className="text-xs font-black text-slate-900 dark:text-neutral-100 shrink-0">
-            ตะกร้า ({totalCartItemsCount})
+          <ShoppingBag className="w-4 h-4 text-red-600 dark:text-red-400" />
+          <span className="text-xs font-black text-slate-900 dark:text-neutral-100">
+            ตะกร้า ({totalCartItemsCount} รายการ)
           </span>
 
           {/* Badge Button: ดูรายการทั้งหมด / ย่อหน้าจอ */}
           <button
             onClick={toggleFullScreen}
-            className="ml-1 px-2.5 py-1 bg-red-50 dark:bg-red-950/50 hover:bg-red-100 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/60 rounded-full text-[10px] font-extrabold flex items-center gap-1 transition active:scale-95 cursor-pointer shadow-2xs shrink-0"
+            className="ml-1 px-2.5 py-1 bg-red-50 dark:bg-red-950/50 hover:bg-red-100 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/60 rounded-full text-[10px] font-extrabold flex items-center gap-1 transition active:scale-95 cursor-pointer shadow-2xs"
           >
             {isFullScreen ? (
               <>
@@ -128,7 +119,7 @@ export const CartPanel: React.FC<CartPanelProps> = ({
           </button>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-3">
           <span className="text-xs font-black text-red-600 dark:text-red-400">
             {cartTotal.toLocaleString()} ฿
           </span>
@@ -219,7 +210,6 @@ export const CartPanel: React.FC<CartPanelProps> = ({
                     </div>
                   </div>
 
-                  {/* Notes input trigger */}
                   <div className="flex items-center justify-between text-[11px]">
                     <button
                       onClick={() => openNoteModal(index)}
@@ -322,3 +312,18 @@ export const CartPanel: React.FC<CartPanelProps> = ({
     </div>
   );
 };
+```
+
+- [ ] **Step 2: Verify type check**
+
+Run: `pnpm exec tsc --noEmit`
+Expected: 0 errors.
+
+---
+
+### Task 2: Build Verification
+
+- [ ] **Step 1: Build Next.js project**
+
+Run: `pnpm run build`
+Expected: Build succeeds with 0 errors.

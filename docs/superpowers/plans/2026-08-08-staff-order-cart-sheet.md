@@ -1,6 +1,38 @@
+# Staff POS Order Cart Sheet Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Redesign `CartPanel.tsx` on the Staff POS Order Screen to fix the items scroll height, anchor the "ส่งเข้าครัว" button as a sticky footer, and provide an arrow up/down toggle button on the header bar.
+
+**Architecture:** Update `CartPanel.tsx` flexbox hierarchy so that the header and footer ("ส่งเข้าครัว" button) are `shrink-0` fixed panels, while the cart items list occupies a scrollable middle section (`overflow-y-auto max-h-[220px] lg:max-h-none`).
+
+**Tech Stack:** React 19, Next.js 16, TailwindCSS 4, Lucide React (`ChevronUp`, `ChevronDown`, `ShoppingBag`, `Trash2`, `Plus`, `Minus`).
+
+## Global Constraints
+
+- Header bar shows item count, total price, and arrow up/down icon for toggling expanded state.
+- Cart items list is scrollable with a fixed compact height on mobile.
+- "ส่งเข้าครัว" button is pinned as a sticky footer at the bottom of `CartPanel`.
+
+---
+
+### Task 1: Redesign CartPanel Component Layout & Sticky Footer
+
+**Files:**
+- Modify: `components/order/CartPanel.tsx:75-264`
+
+**Interfaces:**
+- Consumes: `CartPanelProps`
+- Produces: Flex-structured `CartPanel` with scrollable items list and sticky bottom submit footer.
+
+- [ ] **Step 1: Update `CartPanel.tsx` structure**
+
+Modify `components/order/CartPanel.tsx` to separate header, scrollable body, and sticky footer:
+
+```tsx
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
   ShoppingBag,
   Plus,
@@ -10,8 +42,6 @@ import {
   ChevronDown,
   ClipboardList,
   ShieldAlert,
-  Maximize2,
-  Minimize2,
 } from 'lucide-react';
 
 interface MenuItem {
@@ -74,76 +104,27 @@ export const CartPanel: React.FC<CartPanelProps> = ({
   cartTotal,
   activeOrderItems,
 }) => {
-  const [isFullScreen, setIsFullScreen] = useState(false);
   const totalCartItemsCount = cart.reduce((s, i) => s + i.quantity, 0);
 
-  const toggleFullScreen = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const nextState = !isFullScreen;
-    setIsFullScreen(nextState);
-    if (nextState) {
-      setMobileCartExpanded(true);
-    }
-  };
-
-  const getContainerStyle = () => {
-    if (isFullScreen) {
-      return 'fixed inset-0 z-50 w-full h-full max-h-screen rounded-none bg-white dark:bg-neutral-900 shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ease-out';
-    }
-    return 'fixed bottom-0 left-0 right-0 z-40 lg:static lg:w-[380px] shrink-0 bg-white dark:bg-neutral-900 border-t lg:border-t-0 lg:border-l border-slate-200/90 dark:border-neutral-800 rounded-t-3xl lg:rounded-none lg:h-full shadow-2xl lg:shadow-none flex flex-col max-h-[85vh] lg:max-h-none overflow-hidden transition-all duration-300';
-  };
-
   return (
-    <div className={getContainerStyle()}>
+    <div className="fixed bottom-0 left-0 right-0 z-40 lg:static lg:w-[380px] shrink-0 bg-white dark:bg-neutral-900 border-t lg:border-t-0 lg:border-l border-slate-200/90 dark:border-neutral-800 rounded-t-3xl lg:rounded-none lg:h-full shadow-2xl lg:shadow-none flex flex-col max-h-[85vh] lg:max-h-none overflow-hidden transition-all duration-300">
       {/* Mobile Accordion Header Bar */}
       <div
-        onClick={() => {
-          if (isFullScreen) return;
-          setMobileCartExpanded(prev => !prev);
-        }}
-        className="lg:hidden flex items-center justify-between px-4 sm:px-5 py-3.5 bg-slate-50 dark:bg-neutral-800/80 border-b border-slate-200/80 dark:border-neutral-800 cursor-pointer select-none shrink-0"
+        onClick={() => setMobileCartExpanded(prev => !prev)}
+        className="lg:hidden flex items-center justify-between px-5 py-3.5 bg-slate-50 dark:bg-neutral-800/80 border-b border-slate-200/80 dark:border-neutral-800 cursor-pointer select-none shrink-0"
       >
-        <div className="flex items-center gap-2">
-          <ShoppingBag className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0" />
-          <span className="text-xs font-black text-slate-900 dark:text-neutral-100 shrink-0">
-            ตะกร้า ({totalCartItemsCount})
+        <div className="flex items-center gap-2.5">
+          <ShoppingBag className="w-4 h-4 text-red-600 dark:text-red-400" />
+          <span className="text-xs font-black text-slate-900 dark:text-neutral-100">
+            ตะกร้า ({totalCartItemsCount} รายการ)
           </span>
-
-          {/* Badge Button: ดูรายการทั้งหมด / ย่อหน้าจอ */}
-          <button
-            onClick={toggleFullScreen}
-            className="ml-1 px-2.5 py-1 bg-red-50 dark:bg-red-950/50 hover:bg-red-100 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/60 rounded-full text-[10px] font-extrabold flex items-center gap-1 transition active:scale-95 cursor-pointer shadow-2xs shrink-0"
-          >
-            {isFullScreen ? (
-              <>
-                <Minimize2 className="w-3 h-3" />
-                <span>ย่อหน้าจอ</span>
-              </>
-            ) : (
-              <>
-                <Maximize2 className="w-3 h-3" />
-                <span>ดูรายการทั้งหมด</span>
-              </>
-            )}
-          </button>
         </div>
-
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-3">
           <span className="text-xs font-black text-red-600 dark:text-red-400">
             {cartTotal.toLocaleString()} ฿
           </span>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (isFullScreen) {
-                setIsFullScreen(false);
-              } else {
-                setMobileCartExpanded(prev => !prev);
-              }
-            }}
-            className="p-1 text-red-600 dark:text-red-400 flex items-center justify-center cursor-pointer"
-          >
-            {mobileCartExpanded || isFullScreen ? (
+          <button className="p-1 text-red-600 dark:text-red-400 flex items-center justify-center">
+            {mobileCartExpanded ? (
               <ChevronDown className="w-5 h-5" />
             ) : (
               <ChevronUp className="w-5 h-5 animate-bounce" />
@@ -155,7 +136,7 @@ export const CartPanel: React.FC<CartPanelProps> = ({
       {/* Cart Body */}
       <div
         className={`${
-          mobileCartExpanded || isFullScreen ? 'flex' : 'hidden lg:flex'
+          mobileCartExpanded ? 'flex' : 'hidden lg:flex'
         } flex-col flex-1 p-4 sm:p-5 overflow-y-auto no-scrollbar space-y-5`}
       >
         {/* Active Cart */}
@@ -175,7 +156,7 @@ export const CartPanel: React.FC<CartPanelProps> = ({
               </p>
             </div>
           ) : (
-            <div className={`space-y-2.5 ${isFullScreen ? 'max-h-none' : 'max-h-[220px] sm:max-h-[260px] lg:max-h-none'} overflow-y-auto no-scrollbar pr-1`}>
+            <div className="space-y-2.5 max-h-[220px] sm:max-h-[260px] lg:max-h-none overflow-y-auto no-scrollbar pr-1">
               {cart.map((item, index) => (
                 <div
                   key={index}
@@ -247,7 +228,7 @@ export const CartPanel: React.FC<CartPanelProps> = ({
               </span>
             </h2>
 
-            <div className={`space-y-2 ${isFullScreen ? 'max-h-none' : 'max-h-[180px] lg:max-h-none'} overflow-y-auto no-scrollbar`}>
+            <div className="space-y-2 max-h-[180px] lg:max-h-none overflow-y-auto no-scrollbar">
               {activeOrderItems.map(item => (
                 <div
                   key={item.id}
@@ -301,7 +282,7 @@ export const CartPanel: React.FC<CartPanelProps> = ({
       {/* Sticky Footer: Submit Order Button */}
       <div
         className={`${
-          mobileCartExpanded || isFullScreen ? 'block' : 'hidden lg:block'
+          mobileCartExpanded ? 'block' : 'hidden lg:block'
         } p-4 bg-white dark:bg-neutral-900 border-t border-slate-200 dark:border-neutral-800 shrink-0`}
       >
         <button
@@ -322,3 +303,18 @@ export const CartPanel: React.FC<CartPanelProps> = ({
     </div>
   );
 };
+```
+
+- [ ] **Step 2: Run type check**
+
+Run: `pnpm exec tsc --noEmit`
+Expected: 0 errors.
+
+---
+
+### Task 2: Build Verification
+
+- [ ] **Step 1: Build Next.js project**
+
+Run: `pnpm run build`
+Expected: Build succeeds with 0 errors.
