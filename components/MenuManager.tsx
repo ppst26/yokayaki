@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Plus, Minus, Pencil, Trash2, X, Search, Loader2, CheckCircle, UtensilsCrossed, AlertTriangle, ToggleLeft, ToggleRight, Image as ImageIcon } from 'lucide-react';
+import { Plus, Minus, Pencil, Trash2, X, Search, Loader2, CheckCircle, UtensilsCrossed, AlertTriangle, ToggleLeft, ToggleRight, Image as ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface MenuItem {
   id: number;
@@ -36,6 +36,10 @@ export const MenuManager: React.FC = () => {
   const [filterCategory, setFilterCategory] = useState<string>('ทั้งหมด');
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
   // Modal states
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
@@ -45,6 +49,11 @@ export const MenuManager: React.FC = () => {
   // Delete confirmation
   const [deleteTarget, setDeleteTarget] = useState<MenuItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Reset to page 1 whenever filters or pageSize change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterCategory, pageSize]);
 
   const showMessage = (text: string, type: 'success' | 'error') => {
     setMessage({ text, type });
@@ -212,12 +221,18 @@ export const MenuManager: React.FC = () => {
     }
   };
 
-  // Filtering
+  // Filtering & Pagination
   const filteredItems = items.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = filterCategory === 'ทั้งหมด' || item.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
+
+  const totalItems = filteredItems.length;
+  const totalPages = Math.ceil(totalItems / pageSize) || 1;
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, totalItems);
+  const paginatedItems = filteredItems.slice(startIndex, endIndex);
 
   return (
     <div className="space-y-6 font-sans">
@@ -300,7 +315,7 @@ export const MenuManager: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
-                {filteredItems.map(item => (
+                {paginatedItems.map(item => (
                   <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="py-3.5 px-6 font-bold text-slate-900">
                       <div className="flex items-center gap-3">
@@ -414,9 +429,63 @@ export const MenuManager: React.FC = () => {
             </table>
           </div>
 
-          {/* Total count */}
-          <div className="px-5 py-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 font-semibold">
-            แสดง {filteredItems.length} จาก {items.length} รายการ
+          {/* Pagination Footer */}
+          <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-semibold text-slate-600">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <span>แสดง</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  className="bg-white border border-slate-200 rounded-lg px-2 py-1 font-bold text-slate-800 focus:outline-none focus:border-red-500 cursor-pointer"
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+                <span>รายการ/หน้า</span>
+              </div>
+              <span className="hidden sm:inline text-slate-300">|</span>
+              <span>
+                {totalItems > 0
+                  ? `แสดง ${startIndex + 1} - ${endIndex} จากทั้งหมด ${totalItems} รายการ`
+                  : 'ไม่พบรายการ'}
+              </span>
+            </div>
+
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  className="p-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-7 h-7 rounded-lg font-bold transition text-xs cursor-pointer ${
+                      currentPage === page
+                        ? 'bg-red-600 text-white shadow-xs'
+                        : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  className="p-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
