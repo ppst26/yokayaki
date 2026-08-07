@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import {
   Users, Search, ArrowLeft, Plus, Minus, Pencil, Trash2,
   DollarSign, Calendar, CheckCircle, AlertTriangle, X,
-  CreditCard, Banknote, ArrowLeftRight, Clock
+  CreditCard, Banknote, ArrowLeftRight, Clock, ChevronLeft, ChevronRight
 } from 'lucide-react';
 
 // ========== Constants ==========
@@ -55,6 +55,15 @@ export const LoyaltyManager: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  // Reset to page 1 on search or pageSize change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, pageSize]);
 
   // Detail view state
   const [selectedMember, setSelectedMember] = useState<LoyaltyMember | null>(null);
@@ -309,12 +318,18 @@ export const LoyaltyManager: React.FC = () => {
     }
   };
 
-  // ========== Filtered Data ==========
+  // ========== Filtered Data & Pagination ==========
 
   const filteredMembers = members.filter(m =>
     m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     m.phone_number.includes(searchTerm)
   );
+
+  const totalMembers = filteredMembers.length;
+  const totalPages = Math.ceil(totalMembers / pageSize) || 1;
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, totalMembers);
+  const paginatedMembers = filteredMembers.slice(startIndex, endIndex);
 
   const totalPoints = members.reduce((s, m) => s + m.points, 0);
 
@@ -718,7 +733,7 @@ export const LoyaltyManager: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs">
-                  {filteredMembers.map(member => (
+                  {paginatedMembers.map(member => (
                     <tr
                       key={member.phone_number}
                       onClick={() => fetchMemberDetail(member)}
@@ -756,12 +771,64 @@ export const LoyaltyManager: React.FC = () => {
               </table>
             </div>
 
-            {/* Count */}
-            {filteredMembers.length > 0 && (
-              <div className="px-5 py-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 font-semibold">
-                แสดง {filteredMembers.length} จาก {members.length} คน
+            {/* Pagination Footer */}
+            <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-semibold text-slate-600">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5">
+                  <span>แสดง</span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => setPageSize(Number(e.target.value))}
+                    className="bg-white border border-slate-200 rounded-lg px-2 py-1 font-bold text-slate-800 focus:outline-none focus:border-red-500 cursor-pointer"
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                  </select>
+                  <span>คน/หน้า</span>
+                </div>
+                <span className="hidden sm:inline text-slate-300">|</span>
+                <span>
+                  {totalMembers > 0
+                    ? `แสดง ${startIndex + 1} - ${endIndex} จากทั้งหมด ${totalMembers} คน`
+                    : 'ไม่พบสมาชิก'}
+                </span>
               </div>
-            )}
+
+              {totalPages > 1 && (
+                <div className="flex items-center gap-1">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    className="p-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-7 h-7 rounded-lg font-bold transition text-xs cursor-pointer ${
+                        currentPage === page
+                          ? 'bg-red-600 text-white shadow-xs'
+                          : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    className="p-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
     </div>
