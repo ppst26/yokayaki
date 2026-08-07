@@ -298,37 +298,8 @@ export const IngredientPurchaseManager: React.FC = () => {
 
   return (
     <div className="space-y-5">
-      {/* Header row */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div>
-          <h2 className="text-base font-black text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-            <ShoppingCart className="w-5 h-5 text-red-600 dark:text-red-400" />
-            ประวัติการสั่งซื้อวัตถุดิบ
-          </h2>
-          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-semibold mt-0.5">
-            บันทึกและดูรายงานการสั่งซื้อวัตถุดิบแต่ละรอบ พร้อมรายการและต้นทุน
-          </p>
-        </div>
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          <button
-            onClick={fetchOrders}
-            className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full text-xs font-semibold border-none shadow-none transition active:scale-95 cursor-pointer"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>รีเฟรช</span>
-          </button>
-          <button
-            onClick={openModal}
-            className="flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-medium border-none shadow-none transition active:scale-95 cursor-pointer"
-          >
-            <PackagePlus className="w-4 h-4" />
-            เพิ่มรายการสั่งซื้อ
-          </button>
-        </div>
-      </div>
-
-      {/* Filter & Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-zinc-900 p-4 rounded-2xl border-none shadow-none">
+      {/* Filter & Search Bar + Action Buttons */}
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white dark:bg-zinc-900 p-4 rounded-2xl border-none shadow-none">
         <div className="flex flex-wrap items-center gap-2">
           {/* Dropdown Filter */}
           <div className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 border-none">
@@ -368,17 +339,41 @@ export const IngredientPurchaseManager: React.FC = () => {
           )}
         </div>
 
-        {/* Search input */}
-        <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3.5 py-2 border-none w-full sm:w-64">
-          <Search className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />
-          <input
-            type="text"
-            placeholder="ค้นหา PO#, ชื่อผู้สั่งซื้อ..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className="w-full bg-transparent border-none text-xs font-semibold text-zinc-800 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none"
-          />
+        {/* Search input & Action Buttons */}
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
+          <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3.5 py-2 border-none flex-1 sm:w-64">
+            <Search className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />
+            <input
+              type="text"
+              placeholder="ค้นหา PO#, ชื่อผู้สั่งซื้อ..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="w-full bg-transparent border-none text-xs font-semibold text-zinc-800 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none"
+            />
+          </div>
+          <button
+            onClick={fetchOrders}
+            className="flex items-center gap-1.5 px-3 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-xl text-xs font-semibold border-none shadow-none transition active:scale-95 cursor-pointer shrink-0"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>รีเฟรช</span>
+          </button>
+          <button
+            onClick={openModal}
+            className="flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-medium border-none shadow-none transition active:scale-95 cursor-pointer shrink-0"
+          >
+            <PackagePlus className="w-4 h-4" />
+            เพิ่มรายการสั่งซื้อ
+          </button>
         </div>
+      </div>
+
+      {/* Section Title (Placed BELOW filter as requested) */}
+      <div className="flex items-center justify-between pt-1">
+        <h2 className="text-base font-black text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+          <ShoppingCart className="w-5 h-5 text-red-600 dark:text-red-400" />
+          ประวัติการสั่งซื้อวัตถุดิบ
+        </h2>
       </div>
 
       {/* Filter Summary Stats */}
