@@ -335,33 +335,35 @@ export const LoyaltyManager: React.FC = () => {
 
   // ========== Detail View ==========
 
+  // ========== Detail View ==========
+
   if (selectedMember) {
     return (
       <div className="space-y-6 font-sans w-full">
         {/* Header with back button */}
-          <div className="flex items-center gap-4 bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm">
+          <div className="flex items-center gap-4 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 rounded-2xl shadow-sm">
             <button
               onClick={() => setSelectedMember(null)}
-              className="p-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl transition active:scale-95 cursor-pointer shadow-xs"
+              className="p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl transition active:scale-95 cursor-pointer shadow-xs text-slate-700 dark:text-slate-200"
             >
-              <ArrowLeft className="w-4 h-4 text-slate-700" />
+              <ArrowLeft className="w-4 h-4" />
             </button>
             <div className="flex-1">
-              <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
+              <h2 className="text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
                 {selectedMember.name}
               </h2>
-              <p className="text-slate-500 text-xs font-semibold mt-0.5">📱 {selectedMember.phone_number} · สมัครเมื่อ {formatDate(selectedMember.created_at)}</p>
+              <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-0.5">📱 {selectedMember.phone_number} · สมัครเมื่อ {formatDate(selectedMember.created_at)}</p>
             </div>
           </div>
 
           {/* Member Info + Action Buttons */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex items-center justify-between">
               <div className="space-y-1">
-                <div className="text-slate-500 text-xs font-semibold">แต้มคงเหลือ</div>
-                <div className="text-2xl font-black text-red-600">{selectedMember.points.toLocaleString()} <span className="text-xs font-bold text-slate-400">แต้ม</span></div>
+                <div className="text-slate-500 dark:text-slate-400 text-xs font-semibold">แต้มคงเหลือ</div>
+                <div className="text-2xl font-black text-red-600 dark:text-red-400">{selectedMember.points.toLocaleString()} <span className="text-xs font-bold text-slate-400 dark:text-slate-500">แต้ม</span></div>
               </div>
-              <div className="p-3 bg-red-50 text-red-600 rounded-xl border border-red-100">
+              <div className="p-3 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 rounded-xl border border-red-100 dark:border-red-900/50">
                 <DollarSign className="w-5 h-5" />
               </div>
             </div>
@@ -374,7 +376,7 @@ export const LoyaltyManager: React.FC = () => {
                   setPointsReason('');
                   setShowPointsModal(true);
                 }}
-                className="flex-1 flex items-center justify-center gap-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-xs font-extrabold transition active:scale-95 cursor-pointer shadow-xs"
+                className="flex-1 flex items-center justify-center gap-2 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-300 px-4 py-3 rounded-xl text-xs font-extrabold transition active:scale-95 cursor-pointer shadow-xs"
               >
                 <Plus className="w-4 h-4" />
                 เพิ่มแต้ม
@@ -386,7 +388,7 @@ export const LoyaltyManager: React.FC = () => {
                   setPointsReason('');
                   setShowPointsModal(true);
                 }}
-                className="flex-1 flex items-center justify-center gap-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs font-extrabold transition active:scale-95 cursor-pointer shadow-xs"
+                className="flex-1 flex items-center justify-center gap-2 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-300 px-4 py-3 rounded-xl text-xs font-extrabold transition active:scale-95 cursor-pointer shadow-xs"
               >
                 <Minus className="w-4 h-4" />
                 หักแต้ม
@@ -397,14 +399,14 @@ export const LoyaltyManager: React.FC = () => {
                   setEditPhone(selectedMember.phone_number);
                   setShowEditModal(true);
                 }}
-                className="flex-1 flex items-center justify-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-4 py-3 rounded-xl text-xs font-extrabold transition active:scale-95 cursor-pointer shadow-xs"
+                className="flex-1 flex items-center justify-center gap-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 px-4 py-3 rounded-xl text-xs font-extrabold transition active:scale-95 cursor-pointer shadow-xs"
               >
                 <Pencil className="w-4 h-4" />
                 แก้ไข
               </button>
               <button
                 onClick={() => setShowDeleteModal(true)}
-                className="flex items-center justify-center gap-2 bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 text-slate-400 hover:text-rose-600 px-4 py-3 rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer shadow-xs"
+                className="flex items-center justify-center gap-2 bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-slate-200 dark:border-slate-700 hover:border-rose-200 dark:hover:border-rose-900/50 text-slate-400 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 px-4 py-3 rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer shadow-xs"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -415,8 +417,8 @@ export const LoyaltyManager: React.FC = () => {
           {message && (
             <div className={`p-3.5 rounded-xl border text-xs font-semibold flex items-center gap-2 ${
               message.type === 'success'
-                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                : 'bg-rose-50 border-rose-200 text-rose-800'
+                ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/50 text-emerald-800 dark:text-emerald-300'
+                : 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900/50 text-rose-800 dark:text-rose-300'
             }`}>
               {message.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
               {message.text}
@@ -425,22 +427,22 @@ export const LoyaltyManager: React.FC = () => {
 
           {detailLoading ? (
             <div className="flex items-center justify-center py-20">
-              <div className="w-8 h-8 border-3 border-red-600 border-t-transparent rounded-full animate-spin" />
+              <div className="w-8 h-8 border-3 border-red-600 animate-spin" />
             </div>
           ) : (
             <>
               {/* ประวัติบิลย้อนหลัง */}
-              <div className="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-sm">
-                <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
-                  <h3 className="text-xs font-extrabold text-slate-800 flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-red-600" />
+              <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+                <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/90">
+                  <h3 className="text-xs font-extrabold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-red-600 dark:text-red-400" />
                     ประวัติบิลย้อนหลัง ({bills.length} รายการ)
                   </h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="border-b border-slate-200 text-slate-700 text-xs font-extrabold bg-slate-50">
+                      <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs font-extrabold bg-slate-50 dark:bg-slate-800/90">
                         <th className="py-3.5 px-6">วันที่</th>
                         <th className="py-3.5 px-4">โต๊ะ</th>
                         <th className="py-3.5 px-4 text-right">ยอดชำระ</th>
@@ -449,34 +451,34 @@ export const LoyaltyManager: React.FC = () => {
                         <th className="py-3.5 px-4 text-center">แต้มใช้</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 text-xs">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
                       {bills.map(bill => (
-                        <tr key={bill.id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="py-4 px-6 text-slate-500 font-semibold">
+                        <tr key={bill.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+                          <td className="py-4 px-6 text-slate-500 dark:text-slate-400 font-semibold">
                             {formatDate(bill.created_at)} {formatTime(bill.created_at)} น.
                           </td>
-                          <td className="py-4 px-4 font-bold text-slate-800">
+                          <td className="py-4 px-4 font-bold text-slate-800 dark:text-slate-200">
                             T{bill.orders?.table_id || '-'}
                           </td>
-                          <td className="py-4 px-4 text-right font-black text-red-600 text-sm">
+                          <td className="py-4 px-4 text-right font-black text-red-600 dark:text-red-400 text-sm">
                             {Number(bill.net_amount).toLocaleString()} ฿
                           </td>
                           <td className="py-4 px-4">
-                            <span className="flex items-center gap-1.5 text-slate-600 font-semibold">
+                            <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 font-semibold">
                               {getPaymentIcon(bill.payment_method)}
                               {getPaymentLabel(bill.payment_method)}
                             </span>
                           </td>
                           <td className="py-4 px-4 text-center">
                             {bill.points_earned > 0 && (
-                              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                              <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 px-2 py-0.5 rounded-full">
                                 +{bill.points_earned}
                               </span>
                             )}
                           </td>
                           <td className="py-4 px-4 text-center">
                             {bill.points_redeemed > 0 && (
-                              <span className="text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full">
+                              <span className="text-[10px] font-bold text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 px-2 py-0.5 rounded-full">
                                 -{bill.points_redeemed}
                               </span>
                             )}
@@ -485,7 +487,7 @@ export const LoyaltyManager: React.FC = () => {
                       ))}
                       {bills.length === 0 && (
                         <tr>
-                          <td colSpan={6} className="py-12 text-center text-slate-400 font-medium">
+                          <td colSpan={6} className="py-12 text-center text-slate-400 dark:text-slate-500 font-medium">
                             ยังไม่มีประวัติชำระเงินสำหรับสมาชิกท่านนี้
                           </td>
                         </tr>
@@ -500,36 +502,36 @@ export const LoyaltyManager: React.FC = () => {
         {/* ============ EDIT MODAL ============ */}
         {showEditModal && (
           <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4" onClick={() => setShowEditModal(false)}>
-            <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
-              <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                <h3 className="text-sm font-extrabold text-slate-900">แก้ไขข้อมูลสมาชิก</h3>
-                <button onClick={() => setShowEditModal(false)} className="p-2 hover:bg-slate-100 rounded-xl transition cursor-pointer">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
+              <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <h3 className="text-sm font-extrabold text-slate-900 dark:text-slate-100">แก้ไขข้อมูลสมาชิก</h3>
+                <button onClick={() => setShowEditModal(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer">
                   <X className="w-4 h-4 text-slate-400" />
                 </button>
               </div>
               <div className="px-6 py-5 space-y-4">
                 <div>
-                  <label className="text-xs font-bold text-slate-500 block mb-1.5">ชื่อ</label>
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1.5">ชื่อ</label>
                   <input
                     type="text"
                     value={editName}
                     onChange={e => setEditName(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-red-500"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-red-500"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-slate-500 block mb-1.5">เบอร์โทร (10 หลัก)</label>
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1.5">เบอร์โทร (10 หลัก)</label>
                   <input
                     type="text"
                     value={editPhone}
                     onChange={e => setEditPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                     maxLength={10}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-red-500"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-red-500"
                   />
                 </div>
               </div>
-              <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
-                <button onClick={() => setShowEditModal(false)} className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 transition cursor-pointer">
+              <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+                <button onClick={() => setShowEditModal(false)} className="px-4 py-2 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition cursor-pointer">
                   ยกเลิก
                 </button>
                 <button
@@ -547,19 +549,19 @@ export const LoyaltyManager: React.FC = () => {
         {/* ============ DELETE MODAL ============ */}
         {showDeleteModal && (
           <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4" onClick={() => setShowDeleteModal(false)}>
-            <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-sm shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-sm shadow-xl" onClick={e => e.stopPropagation()}>
               <div className="px-6 py-5 text-center space-y-3">
-                <div className="w-14 h-14 bg-rose-50 border border-rose-200 rounded-full flex items-center justify-center mx-auto">
-                  <Trash2 className="w-6 h-6 text-rose-600" />
+                <div className="w-14 h-14 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-full flex items-center justify-center mx-auto">
+                  <Trash2 className="w-6 h-6 text-rose-600 dark:text-rose-400" />
                 </div>
-                <h3 className="text-sm font-extrabold text-slate-900">ยืนยันการลบสมาชิก</h3>
-                <p className="text-xs text-slate-600">
-                  คุณต้องการลบ <span className="text-slate-900 font-bold">{selectedMember.name}</span> ({selectedMember.phone_number}) ออกจากระบบหรือไม่?
+                <h3 className="text-sm font-extrabold text-slate-900 dark:text-slate-100">ยืนยันการลบสมาชิก</h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400">
+                  คุณต้องการลบ <span className="text-slate-900 dark:text-slate-100 font-bold">{selectedMember.name}</span> ({selectedMember.phone_number}) ออกจากระบบหรือไม่?
                 </p>
-                <p className="text-[11px] text-rose-600 font-bold">⚠️ การลบจะไม่สามารถย้อนกลับได้ แต้มสะสมทั้งหมดจะหายไป</p>
+                <p className="text-[11px] text-rose-600 dark:text-rose-400 font-bold">⚠️ การลบจะไม่สามารถย้อนกลับได้ แต้มสะสมทั้งหมดจะหายไป</p>
               </div>
-              <div className="px-6 py-4 border-t border-slate-100 flex justify-center gap-3">
-                <button onClick={() => setShowDeleteModal(false)} className="px-5 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 transition cursor-pointer">
+              <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-center gap-3">
+                <button onClick={() => setShowDeleteModal(false)} className="px-5 py-2 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition cursor-pointer">
                   ยกเลิก
                 </button>
                 <button
@@ -577,35 +579,35 @@ export const LoyaltyManager: React.FC = () => {
         {/* ============ ADJUST POINTS MODAL ============ */}
         {showPointsModal && (
           <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4" onClick={() => setShowPointsModal(false)}>
-            <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
-              <div className={`px-6 py-4 border-b border-slate-100 flex items-center justify-between ${
-                pointsDirection === 'add' ? 'bg-emerald-50' : 'bg-rose-50'
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
+              <div className={`px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between ${
+                pointsDirection === 'add' ? 'bg-emerald-50 dark:bg-emerald-950/40' : 'bg-rose-50 dark:bg-rose-950/40'
               }`}>
-                <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                  {pointsDirection === 'add' ? <Plus className="w-4 h-4 text-emerald-600" /> : <Minus className="w-4 h-4 text-rose-600" />}
+                <h3 className="text-sm font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                  {pointsDirection === 'add' ? <Plus className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> : <Minus className="w-4 h-4 text-rose-600 dark:text-rose-400" />}
                   {pointsDirection === 'add' ? 'เพิ่มแต้ม' : 'หักแต้ม'}ให้ {selectedMember.name}
                 </h3>
-                <button onClick={() => setShowPointsModal(false)} className="p-2 hover:bg-slate-100 rounded-xl transition cursor-pointer">
+                <button onClick={() => setShowPointsModal(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer">
                   <X className="w-4 h-4 text-slate-400" />
                 </button>
               </div>
               <div className="px-6 py-5 space-y-4">
                 <div>
-                  <label className="text-xs font-bold text-slate-500 block mb-1.5">จำนวนแต้ม</label>
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1.5">จำนวนแต้ม</label>
                   <input
                     type="number"
                     value={pointsAdjustment}
                     onChange={e => setPointsAdjustment(e.target.value)}
                     min="1"
                     placeholder="กรอกจำนวนแต้ม"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-red-500"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-red-500"
                   />
                   {pointsDirection === 'deduct' && (
-                    <p className="text-[10px] text-slate-400 mt-1 font-semibold">แต้มคงเหลือปัจจุบัน: {selectedMember.points.toLocaleString()} แต้ม</p>
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">แต้มคงเหลือปัจจุบัน: {selectedMember.points.toLocaleString()} แต้ม</p>
                   )}
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-slate-500 block mb-1.5">เหตุผล *</label>
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1.5">เหตุผล *</label>
                   <div className="flex flex-wrap gap-2 mb-2">
                     {PRESET_REASONS.map(reason => (
                       <button
@@ -614,7 +616,7 @@ export const LoyaltyManager: React.FC = () => {
                         className={`px-2.5 py-1 text-[10px] font-bold rounded-lg border transition cursor-pointer ${
                           pointsReason === reason
                             ? 'bg-red-600 text-white border-red-600 shadow-xs'
-                            : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                            : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                         }`}
                       >
                         {reason}
@@ -626,12 +628,12 @@ export const LoyaltyManager: React.FC = () => {
                     value={pointsReason}
                     onChange={e => setPointsReason(e.target.value)}
                     placeholder="หรือพิมพ์เหตุผลเอง..."
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-red-500"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-red-500"
                   />
                 </div>
               </div>
-              <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
-                <button onClick={() => setShowPointsModal(false)} className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 transition cursor-pointer">
+              <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+                <button onClick={() => setShowPointsModal(false)} className="px-4 py-2 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition cursor-pointer">
                   ยกเลิก
                 </button>
                 <button
@@ -658,12 +660,12 @@ export const LoyaltyManager: React.FC = () => {
   return (
     <div className="space-y-6 font-sans w-full">
       {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 rounded-2xl shadow-sm">
           <div>
-            <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
+            <h2 className="text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
               ระบบจัดการสมาชิก (CRM / Loyalty)
             </h2>
-            <p className="text-slate-500 text-xs font-medium mt-0.5">
+            <p className="text-slate-500 dark:text-slate-400 text-xs font-medium mt-0.5">
               ดูรายชื่อ แก้ไข ลบ และจัดการแต้มสมาชิกของร้าน · ทุก 100 บาท = {POINTS_PER_100_BAHT} แต้ม · {POINT_VALUE_BAHT} แต้ม = ลด {POINT_VALUE_BAHT} บาท
             </p>
           </div>
@@ -671,21 +673,21 @@ export const LoyaltyManager: React.FC = () => {
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex items-center justify-between">
             <div className="space-y-1">
-              <div className="text-slate-500 text-xs font-semibold">สมาชิกทั้งหมด</div>
-              <div className="text-2xl font-black text-slate-900">{members.length} <span className="text-xs font-bold text-slate-400">คน</span></div>
+              <div className="text-slate-500 dark:text-slate-400 text-xs font-semibold">สมาชิกทั้งหมด</div>
+              <div className="text-2xl font-black text-slate-900 dark:text-slate-100">{members.length} <span className="text-xs font-bold text-slate-400 dark:text-slate-500">คน</span></div>
             </div>
-            <div className="p-3 bg-blue-50 text-blue-600 rounded-xl border border-blue-100">
+            <div className="p-3 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-xl border border-blue-100 dark:border-blue-900/50">
               <Users className="w-5 h-5" />
             </div>
           </div>
-          <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex items-center justify-between">
             <div className="space-y-1">
-              <div className="text-slate-500 text-xs font-semibold">แต้มสะสมรวมในระบบ</div>
-              <div className="text-2xl font-black text-red-600">{totalPoints.toLocaleString()} <span className="text-xs font-bold text-slate-400">แต้ม</span></div>
+              <div className="text-slate-500 dark:text-slate-400 text-xs font-semibold">แต้มสะสมรวมในระบบ</div>
+              <div className="text-2xl font-black text-red-600 dark:text-red-400">{totalPoints.toLocaleString()} <span className="text-xs font-bold text-slate-400 dark:text-slate-500">แต้ม</span></div>
             </div>
-            <div className="p-3 bg-red-50 text-red-600 rounded-xl border border-red-100">
+            <div className="p-3 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 rounded-xl border border-red-100 dark:border-red-900/50">
               <DollarSign className="w-5 h-5" />
             </div>
           </div>
@@ -693,13 +695,13 @@ export const LoyaltyManager: React.FC = () => {
 
         {/* Search */}
         <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+          <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3 top-3" />
           <input
             type="text"
             placeholder="ค้นหาชื่อหรือเบอร์โทร..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-500"
+            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-red-500"
           />
         </div>
 
@@ -707,8 +709,8 @@ export const LoyaltyManager: React.FC = () => {
         {message && (
           <div className={`p-3.5 rounded-xl border text-xs font-semibold flex items-center gap-2 ${
             message.type === 'success'
-              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-              : 'bg-rose-50 border-rose-200 text-rose-800'
+              ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/50 text-emerald-800 dark:text-emerald-300'
+              : 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900/50 text-rose-800 dark:text-rose-300'
           }`}>
             {message.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
             {message.text}
@@ -718,38 +720,38 @@ export const LoyaltyManager: React.FC = () => {
         {/* Members Table */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-3 border-red-600 border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-3 border-red-600 animate-spin" />
           </div>
         ) : (
-          <div className="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-sm">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-200 text-slate-700 text-xs font-extrabold bg-slate-50">
+                  <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs font-extrabold bg-slate-50 dark:bg-slate-800/90">
                     <th className="py-3.5 px-6">ชื่อ</th>
                     <th className="py-3.5 px-4">เบอร์โทร</th>
                     <th className="py-3.5 px-4 text-center">แต้มคงเหลือ</th>
                     <th className="py-3.5 px-6">วันที่สมัคร</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-xs">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
                   {paginatedMembers.map(member => (
                     <tr
                       key={member.phone_number}
                       onClick={() => fetchMemberDetail(member)}
-                      className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
+                      className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group"
                     >
-                      <td className="py-4 px-6 font-bold text-slate-900 group-hover:text-red-600 transition-colors">
+                      <td className="py-4 px-6 font-bold text-slate-900 dark:text-slate-100 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
                         {member.name}
                       </td>
-                      <td className="py-4 px-4 text-slate-600 font-semibold">
+                      <td className="py-4 px-4 text-slate-600 dark:text-slate-300 font-semibold">
                         {member.phone_number}
                       </td>
                       <td className="py-4 px-4 text-center">
-                        <span className="text-xs font-black text-amber-500">{member.points.toLocaleString()}</span>
-                        <span className="text-[10px] text-stone-500 ml-1">แต้ม</span>
+                        <span className="text-xs font-black text-amber-500 dark:text-amber-400">{member.points.toLocaleString()}</span>
+                        <span className="text-[10px] text-stone-500 dark:text-slate-400 ml-1">แต้ม</span>
                       </td>
-                      <td className="py-4 px-6 text-stone-500 font-medium">
+                      <td className="py-4 px-6 text-stone-500 dark:text-slate-400 font-medium">
                         {formatDate(member.created_at)}
                       </td>
                     </tr>
@@ -757,11 +759,11 @@ export const LoyaltyManager: React.FC = () => {
                   {filteredMembers.length === 0 && (
                     <tr>
                       <td colSpan={4} className="py-16 text-center">
-                        <Users className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-                        <p className="text-slate-500 text-xs font-bold">
+                        <Users className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+                        <p className="text-slate-500 dark:text-slate-400 text-xs font-bold">
                           {searchTerm ? 'ไม่พบสมาชิกที่ค้นหา' : 'ยังไม่มีสมาชิกในระบบ'}
                         </p>
-                        <p className="text-slate-400 text-[10px] mt-1 font-medium">
+                        <p className="text-slate-400 dark:text-slate-500 text-[10px] mt-1 font-medium">
                           {searchTerm ? 'ลองค้นหาด้วยชื่อหรือเบอร์อื่น' : 'สมาชิกจะถูกเพิ่มเมื่อพนักงานสมัครให้ตอนเช็คบิล'}
                         </p>
                       </td>
@@ -772,14 +774,14 @@ export const LoyaltyManager: React.FC = () => {
             </div>
 
             {/* Pagination Footer */}
-            <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-semibold text-slate-600">
+            <div className="px-5 py-3.5 bg-slate-50 dark:bg-slate-800/90 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-semibold text-slate-600 dark:text-slate-300">
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1.5">
                   <span>แสดง</span>
                   <select
                     value={pageSize}
                     onChange={(e) => setPageSize(Number(e.target.value))}
-                    className="bg-white border border-slate-200 rounded-lg px-2 py-1 font-bold text-slate-800 focus:outline-none focus:border-red-500 cursor-pointer"
+                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 font-bold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-red-500 cursor-pointer"
                   >
                     <option value={10}>10</option>
                     <option value={20}>20</option>
@@ -787,7 +789,7 @@ export const LoyaltyManager: React.FC = () => {
                   </select>
                   <span>คน/หน้า</span>
                 </div>
-                <span className="hidden sm:inline text-slate-300">|</span>
+                <span className="hidden sm:inline text-slate-300 dark:text-slate-700">|</span>
                 <span>
                   {totalMembers > 0
                     ? `แสดง ${startIndex + 1} - ${endIndex} จากทั้งหมด ${totalMembers} คน`
@@ -800,7 +802,7 @@ export const LoyaltyManager: React.FC = () => {
                   <button
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                    className="p-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                    className="p-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
@@ -812,7 +814,7 @@ export const LoyaltyManager: React.FC = () => {
                       className={`w-7 h-7 rounded-lg font-bold transition text-xs cursor-pointer ${
                         currentPage === page
                           ? 'bg-red-600 text-white shadow-xs'
-                          : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                          : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                       }`}
                     >
                       {page}
@@ -822,7 +824,7 @@ export const LoyaltyManager: React.FC = () => {
                   <button
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                    className="p-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                    className="p-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>
