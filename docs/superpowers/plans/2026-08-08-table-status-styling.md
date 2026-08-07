@@ -1,3 +1,37 @@
+# Table Status Visual Styling Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Update table card styling in `TableCard.tsx` so vacant tables are white, occupied tables have a yellow-to-orange gradient, and checking_out tables have a flashing red gradient with a bell icon badge. Ensure `TableMap.tsx` correctly handles table click interactions for checking_out status.
+
+**Architecture:** Update `TableCard.tsx` logic to evaluate `table.status` (`'vacant'`, `'occupied'`, `'checking_out'`) to apply respective background gradients, badge text/icons, and action text. Update `handleTableClick` in `TableMap.tsx` to handle `'checking_out'` along with `'occupied'`.
+
+**Tech Stack:** React 19, Next.js 16, TailwindCSS 4, Lucide React (`ShoppingBag`, `Receipt`, `BellRing`).
+
+## Global Constraints
+
+- Tech stack: Next.js 16, TailwindCSS 4, Lucide React, pnpm
+- Status styles:
+  - `vacant`: White background (`bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800`), green badge `ว่าง (VACANT)`, text `เปิดออเดอร์ใหม่`
+  - `occupied`: Yellow-to-orange gradient (`bg-gradient-to-br from-amber-400 via-amber-500 to-orange-600 text-white`), badge `มีลูกค้า`, text `จัดการออเดอร์`
+  - `checking_out`: Red gradient (`bg-gradient-to-br from-red-600 via-rose-600 to-red-700 text-white shadow-xl shadow-red-600/40 animate-pulse ring-4 ring-red-400/50`), badge `🔔 เรียกเช็คบิล`, text `เช็คบิล / ชำระเงิน`
+
+---
+
+### Task 1: Update TableCard Component Styling
+
+**Files:**
+- Modify: `components/common/TableCard.tsx:1-66`
+
+**Interfaces:**
+- Consumes: `table: Table` (`id: number`, `status: 'vacant' | 'occupied' | 'checking_out'`)
+- Produces: Visual UI component with distinct vacant, occupied, and checking_out styles.
+
+- [ ] **Step 1: Inspect and update status evaluation in `TableCard.tsx`**
+
+Modify `components/common/TableCard.tsx` to check all 3 statuses:
+
+```tsx
 "use client";
 
 import React from 'react';
@@ -108,4 +142,48 @@ export const TableCard: React.FC<TableCardProps> = ({ table, onClick, className 
     </button>
   );
 };
+```
 
+- [ ] **Step 2: Verify `TableCard.tsx` builds cleanly**
+
+Run: `pnpm exec tsc --noEmit`
+Expected: No TypeScript errors in `components/common/TableCard.tsx`.
+
+---
+
+### Task 2: Update TableMap Table Click Handling
+
+**Files:**
+- Modify: `components/common/TableMap.tsx:170-176`
+
+**Interfaces:**
+- Consumes: `handleTableClick(table: Table)`
+- Behavior: If table status is `'occupied'` or `'checking_out'`, show action selector modal (`setActionSelectorTable(table.id)`). Otherwise, open POS order screen (`setSelectedTableId(table.id)`).
+
+- [ ] **Step 1: Update `handleTableClick` in `TableMap.tsx`**
+
+Modify `components/common/TableMap.tsx` lines 170-176 to:
+
+```tsx
+  const handleTableClick = (table: Table) => {
+    if (table.status === 'occupied' || table.status === 'checking_out') {
+      setActionSelectorTable(table.id);
+    } else {
+      setSelectedTableId(table.id);
+    }
+  };
+```
+
+- [ ] **Step 2: Run typecheck and dev server verification**
+
+Run: `pnpm exec tsc --noEmit`
+Expected: 0 errors.
+
+---
+
+### Task 3: Build Verification
+
+- [ ] **Step 1: Run Next.js build to verify zero errors**
+
+Run: `pnpm run build`
+Expected: Build succeeds with 0 errors.

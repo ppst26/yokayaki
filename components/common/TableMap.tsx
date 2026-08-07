@@ -168,7 +168,7 @@ export const TableMap: React.FC = () => {
   }
 
   const handleTableClick = (table: Table) => {
-    if (table.status === 'occupied') {
+    if (table.status === 'occupied' || table.status === 'checking_out') {
       setActionSelectorTable(table.id);
     } else {
       setSelectedTableId(table.id);
