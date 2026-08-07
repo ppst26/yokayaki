@@ -251,12 +251,12 @@ export const PromoManager: React.FC = () => {
   return (
     <div className="space-y-6 font-sans">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 p-5 rounded-2xl shadow-sm">
         <div>
-          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
+          <h2 className="text-xl font-extrabold text-slate-900 dark:text-neutral-100 tracking-tight">
             จัดการโปรโมชั่น (Promotions)
           </h2>
-          <p className="text-slate-500 text-xs font-medium mt-0.5">สร้างส่วนลด คูปอง และโปรโมชั่นพิเศษ เพื่อดึงดูดลูกค้า</p>
+          <p className="text-slate-500 dark:text-neutral-400 text-xs font-medium mt-0.5">สร้างส่วนลด คูปอง และโปรโมชั่นพิเศษ เพื่อดึงดูดลูกค้า</p>
         </div>
         <button
           onClick={openCreate}
@@ -271,8 +271,8 @@ export const PromoManager: React.FC = () => {
       {message && (
         <div className={`p-3.5 rounded-xl border text-xs font-semibold flex items-center gap-2 ${
           message.type === 'success'
-            ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-            : 'bg-rose-50 border-rose-200 text-rose-800'
+            ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/50 text-emerald-800 dark:text-emerald-300'
+            : 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900/50 text-rose-800 dark:text-rose-300'
         }`}>
           {message.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
           {message.text}
@@ -285,20 +285,20 @@ export const PromoManager: React.FC = () => {
           <Loader2 className="w-8 h-8 text-red-600 animate-spin" />
         </div>
       ) : promos.length === 0 ? (
-        <div className="text-center py-24 bg-white border border-slate-200/80 border-dashed rounded-3xl p-6 shadow-xs">
-          <Tag className="w-14 h-14 text-slate-300 mx-auto mb-3 stroke-[1.2]" />
-          <h3 className="text-base font-extrabold text-slate-700">ยังไม่มีโปรโมชั่น</h3>
-          <p className="text-slate-400 text-xs mt-1 font-medium">กดปุ่ม "สร้างโปรโมชั่นใหม่" เพื่อเริ่มต้นสร้างส่วนลดให้ร้านของคุณ</p>
+        <div className="text-center py-24 bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 border-dashed rounded-3xl p-6 shadow-xs">
+          <Tag className="w-14 h-14 text-slate-300 dark:text-neutral-600 mx-auto mb-3 stroke-[1.2]" />
+          <h3 className="text-base font-extrabold text-slate-700 dark:text-neutral-300">ยังไม่มีโปรโมชั่น</h3>
+          <p className="text-slate-400 dark:text-neutral-500 text-xs mt-1 font-medium">กดปุ่ม "สร้างโปรโมชั่นใหม่" เพื่อเริ่มต้นสร้างส่วนลดให้ร้านของคุณ</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {promos.map(promo => {
             const typeInfo = TYPE_LABELS[promo.type];
             return (
-              <div key={promo.id} className={`bg-white border rounded-2xl overflow-hidden flex flex-col justify-between transition shadow-sm ${promo.is_active ? 'border-slate-200/80' : 'border-slate-200 opacity-60'}`}>
+              <div key={promo.id} className={`bg-white dark:bg-neutral-900 border rounded-2xl overflow-hidden flex flex-col justify-between transition shadow-sm ${promo.is_active ? 'border-slate-200/80 dark:border-neutral-800' : 'border-slate-200 dark:border-neutral-800 opacity-60'}`}>
                 {/* Header Image if available */}
                 {promo.image_url && (
-                  <div className="w-full h-36 relative bg-slate-100 border-b border-slate-100 overflow-hidden">
+                  <div className="w-full h-36 relative bg-slate-100 dark:bg-neutral-800 border-b border-slate-100 dark:border-neutral-800 overflow-hidden">
                     <img
                       src={promo.image_url}
                       alt={promo.name}
@@ -314,8 +314,8 @@ export const PromoManager: React.FC = () => {
                   {/* Card Header */}
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1">
-                      <h3 className="font-extrabold text-slate-900 text-sm">{promo.name}</h3>
-                      <div className={`inline-flex items-center gap-1 mt-1.5 px-2.5 py-0.5 rounded-lg text-[10px] font-bold border ${typeInfo.color}`}>
+                      <h3 className="font-extrabold text-slate-900 dark:text-neutral-100 text-sm">{promo.name}</h3>
+                      <div className={`inline-flex items-center gap-1 mt-1.5 px-2.5 py-0.5 rounded-lg text-[10px] font-bold border ${typeInfo.color} dark:bg-opacity-20 dark:border-opacity-30`}>
                         {typeInfo.icon}
                         <span>{typeInfo.label}</span>
                       </div>
@@ -327,20 +327,20 @@ export const PromoManager: React.FC = () => {
                       title={promo.is_active ? 'ปิดโปรโมชั่น' : 'เปิดโปรโมชั่น'}
                     >
                       {promo.is_active ? (
-                        <ToggleRight className="w-7 h-7 text-emerald-600" />
+                        <ToggleRight className="w-7 h-7 text-emerald-600 dark:text-emerald-400" />
                       ) : (
-                        <ToggleLeft className="w-7 h-7 text-slate-300" />
+                        <ToggleLeft className="w-7 h-7 text-slate-300 dark:text-neutral-600" />
                       )}
                     </button>
                   </div>
 
                 {/* Description */}
-                <div className="text-xs text-red-700 font-bold bg-red-50 border border-red-100 px-3 py-2 rounded-xl">
+                <div className="text-xs text-red-700 dark:text-red-300 font-bold bg-red-50 dark:bg-red-950/40 border border-red-100 dark:border-red-900/50 px-3 py-2 rounded-xl">
                   {getPromoDescription(promo)}
                 </div>
 
                 {/* Conditions */}
-                <div className="text-[11px] text-slate-500 font-medium space-y-0.5">
+                <div className="text-[11px] text-slate-500 dark:text-neutral-400 font-medium space-y-0.5">
                   {promo.min_order_amount > 0 && <p>ขั้นต่ำ: {promo.min_order_amount} บาท</p>}
                   {promo.start_date && <p>เริ่ม: {new Date(promo.start_date).toLocaleDateString('th-TH')}</p>}
                   {promo.end_date && <p>สิ้นสุด: {new Date(promo.end_date).toLocaleDateString('th-TH')}</p>}
@@ -348,17 +348,17 @@ export const PromoManager: React.FC = () => {
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-2 pt-3 border-t border-slate-100">
+                <div className="flex gap-2 pt-3 border-t border-slate-100 dark:border-neutral-800">
                   <button
                     onClick={() => openEdit(promo)}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-slate-700 hover:text-slate-900 text-xs font-bold transition active:scale-95 cursor-pointer shadow-xs"
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 border border-slate-200 dark:border-neutral-700 rounded-xl text-slate-700 dark:text-neutral-200 hover:text-slate-900 dark:hover:text-neutral-100 text-xs font-bold transition active:scale-95 cursor-pointer shadow-xs"
                   >
                     <Pencil className="w-3.5 h-3.5" />
                     <span>แก้ไข</span>
                   </button>
                   <button
                     onClick={() => setDeleteTarget(promo)}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 rounded-xl text-slate-500 hover:text-rose-600 text-xs font-bold transition active:scale-95 cursor-pointer shadow-xs"
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-white dark:bg-neutral-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-slate-200 dark:border-neutral-700 hover:border-rose-200 dark:hover:border-rose-800 rounded-xl text-slate-500 dark:text-neutral-400 hover:text-rose-600 dark:hover:text-rose-400 text-xs font-bold transition active:scale-95 cursor-pointer shadow-xs"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     <span>ลบ</span>
@@ -374,13 +374,13 @@ export const PromoManager: React.FC = () => {
       {/* ============ CREATE/EDIT MODAL ============ */}
       {showFormModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-6 shadow-xl relative max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100">
-              <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                {editingPromo ? <Pencil className="w-4 h-4 text-red-600" /> : <Plus className="w-4 h-4 text-red-600" />}
+          <div className="w-full max-w-md bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl p-6 shadow-xl relative max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100 dark:border-neutral-800">
+              <h3 className="text-base font-black text-slate-900 dark:text-neutral-100 flex items-center gap-2">
+                {editingPromo ? <Pencil className="w-4 h-4 text-red-600 dark:text-red-400" /> : <Plus className="w-4 h-4 text-red-600 dark:text-red-400" />}
                 <span>{editingPromo ? 'แก้ไขโปรโมชั่น' : 'สร้างโปรโมชั่นใหม่'}</span>
               </h3>
-              <button onClick={closeModal} className="p-1.5 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-500 cursor-pointer">
+              <button onClick={closeModal} className="p-1.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 rounded-full text-slate-500 dark:text-neutral-400 cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -388,20 +388,20 @@ export const PromoManager: React.FC = () => {
             <div className="space-y-4">
               {/* Name */}
               <div>
-                <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1.5">ชื่อโปรโมชั่น *</label>
+                <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-400 tracking-wider uppercase mb-1.5">ชื่อโปรโมชั่น *</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   placeholder='เช่น "ลดวันศุกร์ 10%"'
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 placeholder-slate-400"
+                  className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-neutral-100 placeholder-slate-400 dark:placeholder-neutral-500"
                 />
               </div>
 
               {/* Image URL */}
               <div>
-                <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1.5 flex items-center gap-1.5">
-                  <ImageIcon className="w-3.5 h-3.5 text-red-600" />
+                <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-400 tracking-wider uppercase mb-1.5 flex items-center gap-1.5">
+                  <ImageIcon className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />
                   <span>รูปภาพโปรโมชั่น (URL รูปภาพ)</span>
                 </label>
                 <input
@@ -409,10 +409,10 @@ export const PromoManager: React.FC = () => {
                   value={formData.image_url}
                   onChange={e => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
                   placeholder="https://example.com/promo-banner.jpg"
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 placeholder-slate-400"
+                  className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-neutral-100 placeholder-slate-400 dark:placeholder-neutral-500"
                 />
                 {formData.image_url ? (
-                  <div className="mt-2.5 relative w-full h-28 rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
+                  <div className="mt-2.5 relative w-full h-28 rounded-xl overflow-hidden border border-slate-200 dark:border-neutral-700 bg-slate-100 dark:bg-neutral-800">
                     <img
                       src={formData.image_url}
                       alt="พรีวิวรูปภาพโปรโมชั่น"
@@ -430,13 +430,13 @@ export const PromoManager: React.FC = () => {
                     </button>
                   </div>
                 ) : (
-                  <p className="text-[10px] text-slate-400 mt-1 font-medium">ใส่ลิงก์รูปภาพ (เช่น Unsplash, Imgur) สำหรับแสดงภาพหน้าปกโปรโมชั่น</p>
+                  <p className="text-[10px] text-slate-400 dark:text-neutral-500 mt-1 font-medium">ใส่ลิงก์รูปภาพ (เช่น Unsplash, Imgur) สำหรับแสดงภาพหน้าปกโปรโมชั่น</p>
                 )}
               </div>
 
               {/* Type Selector */}
               <div>
-                <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1.5">ประเภทโปรโมชั่น</label>
+                <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-400 tracking-wider uppercase mb-1.5">ประเภทโปรโมชั่น</label>
                 <div className="grid grid-cols-3 gap-2">
                   {(Object.keys(TYPE_LABELS) as PromoType[]).map(type => {
                     const info = TYPE_LABELS[type];
@@ -447,8 +447,8 @@ export const PromoManager: React.FC = () => {
                         onClick={() => setFormData(prev => ({ ...prev, type }))}
                         className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border text-xs font-bold transition cursor-pointer ${
                           formData.type === type
-                            ? info.color + ' shadow-xs font-black'
-                            : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                            ? info.color + ' dark:bg-opacity-20 dark:border-opacity-30 shadow-xs font-black'
+                            : 'bg-slate-50 dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-700'
                         }`}
                       >
                         {info.icon}
@@ -463,24 +463,24 @@ export const PromoManager: React.FC = () => {
               {formData.type === 'percentage' && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1.5">เปอร์เซ็นต์ส่วนลด (%)</label>
+                    <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-400 tracking-wider uppercase mb-1.5">เปอร์เซ็นต์ส่วนลด (%)</label>
                     <input
                       type="number"
                       min="1"
                       max="100"
                       value={formData.discount_percent}
                       onChange={e => setFormData(prev => ({ ...prev, discount_percent: parseInt(e.target.value, 10) || 0 }))}
-                      className="w-full bg-slate-50 border border-slate-200 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800"
+                      className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-neutral-100"
                     />
                   </div>
 
                   {/* Menu item selector */}
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1.5">เมนูที่ร่วมรายการ</label>
+                    <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-400 tracking-wider uppercase mb-1.5">เมนูที่ร่วมรายการ</label>
                     <select
                       value={formData.menu_item_id}
                       onChange={e => setFormData(prev => ({ ...prev, menu_item_id: e.target.value ? parseInt(e.target.value, 10) : '' }))}
-                      className="w-full bg-slate-50 border border-slate-200 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 cursor-pointer appearance-none"
+                      className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-neutral-100 cursor-pointer appearance-none"
                     >
                       <option value="">ทุกเมนูในร้าน</option>
                       {menuItems.map(item => (
@@ -491,18 +491,18 @@ export const PromoManager: React.FC = () => {
 
                   {/* Happy Hour time range toggle */}
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                    <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl">
                       <div className="flex items-center gap-2">
-                        <Clock className="w-3.5 h-3.5 text-red-600" />
-                        <span className="text-xs font-bold text-slate-700">กำหนดช่วงเวลา Happy Hour</span>
+                        <Clock className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />
+                        <span className="text-xs font-bold text-slate-700 dark:text-neutral-200">กำหนดช่วงเวลา Happy Hour</span>
                       </div>
                       <button
                         type="button"
                         onClick={() => setFormData(prev => ({ ...prev, hasTimeRange: !prev.hasTimeRange, start_time: prev.hasTimeRange ? '' : '17:00', end_time: prev.hasTimeRange ? '' : '19:00' }))}
                         className={`px-3 py-1 rounded-lg text-xs font-bold border transition cursor-pointer ${
                           formData.hasTimeRange
-                            ? 'bg-red-50 border-red-200 text-red-600'
-                            : 'bg-slate-100 border-slate-200 text-slate-500'
+                            ? 'bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400'
+                            : 'bg-slate-100 dark:bg-neutral-700 border-slate-200 dark:border-neutral-600 text-slate-500 dark:text-neutral-400'
                         }`}
                       >
                         {formData.hasTimeRange ? '⏰ เปิดใช้งาน' : 'ปิด'}
@@ -512,21 +512,21 @@ export const PromoManager: React.FC = () => {
                     {formData.hasTimeRange && (
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1.5">เวลาเริ่ม</label>
+                          <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-400 tracking-wider uppercase mb-1.5">เวลาเริ่ม</label>
                           <input
                             type="time"
                             value={formData.start_time}
                             onChange={e => setFormData(prev => ({ ...prev, start_time: e.target.value }))}
-                            className="w-full bg-slate-50 border border-slate-200 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800"
+                            className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-neutral-100"
                           />
                         </div>
                         <div>
-                          <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1.5">เวลาสิ้นสุด</label>
+                          <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-400 tracking-wider uppercase mb-1.5">เวลาสิ้นสุด</label>
                           <input
                             type="time"
                             value={formData.end_time}
                             onChange={e => setFormData(prev => ({ ...prev, end_time: e.target.value }))}
-                            className="w-full bg-slate-50 border border-slate-200 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800"
+                            className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-neutral-100"
                           />
                         </div>
                       </div>
@@ -538,25 +538,25 @@ export const PromoManager: React.FC = () => {
               {formData.type === 'fixed' && (
                 <>
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1.5">จำนวนเงินที่ลด (บาท)</label>
+                    <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-400 tracking-wider uppercase mb-1.5">จำนวนเงินที่ลด (บาท)</label>
                     <input
                       type="number"
                       min="1"
                       value={formData.discount_amount}
                       onChange={e => setFormData(prev => ({ ...prev, discount_amount: parseFloat(e.target.value) || 0 }))}
-                      className="w-full bg-slate-50 border border-slate-200 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800"
+                      className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-neutral-100"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1.5">รหัสคูปอง (ถ้ามี)</label>
+                    <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-400 tracking-wider uppercase mb-1.5">รหัสคูปอง (ถ้ามี)</label>
                     <input
                       type="text"
                       value={formData.coupon_code}
                       onChange={e => setFormData(prev => ({ ...prev, coupon_code: e.target.value }))}
                       placeholder='เช่น "FRIDAY50"'
-                      className="w-full bg-slate-50 border border-slate-200 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 placeholder-slate-400 uppercase"
+                      className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-neutral-100 placeholder-slate-400 dark:placeholder-neutral-500 uppercase"
                     />
-                    <p className="text-[10px] text-slate-400 mt-1 font-medium">ถ้าไม่ระบุ ระบบจะใช้ส่วนลดอัตโนมัติโดยไม่ต้องใส่โค้ด</p>
+                    <p className="text-[10px] text-slate-400 dark:text-neutral-500 mt-1 font-medium">ถ้าไม่ระบุ ระบบจะใช้ส่วนลดอัตโนมัติโดยไม่ต้องใส่โค้ด</p>
                   </div>
                 </>
               )}
@@ -565,32 +565,32 @@ export const PromoManager: React.FC = () => {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1.5">ซื้อ (จาน)</label>
+                      <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-400 tracking-wider uppercase mb-1.5">ซื้อ (จาน)</label>
                       <input
                         type="number"
                         min="1"
                         value={formData.buy_qty}
                         onChange={e => setFormData(prev => ({ ...prev, buy_qty: parseInt(e.target.value, 10) || 1 }))}
-                        className="w-full bg-slate-50 border border-slate-200 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800"
+                        className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-neutral-100"
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1.5">แถม (จาน)</label>
+                      <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-400 tracking-wider uppercase mb-1.5">แถม (จาน)</label>
                       <input
                         type="number"
                         min="1"
                         value={formData.free_qty}
                         onChange={e => setFormData(prev => ({ ...prev, free_qty: parseInt(e.target.value, 10) || 1 }))}
-                        className="w-full bg-slate-50 border border-slate-200 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800"
+                        className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-neutral-100"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1.5">เลือกเมนูที่ร่วมรายการ *</label>
+                    <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-400 tracking-wider uppercase mb-1.5">เลือกเมนูที่ร่วมรายการ *</label>
                     <select
                       value={formData.menu_item_id}
                       onChange={e => setFormData(prev => ({ ...prev, menu_item_id: e.target.value ? parseInt(e.target.value, 10) : '' }))}
-                      className="w-full bg-slate-50 border border-slate-200 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 cursor-pointer appearance-none"
+                      className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-neutral-100 cursor-pointer appearance-none"
                     >
                       <option value="">-- เลือกเมนูอาหาร --</option>
                       {menuItems.map(item => (
@@ -603,47 +603,47 @@ export const PromoManager: React.FC = () => {
 
               {/* Min order + date range */}
               <div>
-                <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1.5">ยอดสั่งขั้นต่ำ (บาท, 0 = ไม่จำกัด)</label>
+                <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-400 tracking-wider uppercase mb-1.5">ยอดสั่งขั้นต่ำ (บาท, 0 = ไม่จำกัด)</label>
                 <input
                   type="number"
                   min="0"
                   value={formData.min_order_amount}
                   onChange={e => setFormData(prev => ({ ...prev, min_order_amount: parseFloat(e.target.value) || 0 }))}
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800"
+                  className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-neutral-100"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1.5">วันที่เริ่ม (ไม่บังคับ)</label>
+                  <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-400 tracking-wider uppercase mb-1.5">วันที่เริ่ม (ไม่บังคับ)</label>
                   <input
                     type="date"
                     value={formData.start_date}
                     onChange={e => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800"
+                    className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-neutral-100"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1.5">วันที่สิ้นสุด (ไม่บังคับ)</label>
+                  <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-400 tracking-wider uppercase mb-1.5">วันที่สิ้นสุด (ไม่บังคับ)</label>
                   <input
                     type="date"
                     value={formData.end_date}
                     onChange={e => setFormData(prev => ({ ...prev, end_date: e.target.value }))}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800"
+                    className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-neutral-100"
                   />
                 </div>
               </div>
 
               {/* Active toggle */}
-              <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                <span className="text-xs font-bold text-slate-700">สถานะโปรโมชั่น</span>
+              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl">
+                <span className="text-xs font-bold text-slate-700 dark:text-neutral-200">สถานะโปรโมชั่น</span>
                 <button
                   type="button"
                   onClick={() => setFormData(prev => ({ ...prev, is_active: !prev.is_active }))}
                   className={`px-3 py-1 rounded-lg text-xs font-bold border transition cursor-pointer ${
                     formData.is_active
-                      ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                      : 'bg-slate-100 border-slate-200 text-slate-500'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-300'
+                      : 'bg-slate-100 dark:bg-neutral-700 border-slate-200 dark:border-neutral-600 text-slate-500 dark:text-neutral-400'
                   }`}
                 >
                   {formData.is_active ? '✓ เปิดใช้งาน' : '✗ ปิดใช้งาน'}
@@ -651,14 +651,14 @@ export const PromoManager: React.FC = () => {
               </div>
 
               {/* Actions */}
-              <div className="flex gap-2 pt-3 border-t border-slate-100">
-                <button onClick={closeModal} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl active:scale-97 transition cursor-pointer">
+              <div className="flex gap-2 pt-3 border-t border-slate-100 dark:border-neutral-800">
+                <button onClick={closeModal} className="flex-1 py-2.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-600 dark:text-neutral-300 text-xs font-bold rounded-xl active:scale-97 transition cursor-pointer">
                   ยกเลิก
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white text-xs font-extrabold rounded-xl transition active:scale-97 flex items-center justify-center gap-2 cursor-pointer shadow-sm shadow-red-600/20"
+                  className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 disabled:bg-slate-300 dark:disabled:bg-neutral-700 text-white text-xs font-extrabold rounded-xl transition active:scale-97 flex items-center justify-center gap-2 cursor-pointer shadow-sm shadow-red-600/20"
                 >
                   {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
                   <span>{isSaving ? 'กำลังบันทึก...' : (editingPromo ? 'บันทึกการแก้ไข' : 'สร้างโปรโมชั่น')}</span>
@@ -672,24 +672,24 @@ export const PromoManager: React.FC = () => {
       {/* ============ DELETE MODAL ============ */}
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="w-full max-w-sm bg-white border border-slate-200 rounded-3xl p-6 shadow-xl">
+          <div className="w-full max-w-sm bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl p-6 shadow-xl">
             <div className="text-center mb-5">
-              <div className="w-14 h-14 bg-rose-50 border border-rose-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Trash2 className="w-7 h-7 text-rose-600" />
+              <div className="w-14 h-14 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Trash2 className="w-7 h-7 text-rose-600 dark:text-rose-400" />
               </div>
-              <h3 className="text-base font-extrabold text-slate-900 mb-1">ยืนยันการลบโปรโมชั่น</h3>
-              <p className="text-slate-600 text-xs">
-                คุณต้องการลบโปรโมชั่น <span className="font-bold text-rose-600">"{deleteTarget.name}"</span> ใช่หรือไม่?
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-neutral-100 mb-1">ยืนยันการลบโปรโมชั่น</h3>
+              <p className="text-slate-600 dark:text-neutral-300 text-xs">
+                คุณต้องการลบโปรโมชั่น <span className="font-bold text-rose-600 dark:text-rose-400">"{deleteTarget.name}"</span> ใช่หรือไม่?
               </p>
             </div>
             <div className="flex gap-2">
-              <button onClick={() => setDeleteTarget(null)} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl active:scale-97 transition cursor-pointer">
+              <button onClick={() => setDeleteTarget(null)} className="flex-1 py-2.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-600 dark:text-neutral-300 text-xs font-bold rounded-xl active:scale-97 transition cursor-pointer">
                 ยกเลิก
               </button>
               <button
                 onClick={handleDelete}
                 disabled={isDeleting}
-                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:bg-slate-300 text-white text-xs font-extrabold rounded-xl transition active:scale-97 flex items-center justify-center gap-2 cursor-pointer shadow-sm shadow-rose-600/20"
+                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:bg-slate-300 dark:disabled:bg-neutral-700 text-white text-xs font-extrabold rounded-xl transition active:scale-97 flex items-center justify-center gap-2 cursor-pointer shadow-sm shadow-rose-600/20"
               >
                 {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                 <span>{isDeleting ? 'กำลังลบ...' : 'ลบโปรโมชั่น'}</span>

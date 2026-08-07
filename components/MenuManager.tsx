@@ -237,23 +237,23 @@ export const MenuManager: React.FC = () => {
   return (
     <div className="space-y-6 font-sans">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 rounded-2xl shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 p-5 rounded-2xl shadow-sm">
         <div>
-          <h2 className="text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+          <h2 className="text-xl font-extrabold text-slate-900 dark:text-neutral-100 tracking-tight">
             จัดการเมนูอาหาร (Menu Manager)
           </h2>
-          <p className="text-slate-500 dark:text-slate-400 text-xs font-medium mt-0.5">เพิ่ม แก้ไข หรือลบรายการอาหารในระบบ POS</p>
+          <p className="text-slate-500 dark:text-neutral-400 text-xs font-medium mt-0.5">เพิ่ม แก้ไข หรือลบรายการอาหารในระบบ POS</p>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="relative w-full md:w-60">
-            <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3 top-2.5" />
+            <Search className="w-4 h-4 text-slate-400 dark:text-neutral-500 absolute left-3 top-2.5" />
             <input
               type="text"
               placeholder="ค้นหาเมนู..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-red-500 font-semibold"
+              className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-800 dark:text-neutral-100 placeholder-slate-400 dark:placeholder-neutral-500 focus:outline-none focus:border-red-500 font-semibold"
             />
           </div>
 
@@ -276,7 +276,7 @@ export const MenuManager: React.FC = () => {
             className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition cursor-pointer border ${
               filterCategory === cat
                 ? 'bg-red-600 text-white border-red-600 shadow-xs'
-                : 'bg-white dark:bg-slate-800/90 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+                : 'bg-white dark:bg-neutral-800/90 border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-neutral-700'
             }`}
           >
             {cat} {cat !== 'ทั้งหมด' && <span className="text-[10px] opacity-80 ml-0.5">({items.filter(i => i.category === cat).length})</span>}
@@ -302,11 +302,11 @@ export const MenuManager: React.FC = () => {
           <Loader2 className="w-8 h-8 text-red-600 animate-spin" />
         </div>
       ) : (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+        <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs font-extrabold bg-slate-50 dark:bg-slate-800/90">
+                <tr className="border-b border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-neutral-300 text-xs font-extrabold bg-slate-50 dark:bg-neutral-800/90">
                   <th className="py-3.5 px-5">เมนู</th>
                   <th className="py-3.5 px-4 text-right">ราคา</th>
                   <th className="py-3.5 px-4 text-center">หมวดหมู่</th>
@@ -314,12 +314,12 @@ export const MenuManager: React.FC = () => {
                   <th className="py-3.5 px-4 text-center">จัดการ</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+              <tbody className="divide-y divide-slate-100 dark:divide-neutral-800 text-xs">
                 {paginatedItems.map(item => (
-                  <tr key={item.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
-                    <td className="py-3.5 px-6 font-bold text-slate-900 dark:text-slate-100">
+                  <tr key={item.id} className="hover:bg-slate-50/80 dark:hover:bg-neutral-800/50 transition-colors">
+                    <td className="py-3.5 px-6 font-bold text-slate-900 dark:text-neutral-100">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden shrink-0 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 overflow-hidden shrink-0 flex items-center justify-center">
                           {item.image_url ? (
                             <img
                               src={item.image_url}
@@ -328,7 +328,7 @@ export const MenuManager: React.FC = () => {
                               onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
                             />
                           ) : (
-                            <UtensilsCrossed className="w-4 h-4 text-slate-400 dark:text-slate-500 stroke-[1.5]" />
+                            <UtensilsCrossed className="w-4 h-4 text-slate-400 dark:text-neutral-500 stroke-[1.5]" />
                           )}
                         </div>
                         <div>
@@ -343,10 +343,10 @@ export const MenuManager: React.FC = () => {
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <span className="font-extrabold text-red-600 dark:text-red-400 text-sm">{item.price}</span>
-                      <span className="text-slate-400 dark:text-slate-500 text-xs ml-0.5 font-semibold">฿</span>
+                      <span className="text-slate-400 dark:text-neutral-500 text-xs ml-0.5 font-semibold">฿</span>
                     </td>
                     <td className="py-3.5 px-4 text-center">
-                      <span className="text-[11px] font-bold px-2.5 py-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-lg">
+                      <span className="text-[11px] font-bold px-2.5 py-1 bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-neutral-300 rounded-lg">
                         {item.category || '-'}
                       </span>
                     </td>
@@ -355,7 +355,7 @@ export const MenuManager: React.FC = () => {
                         {/* Toggle tracking button */}
                         <button
                           onClick={() => handleInlineToggleTracking(item.id, item.is_stock_tracked)}
-                          className="focus:outline-none cursor-pointer p-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                          className="focus:outline-none cursor-pointer p-1 rounded-md hover:bg-slate-100 dark:hover:bg-neutral-800 transition"
                           title={item.is_stock_tracked ? 'คลิกเพื่อปิดนับสต็อก' : 'คลิกเพื่อเปิดนับสต็อก'}
                         >
                           {item.is_stock_tracked ? (
@@ -364,7 +364,7 @@ export const MenuManager: React.FC = () => {
                               <span>นับสต็อก</span>
                             </div>
                           ) : (
-                            <div className="flex items-center gap-1 text-[11px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded-md">
+                            <div className="flex items-center gap-1 text-[11px] font-bold text-slate-500 dark:text-neutral-400 bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 px-2 py-0.5 rounded-md">
                               <ToggleLeft className="w-3.5 h-3.5" />
                               <span>ไม่จำกัด</span>
                             </div>
@@ -376,7 +376,7 @@ export const MenuManager: React.FC = () => {
                           <div className="flex items-center gap-1 ml-1">
                             <button
                               onClick={() => handleInlineStockUpdate(item.id, item.stock - 1)}
-                              className="p-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition active:scale-90 cursor-pointer"
+                              className="p-1 bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-md hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-300 transition active:scale-90 cursor-pointer"
                             >
                               <Minus className="w-3 h-3" />
                             </button>
@@ -385,11 +385,11 @@ export const MenuManager: React.FC = () => {
                               min="0"
                               value={item.stock}
                               onChange={e => handleInlineStockUpdate(item.id, parseInt(e.target.value, 10) || 0)}
-                              className={`w-12 text-center py-0.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-xs font-bold focus:outline-none focus:border-red-500 ${item.stock <= 3 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-slate-100'}`}
+                              className={`w-12 text-center py-0.5 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded text-xs font-bold focus:outline-none focus:border-red-500 ${item.stock <= 3 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-neutral-100'}`}
                             />
                             <button
                               onClick={() => handleInlineStockUpdate(item.id, item.stock + 1)}
-                              className="p-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition active:scale-90 cursor-pointer"
+                              className="p-1 bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-md hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-300 transition active:scale-90 cursor-pointer"
                             >
                               <Plus className="w-3 h-3" />
                             </button>
@@ -401,14 +401,14 @@ export const MenuManager: React.FC = () => {
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => openEditModal(item)}
-                          className="p-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition active:scale-95 cursor-pointer shadow-xs"
+                          className="p-1.5 bg-white dark:bg-neutral-800 hover:bg-slate-100 dark:hover:bg-neutral-700 border border-slate-200 dark:border-neutral-700 rounded-lg text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-neutral-100 transition active:scale-95 cursor-pointer shadow-xs"
                           title="แก้ไข"
                         >
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => setDeleteTarget(item)}
-                          className="p-1.5 bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-slate-200 dark:border-slate-700 hover:border-rose-200 dark:hover:border-rose-900/50 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition active:scale-95 cursor-pointer shadow-xs"
+                          className="p-1.5 bg-white dark:bg-neutral-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-slate-200 dark:border-neutral-700 hover:border-rose-200 dark:hover:border-rose-900/50 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition active:scale-95 cursor-pointer shadow-xs"
                           title="ลบ"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -420,8 +420,8 @@ export const MenuManager: React.FC = () => {
                 {filteredItems.length === 0 && (
                   <tr>
                     <td colSpan={5} className="py-16 text-center">
-                      <UtensilsCrossed className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-                      <p className="text-slate-400 dark:text-slate-500 font-medium text-xs">ไม่พบรายการเมนูที่ตรงกับคำค้นหา</p>
+                      <UtensilsCrossed className="w-10 h-10 text-slate-300 dark:text-neutral-600 mx-auto mb-3" />
+                      <p className="text-slate-400 dark:text-neutral-500 font-medium text-xs">ไม่พบรายการเมนูที่ตรงกับคำค้นหา</p>
                     </td>
                   </tr>
                 )}
@@ -430,14 +430,14 @@ export const MenuManager: React.FC = () => {
           </div>
 
           {/* Pagination Footer */}
-          <div className="px-5 py-3.5 bg-slate-50 dark:bg-slate-800/90 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-semibold text-slate-600 dark:text-slate-300">
+          <div className="px-5 py-3.5 bg-slate-50 dark:bg-neutral-800/90 border-t border-slate-200 dark:border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-semibold text-slate-600 dark:text-neutral-300">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5">
                 <span>แสดง</span>
                 <select
                   value={pageSize}
                   onChange={(e) => setPageSize(Number(e.target.value))}
-                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 font-bold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-red-500 cursor-pointer"
+                  className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded-lg px-2 py-1 font-bold text-slate-800 dark:text-neutral-100 focus:outline-none focus:border-red-500 cursor-pointer"
                 >
                   <option value={10}>10</option>
                   <option value={20}>20</option>
@@ -445,7 +445,7 @@ export const MenuManager: React.FC = () => {
                 </select>
                 <span>รายการ/หน้า</span>
               </div>
-              <span className="hidden sm:inline text-slate-300 dark:text-slate-700">|</span>
+              <span className="hidden sm:inline text-slate-300 dark:text-neutral-700">|</span>
               <span>
                 {totalItems > 0
                   ? `แสดง ${startIndex + 1} - ${endIndex} จากทั้งหมด ${totalItems} รายการ`
@@ -458,7 +458,7 @@ export const MenuManager: React.FC = () => {
                 <button
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  className="p-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                  className="p-1.5 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-lg hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-200 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -470,7 +470,7 @@ export const MenuManager: React.FC = () => {
                     className={`w-7 h-7 rounded-lg font-bold transition text-xs cursor-pointer ${
                       currentPage === page
                         ? 'bg-red-600 text-white shadow-xs'
-                        : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                        : 'bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-700'
                     }`}
                   >
                     {page}
@@ -480,7 +480,7 @@ export const MenuManager: React.FC = () => {
                 <button
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  className="p-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                  className="p-1.5 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-lg hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-200 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -493,14 +493,14 @@ export const MenuManager: React.FC = () => {
       {/* ============ CREATE/EDIT FORM MODAL ============ */}
       {showFormModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xl relative max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-md bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl p-6 shadow-xl relative max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
-            <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="text-base font-black text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100 dark:border-neutral-800">
+              <h3 className="text-base font-black text-slate-900 dark:text-neutral-100 flex items-center gap-2">
                 {editingItem ? <Pencil className="w-4 h-4 text-red-600 dark:text-red-400" /> : <Plus className="w-4 h-4 text-red-600 dark:text-red-400" />}
                 <span>{editingItem ? 'แก้ไขเมนู' : 'เพิ่มเมนูใหม่'}</span>
               </h3>
-              <button onClick={closeFormModal} className="p-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 rounded-full cursor-pointer">
+              <button onClick={closeFormModal} className="p-1.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-500 dark:text-neutral-400 rounded-full cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -508,19 +508,19 @@ export const MenuManager: React.FC = () => {
             <div className="space-y-4">
               {/* Name */}
               <div>
-                <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase mb-1.5">ชื่อเมนู *</label>
+                <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-400 tracking-wider uppercase mb-1.5">ชื่อเมนู *</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="เช่น ราเมงทงคตสึ"
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
+                  className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-neutral-100 placeholder-slate-400 dark:placeholder-neutral-500"
                 />
               </div>
 
               {/* Image URL */}
               <div>
-                <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase mb-1.5 flex items-center gap-1.5">
+                <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-400 tracking-wider uppercase mb-1.5 flex items-center gap-1.5">
                   <ImageIcon className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />
                   <span>รูปภาพเมนู (URL รูปภาพ)</span>
                 </label>
@@ -529,10 +529,10 @@ export const MenuManager: React.FC = () => {
                   value={formData.image_url || ''}
                   onChange={e => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
                   placeholder="https://images.unsplash.com/photo-..."
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
+                  className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-neutral-100 placeholder-slate-400 dark:placeholder-neutral-500"
                 />
                 {formData.image_url ? (
-                  <div className="mt-2.5 relative w-32 aspect-square rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800">
+                  <div className="mt-2.5 relative w-32 aspect-square rounded-xl overflow-hidden border border-slate-200 dark:border-neutral-700 bg-slate-100 dark:bg-neutral-800">
                     <img
                       src={formData.image_url}
                       alt="พรีวิวรูปเมนู"
@@ -548,14 +548,14 @@ export const MenuManager: React.FC = () => {
                     </button>
                   </div>
                 ) : (
-                  <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-medium">ใส่ลิงก์รูปภาพอาหารสำหรับแสดงภาพในหน้า POS และ QR สั่งอาหาร</p>
+                  <p className="text-[10px] text-slate-400 dark:text-neutral-500 mt-1 font-medium">ใส่ลิงก์รูปภาพอาหารสำหรับแสดงภาพในหน้า POS และ QR สั่งอาหาร</p>
                 )}
               </div>
 
               {/* Price + Category (2 columns) */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase mb-1.5">ราคา (บาท) *</label>
+                  <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-400 tracking-wider uppercase mb-1.5">ราคา (บาท) *</label>
                   <input
                     type="number"
                     min="0"
@@ -563,18 +563,18 @@ export const MenuManager: React.FC = () => {
                     value={formData.price || ''}
                     onChange={e => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
                     placeholder="0"
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
+                    className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-neutral-100 placeholder-slate-400 dark:placeholder-neutral-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase mb-1.5">หมวดหมู่</label>
+                  <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-400 tracking-wider uppercase mb-1.5">หมวดหมู่</label>
                   <select
                     value={formData.category}
                     onChange={e => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-slate-100 cursor-pointer appearance-none"
+                    className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-neutral-100 cursor-pointer appearance-none"
                   >
                     {CATEGORIES.map(cat => (
-                      <option key={cat} value={cat} className="dark:bg-slate-900">{cat}</option>
+                      <option key={cat} value={cat} className="dark:bg-neutral-900">{cat}</option>
                     ))}
                   </select>
                 </div>
@@ -583,14 +583,14 @@ export const MenuManager: React.FC = () => {
               {/* Stock */}
               <div className="grid grid-cols-2 gap-3 items-end">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase mb-1.5">สต็อกเริ่มต้น</label>
+                  <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-400 tracking-wider uppercase mb-1.5">สต็อกเริ่มต้น</label>
                   <input
                     type="number"
                     min="0"
                     value={formData.stock}
                     onChange={e => setFormData(prev => ({ ...prev, stock: parseInt(e.target.value, 10) || 0 }))}
                     disabled={!formData.is_stock_tracked}
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-slate-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 focus:border-red-500 focus:outline-none rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 dark:text-neutral-100 disabled:opacity-40 disabled:cursor-not-allowed"
                   />
                 </div>
                 <div>
@@ -600,7 +600,7 @@ export const MenuManager: React.FC = () => {
                     className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
                       formData.is_stock_tracked
                         ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-400'
-                        : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'
+                        : 'bg-slate-100 dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-500 dark:text-neutral-400'
                     }`}
                   >
                     {formData.is_stock_tracked ? '✓ นับสต็อก' : '∞ ไม่จำกัด'}
@@ -610,11 +610,11 @@ export const MenuManager: React.FC = () => {
 
 
               {/* Action Buttons */}
-              <div className="flex gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex gap-2 pt-3 border-t border-slate-100 dark:border-neutral-800">
                 <button
                   type="button"
                   onClick={closeFormModal}
-                  className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold rounded-xl active:scale-97 transition cursor-pointer"
+                  className="flex-1 py-2.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-600 dark:text-neutral-300 text-xs font-bold rounded-xl active:scale-97 transition cursor-pointer"
                 >
                   ยกเลิก
                 </button>
@@ -622,7 +622,7 @@ export const MenuManager: React.FC = () => {
                   type="button"
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white text-xs font-extrabold rounded-xl transition active:scale-97 flex items-center justify-center gap-2 cursor-pointer shadow-sm shadow-red-600/20"
+                  className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 disabled:bg-slate-300 dark:disabled:bg-neutral-800 text-white text-xs font-extrabold rounded-xl transition active:scale-97 flex items-center justify-center gap-2 cursor-pointer shadow-sm shadow-red-600/20"
                 >
                   {isSaving ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -640,28 +640,28 @@ export const MenuManager: React.FC = () => {
       {/* ============ DELETE CONFIRMATION MODAL ============ */}
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="w-full max-w-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xl">
+          <div className="w-full max-w-sm bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl p-6 shadow-xl">
             <div className="text-center mb-5">
               <div className="w-14 h-14 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Trash2 className="w-7 h-7 text-rose-600 dark:text-rose-400" />
               </div>
-              <h3 className="text-base font-extrabold text-slate-900 dark:text-slate-100 mb-1">ยืนยันการลบเมนู</h3>
-              <p className="text-slate-600 dark:text-slate-400 text-xs">
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-neutral-100 mb-1">ยืนยันการลบเมนู</h3>
+              <p className="text-slate-600 dark:text-neutral-400 text-xs">
                 คุณต้องการลบเมนู <span className="font-bold text-rose-600 dark:text-rose-400">"{deleteTarget.name}"</span> ใช่หรือไม่?
               </p>
-              <p className="text-slate-400 dark:text-slate-500 text-[10px] mt-1 font-medium">การดำเนินการนี้ไม่สามารถย้อนกลับได้</p>
+              <p className="text-slate-400 dark:text-neutral-500 text-[10px] mt-1 font-medium">การดำเนินการนี้ไม่สามารถย้อนกลับได้</p>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => setDeleteTarget(null)}
-                className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold rounded-xl active:scale-97 transition cursor-pointer"
+                className="flex-1 py-2.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-600 dark:text-neutral-300 text-xs font-bold rounded-xl active:scale-97 transition cursor-pointer"
               >
                 ยกเลิก
               </button>
               <button
                 onClick={handleDelete}
                 disabled={isDeleting}
-                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white text-xs font-extrabold rounded-xl transition active:scale-97 flex items-center justify-center gap-2 cursor-pointer shadow-sm shadow-rose-600/20"
+                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:bg-slate-300 dark:disabled:bg-neutral-800 text-white text-xs font-extrabold rounded-xl transition active:scale-97 flex items-center justify-center gap-2 cursor-pointer shadow-sm shadow-rose-600/20"
               >
                 {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                 <span>{isDeleting ? 'กำลังลบ...' : 'ลบเมนูนี้'}</span>

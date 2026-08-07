@@ -624,26 +624,26 @@ export const OwnerDashboard: React.FC = () => {
   return (
     <div className="space-y-8 font-sans w-full">
       {/* ส่วนหัวรายงาน */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 p-5 rounded-2xl shadow-sm">
           <div>
-            <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
+            <h2 className="text-xl font-extrabold text-slate-900 dark:text-neutral-100 tracking-tight">
               รายงานวิเคราะห์ยอดขายและระบบตรวจสอบ (Owner Dashboard)
             </h2>
-            <p className="text-slate-500 text-xs font-medium mt-0.5">วิเคราะห์ข้อมูลยอดขาย รายละเอียดธุรกรรม และประวัติสูญเสียวัตถุดิบ</p>
+            <p className="text-slate-500 dark:text-neutral-400 text-xs font-medium mt-0.5">วิเคราะห์ข้อมูลยอดขาย รายละเอียดธุรกรรม และประวัติสูญเสียวัตถุดิบ</p>
           </div>
           <button
             onClick={fetchDashboardData}
-            className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-xs font-extrabold text-slate-700 hover:text-slate-900 transition active:scale-95 cursor-pointer shadow-xs"
+            className="px-4 py-2.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 border border-slate-200 dark:border-neutral-700 rounded-xl text-xs font-extrabold text-slate-700 dark:text-neutral-200 hover:text-slate-900 dark:hover:text-neutral-100 transition active:scale-95 cursor-pointer shadow-xs"
           >
             รีเฟรชข้อมูลแดชบอร์ด
           </button>
         </div>
 
         {/* ========== Date Range Filter ========== */}
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-5 shadow-sm space-y-4">
           <div className="flex items-center gap-2 mb-1">
-            <CalendarDays className="w-4 h-4 text-red-600" />
-            <span className="text-sm font-extrabold text-slate-900">ช่วงเวลารายงาน</span>
+            <CalendarDays className="w-4 h-4 text-red-600 dark:text-red-400" />
+            <span className="text-sm font-extrabold text-slate-900 dark:text-neutral-100">ช่วงเวลารายงาน</span>
           </div>
 
           {/* Preset Buttons */}
@@ -655,7 +655,7 @@ export const OwnerDashboard: React.FC = () => {
                 className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all duration-200 cursor-pointer border ${
                   activePreset === p.key
                     ? 'bg-red-600 text-white border-red-600 shadow-xs'
-                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                    : 'bg-slate-50 dark:bg-neutral-800 text-slate-600 dark:text-neutral-300 border-slate-200 dark:border-neutral-700 hover:bg-slate-100 dark:hover:bg-neutral-700'
                 }`}
               >
                 {p.label}
@@ -665,105 +665,105 @@ export const OwnerDashboard: React.FC = () => {
 
           {/* Custom Date Pickers */}
           <div className="flex flex-wrap items-center gap-3 text-xs font-semibold">
-            <span className="text-slate-500 font-medium">จาก</span>
+            <span className="text-slate-500 dark:text-neutral-400 font-medium">จาก</span>
             <input
               type="date"
               value={toDateInputValue(startDate)}
               min={getMinDate()}
               max={toDateInputValue(endDate)}
               onChange={e => handleCustomDateChange('start', e.target.value)}
-              className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs font-semibold focus:border-red-500 focus:outline-none cursor-pointer"
+              className="bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-slate-800 dark:text-neutral-100 text-xs font-semibold focus:border-red-500 focus:outline-none cursor-pointer"
             />
-            <span className="text-slate-500 font-medium">ถึง</span>
+            <span className="text-slate-500 dark:text-neutral-400 font-medium">ถึง</span>
             <input
               type="date"
               value={toDateInputValue(endDate)}
               min={toDateInputValue(startDate)}
               max={toDateInputValue(new Date())}
               onChange={e => handleCustomDateChange('end', e.target.value)}
-              className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs font-semibold focus:border-red-500 focus:outline-none cursor-pointer"
+              className="bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-slate-800 dark:text-neutral-100 text-xs font-semibold focus:border-red-500 focus:outline-none cursor-pointer"
             />
           </div>
         </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-3 border-red-600 border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-3 border-red-600 animate-spin" />
           </div>
         ) : (
           <>
             {/* ========== กล่องสรุปสถิติตัวเลข ========== */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+              <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-5 shadow-sm flex items-center justify-between">
                 <div className="space-y-1">
-                  <div className="text-slate-500 text-xs font-semibold">ยอดขายสุทธิ</div>
-                  <div className="text-2xl font-black text-slate-900">{payments.netTotal.toLocaleString()} ฿</div>
+                  <div className="text-slate-500 dark:text-neutral-400 text-xs font-semibold">ยอดขายสุทธิ</div>
+                  <div className="text-2xl font-black text-slate-900 dark:text-neutral-100">{payments.netTotal.toLocaleString()} ฿</div>
                 </div>
-                <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100">
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-100 dark:border-emerald-900/50">
                   <DollarSign className="w-5 h-5" />
                 </div>
               </div>
 
-              <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+              <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-5 shadow-sm flex items-center justify-between">
                 <div className="space-y-1">
-                  <div className="text-slate-500 text-xs font-semibold">ต้นทุนวัตถุดิบ</div>
-                  <div className="text-2xl font-black text-slate-800">{ingredientCost.toLocaleString()} ฿</div>
+                  <div className="text-slate-500 dark:text-neutral-400 text-xs font-semibold">ต้นทุนวัตถุดิบ</div>
+                  <div className="text-2xl font-black text-slate-800 dark:text-neutral-200">{ingredientCost.toLocaleString()} ฿</div>
                 </div>
-                <div className="p-3 bg-amber-50 text-amber-600 rounded-xl border border-amber-100">
+                <div className="p-3 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 rounded-xl border border-amber-100 dark:border-amber-900/50">
                   <Package className="w-5 h-5" />
                 </div>
               </div>
 
-              <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+              <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-5 shadow-sm flex items-center justify-between">
                 <div className="space-y-1">
-                  <div className="text-slate-500 text-xs font-semibold">กำไรสุทธิ (Net Profit)</div>
-                  <div className={`text-2xl font-black ${(payments.netTotal - ingredientCost - totalWaste) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  <div className="text-slate-500 dark:text-neutral-400 text-xs font-semibold">กำไรสุทธิ (Net Profit)</div>
+                  <div className={`text-2xl font-black ${(payments.netTotal - ingredientCost - totalWaste) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                     {(payments.netTotal - ingredientCost - totalWaste).toLocaleString()} ฿
                   </div>
                 </div>
-                <div className="p-3 bg-slate-100 text-slate-700 rounded-xl border border-slate-200">
+                <div className="p-3 bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 rounded-xl border border-slate-200 dark:border-neutral-700">
                   <TrendingUp className="w-5 h-5" />
                 </div>
               </div>
 
-              <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+              <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-5 shadow-sm flex items-center justify-between">
                 <div className="space-y-1">
-                  <div className="text-slate-500 text-xs font-semibold">จำนวนออเดอร์ปิดบิล</div>
-                  <div className="text-2xl font-black text-slate-900">{payments.orderCount} บิล</div>
+                  <div className="text-slate-500 dark:text-neutral-400 text-xs font-semibold">จำนวนออเดอร์ปิดบิล</div>
+                  <div className="text-2xl font-black text-slate-900 dark:text-neutral-100">{payments.orderCount} บิล</div>
                 </div>
-                <div className="p-3 bg-blue-50 text-blue-600 rounded-xl border border-blue-100">
+                <div className="p-3 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-xl border border-blue-100 dark:border-blue-900/50">
                   <Clock className="w-5 h-5" />
                 </div>
               </div>
             </div>
 
             {/* ========== กราฟ Adaptive (Full Width) ========== */}
-            <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-6 w-full">
+            <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-6 shadow-sm space-y-6 w-full">
               <div className="flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-red-600" />
-                <h3 className="text-xs font-extrabold text-slate-800">{chartTitle}</h3>
+                <BarChart3 className="w-4 h-4 text-red-600 dark:text-red-400" />
+                <h3 className="text-xs font-extrabold text-slate-800 dark:text-neutral-200">{chartTitle}</h3>
               </div>
 
               {chartBars.length > 0 ? (
                 <ChartContainer config={chartConfig} className="h-72 w-full">
                   <BarChart data={chartBars} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
-                    <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#334155" />
                     <XAxis
                       dataKey="label"
                       tickLine={false}
                       axisLine={false}
                       tickMargin={8}
-                      tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }}
+                      tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 600 }}
                     />
                     <YAxis
                       tickLine={false}
                       axisLine={false}
                       tickMargin={8}
                       tickFormatter={(val) => `${val.toLocaleString()} ฿`}
-                      tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }}
+                      tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 600 }}
                     />
                     <ChartTooltip
-                      cursor={{ fill: 'rgba(241, 245, 249, 0.6)' }}
+                      cursor={{ fill: 'rgba(51, 65, 85, 0.4)' }}
                       content={<ChartTooltipContent formatter={(value) => `${Number(value).toLocaleString()} ฿`} />}
                     />
                     <Bar
@@ -774,7 +774,7 @@ export const OwnerDashboard: React.FC = () => {
                   </BarChart>
                 </ChartContainer>
               ) : (
-                <div className="h-64 flex items-center justify-center text-slate-400 text-xs font-medium">
+                <div className="h-64 flex items-center justify-center text-slate-400 dark:text-neutral-500 text-xs font-medium">
                   ไม่มีข้อมูลยอดขายในช่วงเวลานี้
                 </div>
               )}
@@ -783,7 +783,7 @@ export const OwnerDashboard: React.FC = () => {
             {/* ========== Row 1: เมนูขายดี&หมวดหมู่ (Card 1) + สมาชิก vs ทั่วไป (Card 2) ========== */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Card 1: การจัดอันดับสินค้าขายดี & สัดส่วนหมวดหมู่ */}
-              <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-5">
+              <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-5">
                 <div>
                   {/* Card 1 Header + Badge Tabs */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
@@ -791,21 +791,21 @@ export const OwnerDashboard: React.FC = () => {
                       {topSellerTab === 'sellers' ? (
                         <Award className="w-4 h-4 text-amber-500" />
                       ) : (
-                        <PieChart className="w-4 h-4 text-purple-600" />
+                        <PieChart className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                       )}
-                      <h3 className="text-xs font-extrabold text-slate-800">
+                      <h3 className="text-xs font-extrabold text-slate-800 dark:text-neutral-200">
                         {topSellerTab === 'sellers' ? 'จัดอันดับเมนูขายดี' : 'สัดส่วนยอดขายตามหมวดหมู่'}
                       </h3>
                     </div>
 
                     {/* Badge Tabs */}
-                    <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/80 self-start sm:self-auto">
+                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-neutral-800 p-1 rounded-xl border border-slate-200/80 dark:border-neutral-700 self-start sm:self-auto">
                       <button
                         onClick={() => setTopSellerTab('sellers')}
                         className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                           topSellerTab === 'sellers'
-                            ? 'bg-white text-slate-900 shadow-xs'
-                            : 'text-slate-500 hover:text-slate-800'
+                            ? 'bg-white dark:bg-neutral-900 text-slate-900 dark:text-neutral-100 shadow-xs'
+                            : 'text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-neutral-200'
                         }`}
                       >
                         🏆 รายการขายดี
@@ -814,8 +814,8 @@ export const OwnerDashboard: React.FC = () => {
                         onClick={() => setTopSellerTab('categories')}
                         className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                           topSellerTab === 'categories'
-                            ? 'bg-white text-slate-900 shadow-xs'
-                            : 'text-slate-500 hover:text-slate-800'
+                            ? 'bg-white dark:bg-neutral-900 text-slate-900 dark:text-neutral-100 shadow-xs'
+                            : 'text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-neutral-200'
                         }`}
                       >
                         📊 หมวดหมู่
@@ -827,25 +827,25 @@ export const OwnerDashboard: React.FC = () => {
                   {topSellerTab === 'sellers' ? (
                     <div className="space-y-4">
                       {topSellers.slice(0, 5).map((item, idx) => (
-                        <div key={item.name} className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+                        <div key={item.name} className="flex items-center justify-between border-b border-slate-100 dark:border-neutral-800 pb-3 last:border-0 last:pb-0">
                           <div className="flex items-center gap-3">
                             <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${
-                              idx === 0 ? 'bg-amber-100 text-amber-700 border border-amber-200' :
-                              idx === 1 ? 'bg-slate-100 text-slate-700 border border-slate-200' :
-                              'bg-slate-50 text-slate-500 border border-slate-200'
+                              idx === 0 ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900/50' :
+                              idx === 1 ? 'bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 border border-slate-200 dark:border-neutral-700' :
+                              'bg-slate-50 dark:bg-neutral-800/60 text-slate-500 dark:text-neutral-400 border border-slate-200 dark:border-neutral-700'
                             }`}>
                               {idx + 1}
                             </span>
-                            <span className="text-xs font-bold text-slate-800">{item.name}</span>
+                            <span className="text-xs font-bold text-slate-800 dark:text-neutral-200">{item.name}</span>
                           </div>
                           <div className="text-right">
-                            <div className="text-xs font-black text-slate-900">{item.quantity} จาน</div>
-                            <div className="text-[10px] text-slate-400 font-semibold">{item.revenue.toLocaleString()} ฿</div>
+                            <div className="text-xs font-black text-slate-900 dark:text-neutral-100">{item.quantity} จาน</div>
+                            <div className="text-[10px] text-slate-400 dark:text-neutral-500 font-semibold">{item.revenue.toLocaleString()} ฿</div>
                           </div>
                         </div>
                       ))}
                       {topSellers.length === 0 && (
-                        <div className="text-center py-10 text-slate-400 text-xs font-medium">
+                        <div className="text-center py-10 text-slate-400 dark:text-neutral-500 text-xs font-medium">
                           ยังไม่มีรายการจำหน่ายในช่วงเวลานี้
                         </div>
                       )}
@@ -854,25 +854,25 @@ export const OwnerDashboard: React.FC = () => {
                     /* Tab 2: Category Breakdown */
                     <div className="space-y-4">
                       {categorySellers.map((cat) => (
-                        <div key={cat.category} className="space-y-1.5 border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+                        <div key={cat.category} className="space-y-1.5 border-b border-slate-100 dark:border-neutral-800 pb-3 last:border-0 last:pb-0">
                           <div className="flex justify-between items-center text-xs">
-                            <span className="font-bold text-slate-800">{cat.category}</span>
+                            <span className="font-bold text-slate-800 dark:text-neutral-200">{cat.category}</span>
                             <div className="flex items-center gap-2">
-                              <span className="text-slate-500 font-semibold text-[11px]">{cat.quantity} จาน</span>
-                              <span className="font-black text-slate-900">{cat.revenue.toLocaleString()} ฿ ({cat.percentage}%)</span>
+                              <span className="text-slate-500 dark:text-neutral-400 font-semibold text-[11px]">{cat.quantity} จาน</span>
+                              <span className="font-black text-slate-900 dark:text-neutral-100">{cat.revenue.toLocaleString()} ฿ ({cat.percentage}%)</span>
                             </div>
                           </div>
                           {/* Progress bar */}
-                          <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="w-full h-2 bg-slate-100 dark:bg-neutral-800 rounded-full overflow-hidden">
                             <div
-                              className="h-full bg-purple-600 rounded-full transition-all duration-300"
+                              className="h-full bg-purple-600 dark:bg-purple-500 rounded-full transition-all duration-300"
                               style={{ width: `${Math.min(100, Math.max(0, cat.percentage))}%` }}
                             />
                           </div>
                         </div>
                       ))}
                       {categorySellers.length === 0 && (
-                        <div className="text-center py-10 text-slate-400 text-xs font-medium">
+                        <div className="text-center py-10 text-slate-400 dark:text-neutral-500 text-xs font-medium">
                           ยังไม่มีข้อมูลหมวดหมู่ในช่วงเวลานี้
                         </div>
                       )}
@@ -882,29 +882,29 @@ export const OwnerDashboard: React.FC = () => {
               </div>
 
               {/* Card 2: วิเคราะห์การตลาด & โปรโมชั่น (Hybrid Marketing & Loyalty Card) */}
-              <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-5">
+              <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-5">
                 <div>
                   {/* Card Header & Badge Tabs */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
                     <div className="flex items-center gap-2">
                       {marketingTab === 'promotions' ? (
-                        <Tag className="w-4 h-4 text-purple-600" />
+                        <Tag className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                       ) : (
-                        <Users className="w-4 h-4 text-sky-600" />
+                        <Users className="w-4 h-4 text-sky-600 dark:text-sky-400" />
                       )}
-                      <h3 className="text-xs font-extrabold text-slate-800">
+                      <h3 className="text-xs font-extrabold text-slate-800 dark:text-neutral-200">
                         วิเคราะห์การตลาด & โปรโมชั่น (Marketing & Loyalty Insights)
                       </h3>
                     </div>
 
                     {/* Badge Tabs */}
-                    <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/80 self-start sm:self-auto">
+                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-neutral-800 p-1 rounded-xl border border-slate-200/80 dark:border-neutral-700 self-start sm:self-auto">
                       <button
                         onClick={() => setMarketingTab('promotions')}
                         className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                           marketingTab === 'promotions'
-                            ? 'bg-white text-slate-900 shadow-xs'
-                            : 'text-slate-500 hover:text-slate-800'
+                            ? 'bg-white dark:bg-neutral-900 text-slate-900 dark:text-neutral-100 shadow-xs'
+                            : 'text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-neutral-200'
                         }`}
                       >
                         🏷️ โปรโมชั่นยอดฮิต
@@ -913,8 +913,8 @@ export const OwnerDashboard: React.FC = () => {
                         onClick={() => setMarketingTab('loyalty')}
                         className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                           marketingTab === 'loyalty'
-                            ? 'bg-white text-slate-900 shadow-xs'
-                            : 'text-slate-500 hover:text-slate-800'
+                            ? 'bg-white dark:bg-neutral-900 text-slate-900 dark:text-neutral-100 shadow-xs'
+                            : 'text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-neutral-200'
                         }`}
                       >
                         👑 พฤติกรรมสมาชิก & แต้ม
@@ -926,22 +926,22 @@ export const OwnerDashboard: React.FC = () => {
                   {marketingTab === 'promotions' ? (
                     <div className="space-y-4">
                       {promotionStats.slice(0, 5).map((promo, idx) => (
-                        <div key={promo.promotion_name} className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+                        <div key={promo.promotion_name} className="flex items-center justify-between border-b border-slate-100 dark:border-neutral-800 pb-3 last:border-0 last:pb-0">
                           <div className="flex items-center gap-2.5 min-w-0">
                             <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
-                              idx === 0 ? 'bg-purple-100 text-purple-700 border border-purple-200' :
-                              idx === 1 ? 'bg-slate-100 text-slate-700 border border-slate-200' :
-                              'bg-slate-50 text-slate-500 border border-slate-200'
+                              idx === 0 ? 'bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-900/50' :
+                              idx === 1 ? 'bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 border border-slate-200 dark:border-neutral-700' :
+                              'bg-slate-50 dark:bg-neutral-800/60 text-slate-500 dark:text-neutral-400 border border-slate-200 dark:border-neutral-700'
                             }`}>
                               {idx + 1}
                             </span>
                             <div className="min-w-0">
                               <div className="flex items-center gap-1.5">
-                                <span className="text-xs font-bold text-slate-800 truncate">{promo.promotion_name}</span>
+                                <span className="text-xs font-bold text-slate-800 dark:text-neutral-200 truncate">{promo.promotion_name}</span>
                                 <span className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded-md border shrink-0 ${
-                                  promo.promotion_type === 'percentage' ? 'bg-purple-50 text-purple-700 border-purple-200' :
-                                  promo.promotion_type === 'fixed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                  'bg-amber-50 text-amber-700 border-amber-200'
+                                  promo.promotion_type === 'percentage' ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-900/50' :
+                                  promo.promotion_type === 'fixed' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900/50' :
+                                  'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-900/50'
                                 }`}>
                                   {promo.promotion_type === 'percentage' ? '% ส่วนลด' : promo.promotion_type === 'fixed' ? 'ลดคงที่' : 'แถมสินค้า'}
                                 </span>
@@ -949,21 +949,21 @@ export const OwnerDashboard: React.FC = () => {
                             </div>
                           </div>
                           <div className="text-right shrink-0">
-                            <div className="text-xs font-black text-slate-900">{promo.usage_count} บิล</div>
-                            <div className="text-[10px] text-purple-600 font-bold">-{promo.total_discount_value.toLocaleString()} ฿</div>
+                            <div className="text-xs font-black text-slate-900 dark:text-neutral-100">{promo.usage_count} บิล</div>
+                            <div className="text-[10px] text-purple-600 dark:text-purple-400 font-bold">-{promo.total_discount_value.toLocaleString()} ฿</div>
                           </div>
                         </div>
                       ))}
 
                       {promotionStats.length > 0 ? (
-                        <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs bg-purple-50/50 p-3 rounded-xl border border-purple-100">
-                          <span className="font-semibold text-purple-900">ส่วนลดโปรโมชั่นรวม ({promoOrderCount} บิล):</span>
-                          <span className="font-black text-purple-700">
+                        <div className="mt-4 pt-3 border-t border-slate-100 dark:border-neutral-800 flex items-center justify-between text-xs bg-purple-50/50 dark:bg-purple-950/20 p-3 rounded-xl border border-purple-100 dark:border-purple-900/40">
+                          <span className="font-semibold text-purple-900 dark:text-purple-300">ส่วนลดโปรโมชั่นรวม ({promoOrderCount} บิล):</span>
+                          <span className="font-black text-purple-700 dark:text-purple-400">
                             -{totalPromoDiscount.toLocaleString()} ฿
                           </span>
                         </div>
                       ) : (
-                        <div className="text-center py-10 text-slate-400 text-xs font-medium">
+                        <div className="text-center py-10 text-slate-400 dark:text-neutral-500 text-xs font-medium">
                           ยังไม่มีรายการใช้งานโปรโมชั่นในช่วงเวลานี้
                         </div>
                       )}
@@ -972,19 +972,19 @@ export const OwnerDashboard: React.FC = () => {
                     /* Tab 2: Loyalty & Points Analytics */
                     <div className="space-y-5">
                       {/* Visual Revenue Bar Comparison */}
-                      <div className="space-y-2 bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                      <div className="space-y-2 bg-slate-50 dark:bg-neutral-800/80 border border-slate-100 dark:border-neutral-700 p-4 rounded-xl">
                         <div className="flex justify-between text-xs font-bold mb-1">
-                          <span className="text-amber-600 flex items-center gap-1">
+                          <span className="text-amber-600 dark:text-amber-400 flex items-center gap-1">
                             👑 สมาชิก: {memberStats.memberRevenue.toLocaleString()} ฿ (
                             {payments.netTotal > 0 ? Math.round((memberStats.memberRevenue / payments.netTotal) * 100) : 0}%)
                           </span>
-                          <span className="text-sky-600 flex items-center gap-1">
+                          <span className="text-sky-600 dark:text-sky-400 flex items-center gap-1">
                             👤 ทั่วไป: {memberStats.nonMemberRevenue.toLocaleString()} ฿ (
                             {payments.netTotal > 0 ? Math.round((memberStats.nonMemberRevenue / payments.netTotal) * 100) : 0}%)
                           </span>
                         </div>
                         {/* Split Bar */}
-                        <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden flex">
+                        <div className="w-full h-3 bg-slate-200 dark:bg-neutral-700 rounded-full overflow-hidden flex">
                           <div
                             className="bg-amber-500 h-full transition-all duration-300"
                             style={{ width: `${payments.netTotal > 0 ? Math.round((memberStats.memberRevenue / payments.netTotal) * 100) : 50}%` }}
@@ -998,30 +998,30 @@ export const OwnerDashboard: React.FC = () => {
 
                       {/* Stats Breakdown */}
                       <div className="grid grid-cols-2 gap-4">
-                        <div className="p-3.5 bg-amber-50/60 border border-amber-200/80 rounded-xl space-y-1">
-                          <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider">ยอดซื้อเฉลี่ย / บิลสมาชิก</p>
-                          <p className="text-lg font-black text-amber-800">{memberStats.avgMemberSpend.toLocaleString()} ฿</p>
-                          <p className="text-[10px] text-amber-600 font-semibold">{memberStats.memberOrderCount} บิล</p>
+                        <div className="p-3.5 bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/50 rounded-xl space-y-1">
+                          <p className="text-[10px] font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider">ยอดซื้อเฉลี่ย / บิลสมาชิก</p>
+                          <p className="text-lg font-black text-amber-800 dark:text-amber-200">{memberStats.avgMemberSpend.toLocaleString()} ฿</p>
+                          <p className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold">{memberStats.memberOrderCount} บิล</p>
                         </div>
 
-                        <div className="p-3.5 bg-sky-50/60 border border-sky-200/80 rounded-xl space-y-1">
-                          <p className="text-[10px] font-bold text-sky-700 uppercase tracking-wider">ยอดซื้อเฉลี่ย / บิลทั่วไป</p>
-                          <p className="text-lg font-black text-sky-800">{memberStats.avgNonMemberSpend.toLocaleString()} ฿</p>
-                          <p className="text-[10px] text-sky-600 font-semibold">{memberStats.nonMemberOrderCount} บิล</p>
+                        <div className="p-3.5 bg-sky-50/60 dark:bg-sky-950/30 border border-sky-200/80 dark:border-sky-900/50 rounded-xl space-y-1">
+                          <p className="text-[10px] font-bold text-sky-700 dark:text-sky-300 uppercase tracking-wider">ยอดซื้อเฉลี่ย / บิลทั่วไป</p>
+                          <p className="text-lg font-black text-sky-800 dark:text-sky-200">{memberStats.avgNonMemberSpend.toLocaleString()} ฿</p>
+                          <p className="text-[10px] text-sky-600 dark:text-sky-400 font-semibold">{memberStats.nonMemberOrderCount} บิล</p>
                         </div>
                       </div>
 
                       {/* Points Discount Highlight */}
-                      <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between">
+                      <div className="p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-xl flex items-center justify-between">
                         <div>
-                          <p className="text-xs font-extrabold text-amber-900">มูลค่าส่วนลดจากการใช้แต้มสะสม</p>
-                          <p className="text-[10px] font-semibold text-amber-700 mt-0.5">
+                          <p className="text-xs font-extrabold text-amber-900 dark:text-amber-200">มูลค่าส่วนลดจากการใช้แต้มสะสม</p>
+                          <p className="text-[10px] font-semibold text-amber-700 dark:text-amber-400 mt-0.5">
                             ลูกค้าแลกแต้มรวม {memberStats.pointsRedeemed.toLocaleString()} แต้ม
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-lg font-black text-amber-600">-{memberStats.pointsRedeemed.toLocaleString()} ฿</p>
-                          <p className="text-[10px] font-bold text-slate-500">
+                          <p className="text-lg font-black text-amber-600 dark:text-amber-400">-{memberStats.pointsRedeemed.toLocaleString()} ฿</p>
+                          <p className="text-[10px] font-bold text-slate-500 dark:text-neutral-400">
                             {detailedPayments.totalDiscount > 0
                               ? `คิดเป็น ${Math.round((memberStats.pointsRedeemed / detailedPayments.totalDiscount) * 100)}% ของส่วนลดรวม`
                               : 'ส่วนลดแลกแต้ม'}
@@ -1037,61 +1037,61 @@ export const OwnerDashboard: React.FC = () => {
             {/* ========== Row 2: ช่องทางชำระเงิน & ส่วนลด (Card 3) + สรุป Void Logs (Card 4) ========== */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
               {/* Card 3: สรุปช่องทางชำระเงิน & ส่วนลด */}
-              <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-5">
+              <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-5">
                 <div>
                   <div className="flex items-center gap-2 mb-6">
-                    <Wallet className="w-4 h-4 text-emerald-600" />
-                    <h3 className="text-xs font-extrabold text-slate-800">สรุปช่องทางชำระเงิน & ส่วนลด (Payment & Discounts)</h3>
+                    <Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    <h3 className="text-xs font-extrabold text-slate-800 dark:text-neutral-200">สรุปช่องทางชำระเงิน & ส่วนลด (Payment & Discounts)</h3>
                   </div>
 
                   {/* Payment methods breakdown */}
                   <div className="grid grid-cols-3 gap-3 mb-5">
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-center space-y-1">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase">💵 เงินสด</span>
-                      <p className="text-sm font-black text-slate-900">{detailedPayments.cashTotal.toLocaleString()} ฿</p>
-                      <span className="text-[10px] text-slate-400 font-semibold">{detailedPayments.cashCount} บิล</span>
+                    <div className="p-3 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-center space-y-1">
+                      <span className="text-[10px] font-bold text-slate-500 dark:text-neutral-400 uppercase">💵 เงินสด</span>
+                      <p className="text-sm font-black text-slate-900 dark:text-neutral-100">{detailedPayments.cashTotal.toLocaleString()} ฿</p>
+                      <span className="text-[10px] text-slate-400 dark:text-neutral-500 font-semibold">{detailedPayments.cashCount} บิล</span>
                     </div>
 
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-center space-y-1">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase">📱 PromptPay</span>
-                      <p className="text-sm font-black text-slate-900">{detailedPayments.promptpayTotal.toLocaleString()} ฿</p>
-                      <span className="text-[10px] text-slate-400 font-semibold">{detailedPayments.promptpayCount} บิล</span>
+                    <div className="p-3 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-center space-y-1">
+                      <span className="text-[10px] font-bold text-slate-500 dark:text-neutral-400 uppercase">📱 PromptPay</span>
+                      <p className="text-sm font-black text-slate-900 dark:text-neutral-100">{detailedPayments.promptpayTotal.toLocaleString()} ฿</p>
+                      <span className="text-[10px] text-slate-400 dark:text-neutral-500 font-semibold">{detailedPayments.promptpayCount} บิล</span>
                     </div>
 
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-center space-y-1">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase">🔀 ชำระผสม</span>
-                      <p className="text-sm font-black text-slate-900">{detailedPayments.mixedTotal.toLocaleString()} ฿</p>
-                      <span className="text-[10px] text-slate-400 font-semibold">{detailedPayments.mixedCount} บิล</span>
+                    <div className="p-3 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-center space-y-1">
+                      <span className="text-[10px] font-bold text-slate-500 dark:text-neutral-400 uppercase">🔀 ชำระผสม</span>
+                      <p className="text-sm font-black text-slate-900 dark:text-neutral-100">{detailedPayments.mixedTotal.toLocaleString()} ฿</p>
+                      <span className="text-[10px] text-slate-400 dark:text-neutral-500 font-semibold">{detailedPayments.mixedCount} บิล</span>
                     </div>
                   </div>
 
                   {/* Discounts Summary */}
-                  <div className="p-3.5 bg-rose-50/60 border border-rose-200/80 rounded-xl flex items-center justify-between">
+                  <div className="p-3.5 bg-rose-50/60 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-900/50 rounded-xl flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-extrabold text-rose-800">ส่วนลดการตลาดรวมที่ให้ลูกค้า</p>
-                      <p className="text-[10px] font-medium text-rose-600">จากโปรโมชั่นและส่วนลดแต้มสมาชิก</p>
+                      <p className="text-xs font-extrabold text-rose-800 dark:text-rose-300">ส่วนลดการตลาดรวมที่ให้ลูกค้า</p>
+                      <p className="text-[10px] font-medium text-rose-600 dark:text-rose-400">จากโปรโมชั่นและส่วนลดแต้มสมาชิก</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-base font-black text-rose-700">-{detailedPayments.totalDiscount.toLocaleString()} ฿</p>
-                      <p className="text-[10px] font-semibold text-slate-500">จากยอดก่อนลด {detailedPayments.totalSubtotal.toLocaleString()} ฿</p>
+                      <p className="text-base font-black text-rose-700 dark:text-rose-400">-{detailedPayments.totalDiscount.toLocaleString()} ฿</p>
+                      <p className="text-[10px] font-semibold text-slate-500 dark:text-neutral-400">จากยอดก่อนลด {detailedPayments.totalSubtotal.toLocaleString()} ฿</p>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Card 4: Void Logs Summary Card (Compact) */}
-              <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-5">
+              <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-5">
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                      <Trash2 className="w-4 h-4 text-rose-600" />
-                      <h3 className="text-xs font-extrabold text-slate-800">สรุปการยกเลิกรายการอาหาร (Void Summary)</h3>
+                      <Trash2 className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                      <h3 className="text-xs font-extrabold text-slate-800 dark:text-neutral-200">สรุปการยกเลิกรายการอาหาร (Void Summary)</h3>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-black text-rose-700 bg-rose-50 border border-rose-200 px-3 py-1 rounded-xl">
+                      <span className="text-xs font-black text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 px-3 py-1 rounded-xl">
                         สูญเสีย {totalWaste.toLocaleString()} ฿
                       </span>
-                      <span className="text-xs font-bold text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1 rounded-xl">
+                      <span className="text-xs font-bold text-slate-600 dark:text-neutral-300 bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 px-3 py-1 rounded-xl">
                         {voidCount} ครั้ง
                       </span>
                     </div>
@@ -1103,11 +1103,11 @@ export const OwnerDashboard: React.FC = () => {
                         {topVoidItems.map(([menuName, qty], idx) => {
                           const medals = ['🥇', '🥈', '🥉'];
                           return (
-                            <div key={menuName} className="flex items-center gap-2.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5">
+                            <div key={menuName} className="flex items-center gap-2.5 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-3 py-2.5">
                               <span className="text-base">{medals[idx]}</span>
                               <div className="min-w-0 flex-1">
-                                <div className="text-xs font-bold text-slate-900 truncate">{menuName}</div>
-                                <div className="text-[10px] text-slate-500 font-semibold">{qty} ครั้ง</div>
+                                <div className="text-xs font-bold text-slate-900 dark:text-neutral-100 truncate">{menuName}</div>
+                                <div className="text-[10px] text-slate-500 dark:text-neutral-400 font-semibold">{qty} ครั้ง</div>
                               </div>
                             </div>
                           );
@@ -1116,14 +1116,14 @@ export const OwnerDashboard: React.FC = () => {
 
                       <button
                         onClick={() => setShowVoidModal(true)}
-                        className="w-full py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-xs font-extrabold text-slate-700 hover:text-slate-900 transition cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+                        className="w-full py-2.5 bg-slate-50 dark:bg-neutral-800 hover:bg-slate-100 dark:hover:bg-neutral-700 border border-slate-200 dark:border-neutral-700 rounded-xl text-xs font-extrabold text-slate-700 dark:text-neutral-200 hover:text-slate-900 dark:hover:text-neutral-100 transition cursor-pointer flex items-center justify-center gap-2 shadow-xs"
                       >
-                        <ClipboardList className="w-3.5 h-3.5 text-red-600" />
+                        <ClipboardList className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />
                         ดูรายละเอียดทั้งหมด ({voidCount} รายการ)
                       </button>
                     </div>
                   ) : (
-                    <div className="text-center py-10 text-slate-400 text-xs font-medium">
+                    <div className="text-center py-10 text-slate-400 dark:text-neutral-500 text-xs font-medium">
                       ไม่มีการยกเลิกรายการอาหารในช่วงเวลานี้
                     </div>
                   )}
@@ -1134,16 +1134,16 @@ export const OwnerDashboard: React.FC = () => {
             {/* ========== Void Logs Modal ========== */}
             {showVoidModal && (
               <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4" onClick={() => setShowVoidModal(false)}>
-                <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-4xl max-h-[85vh] overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>
+                <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl w-full max-w-4xl max-h-[85vh] overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>
                   {/* Modal Header */}
-                  <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+                  <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-neutral-800">
                     <div className="flex items-center gap-2">
-                      <Trash2 className="w-4 h-4 text-rose-600" />
-                      <h3 className="text-sm font-extrabold text-slate-900">ประวัติการยกเลิกรายการอาหาร (Void Audit Log)</h3>
+                      <Trash2 className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                      <h3 className="text-sm font-extrabold text-slate-900 dark:text-neutral-100">ประวัติการยกเลิกรายการอาหาร (Void Audit Log)</h3>
                     </div>
                     <button
                       onClick={() => setShowVoidModal(false)}
-                      className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+                      className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 rounded-lg hover:bg-slate-100 dark:hover:bg-neutral-800 transition cursor-pointer"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -1153,7 +1153,7 @@ export const OwnerDashboard: React.FC = () => {
                   <div className="overflow-auto max-h-[calc(85vh-60px)] p-6">
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className="text-slate-700 text-xs font-extrabold border-b border-slate-200 pb-3 bg-slate-50">
+                        <tr className="text-slate-700 dark:text-neutral-300 text-xs font-extrabold border-b border-slate-200 dark:border-neutral-800 pb-3 bg-slate-50 dark:bg-neutral-800/90">
                           <th className="py-2.5 px-3">เวลา</th>
                           <th className="py-2.5 px-3">รายการอาหาร</th>
                           <th className="py-2.5 px-3 text-center">จำนวน</th>
@@ -1163,34 +1163,34 @@ export const OwnerDashboard: React.FC = () => {
                           <th className="py-2.5 px-3">พนักงาน</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 text-xs text-slate-800">
+                      <tbody className="divide-y divide-slate-100 dark:divide-neutral-800 text-xs text-slate-800 dark:text-neutral-200">
                         {voidLogs.map(log => (
-                          <tr key={log.id} className="hover:bg-slate-50/80 transition-colors">
-                            <td className="py-3 px-3 font-semibold text-slate-500">
+                          <tr key={log.id} className="hover:bg-slate-50/80 dark:hover:bg-neutral-800/50 transition-colors">
+                            <td className="py-3 px-3 font-semibold text-slate-500 dark:text-neutral-400">
                               {new Date(log.created_at).toLocaleDateString('th-TH', { day: '2-digit', month: 'short' })}{' '}
                               {new Date(log.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
                             </td>
-                            <td className="py-3 px-3 font-bold text-slate-900">{log.menu_name}</td>
-                            <td className="py-3 px-3 text-center font-bold text-slate-700">{log.quantity}</td>
-                            <td className="py-3 px-3 text-right font-black text-rose-600">{log.total_amount} ฿</td>
-                            <td className="py-3 px-3 text-slate-600 font-medium">{log.reason}</td>
+                            <td className="py-3 px-3 font-bold text-slate-900 dark:text-neutral-100">{log.menu_name}</td>
+                            <td className="py-3 px-3 text-center font-bold text-slate-700 dark:text-neutral-300">{log.quantity}</td>
+                            <td className="py-3 px-3 text-right font-black text-rose-600 dark:text-rose-400">{log.total_amount} ฿</td>
+                            <td className="py-3 px-3 text-slate-600 dark:text-neutral-300 font-medium">{log.reason}</td>
                             <td className="py-3 px-3 text-center">
                               {log.restored_stock ? (
-                                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                                <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 px-2 py-0.5 rounded-full">
                                   คืนสต็อก
                                 </span>
                               ) : (
-                                <span className="text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full">
+                                <span className="text-[10px] font-bold text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 px-2 py-0.5 rounded-full">
                                   วัตถุดิบเสียเปล่า
                                 </span>
                               )}
                             </td>
-                            <td className="py-3 px-3 font-medium text-slate-500">{log.employee_name}</td>
+                            <td className="py-3 px-3 font-medium text-slate-500 dark:text-neutral-400">{log.employee_name}</td>
                           </tr>
                         ))}
                         {voidLogs.length === 0 && (
                           <tr>
-                            <td colSpan={7} className="py-8 text-center text-slate-400 font-medium text-xs">
+                            <td colSpan={7} className="py-8 text-center text-slate-400 dark:text-neutral-500 font-medium text-xs">
                               ไม่มีบันทึกประวัติการยกเลิกรายการอาหาร
                             </td>
                           </tr>

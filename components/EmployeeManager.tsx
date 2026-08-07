@@ -315,23 +315,23 @@ export const EmployeeManager: React.FC = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">พนักงานทั้งหมด</p>
-          <p className="text-2xl font-black text-slate-900 mt-1">{employees.length}</p>
+        <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl p-4 shadow-xs">
+          <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider">พนักงานทั้งหมด</p>
+          <p className="text-2xl font-black text-slate-900 dark:text-neutral-100 mt-1">{employees.length}</p>
         </div>
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+        <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl p-4 shadow-xs">
           <div className="flex items-center gap-1.5">
             <Shield className="w-3.5 h-3.5 text-amber-500" />
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Owner</p>
+            <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider">Owner</p>
           </div>
-          <p className="text-2xl font-black text-amber-600 mt-1">{ownerCount}</p>
+          <p className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{ownerCount}</p>
         </div>
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+        <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl p-4 shadow-xs">
           <div className="flex items-center gap-1.5">
             <User className="w-3.5 h-3.5 text-sky-500" />
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Staff</p>
+            <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider">Staff</p>
           </div>
-          <p className="text-2xl font-black text-sky-600 mt-1">{staffCount}</p>
+          <p className="text-2xl font-black text-sky-600 dark:text-sky-400 mt-1">{staffCount}</p>
         </div>
       </div>
 
@@ -352,7 +352,7 @@ export const EmployeeManager: React.FC = () => {
           <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : employees.length === 0 ? (
-        <div className="text-center py-16 text-slate-400 text-sm font-semibold">
+        <div className="text-center py-16 text-slate-400 dark:text-neutral-500 text-sm font-semibold">
           ยังไม่มีพนักงานในระบบ
         </div>
       ) : (
@@ -364,8 +364,8 @@ export const EmployeeManager: React.FC = () => {
             return (
               <div
                 key={emp.id}
-                className={`bg-white border rounded-2xl p-5 shadow-xs transition-all hover:shadow-sm ${
-                  isSelf ? 'border-red-200 ring-1 ring-red-100' : 'border-slate-200'
+                className={`bg-white dark:bg-neutral-900 border rounded-2xl p-5 shadow-xs transition-all hover:shadow-sm ${
+                  isSelf ? 'border-red-200 dark:border-red-900/50 ring-1 ring-red-100 dark:ring-red-950/30' : 'border-slate-200 dark:border-neutral-800'
                 }`}
               >
                 {/* ข้อมูลพนักงาน */}
@@ -373,21 +373,21 @@ export const EmployeeManager: React.FC = () => {
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${
                       isOwnerBadge
-                        ? 'bg-amber-100 text-amber-700'
-                        : 'bg-sky-100 text-sky-700'
+                        ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300'
+                        : 'bg-sky-100 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300'
                     }`}>
                       {emp.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-bold text-slate-900">{emp.name}</p>
+                        <p className="text-sm font-bold text-slate-900 dark:text-neutral-100">{emp.name}</p>
                         {isSelf && (
-                          <span className="text-[9px] font-bold bg-red-50 text-red-500 px-1.5 py-0.5 rounded-md border border-red-100">
+                          <span className="text-[9px] font-bold bg-red-50 dark:bg-red-950/40 text-red-500 dark:text-red-400 px-1.5 py-0.5 rounded-md border border-red-100 dark:border-red-900/50">
                             คุณ
                           </span>
                         )}
                       </div>
-                      <p className="text-[10px] text-slate-400 font-medium">
+                      <p className="text-[10px] text-slate-400 dark:text-neutral-500 font-medium">
                         สร้างเมื่อ {new Date(emp.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </p>
                     </div>
@@ -395,32 +395,32 @@ export const EmployeeManager: React.FC = () => {
 
                   <span className={`text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full border ${
                     isOwnerBadge
-                      ? 'bg-amber-50 text-amber-700 border-amber-200'
-                      : 'bg-sky-50 text-sky-700 border-sky-200'
+                      ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-900/50'
+                      : 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-900/50'
                   }`}>
                     {emp.role}
                   </span>
                 </div>
 
                 {/* ปุ่ม Actions */}
-                <div className="flex flex-wrap gap-2 pt-3 border-t border-slate-100">
+                <div className="flex flex-wrap gap-2 pt-3 border-t border-slate-100 dark:border-neutral-800">
                   <button
                     onClick={() => openModal('editName', emp)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-800 rounded-lg text-[11px] font-bold transition active:scale-95 border border-slate-200 cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 dark:bg-neutral-800 hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-600 dark:text-neutral-300 hover:text-slate-800 dark:hover:text-neutral-100 rounded-lg text-[11px] font-bold transition active:scale-95 border border-slate-200 dark:border-neutral-700 cursor-pointer"
                   >
                     <Pencil className="w-3 h-3" />
                     แก้ไขชื่อ
                   </button>
                   <button
                     onClick={() => openModal('changePin', emp)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-800 rounded-lg text-[11px] font-bold transition active:scale-95 border border-slate-200 cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 dark:bg-neutral-800 hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-600 dark:text-neutral-300 hover:text-slate-800 dark:hover:text-neutral-100 rounded-lg text-[11px] font-bold transition active:scale-95 border border-slate-200 dark:border-neutral-700 cursor-pointer"
                   >
                     <KeyRound className="w-3 h-3" />
                     เปลี่ยน PIN
                   </button>
                   <button
                     onClick={() => openModal('changeRole', emp)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 hover:text-amber-800 rounded-lg text-[11px] font-bold transition active:scale-95 border border-amber-200 cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 rounded-lg text-[11px] font-bold transition active:scale-95 border border-amber-200 dark:border-amber-900/50 cursor-pointer"
                   >
                     <ArrowLeftRight className="w-3 h-3" />
                     เปลี่ยนตำแหน่ง
@@ -428,7 +428,7 @@ export const EmployeeManager: React.FC = () => {
                   {!isSelf && (
                     <button
                       onClick={() => openModal('delete', emp)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 rounded-lg text-[11px] font-bold transition active:scale-95 border border-rose-200 cursor-pointer"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-300 rounded-lg text-[11px] font-bold transition active:scale-95 border border-rose-200 dark:border-rose-900/50 cursor-pointer"
                     >
                       <Trash2 className="w-3 h-3" />
                       ลบ
@@ -445,17 +445,17 @@ export const EmployeeManager: React.FC = () => {
 
       {activeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-md p-6 shadow-xl space-y-5 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl w-full max-w-md p-6 shadow-xl space-y-5 max-h-[90vh] overflow-y-auto">
 
             {/* === Modal: เพิ่มพนักงาน === */}
             {activeModal === 'add' && (
               <>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                    <Plus className="w-5 h-5 text-red-600" />
+                  <h3 className="text-lg font-extrabold text-slate-900 dark:text-neutral-100 flex items-center gap-2">
+                    <Plus className="w-5 h-5 text-red-600 dark:text-red-400" />
                     เพิ่มพนักงานใหม่
                   </h3>
-                  <button onClick={resetModal} className="p-1.5 hover:bg-slate-100 rounded-lg transition cursor-pointer">
+                  <button onClick={resetModal} className="p-1.5 hover:bg-slate-100 dark:hover:bg-neutral-800 rounded-lg transition cursor-pointer">
                     <X className="w-5 h-5 text-slate-400" />
                   </button>
                 </div>
@@ -463,19 +463,19 @@ export const EmployeeManager: React.FC = () => {
                 <div className="space-y-4">
                   {/* ชื่อ */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-600 mb-1.5">ชื่อพนักงาน</label>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1.5">ชื่อพนักงาน</label>
                     <input
                       type="text"
                       value={addName}
                       onChange={e => setAddName(e.target.value)}
                       placeholder="เช่น สมชาย"
-                      className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 transition"
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-sm text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 transition"
                     />
                   </div>
 
                   {/* PIN */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-600 mb-1.5">PIN 6 หลัก</label>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1.5">PIN 6 หลัก</label>
                     <div className="relative">
                       <input
                         type={showAddPin ? 'text' : 'password'}
@@ -484,12 +484,12 @@ export const EmployeeManager: React.FC = () => {
                         placeholder="● ● ● ● ● ●"
                         maxLength={6}
                         inputMode="numeric"
-                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-mono tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 transition pr-10"
+                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-sm text-slate-800 dark:text-neutral-100 font-mono tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 transition pr-10"
                       />
                       <button
                         type="button"
                         onClick={() => setShowAddPin(!showAddPin)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 cursor-pointer"
                       >
                         {showAddPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -498,7 +498,7 @@ export const EmployeeManager: React.FC = () => {
 
                   {/* ยืนยัน PIN */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-600 mb-1.5">ยืนยัน PIN</label>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1.5">ยืนยัน PIN</label>
                     <input
                       type={showAddPin ? 'text' : 'password'}
                       value={addPinConfirm}
@@ -506,27 +506,27 @@ export const EmployeeManager: React.FC = () => {
                       placeholder="● ● ● ● ● ●"
                       maxLength={6}
                       inputMode="numeric"
-                      className={`w-full px-4 py-2.5 border rounded-xl text-sm font-mono tracking-[0.3em] focus:outline-none focus:ring-2 transition pr-10 ${
+                      className={`w-full px-4 py-2.5 bg-slate-50 dark:bg-neutral-800 border rounded-xl text-sm text-slate-800 dark:text-neutral-100 font-mono tracking-[0.3em] focus:outline-none focus:ring-2 transition pr-10 ${
                         addPinConfirm && addPinConfirm !== addPin
-                          ? 'border-rose-300 focus:ring-rose-500/30 focus:border-rose-400'
-                          : 'border-slate-200 focus:ring-red-500/30 focus:border-red-400'
+                          ? 'border-rose-300 dark:border-rose-800 focus:ring-rose-500/30 focus:border-rose-400'
+                          : 'border-slate-200 dark:border-neutral-700 focus:ring-red-500/30 focus:border-red-400'
                       }`}
                     />
                     {addPinConfirm && addPinConfirm !== addPin && (
-                      <p className="text-[10px] text-rose-500 font-semibold mt-1">PIN ไม่ตรงกัน</p>
+                      <p className="text-[10px] text-rose-500 dark:text-rose-400 font-semibold mt-1">PIN ไม่ตรงกัน</p>
                     )}
                   </div>
 
                   {/* Role */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-600 mb-1.5">ตำแหน่ง</label>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1.5">ตำแหน่ง</label>
                     <div className="flex gap-3">
                       <button
                         onClick={() => setAddRole('staff')}
                         className={`flex-1 py-2.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
                           addRole === 'staff'
-                            ? 'bg-sky-50 text-sky-700 border-sky-300 ring-1 ring-sky-200'
-                            : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'
+                            ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-sky-300 dark:border-sky-800 ring-1 ring-sky-200 dark:ring-sky-900/50'
+                            : 'bg-white dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 border-slate-200 dark:border-neutral-700 hover:bg-slate-50 dark:hover:bg-neutral-700'
                         }`}
                       >
                         <User className="w-4 h-4 inline mr-1.5" />
@@ -536,8 +536,8 @@ export const EmployeeManager: React.FC = () => {
                         onClick={() => setAddRole('owner')}
                         className={`flex-1 py-2.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
                           addRole === 'owner'
-                            ? 'bg-amber-50 text-amber-700 border-amber-300 ring-1 ring-amber-200'
-                            : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'
+                            ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-800 ring-1 ring-amber-200 dark:ring-amber-900/50'
+                            : 'bg-white dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 border-slate-200 dark:border-neutral-700 hover:bg-slate-50 dark:hover:bg-neutral-700'
                         }`}
                       >
                         <Shield className="w-4 h-4 inline mr-1.5" />
@@ -551,7 +551,7 @@ export const EmployeeManager: React.FC = () => {
                 <div className="flex gap-3 pt-2">
                   <button
                     onClick={resetModal}
-                    className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition cursor-pointer"
+                    className="flex-1 py-2.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-600 dark:text-neutral-300 rounded-xl text-xs font-bold transition cursor-pointer"
                   >
                     ยกเลิก
                   </button>
@@ -570,31 +570,31 @@ export const EmployeeManager: React.FC = () => {
             {activeModal === 'editName' && targetEmployee && (
               <>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                    <Pencil className="w-5 h-5 text-sky-600" />
+                  <h3 className="text-lg font-extrabold text-slate-900 dark:text-neutral-100 flex items-center gap-2">
+                    <Pencil className="w-5 h-5 text-sky-600 dark:text-sky-400" />
                     แก้ไขชื่อพนักงาน
                   </h3>
-                  <button onClick={resetModal} className="p-1.5 hover:bg-slate-100 rounded-lg transition cursor-pointer">
+                  <button onClick={resetModal} className="p-1.5 hover:bg-slate-100 dark:hover:bg-neutral-800 rounded-lg transition cursor-pointer">
                     <X className="w-5 h-5 text-slate-400" />
                   </button>
                 </div>
 
-                <p className="text-xs text-slate-500 font-medium">
-                  ชื่อปัจจุบัน: <span className="font-bold text-slate-700">{targetEmployee.name}</span>
+                <p className="text-xs text-slate-500 dark:text-neutral-400 font-medium">
+                  ชื่อปัจจุบัน: <span className="font-bold text-slate-700 dark:text-neutral-200">{targetEmployee.name}</span>
                 </p>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-600 mb-1.5">ชื่อใหม่</label>
+                  <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1.5">ชื่อใหม่</label>
                   <input
                     type="text"
                     value={editName}
                     onChange={e => setEditName(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 transition"
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-sm text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 transition"
                   />
                 </div>
 
                 <div className="flex gap-3 pt-2">
-                  <button onClick={resetModal} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition cursor-pointer">
+                  <button onClick={resetModal} className="flex-1 py-2.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-600 dark:text-neutral-300 rounded-xl text-xs font-bold transition cursor-pointer">
                     ยกเลิก
                   </button>
                   <button
@@ -612,22 +612,22 @@ export const EmployeeManager: React.FC = () => {
             {activeModal === 'changePin' && targetEmployee && (
               <>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                    <KeyRound className="w-5 h-5 text-amber-600" />
+                  <h3 className="text-lg font-extrabold text-slate-900 dark:text-neutral-100 flex items-center gap-2">
+                    <KeyRound className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                     เปลี่ยน PIN
                   </h3>
-                  <button onClick={resetModal} className="p-1.5 hover:bg-slate-100 rounded-lg transition cursor-pointer">
+                  <button onClick={resetModal} className="p-1.5 hover:bg-slate-100 dark:hover:bg-neutral-800 rounded-lg transition cursor-pointer">
                     <X className="w-5 h-5 text-slate-400" />
                   </button>
                 </div>
 
-                <p className="text-xs text-slate-500 font-medium">
-                  พนักงาน: <span className="font-bold text-slate-700">{targetEmployee.name} ({targetEmployee.role})</span>
+                <p className="text-xs text-slate-500 dark:text-neutral-400 font-medium">
+                  พนักงาน: <span className="font-bold text-slate-700 dark:text-neutral-200">{targetEmployee.name} ({targetEmployee.role})</span>
                 </p>
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-600 mb-1.5">PIN ใหม่ (6 หลัก)</label>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1.5">PIN ใหม่ (6 หลัก)</label>
                     <div className="relative">
                       <input
                         type={showNewPin ? 'text' : 'password'}
@@ -636,12 +636,12 @@ export const EmployeeManager: React.FC = () => {
                         placeholder="● ● ● ● ● ●"
                         maxLength={6}
                         inputMode="numeric"
-                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-mono tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 transition pr-10"
+                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-sm text-slate-800 dark:text-neutral-100 font-mono tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 transition pr-10"
                       />
                       <button
                         type="button"
                         onClick={() => setShowNewPin(!showNewPin)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 cursor-pointer"
                       >
                         {showNewPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -649,7 +649,7 @@ export const EmployeeManager: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-600 mb-1.5">ยืนยัน PIN ใหม่</label>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1.5">ยืนยัน PIN ใหม่</label>
                     <input
                       type={showNewPin ? 'text' : 'password'}
                       value={newPinConfirm}
@@ -657,20 +657,20 @@ export const EmployeeManager: React.FC = () => {
                       placeholder="● ● ● ● ● ●"
                       maxLength={6}
                       inputMode="numeric"
-                      className={`w-full px-4 py-2.5 border rounded-xl text-sm font-mono tracking-[0.3em] focus:outline-none focus:ring-2 transition ${
+                      className={`w-full px-4 py-2.5 bg-slate-50 dark:bg-neutral-800 border rounded-xl text-sm text-slate-800 dark:text-neutral-100 font-mono tracking-[0.3em] focus:outline-none focus:ring-2 transition ${
                         newPinConfirm && newPinConfirm !== newPin
-                          ? 'border-rose-300 focus:ring-rose-500/30 focus:border-rose-400'
-                          : 'border-slate-200 focus:ring-red-500/30 focus:border-red-400'
+                          ? 'border-rose-300 dark:border-rose-800 focus:ring-rose-500/30 focus:border-rose-400'
+                          : 'border-slate-200 dark:border-neutral-700 focus:ring-red-500/30 focus:border-red-400'
                       }`}
                     />
                     {newPinConfirm && newPinConfirm !== newPin && (
-                      <p className="text-[10px] text-rose-500 font-semibold mt-1">PIN ไม่ตรงกัน</p>
+                      <p className="text-[10px] text-rose-500 dark:text-rose-400 font-semibold mt-1">PIN ไม่ตรงกัน</p>
                     )}
                   </div>
                 </div>
 
                 <div className="flex gap-3 pt-2">
-                  <button onClick={resetModal} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition cursor-pointer">
+                  <button onClick={resetModal} className="flex-1 py-2.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-600 dark:text-neutral-300 rounded-xl text-xs font-bold transition cursor-pointer">
                     ยกเลิก
                   </button>
                   <button
@@ -688,16 +688,16 @@ export const EmployeeManager: React.FC = () => {
             {activeModal === 'changeRole' && targetEmployee && (
               <>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                    <ArrowLeftRight className="w-5 h-5 text-amber-600" />
+                  <h3 className="text-lg font-extrabold text-slate-900 dark:text-neutral-100 flex items-center gap-2">
+                    <ArrowLeftRight className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                     เปลี่ยนตำแหน่ง
                   </h3>
-                  <button onClick={resetModal} className="p-1.5 hover:bg-slate-100 rounded-lg transition cursor-pointer">
+                  <button onClick={resetModal} className="p-1.5 hover:bg-slate-100 dark:hover:bg-neutral-800 rounded-lg transition cursor-pointer">
                     <X className="w-5 h-5 text-slate-400" />
                   </button>
                 </div>
 
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800 font-semibold">
+                <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-xl p-3 text-xs text-amber-800 dark:text-amber-300 font-semibold">
                   <p>คุณกำลังจะเปลี่ยนตำแหน่งของ <span className="font-extrabold">{targetEmployee.name}</span></p>
                   <p className="mt-1">
                     จาก <span className="font-extrabold uppercase">{targetEmployee.role}</span> →{' '}
@@ -706,7 +706,7 @@ export const EmployeeManager: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-600 mb-1.5">🔐 กรุณากรอก PIN ของคุณเพื่อยืนยัน</label>
+                  <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1.5">🔐 กรุณากรอก PIN ของคุณเพื่อยืนยัน</label>
                   <div className="relative">
                     <input
                       type={showConfirmPin ? 'text' : 'password'}
@@ -715,12 +715,12 @@ export const EmployeeManager: React.FC = () => {
                       placeholder="● ● ● ● ● ●"
                       maxLength={6}
                       inputMode="numeric"
-                      className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-mono tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 transition pr-10"
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-sm text-slate-800 dark:text-neutral-100 font-mono tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 transition pr-10"
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPin(!showConfirmPin)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 cursor-pointer"
                     >
                       {showConfirmPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -728,7 +728,7 @@ export const EmployeeManager: React.FC = () => {
                 </div>
 
                 <div className="flex gap-3 pt-2">
-                  <button onClick={resetModal} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition cursor-pointer">
+                  <button onClick={resetModal} className="flex-1 py-2.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-600 dark:text-neutral-300 rounded-xl text-xs font-bold transition cursor-pointer">
                     ยกเลิก
                   </button>
                   <button
@@ -746,22 +746,22 @@ export const EmployeeManager: React.FC = () => {
             {activeModal === 'delete' && targetEmployee && (
               <>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                    <Trash2 className="w-5 h-5 text-rose-600" />
+                  <h3 className="text-lg font-extrabold text-slate-900 dark:text-neutral-100 flex items-center gap-2">
+                    <Trash2 className="w-5 h-5 text-rose-600 dark:text-rose-400" />
                     ลบพนักงาน
                   </h3>
-                  <button onClick={resetModal} className="p-1.5 hover:bg-slate-100 rounded-lg transition cursor-pointer">
+                  <button onClick={resetModal} className="p-1.5 hover:bg-slate-100 dark:hover:bg-neutral-800 rounded-lg transition cursor-pointer">
                     <X className="w-5 h-5 text-slate-400" />
                   </button>
                 </div>
 
-                <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 text-xs text-rose-700 font-semibold">
+                <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl p-3 text-xs text-rose-700 dark:text-rose-300 font-semibold">
                   <p>⚠️ คุณกำลังจะลบพนักงาน <span className="font-extrabold">{targetEmployee.name}</span> ({targetEmployee.role}) ออกจากระบบ</p>
-                  <p className="mt-1 text-rose-500">การลบนี้ไม่สามารถย้อนกลับได้</p>
+                  <p className="mt-1 text-rose-500 dark:text-rose-400">การลบนี้ไม่สามารถย้อนกลับได้</p>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-600 mb-1.5">🔐 กรุณากรอก PIN ของคุณเพื่อยืนยัน</label>
+                  <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1.5">🔐 กรุณากรอก PIN ของคุณเพื่อยืนยัน</label>
                   <div className="relative">
                     <input
                       type={showConfirmPin ? 'text' : 'password'}
@@ -770,12 +770,12 @@ export const EmployeeManager: React.FC = () => {
                       placeholder="● ● ● ● ● ●"
                       maxLength={6}
                       inputMode="numeric"
-                      className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-mono tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 transition pr-10"
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-sm text-slate-800 dark:text-neutral-100 font-mono tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 transition pr-10"
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPin(!showConfirmPin)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 cursor-pointer"
                     >
                       {showConfirmPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -783,7 +783,7 @@ export const EmployeeManager: React.FC = () => {
                 </div>
 
                 <div className="flex gap-3 pt-2">
-                  <button onClick={resetModal} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition cursor-pointer">
+                  <button onClick={resetModal} className="flex-1 py-2.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-600 dark:text-neutral-300 rounded-xl text-xs font-bold transition cursor-pointer">
                     ยกเลิก
                   </button>
                   <button

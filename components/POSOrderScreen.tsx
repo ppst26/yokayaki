@@ -380,25 +380,26 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
       {/* LEFT AREA: Menu Selection */}
       <div className="flex-1 p-6 lg:border-r border-slate-200 flex flex-col overflow-y-auto">
         {/* Top Header */}
-        <header className="flex items-center gap-4 mb-6 pb-4 border-b border-slate-200/80">
+        <header className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200/80 dark:border-neutral-800">
           <button
             onClick={onBack}
-            className="p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition active:scale-95 text-slate-700 shadow-xs"
+            className="p-2 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-lg hover:bg-slate-50 dark:hover:bg-neutral-700 transition active:scale-95 text-slate-700 dark:text-neutral-200 shadow-xs cursor-pointer"
+            title="ย้อนกลับ"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4" />
           </button>
           <div className="flex-1">
-            <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">สั่งอาหาร (POS Order)</h1>
-            <p className="text-xs text-slate-500 font-semibold mt-0.5">ประจำ <span className="text-red-600 font-bold">โต๊ะ {tableId}</span></p>
+            <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-neutral-100 tracking-tight">สั่งอาหาร</h1>
+            <p className="text-xs text-slate-500 dark:text-neutral-400 font-semibold mt-0.5">ประจำ <span className="text-red-600 dark:text-red-400 font-bold">โต๊ะ {tableId}</span></p>
           </div>
 
           <button
             onClick={generateQrSession}
             disabled={isGeneratingQr}
-            className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-xl border border-red-200 transition-colors font-bold text-xs shadow-xs whitespace-nowrap cursor-pointer"
+            className="flex items-center gap-1.5 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 px-3 py-1.5 rounded-xl border border-red-200 dark:border-red-900/50 transition-colors font-bold text-xs shadow-xs whitespace-nowrap cursor-pointer"
           >
-            <QrCode className="w-4 h-4" />
-            <span>{isGeneratingQr ? 'กำลังสร้าง...' : 'สร้าง QR Code ให้ลูกค้า'}</span>
+            <QrCode className="w-3.5 h-3.5" />
+            <span>{isGeneratingQr ? 'กำลังสร้าง...' : 'QR Code'}</span>
           </button>
         </header>
 
@@ -537,7 +538,7 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
       </div>
 
       {/* RIGHT AREA: Cart & Current Order Status */}
-      <div className="w-full lg:w-[400px] bg-white border-t lg:border-t-0 lg:border-l border-slate-200 p-6 flex flex-col justify-between shadow-xs overflow-y-auto shrink-0 self-stretch min-h-full">
+      <div className="sticky bottom-0 z-30 lg:static w-full lg:w-[400px] bg-white dark:bg-neutral-900 border-t lg:border-t-0 lg:border-l border-slate-200/90 dark:border-neutral-800 p-4 md:p-6 flex flex-col justify-between shadow-2xl lg:shadow-xs overflow-y-auto shrink-0 max-h-[60vh] lg:max-h-none">
         <div>
           {/* Section 1: Cart Items */}
           <div className="mb-8 border-b border-slate-100 pb-6">
