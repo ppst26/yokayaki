@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import {
   LogOut,
@@ -15,6 +13,8 @@ import {
   UserCog,
   Menu,
   X,
+  Sun,
+  Moon,
 } from 'lucide-react';
 
 export type NavTab =
@@ -37,6 +37,29 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
   const { employee, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDrawerClosing, setIsDrawerClosing] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  useEffect(() => {
+    const saved = localStorage.getItem('yokayaki_theme');
+    if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      setTheme('dark');
+      document.documentElement.classList.add('dark');
+    } else {
+      setTheme('light');
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(nextTheme);
+    localStorage.setItem('yokayaki_theme', nextTheme);
+    if (nextTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
 
   const isOwner = employee?.role === 'owner';
 
@@ -241,14 +264,25 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
               </nav>
             </div>
 
-            {/* Drawer Footer: Logged in Employee Info + Logout */}
-            <div className="pt-5 border-t border-slate-100 space-y-3 mt-6">
-              <div className="flex items-center gap-3 p-2.5 bg-slate-50 rounded-xl border border-slate-200/70">
-                <div className="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center font-bold text-xs">
+            {/* Drawer Footer: Theme Switcher + Employee Info + Logout */}
+            <div className="pt-5 border-t border-slate-100 dark:border-slate-800 space-y-3 mt-6">
+              <button
+                onClick={toggleTheme}
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer border border-slate-200 dark:border-slate-700"
+              >
+                <span className="flex items-center gap-2">
+                  {theme === 'dark' ? <Moon className="w-4 h-4 text-amber-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
+                  <span>{theme === 'dark' ? 'โหมดมืด (Dark)' : 'โหมดสว่าง (Light)'}</span>
+                </span>
+                <span className="text-[10px] uppercase font-bold text-slate-400">สลับ</span>
+              </button>
+
+              <div className="flex items-center gap-3 p-2.5 bg-slate-50 dark:bg-slate-800/80 rounded-xl border border-slate-200/70 dark:border-slate-700">
+                <div className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400 flex items-center justify-center font-bold text-xs">
                   {employee?.name?.charAt(0) || 'E'}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold text-slate-800 truncate">{employee?.name}</p>
+                  <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{employee?.name}</p>
                   <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
                     {employee?.role}
                   </p>
@@ -257,7 +291,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
 
               <button
                 onClick={logout}
-                className="w-full flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-red-600 hover:bg-red-50 transition duration-150 active:scale-95 cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition duration-150 active:scale-95 cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
                 <span>ออกจากระบบ (Logout)</span>
@@ -268,15 +302,15 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
       )}
 
       {/* Desktop Left Sidebar Navigation */}
-      <aside className="hidden md:flex w-64 bg-white border-r border-slate-200 p-5 flex-col justify-between shadow-sm shrink-0 sticky top-0 h-screen">
+      <aside className="hidden md:flex w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-5 flex-col justify-between shadow-sm shrink-0 sticky top-0 h-screen">
         <div>
           {/* Logo & Brand */}
-          <div className="flex items-center gap-3 mb-8 pb-4 border-b border-slate-100">
+          <div className="flex items-center gap-3 mb-8 pb-4 border-b border-slate-100 dark:border-slate-800">
             <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-red-600/20">
               <ChefHat className="w-6 h-6 stroke-[2]" />
             </div>
             <div>
-              <h1 className="text-xl font-black tracking-tight text-slate-900">
+              <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-slate-100">
                  Mini POS <span className="text-red-600">POS</span>
               </h1>
               <p className="text-[11px] font-semibold text-slate-400 tracking-wider">MANAGEMENT SYSTEM</p>
@@ -289,8 +323,8 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
               onClick={() => onSelectTab('floor')}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
                 activeTab === 'floor'
-                  ? 'bg-red-50 text-red-600 border border-red-100 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/50 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/60'
               }`}
             >
               <Layers className="w-4 h-4" />
@@ -301,8 +335,8 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
               onClick={() => onSelectTab('kitchen')}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
                 activeTab === 'kitchen'
-                  ? 'bg-red-50 text-red-600 border border-red-100 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/50 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/60'
               }`}
             >
               <ChefHat className="w-4 h-4" />
@@ -313,18 +347,18 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
               onClick={() => onSelectTab('history')}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
                 activeTab === 'history'
-                  ? 'bg-red-50 text-red-600 border border-red-100 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/50 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/60'
               }`}
             >
               <History className="w-4 h-4" />
-              <span>ประวัติการขาย</span>
+              <span>ออเดอร์ประจำวัน</span>
             </button>
 
             {isOwner && (
               <>
                 <div className="pt-4 pb-1">
-                  <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-3">
+                  <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-3">
                     OWNER CONTROLS
                   </p>
                 </div>
@@ -333,8 +367,8 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   onClick={() => onSelectTab('menu')}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
                     activeTab === 'menu'
-                      ? 'bg-red-50 text-red-600 border border-red-100 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/50 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/60'
                   }`}
                 >
                   <UtensilsCrossed className="w-4 h-4" />
@@ -345,8 +379,8 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   onClick={() => onSelectTab('stock')}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
                     activeTab === 'stock'
-                      ? 'bg-red-50 text-red-600 border border-red-100 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/50 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/60'
                   }`}
                 >
                   <Package className="w-4 h-4" />
@@ -357,8 +391,8 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   onClick={() => onSelectTab('promo')}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
                     activeTab === 'promo'
-                      ? 'bg-red-50 text-red-600 border border-red-100 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/50 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/60'
                   }`}
                 >
                   <Tag className="w-4 h-4" />
@@ -369,8 +403,8 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   onClick={() => onSelectTab('dashboard')}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
                     activeTab === 'dashboard'
-                      ? 'bg-red-50 text-red-600 border border-red-100 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/50 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/60'
                   }`}
                 >
                   <LayoutDashboard className="w-4 h-4" />
@@ -381,8 +415,8 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   onClick={() => onSelectTab('loyalty')}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
                     activeTab === 'loyalty'
-                      ? 'bg-red-50 text-red-600 border border-red-100 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/50 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/60'
                   }`}
                 >
                   <Users className="w-4 h-4" />
@@ -393,8 +427,8 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   onClick={() => onSelectTab('employees')}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
                     activeTab === 'employees'
-                      ? 'bg-red-50 text-red-600 border border-red-100 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/50 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/60'
                   }`}
                 >
                   <UserCog className="w-4 h-4" />
@@ -405,14 +439,25 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
           </nav>
         </div>
 
-        {/* Footer: Logged in Employee Info + Logout */}
-        <div className="pt-6 border-t border-slate-100 space-y-3 mt-6">
-          <div className="flex items-center gap-3 p-2.5 bg-slate-50 rounded-xl border border-slate-200/70">
-            <div className="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center font-bold text-xs">
+        {/* Footer: Theme Switcher + Logged in Employee Info + Logout */}
+        <div className="pt-6 border-t border-slate-100 dark:border-slate-800 space-y-3 mt-6">
+          <button
+            onClick={toggleTheme}
+            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer border border-slate-200 dark:border-slate-700 shadow-xs"
+          >
+            <span className="flex items-center gap-2">
+              {theme === 'dark' ? <Moon className="w-4 h-4 text-amber-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
+              <span>{theme === 'dark' ? 'โหมดมืด (Dark)' : 'โหมดสว่าง (Light)'}</span>
+            </span>
+            <span className="text-[10px] uppercase font-bold text-slate-400">สลับ</span>
+          </button>
+
+          <div className="flex items-center gap-3 p-2.5 bg-slate-50 dark:bg-slate-800/80 rounded-xl border border-slate-200/70 dark:border-slate-700">
+            <div className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400 flex items-center justify-center font-bold text-xs">
               {employee?.name?.charAt(0) || 'E'}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-slate-800 truncate">{employee?.name}</p>
+              <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{employee?.name}</p>
               <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
                 {employee?.role}
               </p>
@@ -421,7 +466,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
 
           <button
             onClick={logout}
-            className="w-full flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-red-600 hover:bg-red-50 transition duration-150 cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition duration-150 cursor-pointer"
           >
             <LogOut className="w-4 h-4" />
             <span>ออกจากระบบ (Logout)</span>
