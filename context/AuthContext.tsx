@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 
 export interface Employee {
@@ -82,6 +82,7 @@ function sha256(str: string): string {
 
 const MAX_ATTEMPTS = 3;
 const LOCKOUT_DURATION_MS = 3 * 60 * 1000; // 3 minutes
+const IDLE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes auto-lock
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [employee, setEmployee] = useState<Employee | null>(null);
@@ -161,18 +162,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(true);
       const hashed = await hashPin(pin);
 
-      // Collect target hashes to search (supporting correct SHA-256 & SQL seed placeholders)
-      const targetHashes = [hashed];
-      if (pin === '111111') {
-        targetHashes.push('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
-      } else if (pin === '222222') {
-        targetHashes.push('8d969ee76d243c53b6b3061467aa3b8d30c441408eb39af7194b14091118366d');
-      }
-
       const { data, error: dbError } = await supabase
         .from('employees')
         .select('id, name, role')
-        .in('pin_hash', targetHashes)
+        .eq('pin_hash', hashed)
         .limit(1);
 
       if (dbError) {
@@ -223,10 +216,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setEmployee(null);
     localStorage.removeItem('yokayaki_employee');
-  };
+  }, []);
+
+  // Auto-lock: logout after 5 minutes of inactivity
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const resetIdleTimer = useCallback(() => {
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    idleTimerRef.current = setTimeout(() => {
+      logout();
+    }, IDLE_TIMEOUT_MS);
+  }, [logout]);
+
+  useEffect(() => {
+    if (!employee) {
+      // Not logged in — clear timer
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      return;
+    }
+
+    // Start idle timer
+    resetIdleTimer();
+
+    const activityEvents: (keyof WindowEventMap)[] = ['mousedown', 'keydown', 'touchstart', 'scroll'];
+    const handleActivity = () => resetIdleTimer();
+
+    activityEvents.forEach(evt => window.addEventListener(evt, handleActivity, { passive: true }));
+
+    return () => {
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      activityEvents.forEach(evt => window.removeEventListener(evt, handleActivity));
+    };
+  }, [employee, resetIdleTimer]);
 
   return (
     <AuthContext.Provider value={{ 
