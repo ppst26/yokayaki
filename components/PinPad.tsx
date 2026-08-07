@@ -2,15 +2,21 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { Delete, Lock } from 'lucide-react';
+import { Delete, Lock, Clock, ShieldAlert } from 'lucide-react';
+
+const formatCountdown = (seconds: number): string => {
+  const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+  const s = (seconds % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+};
 
 export const PinPad: React.FC = () => {
   const [pin, setPin] = useState('');
   const [isShaking, setIsShaking] = useState(false);
-  const { loginWithPin, error, isLoading } = useAuth();
+  const { loginWithPin, error, isLoading, isLockedOut, remainingLockoutSeconds } = useAuth();
 
   const handleNumberClick = (num: string) => {
-    if (isLoading || pin.length >= 6) return;
+    if (isLoading || isLockedOut || pin.length >= 6) return;
     
     const nextPin = pin + num;
     setPin(nextPin);
@@ -31,14 +37,49 @@ export const PinPad: React.FC = () => {
   };
 
   const handleBackspace = () => {
-    if (isLoading) return;
+    if (isLoading || isLockedOut) return;
     setPin(prev => prev.slice(0, -1));
   };
 
   const handleClear = () => {
-    if (isLoading) return;
+    if (isLoading || isLockedOut) return;
     setPin('');
   };
+
+  if (isLockedOut) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 text-slate-800 p-4 font-sans relative">
+        <div className="w-full max-w-md bg-white border border-red-200 rounded-3xl p-8 shadow-xl relative z-10 text-center animate-fade-in">
+          
+          <div className="w-16 h-16 bg-red-100 border border-red-200 rounded-2xl flex items-center justify-center shadow-md mx-auto mb-4 text-red-600">
+            <ShieldAlert className="w-8 h-8" />
+          </div>
+
+          <h1 className="text-xl font-black text-slate-900 mb-1 tracking-tight">
+            ระบบถูกล็อคชั่วคราว
+          </h1>
+          <p className="text-slate-500 text-xs font-semibold mb-6 leading-relaxed">
+            ระบุรหัส PIN ไม่ถูกต้องเกิน 3 ครั้ง เพื่อความปลอดภัย กรุณารอจนกว่าเวลานับถอยหลังจะหมด
+          </p>
+
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-5 mb-6 inline-flex flex-col items-center justify-center w-full shadow-inner">
+            <div className="flex items-center gap-2 text-red-600 text-xs font-bold uppercase tracking-wider mb-1.5">
+              <Clock className="w-4 h-4 animate-pulse" />
+              <span>เวลานับถอยหลัง</span>
+            </div>
+            <div className="text-4xl font-black font-mono text-red-600 tracking-wider">
+              {formatCountdown(remainingLockoutSeconds)}
+            </div>
+          </div>
+
+          <p className="text-[11px] text-slate-400 font-medium">
+            ระบบจะปลดล็อคให้อัตโนมัติเมื่อครบกำหนด 3 นาที
+          </p>
+
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 text-slate-800 p-4 font-sans relative">
