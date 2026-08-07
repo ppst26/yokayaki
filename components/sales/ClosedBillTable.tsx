@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Receipt, ChevronRight, Tag } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 
 interface PaymentPromo {
   id: number;
@@ -22,6 +23,8 @@ interface CompletedOrder {
     subtotal: number;
     discount_amount: number;
     net_amount: number;
+    cash_amount: number;
+    promptpay_amount: number;
     points_earned: number;
     points_redeemed: number;
     phone_number?: string | null;
@@ -58,25 +61,25 @@ export const ClosedBillTable: React.FC<ClosedBillTableProps> = ({
 
   if (orders.length === 0) {
     return (
-      <div className="text-center py-16 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl p-8">
+      <Card className="text-center py-16 p-8">
         <Receipt className="w-12 h-12 text-slate-300 dark:text-neutral-600 mx-auto mb-3" />
         <p className="text-sm font-bold text-slate-500 dark:text-neutral-400">
           ยังไม่มีรายการปิดบิลในวันนี้
         </p>
-      </div>
+      </Card>
     );
   }
 
   return (
     <div className="space-y-3">
       {orders.map(order => (
-        <div
+        <Card
           key={order.id}
           onClick={() => fetchOrderDetail(order)}
-          className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 hover:border-red-400 dark:hover:border-red-500 rounded-2xl p-4 flex items-center justify-between transition active:scale-98 shadow-sm cursor-pointer"
+          className="p-4 flex items-center justify-between transition active:scale-98 cursor-pointer"
         >
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-200 flex items-center justify-center font-black text-xs">
+            <div className="px-2.5 h-9 rounded-xl bg-red-600 text-white flex items-center justify-center font-black text-[10px] tracking-tight whitespace-nowrap shrink-0 shadow-xs">
               ORD-{order.id}
             </div>
             <div>
@@ -116,7 +119,7 @@ export const ClosedBillTable: React.FC<ClosedBillTableProps> = ({
             </div>
             <ChevronRight className="w-5 h-5 text-slate-400 dark:text-neutral-500" />
           </div>
-        </div>
+        </Card>
       ))}
     </div>
   );

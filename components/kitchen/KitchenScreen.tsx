@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { ChefHat, Volume2, VolumeX, RefreshCw } from 'lucide-react';
 import { KitchenOrderCard } from './KitchenOrderCard';
+import { Card } from '@/components/ui/card';
 
 interface OrderItem {
   id: number;
@@ -240,7 +241,7 @@ export const KitchenScreen: React.FC = () => {
           <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : tableGroups.length === 0 ? (
-        <div className="text-center py-20 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl p-8 space-y-3">
+        <Card className="text-center py-20 p-8 space-y-3">
           <div className="w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center">
             <ChefHat className="w-8 h-8" />
           </div>
@@ -250,7 +251,7 @@ export const KitchenScreen: React.FC = () => {
           <p className="text-xs text-slate-500 dark:text-neutral-400 font-semibold max-w-sm mx-auto">
             เมื่อมีออเดอร์ใหม่จากพนักงาน POS หรือลูกค้าระบบจะแสดงการ์ดรายการอาหารให้ที่นี่โดยอัตโนมัติ
           </p>
-        </div>
+        </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {tableGroups.map(group => (

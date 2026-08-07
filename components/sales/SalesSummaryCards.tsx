@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { TrendingUp, Tag, Receipt, Trash2 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 
 interface SalesSummaryCardsProps {
   totalRevenue: number;
@@ -21,7 +22,7 @@ export const SalesSummaryCards: React.FC<SalesSummaryCardsProps> = ({
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {/* Revenue */}
-      <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-5 shadow-sm space-y-2">
+      <Card className="p-5 space-y-2">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
             ยอดขายส่งมอบสุทธิ
@@ -33,10 +34,10 @@ export const SalesSummaryCards: React.FC<SalesSummaryCardsProps> = ({
         <p className="text-2xl font-black text-slate-900 dark:text-neutral-100">
           {totalRevenue.toLocaleString()} <span className="text-xs font-bold text-slate-500 dark:text-neutral-400">฿</span>
         </p>
-      </div>
+      </Card>
 
       {/* Discounts */}
-      <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-5 shadow-sm space-y-2">
+      <Card className="p-5 space-y-2">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
             ส่วนลดรวมทั้งหมด
@@ -48,10 +49,10 @@ export const SalesSummaryCards: React.FC<SalesSummaryCardsProps> = ({
         <p className="text-2xl font-black text-rose-600 dark:text-rose-400">
           -{totalDiscount.toLocaleString()} <span className="text-xs font-bold text-rose-500 dark:text-rose-400">฿</span>
         </p>
-      </div>
+      </Card>
 
       {/* Total Bills */}
-      <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-5 shadow-sm space-y-2">
+      <Card className="p-5 space-y-2">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
             จำนวนบิลที่เช็คบิลแล้ว
@@ -63,10 +64,10 @@ export const SalesSummaryCards: React.FC<SalesSummaryCardsProps> = ({
         <p className="text-2xl font-black text-slate-900 dark:text-neutral-100">
           {totalBills} <span className="text-xs font-bold text-slate-500 dark:text-neutral-400">บิล</span>
         </p>
-      </div>
+      </Card>
 
       {/* Voids */}
-      <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-5 shadow-sm space-y-2">
+      <Card className="p-5 space-y-2">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
             รายการถูก Void ยกเลิก
@@ -78,7 +79,7 @@ export const SalesSummaryCards: React.FC<SalesSummaryCardsProps> = ({
         <p className="text-2xl font-black text-slate-700 dark:text-neutral-300">
           {totalVoidCount} <span className="text-xs font-bold text-slate-400 dark:text-neutral-500">รายการ ({totalVoidAmount.toLocaleString()} ฿)</span>
         </p>
-      </div>
+      </Card>
     </div>
   );
 };

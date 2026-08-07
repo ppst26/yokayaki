@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { X, Tag, Gift, User } from 'lucide-react';
+import { X, Tag, Gift, User, Banknote, Smartphone } from 'lucide-react';
 
 interface PaymentPromo {
   id: number;
@@ -22,6 +22,8 @@ interface CompletedOrder {
     subtotal: number;
     discount_amount: number;
     net_amount: number;
+    cash_amount: number;
+    promptpay_amount: number;
     points_earned: number;
     points_redeemed: number;
     phone_number?: string | null;
@@ -65,21 +67,21 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs">
-      <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl w-full max-w-lg shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="bg-white dark:bg-neutral-900 rounded-xl w-full max-w-lg shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Modal Header */}
-        <div className="px-6 py-4 bg-slate-50 dark:bg-neutral-800/80 border-b border-slate-200/80 dark:border-neutral-800 flex items-center justify-between">
+        <div className="px-6 py-4 bg-neutral-800 text-white flex items-center justify-between">
           <div>
-            <h3 className="text-base font-black text-slate-900 dark:text-neutral-100">
+            <h3 className="text-base font-black text-white">
               รายละเอียดบิล ORD-{selectedOrder.id}
             </h3>
-            <p className="text-xs text-slate-500 dark:text-neutral-400 font-semibold">
+            <p className="text-xs text-neutral-300 font-semibold">
               โต๊ะ {selectedOrder.table_id} • ปิดบิลเวลา{' '}
               {formatTime(selectedOrder.payment?.created_at || selectedOrder.created_at)} น.
             </p>
           </div>
           <button
             onClick={() => setSelectedOrder(null)}
-            className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-300 rounded-full cursor-pointer"
+            className="p-1.5 text-neutral-300 hover:text-white rounded-full cursor-pointer transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -98,11 +100,11 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
                 <h4 className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider">
                   รายการอาหาร
                 </h4>
-                <div className="space-y-2">
+                <div className="divide-y divide-slate-100 dark:divide-neutral-800/80">
                   {orderItems.map(item => (
                     <div
                       key={item.id}
-                      className="bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-3"
+                      className="py-3 px-1 hover:bg-slate-50/50 dark:hover:bg-neutral-800/30 transition rounded-lg"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
@@ -145,7 +147,7 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
                   <h4 className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider">
                     ข้อมูลสมาชิก CRM
                   </h4>
-                  <div className="bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/50 rounded-xl p-3.5 flex items-center justify-between">
+                  <div className="py-2 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-xs">
                         <User className="w-4 h-4" />
@@ -187,7 +189,7 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
                     {selectedOrder.promos.map(promo => (
                       <div
                         key={promo.id}
-                        className="bg-red-50 dark:bg-red-950/40 border border-red-100 dark:border-red-900/50 rounded-xl px-4 py-3"
+                        className="py-2 space-y-1"
                       >
                         <div className="flex items-center justify-between">
                           <div className="space-y-0.5">
@@ -240,7 +242,7 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
                   <h4 className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider">
                     สรุปยอดชำระ
                   </h4>
-                  <div className="bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-4 space-y-2.5">
+                  <div className="py-2 space-y-2.5">
                     <div className="flex justify-between text-xs">
                       <span className="text-slate-500 dark:text-neutral-400 font-medium">
                         ยอดรวม
@@ -285,16 +287,64 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
                       </span>
                     </div>
 
-                    <div className="border-t border-slate-200 dark:border-neutral-700 pt-2.5 flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-neutral-300 font-semibold">
-                        {getPaymentIcon(selectedOrder.payment.payment_method)}
-                        <span>
-                          ชำระโดย: {getPaymentLabel(selectedOrder.payment.payment_method)}
-                        </span>
+                    <div className="border-t border-slate-200 dark:border-neutral-700 pt-2.5 space-y-2">
+                      {/* Payment split boxes */}
+                      <div className="grid grid-cols-2 gap-2">
+                        {/* เงินสด */}
+                        <div className={`rounded-xl p-3 space-y-0.5 ${
+                          selectedOrder.payment.cash_amount > 0
+                            ? 'bg-emerald-50 dark:bg-emerald-950/30'
+                            : 'bg-slate-50 dark:bg-neutral-800/50 opacity-50'
+                        }`}>
+                          <div className="flex items-center gap-1.5">
+                            <Banknote className={`w-3.5 h-3.5 ${
+                              selectedOrder.payment.cash_amount > 0
+                                ? 'text-emerald-600 dark:text-emerald-400'
+                                : 'text-slate-400'
+                            }`} />
+                            <span className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide">
+                              เงินสด
+                            </span>
+                          </div>
+                          <p className="text-sm font-black text-emerald-700 dark:text-emerald-300">
+                            {selectedOrder.payment.cash_amount > 0
+                              ? `${selectedOrder.payment.cash_amount.toLocaleString()} ฿`
+                              : '—'
+                            }
+                          </p>
+                        </div>
+
+                        {/* QR / โอน */}
+                        <div className={`rounded-xl p-3 space-y-0.5 ${
+                          selectedOrder.payment.promptpay_amount > 0
+                            ? 'bg-blue-50 dark:bg-blue-950/30'
+                            : 'bg-slate-50 dark:bg-neutral-800/50 opacity-50'
+                        }`}>
+                          <div className="flex items-center gap-1.5">
+                            <Smartphone className={`w-3.5 h-3.5 ${
+                              selectedOrder.payment.promptpay_amount > 0
+                                ? 'text-blue-600 dark:text-blue-400'
+                                : 'text-slate-400'
+                            }`} />
+                            <span className="text-[10px] font-extrabold text-blue-700 dark:text-blue-400 uppercase tracking-wide">
+                              QR / โอน
+                            </span>
+                          </div>
+                          <p className="text-sm font-black text-blue-700 dark:text-blue-300">
+                            {selectedOrder.payment.promptpay_amount > 0
+                              ? `${selectedOrder.payment.promptpay_amount.toLocaleString()} ฿`
+                              : '—'
+                            }
+                          </p>
+                        </div>
                       </div>
+
+                      {/* Points earned */}
                       {selectedOrder.payment.points_earned > 0 && (
-                        <div className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 px-2 py-0.5 rounded-full">
-                          +{selectedOrder.payment.points_earned} แต้ม
+                        <div className="flex justify-end pt-1">
+                          <div className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 px-2 py-0.5 rounded-full">
+                            +{selectedOrder.payment.points_earned} แต้ม
+                          </div>
                         </div>
                       )}
                     </div>

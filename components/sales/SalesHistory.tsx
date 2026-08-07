@@ -27,6 +27,8 @@ interface CompletedOrder {
     subtotal: number;
     discount_amount: number;
     net_amount: number;
+    cash_amount: number;
+    promptpay_amount: number;
     points_earned: number;
     points_redeemed: number;
     phone_number?: string | null;
@@ -89,7 +91,7 @@ export const SalesHistory: React.FC = () => {
       const { data: paymentData, error: paymentError } = await supabase
         .from('payments')
         .select(
-          'id, order_id, payment_method, subtotal, discount_amount, net_amount, points_earned, points_redeemed, phone_number, created_at'
+          'id, order_id, payment_method, subtotal, discount_amount, net_amount, cash_amount, promptpay_amount, points_earned, points_redeemed, phone_number, created_at'
         )
         .in('order_id', orderIds);
 
@@ -173,6 +175,8 @@ export const SalesHistory: React.FC = () => {
                 subtotal: parseFloat(payment.subtotal as any),
                 discount_amount: parseFloat(payment.discount_amount as any),
                 net_amount: parseFloat(payment.net_amount as any),
+                cash_amount: parseFloat(payment.cash_amount as any) || 0,
+                promptpay_amount: parseFloat(payment.promptpay_amount as any) || 0,
                 points_earned: payment.points_earned,
                 points_redeemed: payment.points_redeemed,
                 phone_number: payment.phone_number || null,

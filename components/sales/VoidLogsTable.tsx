@@ -1,7 +1,7 @@
-"use client";
-
 import React from 'react';
 import { Trash2 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 
 interface VoidLog {
   id: number;
@@ -35,49 +35,45 @@ export const VoidLogsTable: React.FC<VoidLogsTableProps> = ({
 
   if (voidLogs.length === 0) {
     return (
-      <div className="text-center py-16 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl p-8">
+      <Card className="text-center py-16 p-8">
         <Trash2 className="w-12 h-12 text-slate-300 dark:text-neutral-600 mx-auto mb-3" />
         <p className="text-sm font-bold text-slate-500 dark:text-neutral-400">
           ไม่มีประวัติการ Void รายการในวันนี้
         </p>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl overflow-hidden shadow-sm">
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-slate-50 dark:bg-neutral-800/80 border-b border-slate-200 dark:border-neutral-800 text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-              <th className="p-4">เวลา</th>
-              <th className="p-4">รายการอาหาร</th>
-              <th className="p-4 text-center">จำนวน</th>
-              <th className="p-4 text-right">มูลค่า Void</th>
-              <th className="p-4">เหตุผลในการ Void</th>
-              <th className="p-4">ผู้ทำรายการ</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-neutral-800 text-xs font-semibold text-slate-800 dark:text-neutral-200">
-            {voidLogs.map(log => (
-              <tr key={log.id} className="hover:bg-slate-50/50 dark:hover:bg-neutral-800/50 transition">
-                <td className="p-4 text-slate-500 dark:text-neutral-400">{formatTime(log.created_at)} น.</td>
-                <td className="p-4 font-bold text-slate-900 dark:text-neutral-100">{log.menu_name}</td>
-                <td className="p-4 text-center font-bold">{log.quantity}</td>
-                <td className="p-4 text-right font-extrabold text-rose-600 dark:text-rose-400">
-                  {Number(log.total_amount).toLocaleString()} ฿
-                </td>
-                <td className="p-4">
-                  <span className="bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 px-2 py-1 rounded-md text-[11px]">
-                    {log.reason}
-                  </span>
-                </td>
-                <td className="p-4 text-slate-600 dark:text-neutral-300">{log.employee_name}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>เวลา</TableHead>
+          <TableHead>รายการอาหาร</TableHead>
+          <TableHead className="text-center">จำนวน</TableHead>
+          <TableHead className="text-right">มูลค่า Void</TableHead>
+          <TableHead>เหตุผลในการ Void</TableHead>
+          <TableHead>ผู้ทำรายการ</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {voidLogs.map(log => (
+          <TableRow key={log.id}>
+            <TableCell className="text-slate-500 dark:text-neutral-400">{formatTime(log.created_at)} น.</TableCell>
+            <TableCell className="font-bold text-slate-900 dark:text-neutral-100">{log.menu_name}</TableCell>
+            <TableCell className="text-center font-bold">{log.quantity}</TableCell>
+            <TableCell className="text-right font-extrabold text-rose-600 dark:text-rose-400">
+              {Number(log.total_amount).toLocaleString()} ฿
+            </TableCell>
+            <TableCell>
+              <span className="bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 px-2 py-1 rounded-md text-[11px]">
+                {log.reason}
+              </span>
+            </TableCell>
+            <TableCell className="text-slate-600 dark:text-neutral-300">{log.employee_name}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 };

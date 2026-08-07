@@ -14,6 +14,7 @@ import {
   Clock,
   TicketPercent,
 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 
 interface MenuItem {
   id: number;
@@ -275,12 +276,10 @@ export const PromoManager: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {promotions.map(p => (
-            <div
+            <Card
               key={p.id}
-              className={`bg-white dark:bg-neutral-900 border rounded-2xl p-5 shadow-sm space-y-3 transition flex flex-col justify-between ${
-                p.is_active
-                  ? 'border-slate-200/80 dark:border-neutral-800'
-                  : 'border-slate-200/40 dark:border-neutral-800/40 opacity-60'
+              className={`p-5 space-y-3 transition flex flex-col justify-between ${
+                p.is_active ? '' : 'opacity-60'
               }`}
             >
               <div className="space-y-2">
@@ -333,7 +332,7 @@ export const PromoManager: React.FC = () => {
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       )}

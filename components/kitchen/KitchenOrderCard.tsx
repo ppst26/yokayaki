@@ -1,7 +1,6 @@
-"use client";
-
 import React from 'react';
 import { Clock, CheckCircle } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 
 interface OrderItem {
   id: number;
@@ -41,25 +40,25 @@ export const KitchenOrderCard: React.FC<KitchenOrderCardProps> = ({
 }) => {
   const waitMinutes = getWaitTimeMinutes(group.oldest_created_at);
 
-  let cardHeaderStyle = 'bg-slate-100 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 border-slate-200 dark:border-neutral-700';
-  let badgeStyle = 'bg-slate-200 dark:bg-neutral-700 text-slate-700 dark:text-neutral-300';
+  let cardHeaderStyle = 'bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white';
+  let badgeStyle = 'bg-white/20 backdrop-blur-xs text-white border border-white/30';
 
   if (waitMinutes >= 15) {
-    cardHeaderStyle = 'bg-rose-500 text-white border-rose-600 animate-pulse';
-    badgeStyle = 'bg-rose-700 text-white';
+    cardHeaderStyle = 'bg-gradient-to-r from-rose-600 via-red-700 to-rose-800 text-white animate-pulse';
+    badgeStyle = 'bg-white/25 backdrop-blur-xs text-white border border-white/40';
   } else if (waitMinutes >= 8) {
-    cardHeaderStyle = 'bg-amber-500 text-white border-amber-600';
-    badgeStyle = 'bg-amber-700 text-white';
+    cardHeaderStyle = 'bg-gradient-to-r from-amber-500 via-amber-600 to-red-600 text-white';
+    badgeStyle = 'bg-white/20 backdrop-blur-xs text-white border border-white/30';
   }
 
   return (
-    <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-3xl overflow-hidden shadow-sm flex flex-col justify-between">
+    <Card className="overflow-hidden flex flex-col justify-between">
       <div>
         {/* Card Header */}
-        <div className={`p-4 border-b flex items-center justify-between transition ${cardHeaderStyle}`}>
+        <div className={`p-4 flex items-center justify-between transition ${cardHeaderStyle}`}>
           <div>
-            <h3 className="text-xl font-black tracking-tight">โต๊ะ {group.table_id}</h3>
-            <span className="text-[11px] font-extrabold opacity-90 block">
+            <h3 className="text-xl font-black tracking-tight text-white">โต๊ะ {group.table_id}</h3>
+            <span className="text-[11px] font-extrabold text-red-100 block">
               รวม {group.items.reduce((s, i) => s + i.quantity, 0)} รายการ
             </span>
           </div>
@@ -71,11 +70,11 @@ export const KitchenOrderCard: React.FC<KitchenOrderCardProps> = ({
         </div>
 
         {/* Item Rows */}
-        <div className="p-4 space-y-3">
+        <div className="px-4 divide-y divide-slate-100 dark:divide-neutral-800">
           {group.items.map(item => (
             <div
               key={item.id}
-              className="p-3 bg-slate-50 dark:bg-neutral-800/80 border border-slate-200/80 dark:border-neutral-700/60 rounded-2xl flex items-center justify-between gap-3"
+              className="py-3 flex items-center justify-between gap-3"
             >
               <div className="flex-1 space-y-1">
                 <div className="flex items-center gap-2">
@@ -87,8 +86,8 @@ export const KitchenOrderCard: React.FC<KitchenOrderCardProps> = ({
                   </span>
                 </div>
                 {item.notes && (
-                  <p className="text-xs text-amber-700 dark:text-amber-400 font-bold">
-                    {item.menu_items?.category ? `ของหวาน • ` : ''}สั่งเมื่อ {new Date(item.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.
+                  <p className="text-xs text-red-600 dark:text-red-400 font-bold">
+                    📝 {item.notes}
                   </p>
                 )}
               </div>
@@ -115,6 +114,6 @@ export const KitchenOrderCard: React.FC<KitchenOrderCardProps> = ({
           <span>เสิร์ฟทั้งหมดของโต๊ะ {group.table_id}</span>
         </button>
       </div>
-    </div>
+    </Card>
   );
 };

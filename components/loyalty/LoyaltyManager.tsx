@@ -19,6 +19,8 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { MemberInfoCard } from './MemberInfoCard';
 import { PointsHistoryModal } from './PointsHistoryModal';
 
@@ -329,7 +331,7 @@ export const LoyaltyManager: React.FC = () => {
         <>
           {/* Summary Metric Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+            <Card className="p-5 flex items-center justify-between">
               <div>
                 <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
                   สมาชิกในระบบทั้งหมด
@@ -344,9 +346,9 @@ export const LoyaltyManager: React.FC = () => {
               <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-200 flex items-center justify-center font-bold">
                 <Users className="w-6 h-6" />
               </div>
-            </div>
+            </Card>
 
-            <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+            <Card className="p-5 flex items-center justify-between">
               <div>
                 <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
                   แต้มสะสมคงเหลือรวมทั้งระบบ
@@ -359,25 +361,25 @@ export const LoyaltyManager: React.FC = () => {
               <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
                 <Users className="w-6 h-6" />
               </div>
-            </div>
+            </Card>
           </div>
 
           {/* Search bar */}
-          <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-4 shadow-sm flex items-center gap-3">
-            <Search className="w-5 h-5 text-slate-400 dark:text-neutral-500" />
+          <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-xl px-3.5 py-2.5 shadow-xs flex items-center gap-2.5 max-w-xs w-full">
+            <Search className="w-4 h-4 text-slate-400 dark:text-neutral-500 shrink-0" />
             <input
               type="text"
-              placeholder="ค้นหาตามชื่อ หรือ เบอร์โทรศัพท์..."
+              placeholder="ค้นหาตามชื่อ หรือ เบอร์โทร..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="flex-1 bg-transparent border-none text-xs font-semibold text-slate-800 dark:text-neutral-100 placeholder:text-slate-400 focus:outline-none"
+              className="w-full bg-transparent border-none text-xs font-semibold text-slate-800 dark:text-neutral-100 placeholder:text-slate-400 focus:outline-none"
             />
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-300"
+                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-300 cursor-pointer shrink-0"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -396,52 +398,50 @@ export const LoyaltyManager: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl overflow-hidden shadow-sm">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-slate-50 dark:bg-neutral-800/80 border-b border-slate-200 dark:border-neutral-800 text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-                        <th className="p-4">สมาชิก</th>
-                        <th className="p-4">เบอร์โทรศัพท์</th>
-                        <th className="p-4 text-right">แต้มสะสม</th>
-                        <th className="p-4">วันที่สมัคร</th>
-                        <th className="p-4 text-center">จัดการ</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-neutral-800 text-xs font-semibold text-slate-800 dark:text-neutral-200">
-                      {paginatedMembers.map(m => (
-                        <tr
-                          key={m.phone_number}
-                          className="hover:bg-slate-50/50 dark:hover:bg-neutral-800/50 transition cursor-pointer"
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>สมาชิก</TableHead>
+                    <TableHead>เบอร์โทรศัพท์</TableHead>
+                    <TableHead className="text-right">แต้มสะสม</TableHead>
+                    <TableHead>วันที่สมัคร</TableHead>
+                    <TableHead className="text-center">จัดการ</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedMembers.map(m => (
+                    <TableRow
+                      key={m.phone_number}
+                      className="cursor-pointer"
+                      onClick={() => openDetail(m)}
+                    >
+                      <TableCell className="font-bold text-slate-900 dark:text-neutral-100">
+                        {m.name}
+                      </TableCell>
+                      <TableCell className="font-mono text-slate-600 dark:text-neutral-300">
+                        {m.phone_number}
+                      </TableCell>
+                      <TableCell className="text-right font-black text-amber-600 dark:text-amber-400 text-sm">
+                        {m.points.toLocaleString()} แต้ม
+                      </TableCell>
+                      <TableCell className="text-slate-500 dark:text-neutral-400">
+                        {formatDate(m.created_at)}
+                      </TableCell>
+                      <TableCell className="text-center" onClick={e => e.stopPropagation()}>
+                        <button
                           onClick={() => openDetail(m)}
+                          className="px-3 py-1.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-200 rounded-lg text-xs font-bold transition cursor-pointer"
                         >
-                          <td className="p-4 font-bold text-slate-900 dark:text-neutral-100">
-                            {m.name}
-                          </td>
-                          <td className="p-4 font-mono">{m.phone_number}</td>
-                          <td className="p-4 text-right font-black text-amber-600 dark:text-amber-400 text-sm">
-                            {m.points.toLocaleString()} แต้ม
-                          </td>
-                          <td className="p-4 text-slate-500 dark:text-neutral-400">
-                            {formatDate(m.created_at)}
-                          </td>
-                          <td className="p-4 text-center" onClick={e => e.stopPropagation()}>
-                            <button
-                              onClick={() => openDetail(m)}
-                              className="px-3 py-1.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-200 rounded-lg text-xs font-bold transition cursor-pointer"
-                            >
-                              ดูรายละเอียด
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                          ดูรายละเอียด
+                        </button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
 
-              {/* Pagination controls */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-4 shadow-sm text-xs font-semibold text-slate-600 dark:text-neutral-400">
+              {/* Pagination controls (No Card) */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-1 py-2 text-xs font-semibold text-slate-500 dark:text-neutral-400">
                 <div className="flex items-center gap-2">
                   <span>แสดงหน้า:</span>
                   <select
@@ -508,7 +508,7 @@ export const LoyaltyManager: React.FC = () => {
           {/* Member Purchase & Points History */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Purchase History */}
-            <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <Card className="p-5 space-y-4">
               <h3 className="text-sm font-extrabold text-slate-900 dark:text-neutral-100 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-red-600 dark:text-red-400" />
                 ประวัติการใช้บริการ (ชำระเงิน)
@@ -559,10 +559,10 @@ export const LoyaltyManager: React.FC = () => {
                   ))}
                 </div>
               )}
-            </div>
+            </Card>
 
             {/* Points Logs */}
-            <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <Card className="p-5 space-y-4">
               <h3 className="text-sm font-extrabold text-slate-900 dark:text-neutral-100 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                 ประวัติการปรับแต่งแต้มด้วยมือ
@@ -608,7 +608,7 @@ export const LoyaltyManager: React.FC = () => {
                   ))}
                 </div>
               )}
-            </div>
+            </Card>
           </div>
         </div>
       )}

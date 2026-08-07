@@ -15,6 +15,7 @@ import { PromoManager } from '@/components/PromoManager';
 import { SalesHistory } from '@/components/SalesHistory';
 import { LoyaltyManager } from '@/components/LoyaltyManager';
 import { EmployeeManager } from '@/components/EmployeeManager';
+import { TableCard } from '@/components/TableCard';
 
 interface Table {
   id: number;
@@ -132,11 +133,17 @@ export const TableMap: React.FC = () => {
     };
   }, [selectedTableId]);
 
+  const handleTabChange = (tab: NavTab) => {
+    setActiveTab(tab);
+    setSelectedTableId(null);
+    setCheckoutTableId(null);
+  };
+
   if (selectedTableId !== null) {
     return (
       <div className="flex flex-col md:flex-row h-screen bg-gray-100 dark:bg-neutral-950 font-sans text-slate-800 dark:text-neutral-100 overflow-hidden">
-        <SidebarNav activeTab={activeTab} onSelectTab={setActiveTab} />
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
+        <SidebarNav activeTab={activeTab} onSelectTab={handleTabChange} />
+        <main className="flex-1 overflow-hidden">
           <POSOrderScreen
             tableId={selectedTableId}
             onBack={() => setSelectedTableId(null)}
@@ -149,8 +156,8 @@ export const TableMap: React.FC = () => {
   if (checkoutTableId !== null) {
     return (
       <div className="flex flex-col md:flex-row h-screen bg-gray-100 dark:bg-neutral-950 font-sans text-slate-800 dark:text-neutral-100 overflow-hidden">
-        <SidebarNav activeTab={activeTab} onSelectTab={setActiveTab} />
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
+        <SidebarNav activeTab={activeTab} onSelectTab={handleTabChange} />
+        <main className="flex-1 overflow-y-auto no-scrollbar p-4 md:p-8">
           <CheckoutScreen
             tableId={checkoutTableId}
             onBack={() => setCheckoutTableId(null)}
@@ -172,9 +179,9 @@ export const TableMap: React.FC = () => {
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-gray-100 dark:bg-neutral-950 font-sans text-slate-800 dark:text-neutral-100 overflow-hidden">
-      <SidebarNav activeTab={activeTab} onSelectTab={setActiveTab} />
+      <SidebarNav activeTab={activeTab} onSelectTab={handleTabChange} />
 
-      <main className="flex-1 overflow-y-auto p-4 md:p-8">
+      <main className="flex-1 overflow-y-auto no-scrollbar p-4 md:p-8">
         {activeTab === 'kitchen' && <KitchenScreen />}
         {activeTab === 'history' && <SalesHistory />}
         {activeTab === 'menu' && isOwner && <MenuManager />}
@@ -213,50 +220,13 @@ export const TableMap: React.FC = () => {
             )}
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
-              {tables.map(table => {
-                const isOccupied = table.status === 'occupied';
-                return (
-                  <button
-                    key={table.id}
-                    onClick={() => handleTableClick(table)}
-                    className={`group relative p-4 sm:p-6 rounded-2xl sm:rounded-3xl border transition duration-200 text-left flex flex-col justify-between h-40 sm:h-48 shadow-xs cursor-pointer active:scale-95 overflow-hidden ${
-                      isOccupied
-                        ? 'bg-rose-50/90 dark:bg-rose-950/30 border-rose-200 dark:border-rose-900/50 hover:border-rose-400'
-                        : 'bg-white dark:bg-neutral-900 border-slate-200/80 dark:border-neutral-800 hover:border-red-400 dark:hover:border-red-500'
-                    }`}
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
-                      <span className="text-lg sm:text-2xl font-black text-slate-900 dark:text-neutral-100">
-                        โต๊ะ {table.id}
-                      </span>
-                      <span
-                        className={`text-[9px] sm:text-[10px] font-extrabold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full uppercase tracking-wider shrink-0 self-start sm:self-auto ${
-                          isOccupied
-                            ? 'bg-rose-600 text-white shadow-xs'
-                            : 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50'
-                        }`}
-                      >
-                        {isOccupied ? 'มีลูกค้า' : 'ว่าง (Vacant)'}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2 sm:pt-4 border-t border-slate-100 dark:border-neutral-800/80">
-                      <span className="text-[11px] sm:text-xs font-bold text-slate-500 dark:text-neutral-400 line-clamp-1">
-                        {isOccupied ? 'จัดการออเดอร์' : 'เปิดออเดอร์ใหม่'}
-                      </span>
-                      <div
-                        className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl flex items-center justify-center transition shrink-0 ${
-                          isOccupied
-                            ? 'bg-rose-600 text-white'
-                            : 'bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-300 group-hover:bg-red-600 group-hover:text-white'
-                        }`}
-                      >
-                        {isOccupied ? <Receipt className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
+              {tables.map(table => (
+                <TableCard
+                  key={table.id}
+                  table={table}
+                  onClick={() => handleTableClick(table)}
+                />
+              ))}
             </div>
           </div>
         )}

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { User, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 
 interface LoyaltyMember {
   phone_number: string;
@@ -30,7 +31,7 @@ export const MemberInfoCard: React.FC<MemberInfoCardProps> = ({
   formatDate,
 }) => {
   return (
-    <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-3xl p-6 shadow-sm">
+    <Card className="p-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         {/* Left: Member info & points summary */}
         <div className="flex items-center gap-4">
@@ -91,6 +92,6 @@ export const MemberInfoCard: React.FC<MemberInfoCardProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </Card>
   );
 };

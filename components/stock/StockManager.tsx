@@ -17,6 +17,9 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { IngredientPurchaseManager } from '@/components/stock/IngredientPurchaseManager';
 
 interface MenuItem {
   id: number;
@@ -42,7 +45,7 @@ export const StockManager: React.FC = () => {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [logs, setLogs] = useState<StockLog[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'inventory' | 'history'>('inventory');
+  const [activeTab, setActiveTab] = useState<'ingredients' | 'inventory' | 'history'>('ingredients');
   const [searchTerm, setSearchTerm] = useState('');
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
@@ -208,16 +211,16 @@ export const StockManager: React.FC = () => {
         <div>
           <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-neutral-100 tracking-tight flex items-center gap-2">
             <Boxes className="w-6 h-6 text-red-600 dark:text-red-400" />
-            จัดการสต็อกวัตถุดิบ & สินค้า
+            จัดการต้นทุนวัตถุดิบ & สต็อก
           </h1>
           <p className="text-xs text-slate-500 dark:text-neutral-400 font-semibold mt-0.5">
-            ปรับปรุงจำนวนคงเหลือ ตรวจสอบประวัติการตัดสต็อกอัตโนมัติ และสต็อกคงเหลือต่ำ
+            บันทึกการจัดซื้อวัตถุดิบทำเมนู (แซลมอน, เบียร์สด ฯลฯ) พร้อมปรับปรุงจำนวนสต็อกคงเหลือ
           </p>
         </div>
 
         <button
           onClick={fetchItems}
-          className="flex items-center gap-1.5 px-4 py-2.5 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-200 rounded-xl text-xs font-bold transition active:scale-95 shadow-xs cursor-pointer self-start md:self-auto"
+          className="flex items-center gap-1.5 px-4 py-2 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full text-xs font-semibold border-none shadow-none transition active:scale-95 cursor-pointer self-start md:self-auto"
         >
           <RefreshCw className="w-4 h-4" />
           <span>รีเฟรชข้อมูล</span>
@@ -226,10 +229,10 @@ export const StockManager: React.FC = () => {
 
       {message && (
         <div
-          className={`p-4 rounded-2xl text-xs font-semibold flex items-center justify-between ${
+          className={`p-4 rounded-2xl text-xs font-semibold flex items-center justify-between border-none shadow-none ${
             message.type === 'success'
-              ? 'bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 text-emerald-800 dark:text-emerald-300'
-              : 'bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-800 dark:text-rose-300'
+              ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300'
+              : 'bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300'
           }`}
         >
           <span>{message.text}</span>
@@ -240,23 +243,33 @@ export const StockManager: React.FC = () => {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-slate-200 dark:border-neutral-800 pb-3">
+      <div className="flex flex-wrap gap-2 pb-1">
+        <button
+          onClick={() => setActiveTab('ingredients')}
+          className={`px-4 py-2 rounded-full text-xs font-medium border-none shadow-none transition cursor-pointer ${
+            activeTab === 'ingredients'
+              ? 'bg-red-600 text-white font-semibold'
+              : 'bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+          }`}
+        >
+          ต้นทุนวัตถุดิบ (ประวัติการสั่งซื้อ)
+        </button>
         <button
           onClick={() => setActiveTab('inventory')}
-          className={`px-4 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer ${
+          className={`px-4 py-2 rounded-full text-xs font-medium border-none shadow-none transition cursor-pointer ${
             activeTab === 'inventory'
-              ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
-              : 'bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-neutral-800'
+              ? 'bg-red-600 text-white font-semibold'
+              : 'bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
           }`}
         >
           รายการสต็อกคงเหลือ ({items.length})
         </button>
         <button
           onClick={() => setActiveTab('history')}
-          className={`px-4 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer ${
+          className={`px-4 py-2 rounded-full text-xs font-medium border-none shadow-none transition cursor-pointer ${
             activeTab === 'history'
-              ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
-              : 'bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-neutral-800'
+              ? 'bg-red-600 text-white font-semibold'
+              : 'bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
           }`}
         >
           ประวัติการปรับสต็อกล่าสุด ({logs.length})
@@ -265,15 +278,16 @@ export const StockManager: React.FC = () => {
 
       {activeTab === 'inventory' ? (
         <>
-          <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-4 shadow-sm flex items-center justify-between">
-            <div className="flex items-center gap-2 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-3 py-1.5 w-full md:w-80">
-              <Search className="w-4 h-4 text-slate-400 dark:text-neutral-500" />
+          {/* Search bar */}
+          <div className="flex justify-end">
+            <div className="flex items-center gap-2 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-xl px-3.5 py-2 shadow-xs w-full max-w-xs">
+              <Search className="w-4 h-4 text-slate-400 dark:text-neutral-500 shrink-0" />
               <input
                 type="text"
                 placeholder="ค้นหาวัตถุดิบ/สินค้า..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full bg-transparent border-none text-xs font-semibold text-slate-800 dark:text-neutral-100 focus:outline-none"
+                className="w-full bg-transparent border-none text-xs font-semibold text-slate-800 dark:text-neutral-100 placeholder:text-slate-400 focus:outline-none"
               />
             </div>
           </div>
@@ -284,68 +298,64 @@ export const StockManager: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl overflow-hidden shadow-sm">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-slate-50 dark:bg-neutral-800/80 border-b border-slate-200 dark:border-neutral-800 text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-                        <th className="p-4">สินค้า/วัตถุดิบ</th>
-                        <th className="p-4">หมวดหมู่</th>
-                        <th className="p-4 text-center">ระบบนับสต็อก</th>
-                        <th className="p-4 text-right">จำนวนคงเหลือ</th>
-                        <th className="p-4 text-center">ปรับสต็อก</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-neutral-800 text-xs font-semibold text-slate-800 dark:text-neutral-200">
-                      {paginatedItems.map(item => (
-                        <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-neutral-800/50 transition">
-                          <td className="p-4 font-bold text-slate-900 dark:text-neutral-100">{item.name}</td>
-                          <td className="p-4">{item.category || 'ทั่วไป'}</td>
-                          <td className="p-4 text-center">
-                            <button
-                              onClick={() => toggleStockTracked(item)}
-                              className={`px-3 py-1 rounded-full text-[11px] font-extrabold cursor-pointer ${
-                                item.is_stock_tracked
-                                  ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300'
-                                  : 'bg-slate-100 dark:bg-neutral-800 text-slate-500 dark:text-neutral-400'
-                              }`}
-                            >
-                              {item.is_stock_tracked ? 'ตัดสต็อกอยู่' : 'ไม่ตัดสต็อก'}
-                            </button>
-                          </td>
-                          <td className="p-4 text-right font-black text-sm">
-                            <span
-                              className={
-                                item.stock <= 5
-                                  ? 'text-rose-600 dark:text-rose-400 font-black'
-                                  : 'text-slate-900 dark:text-neutral-100'
-                              }
-                            >
-                              {item.stock} ชิ้น
-                            </span>
-                          </td>
-                          <td className="p-4 text-center">
-                            <button
-                              onClick={() => {
-                                setAdjustTarget(item);
-                                setAdjustAmount('1');
-                                setAdjustReason('จัดซื้อเข้าเพิ่ม');
-                                setAdjustDirection('add');
-                              }}
-                              className="px-3 py-1.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-200 rounded-xl text-xs font-bold transition cursor-pointer"
-                            >
-                              ปรับจำนวน
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>สินค้า/วัตถุดิบ</TableHead>
+                    <TableHead>หมวดหมู่</TableHead>
+                    <TableHead className="text-center">ระบบนับสต็อก</TableHead>
+                    <TableHead className="text-right">จำนวนคงเหลือ</TableHead>
+                    <TableHead className="text-center">ปรับสต็อก</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedItems.map(item => (
+                    <TableRow key={item.id}>
+                      <TableCell className="font-bold text-slate-900 dark:text-neutral-100">{item.name}</TableCell>
+                      <TableCell>{item.category || 'ทั่วไป'}</TableCell>
+                      <TableCell className="text-center">
+                        <button
+                          onClick={() => toggleStockTracked(item)}
+                          className={`px-3 py-1 rounded-full text-[11px] font-extrabold cursor-pointer ${
+                            item.is_stock_tracked
+                              ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300'
+                              : 'bg-slate-100 dark:bg-neutral-800 text-slate-500 dark:text-neutral-400'
+                          }`}
+                        >
+                          {item.is_stock_tracked ? 'ตัดสต็อกอยู่' : 'ไม่ตัดสต็อก'}
+                        </button>
+                      </TableCell>
+                      <TableCell className="text-right font-black text-sm">
+                        <span
+                          className={
+                            item.stock <= 5
+                              ? 'text-rose-600 dark:text-rose-400 font-black'
+                              : 'text-slate-900 dark:text-neutral-100'
+                          }
+                        >
+                          {item.stock} ชิ้น
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <button
+                          onClick={() => {
+                            setAdjustTarget(item);
+                            setAdjustAmount('1');
+                            setAdjustReason('จัดซื้อเข้าเพิ่ม');
+                            setAdjustDirection('add');
+                          }}
+                          className="px-3 py-1.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-200 rounded-xl text-xs font-bold transition cursor-pointer"
+                        >
+                          ปรับจำนวน
+                        </button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
 
-              {/* Pagination */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-4 shadow-sm text-xs font-semibold text-slate-600 dark:text-neutral-400">
+              {/* Pagination (No Card) */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-1 py-2 text-xs font-semibold text-slate-500 dark:text-neutral-400">
                 <div className="flex items-center gap-2">
                   <span>แสดงหน้า:</span>
                   <select
@@ -383,49 +393,48 @@ export const StockManager: React.FC = () => {
             </div>
           )}
         </>
-      ) : (
+      ) : activeTab === 'history' ? (
         /* History Log Table */
-        <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50 dark:bg-neutral-800/80 border-b border-slate-200 dark:border-neutral-800 text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-                  <th className="p-4">เวลา</th>
-                  <th className="p-4">สินค้า</th>
-                  <th className="p-4 text-center">การเปลี่ยนแปลง</th>
-                  <th className="p-4">เหตุผล</th>
-                  <th className="p-4">ผู้ทำรายการ</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-neutral-800 text-xs font-semibold text-slate-800 dark:text-neutral-200">
-                {logs.map(log => (
-                  <tr key={log.id} className="hover:bg-slate-50/50 dark:hover:bg-neutral-800/50 transition">
-                    <td className="p-4 text-slate-500 dark:text-neutral-400">
-                      {new Date(log.created_at).toLocaleString('th-TH')}
-                    </td>
-                    <td className="p-4 font-bold text-slate-900 dark:text-neutral-100">
-                      {log.menu_item_name || log.menu_items?.name || `Item #${log.menu_item_id}`}
-                    </td>
-                    <td className="p-4 text-center">
-                      <span
-                        className={`font-black ${
-                          log.change_amount > 0
-                            ? 'text-emerald-600 dark:text-emerald-400'
-                            : 'text-rose-600 dark:text-rose-400'
-                        }`}
-                      >
-                        {log.change_amount > 0 ? '+' : ''}
-                        {log.change_amount} ชิ้น
-                      </span>
-                    </td>
-                    <td className="p-4">{log.reason}</td>
-                    <td className="p-4 text-slate-500 dark:text-neutral-400">{log.employee_name}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>เวลา</TableHead>
+              <TableHead>สินค้า</TableHead>
+              <TableHead className="text-center">การเปลี่ยนแปลง</TableHead>
+              <TableHead>เหตุผล</TableHead>
+              <TableHead>ผู้ทำรายการ</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {logs.map(log => (
+              <TableRow key={log.id}>
+                <TableCell className="text-slate-500 dark:text-neutral-400">
+                  {new Date(log.created_at).toLocaleString('th-TH')}
+                </TableCell>
+                <TableCell className="font-bold text-slate-900 dark:text-neutral-100">
+                  {log.menu_item_name || log.menu_items?.name || `Item #${log.menu_item_id}`}
+                </TableCell>
+                <TableCell className="text-center">
+                  <span
+                    className={`font-black ${
+                      log.change_amount > 0
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : 'text-rose-600 dark:text-rose-400'
+                    }`}
+                  >
+                    {log.change_amount > 0 ? '+' : ''}
+                    {log.change_amount} ชิ้น
+                  </span>
+                </TableCell>
+                <TableCell>{log.reason}</TableCell>
+                <TableCell className="text-slate-500 dark:text-neutral-400">{log.employee_name}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      ) : (
+        /* Ingredient Purchase Orders */
+        <IngredientPurchaseManager />
       )}
 
       {/* Adjust Modal */}

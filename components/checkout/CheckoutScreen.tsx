@@ -400,6 +400,8 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
         p_points_redeemed: pointsToRedeem,
         p_phone_number: member?.phone_number || null,
         p_applied_promos: appliedPromoPayload,
+        p_cash_amount: cashNum >= netAmount ? netAmount : cashNum,
+        p_promptpay_amount: transferAmount,
       });
 
       if (error) throw error;
@@ -501,6 +503,8 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
             netAmount={netAmount}
             pointsEarned={pointsEarned}
             member={member}
+            cashNum={cashNum}
+            transferAmount={transferAmount}
           />
 
           {/* RIGHT: Payment Controls */}

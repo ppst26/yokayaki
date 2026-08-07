@@ -73,7 +73,7 @@ export const CartPanel: React.FC<CartPanelProps> = ({
   activeOrderItems,
 }) => {
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 lg:static lg:w-[400px] shrink-0 bg-white dark:bg-neutral-900 border-t lg:border border-slate-200/90 dark:border-neutral-800 rounded-t-3xl lg:rounded-3xl shadow-xl lg:shadow-sm flex flex-col max-h-[85vh] lg:max-h-none overflow-hidden transition-all duration-300">
+    <div className="fixed bottom-0 left-0 right-0 z-40 lg:static lg:w-[380px] shrink-0 bg-white dark:bg-neutral-900 border-t lg:border-t-0 lg:border-l border-slate-200/90 dark:border-neutral-800 rounded-t-3xl lg:rounded-none lg:h-full shadow-xl lg:shadow-none flex flex-col max-h-[85vh] lg:max-h-none overflow-hidden transition-all duration-300">
       {/* Mobile Accordion Header Bar */}
       <div
         onClick={() => setMobileCartExpanded(prev => !prev)}
@@ -103,7 +103,7 @@ export const CartPanel: React.FC<CartPanelProps> = ({
       <div
         className={`${
           mobileCartExpanded ? 'flex' : 'hidden lg:flex'
-        } flex-col flex-1 p-5 overflow-y-auto space-y-6`}
+        } flex-col flex-1 p-5 overflow-y-auto no-scrollbar space-y-6`}
       >
         {/* Active Cart */}
         <div>

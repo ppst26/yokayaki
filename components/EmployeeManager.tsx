@@ -6,9 +6,10 @@ import { hashPin } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import {
   Plus, Pencil, KeyRound, ArrowLeftRight,
-  Trash2, X, CheckCircle, AlertTriangle, Shield, User,
+  Trash2, X, CheckCircle, AlertTriangle, Shield, User, Users,
   Eye, EyeOff
 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 
 // ========== Interfaces ==========
 
@@ -313,37 +314,47 @@ export const EmployeeManager: React.FC = () => {
         </div>
       )}
 
+      {/* Header & Add Employee Button */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-neutral-100 tracking-tight flex items-center gap-2">
+            <Users className="w-6 h-6 text-red-600 dark:text-red-400" />
+            จัดการพนักงาน (Employee Management)
+          </h1>
+          <p className="text-xs text-slate-500 dark:text-neutral-400 font-semibold mt-0.5">
+            จัดการข้อมูลพนักงาน กำหนดตำแหน่ง และรหัส PIN เข้าใช้งานระบบ
+          </p>
+        </div>
+
+        <button
+          onClick={() => openModal('add')}
+          className="flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow-md shadow-red-600/20 transition active:scale-95 cursor-pointer shrink-0 self-start md:self-auto"
+        >
+          <Plus className="w-4 h-4" />
+          เพิ่มพนักงานใหม่
+        </button>
+      </div>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl p-4 shadow-xs">
+        <Card className="p-4">
           <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider">พนักงานทั้งหมด</p>
           <p className="text-2xl font-black text-slate-900 dark:text-neutral-100 mt-1">{employees.length}</p>
-        </div>
-        <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl p-4 shadow-xs">
+        </Card>
+        <Card className="p-4">
           <div className="flex items-center gap-1.5">
             <Shield className="w-3.5 h-3.5 text-amber-500" />
             <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider">Owner</p>
           </div>
           <p className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{ownerCount}</p>
-        </div>
-        <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl p-4 shadow-xs">
+        </Card>
+        <Card className="p-4">
           <div className="flex items-center gap-1.5">
             <User className="w-3.5 h-3.5 text-sky-500" />
             <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider">Staff</p>
           </div>
           <p className="text-2xl font-black text-sky-600 dark:text-sky-400 mt-1">{staffCount}</p>
-        </div>
-      </div>
-
-      {/* ปุ่มเพิ่มพนักงาน */}
-      <div className="flex justify-end">
-        <button
-          onClick={() => openModal('add')}
-          className="flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow-md shadow-red-600/20 transition active:scale-95 cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          เพิ่มพนักงานใหม่
-        </button>
+        </Card>
       </div>
 
       {/* รายชื่อพนักงาน */}
@@ -362,11 +373,9 @@ export const EmployeeManager: React.FC = () => {
             const isSelf = currentUser?.id === emp.id;
 
             return (
-              <div
+              <Card
                 key={emp.id}
-                className={`bg-white dark:bg-neutral-900 border rounded-2xl p-5 shadow-xs transition-all hover:shadow-sm ${
-                  isSelf ? 'border-red-200 dark:border-red-900/50 ring-1 ring-red-100 dark:ring-red-950/30' : 'border-slate-200 dark:border-neutral-800'
-                }`}
+                className="p-5 transition-all"
               >
                 {/* ข้อมูลพนักงาน */}
                 <div className="flex items-center justify-between mb-3">
@@ -435,7 +444,7 @@ export const EmployeeManager: React.FC = () => {
                     </button>
                   )}
                 </div>
-              </div>
+              </Card>
             );
           })}
         </div>

@@ -69,14 +69,27 @@ export const MenuGrid: React.FC<MenuGridProps> = ({
                 key={item.id}
                 disabled={isOutOfStock}
                 onClick={() => addToCart(item)}
-                className={`group relative bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-4 flex flex-col justify-between text-left transition duration-200 active:scale-95 shadow-sm overflow-hidden ${
+                className={`group relative bg-white dark:bg-zinc-900 rounded-2xl p-4 flex flex-col justify-between text-left transition duration-200 active:scale-95 border-none shadow-none overflow-hidden ${
                   isOutOfStock
-                    ? 'opacity-60 cursor-not-allowed bg-slate-50 dark:bg-neutral-800/40'
-                    : 'hover:border-red-400 dark:hover:border-red-500 hover:shadow-md cursor-pointer'
+                    ? 'opacity-60 cursor-not-allowed bg-zinc-100 dark:bg-zinc-800/40'
+                    : 'cursor-pointer'
                 }`}
               >
+                {/* Stock Quantity Badge at Top Right */}
+                <div className="absolute top-2.5 right-2.5 z-10">
+                  {isOutOfStock ? (
+                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border-none shadow-none">
+                      หมด
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-none shadow-none">
+                      เหลือ {item.stock}
+                    </span>
+                  )}
+                </div>
+
                 {item.image_url ? (
-                  <div className="w-full h-24 mb-3 rounded-xl overflow-hidden bg-slate-100 dark:bg-neutral-800">
+                  <div className="w-full h-24 mb-3 rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-800 border-none">
                     <img
                       src={item.image_url}
                       alt={item.name}
@@ -85,25 +98,25 @@ export const MenuGrid: React.FC<MenuGridProps> = ({
                   </div>
                 ) : null}
 
-                <div className="space-y-1 mb-3">
-                  <span className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider block">
+                <div className="space-y-1 mb-3 pr-12">
+                  <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider block">
                     {item.category}
                   </span>
-                  <h3 className="font-extrabold text-sm text-slate-900 dark:text-neutral-100 line-clamp-2">
+                  <h3 className="font-extrabold text-sm text-zinc-900 dark:text-zinc-100 line-clamp-2">
                     {item.name}
                   </h3>
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-neutral-800 w-full">
+                <div className="flex items-center justify-between pt-2 border-t border-zinc-100 dark:border-zinc-800/80 w-full">
                   <span className="font-black text-red-600 dark:text-red-400 text-base">
                     {item.price.toLocaleString()} ฿
                   </span>
                   {isOutOfStock ? (
-                    <span className="text-[10px] font-extrabold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded-md border border-rose-200 dark:border-rose-900/50">
+                    <span className="text-[10px] font-extrabold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded-md border-none">
                       หมด
                     </span>
                   ) : (
-                    <div className="w-7 h-7 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 group-hover:bg-red-600 group-hover:text-white flex items-center justify-center transition">
+                    <div className="w-7 h-7 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 group-hover:bg-red-600 group-hover:text-white flex items-center justify-center transition border-none">
                       <Plus className="w-4 h-4" />
                     </div>
                   )}

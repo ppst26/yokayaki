@@ -1,7 +1,6 @@
-"use client";
-
 import React from 'react';
 import { Search, UserPlus } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 
 interface LoyaltyMember {
   phone_number: string;
@@ -39,7 +38,7 @@ export const CRMMemberCard: React.FC<CRMMemberCardProps> = ({
   subtotal,
 }) => {
   return (
-    <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-5 shadow-sm">
+    <Card className="p-5">
       <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-400 mb-3">
         สมาชิกสะสมแต้ม (CRM)
       </h3>
@@ -50,26 +49,26 @@ export const CRMMemberCard: React.FC<CRMMemberCardProps> = ({
           placeholder="เบอร์โทรศัพท์ 10 หลัก"
           value={phoneInput}
           onChange={e => setPhoneInput(e.target.value.replace(/\D/g, ''))}
-          className="flex-1 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-neutral-100 placeholder:text-slate-400 focus:border-red-500 focus:outline-none transition font-semibold"
+          className="flex-1 bg-slate-50 dark:bg-neutral-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-neutral-100 placeholder:text-slate-400 focus:outline-none transition font-semibold"
         />
         <button
           onClick={searchMember}
           disabled={phoneInput.length !== 10 || isSearchingMember}
-          className="px-4 py-2 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 disabled:opacity-50 border border-slate-200 dark:border-neutral-700 rounded-xl text-xs font-bold text-slate-700 dark:text-neutral-200 transition active:scale-95 cursor-pointer"
+          className="px-4 py-2 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 disabled:opacity-50 rounded-xl text-xs font-bold text-slate-700 dark:text-neutral-200 transition active:scale-95 cursor-pointer"
         >
           <Search className="w-4 h-4" />
         </button>
       </div>
 
       {member && (
-        <div className="mt-3 p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 rounded-xl">
-          <p className="text-emerald-800 dark:text-emerald-300 text-xs font-bold">
+        <div className="mt-3 pt-3 border-t border-slate-100 dark:border-neutral-800 space-y-1">
+          <p className="text-emerald-600 dark:text-emerald-400 text-xs font-bold">
             สมาชิก: {member.name}
           </p>
-          <p className="text-emerald-700 dark:text-emerald-400 text-[11px] mt-0.5">
-            แต้มคงเหลือ: <span className="font-extrabold">{member.points} แต้ม</span>
+          <p className="text-slate-600 dark:text-neutral-300 text-[11px]">
+            แต้มคงเหลือ: <span className="font-extrabold text-slate-900 dark:text-neutral-100">{member.points} แต้ม</span>
           </p>
-          <div className="flex items-center gap-2 mt-2">
+          <div className="flex items-center gap-2 pt-1">
             <label className="text-xs text-slate-600 dark:text-neutral-300 font-semibold">
               ใช้แต้ม:
             </label>
@@ -83,7 +82,7 @@ export const CRMMemberCard: React.FC<CRMMemberCardProps> = ({
                   Math.min(Number(e.target.value) || 0, member.points, subtotal)
                 )
               }
-              className="w-24 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-lg px-3 py-1 text-xs font-bold text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none"
+              className="w-24 bg-slate-50 dark:bg-neutral-800 rounded-lg px-3 py-1 text-xs font-bold text-slate-800 dark:text-neutral-100 focus:outline-none"
             />
             <span className="text-[11px] text-slate-400 dark:text-neutral-400">
               (1 แต้ม = 1 บาท)
@@ -93,8 +92,8 @@ export const CRMMemberCard: React.FC<CRMMemberCardProps> = ({
       )}
 
       {showRegister && !member && (
-        <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/50 rounded-xl">
-          <p className="text-blue-800 dark:text-blue-300 text-xs font-semibold mb-2">
+        <div className="mt-3 pt-3 border-t border-slate-100 dark:border-neutral-800 space-y-2">
+          <p className="text-blue-600 dark:text-blue-400 text-xs font-semibold">
             ไม่พบสมาชิก สมัครใหม่?
           </p>
           <div className="flex gap-2">
@@ -103,7 +102,7 @@ export const CRMMemberCard: React.FC<CRMMemberCardProps> = ({
               placeholder="ชื่อลูกค้า"
               value={registerName}
               onChange={e => setRegisterName(e.target.value)}
-              className="flex-1 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-lg px-3 py-1.5 text-xs text-slate-800 dark:text-neutral-100 focus:border-blue-500 focus:outline-none"
+              className="flex-1 bg-slate-50 dark:bg-neutral-800 rounded-lg px-3 py-1.5 text-xs text-slate-800 dark:text-neutral-100 focus:outline-none"
             />
             <button
               onClick={registerMember}
@@ -116,6 +115,6 @@ export const CRMMemberCard: React.FC<CRMMemberCardProps> = ({
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 };

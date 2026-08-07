@@ -1,7 +1,8 @@
 "use client";
 
 import React from 'react';
-import { Tag, Coins } from 'lucide-react';
+import { Tag, Coins, Banknote, Smartphone } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 
 interface OrderedItem {
   id: number;
@@ -47,6 +48,8 @@ interface OrderSummaryCardProps {
   netAmount: number;
   pointsEarned: number;
   member: LoyaltyMember | null;
+  cashNum?: number;
+  transferAmount?: number;
 }
 
 export const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
@@ -57,17 +60,19 @@ export const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
   netAmount,
   pointsEarned,
   member,
+  cashNum = 0,
+  transferAmount = 0,
 }) => {
   return (
-    <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-6 shadow-sm">
+    <Card className="p-6">
       <h2 className="text-base font-extrabold text-slate-900 dark:text-neutral-100 mb-4 pb-2 border-b border-slate-100 dark:border-neutral-800">
         สรุปรายการอาหาร
       </h2>
-      <div className="space-y-2 max-h-[40vh] overflow-y-auto pr-2">
+      <div className="divide-y divide-slate-100 dark:divide-neutral-800 max-h-[40vh] overflow-y-auto pr-2">
         {activeItems.map(item => (
           <div
             key={item.id}
-            className="p-3 rounded-xl bg-slate-50 dark:bg-neutral-800/60 border border-slate-200/80 dark:border-neutral-700/60 text-xs space-y-1"
+            className="py-3 text-xs space-y-1"
           >
             <div className="flex justify-between items-center">
               <div>
@@ -141,10 +146,38 @@ export const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
           </span>
         </div>
 
+        {/* Payment Split Breakdown */}
+        {(cashNum > 0 || transferAmount > 0) && (
+          <div className="pt-2 space-y-1.5">
+            {cashNum > 0 && (
+              <div className="flex items-center justify-between text-xs">
+                <span className="flex items-center gap-1.5 text-slate-500 dark:text-neutral-400 font-semibold">
+                  <Banknote className="w-3.5 h-3.5" />
+                  จ่ายเงินสด
+                </span>
+                <span className="font-extrabold text-slate-800 dark:text-neutral-200">
+                  {cashNum.toLocaleString()} บาท
+                </span>
+              </div>
+            )}
+            {transferAmount > 0 && (
+              <div className="flex items-center justify-between text-xs">
+                <span className="flex items-center gap-1.5 text-slate-500 dark:text-neutral-400 font-semibold">
+                  <Smartphone className="w-3.5 h-3.5" />
+                  โอน (QR PromptPay)
+                </span>
+                <span className="font-extrabold text-blue-600 dark:text-blue-400">
+                  {transferAmount.toLocaleString()} บาท
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Points Earned Display */}
-        <div className="mt-3 pt-3 border-t border-dashed border-slate-200 dark:border-neutral-700 flex justify-between items-center bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/50 p-3 rounded-xl">
+        <div className="mt-3 pt-3 border-t border-dashed border-slate-200 dark:border-neutral-700 flex justify-between items-center">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+            <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold shrink-0">
               <Coins className="w-4.5 h-4.5" />
             </div>
             <div>
@@ -167,6 +200,6 @@ export const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
           </span>
         </div>
       </div>
-    </div>
+    </Card>
   );
 };

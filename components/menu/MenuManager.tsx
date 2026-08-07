@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import {
   Plus,
+  Minus,
   Pencil,
   Trash2,
   X,
@@ -15,6 +16,8 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { MenuItemModal } from './MenuItemModal';
 
 interface MenuItem {
@@ -84,6 +87,24 @@ export const MenuManager: React.FC = () => {
       showMessage('ไม่สามารถดึงข้อมูลเมนูอาหารได้', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleQuickStockUpdate = async (item: MenuItem, deltaOrVal: number, isAbsolute = false) => {
+    const newStock = Math.max(0, isAbsolute ? deltaOrVal : item.stock + deltaOrVal);
+    setItems(prev => prev.map(i => i.id === item.id ? { ...i, stock: newStock } : i));
+
+    try {
+      const { error } = await supabase
+        .from('menu_items')
+        .update({ stock: newStock })
+        .eq('id', item.id);
+
+      if (error) throw error;
+    } catch (err) {
+      console.error('Error updating stock:', err);
+      showMessage('ไม่สามารถอัปเดตจำนวนคงเหลือได้', 'error');
+      fetchMenuItems();
     }
   };
 
@@ -225,7 +246,7 @@ export const MenuManager: React.FC = () => {
       )}
 
       {/* Filters & Search */}
-      <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-4 shadow-sm flex flex-col md:flex-row items-center gap-4 justify-between">
+      <div className="flex flex-col md:flex-row items-center gap-4 justify-between">
         <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 scrollbar-none">
           {['ทั้งหมด', ...CATEGORIES].map(cat => (
             <button
@@ -234,7 +255,7 @@ export const MenuManager: React.FC = () => {
               className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold whitespace-nowrap transition cursor-pointer ${
                 filterCategory === cat
                   ? 'bg-red-600 text-white shadow-xs'
-                  : 'bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-300 hover:bg-slate-200 dark:hover:bg-neutral-700'
+                  : 'bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800 shadow-2xs'
               }`}
             >
               {cat}
@@ -242,14 +263,14 @@ export const MenuManager: React.FC = () => {
           ))}
         </div>
 
-        <div className="flex items-center gap-2 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-3 py-1.5 w-full md:w-64">
-          <Search className="w-4 h-4 text-slate-400 dark:text-neutral-500" />
+        <div className="flex items-center gap-2 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-xl px-3.5 py-2 shadow-xs w-full max-w-xs">
+          <Search className="w-4 h-4 text-slate-400 dark:text-neutral-500 shrink-0" />
           <input
             type="text"
             placeholder="ค้นหาชื่อเมนู..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full bg-transparent border-none text-xs font-semibold text-slate-800 dark:text-neutral-100 focus:outline-none"
+            className="w-full bg-transparent border-none text-xs font-semibold text-slate-800 dark:text-neutral-100 placeholder:text-slate-400 focus:outline-none"
           />
         </div>
       </div>
@@ -268,70 +289,98 @@ export const MenuManager: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-50 dark:bg-neutral-800/80 border-b border-slate-200 dark:border-neutral-800 text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-                    <th className="p-4">รูปภาพ</th>
-                    <th className="p-4">ชื่อเมนู</th>
-                    <th className="p-4">หมวดหมู่</th>
-                    <th className="p-4 text-right">ราคาปกติ</th>
-                    <th className="p-4 text-center">จัดการ</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-neutral-800 text-xs font-semibold text-slate-800 dark:text-neutral-200">
-                  {paginatedItems.map(item => (
-                    <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-neutral-800/50 transition">
-                      <td className="p-4">
-                        {item.image_url ? (
-                          <img
-                            src={item.image_url}
-                            alt={item.name}
-                            className="w-10 h-10 object-cover rounded-xl border border-slate-200 dark:border-neutral-700"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 flex items-center justify-center text-slate-400 dark:text-neutral-500">
-                            <ImageIcon className="w-5 h-5" />
-                          </div>
-                        )}
-                      </td>
-                      <td className="p-4 font-extrabold text-slate-900 dark:text-neutral-100">{item.name}</td>
-                      <td className="p-4">
-                        <span className="bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 px-2.5 py-1 rounded-lg text-[11px] font-bold">
-                          {item.category || 'ทั่วไป'}
-                        </span>
-                      </td>
-                      <td className="p-4 text-right font-black text-red-600 dark:text-red-400 text-sm">
-                        {item.price.toLocaleString()} ฿
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => openEditModal(item)}
-                            className="p-2 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-200 rounded-xl transition cursor-pointer"
-                            title="แก้ไข"
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => setDeleteTarget(item)}
-                            className="p-2 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 rounded-xl transition cursor-pointer"
-                            title="ลบ"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>รูปภาพ</TableHead>
+                <TableHead>ชื่อเมนู</TableHead>
+                <TableHead>หมวดหมู่</TableHead>
+                <TableHead className="text-center">จำนวนสต็อกคงเหลือ</TableHead>
+                <TableHead className="text-right">ราคาปกติ</TableHead>
+                <TableHead className="text-center">จัดการ</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedItems.map(item => (
+                <TableRow key={item.id}>
+                  <TableCell>
+                    {item.image_url ? (
+                      <img
+                        src={item.image_url}
+                        alt={item.name}
+                        className="w-10 h-10 object-cover rounded-xl border-none"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 border-none flex items-center justify-center text-zinc-400 dark:text-zinc-500">
+                        <ImageIcon className="w-5 h-5" />
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell className="font-extrabold text-zinc-900 dark:text-zinc-100">{item.name}</TableCell>
+                  <TableCell>
+                    <span className="bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2.5 py-1 rounded-lg text-[11px] font-bold">
+                      {item.category || 'ทั่วไป'}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <div className="flex items-center justify-center gap-1.5">
+                      <button
+                        onClick={() => handleQuickStockUpdate(item, -1)}
+                        disabled={item.stock <= 0}
+                        className="p-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 disabled:opacity-30 transition cursor-pointer border-none shadow-none"
+                        title="ลดจำนวน 1"
+                      >
+                        <Minus className="w-3.5 h-3.5" />
+                      </button>
+                      <input
+                        type="number"
+                        min={0}
+                        value={item.stock}
+                        onChange={e => {
+                          const val = parseInt(e.target.value, 10);
+                          if (!isNaN(val) && val >= 0) {
+                            handleQuickStockUpdate(item, val, true);
+                          }
+                        }}
+                        className="w-14 text-center bg-zinc-100 dark:bg-zinc-800 text-xs font-bold rounded-lg py-1 text-zinc-900 dark:text-zinc-100 border-none focus:outline-none focus:ring-2 focus:ring-red-500/50"
+                      />
+                      <button
+                        onClick={() => handleQuickStockUpdate(item, 1)}
+                        className="p-1 rounded-lg bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/60 transition cursor-pointer border-none shadow-none"
+                        title="เพิ่มจำนวน 1"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right font-black text-red-600 dark:text-red-400 text-sm">
+                    {item.price.toLocaleString()} ฿
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => openEditModal(item)}
+                        className="p-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 rounded-xl transition cursor-pointer border-none shadow-none"
+                        title="แก้ไข"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setDeleteTarget(item)}
+                        className="p-2 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 rounded-xl transition cursor-pointer border-none shadow-none"
+                        title="ลบ"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
 
-          {/* Pagination */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-4 shadow-sm text-xs font-semibold text-slate-600 dark:text-neutral-400">
+          {/* Pagination (No Card) */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-1 py-2 text-xs font-semibold text-slate-500 dark:text-neutral-400">
             <div className="flex items-center gap-2">
               <span>แสดงหน้า:</span>
               <select
