@@ -1,6 +1,6 @@
 # 🏷️ Yokayaki POS — เอกสารระบบโปรโมชั่น & คูปองส่วนลด (Promotion & Discount System)
 
-> **เอกสารคู่มือและข้อกำหนดทางเทคนิคระบบโปรโมชั่น**  
+> **เอกสารคู่มือ ข้อกำหนดทางเทคนิค ลอจิกการคำนวณ และ Workflow ระบบโปรโมชั่น**  
 > ปรับปรุงล่าสุด: 8 สิงหาคม 2026
 
 ---
@@ -42,7 +42,65 @@
 
 ---
 
-## ⏰ 3. กฎโปรโมชั่น Happy Hour และการล็อกราคา (Order-Time Price Lock)
+## 🧮 3. ลอจิกการคำนวณและขั้นตอน Workflow (Calculation Logic & Workflow Algorithms)
+
+### 3.1 Checkout Workflow (ขั้นตอนการประมวลผลส่วนลด ณ หน้าคิดเงิน)
+
+```mermaid
+flowchart TD
+    A[เริ่มขั้นตอนการเช็คบิล Checkout] --> B[1. คำนวณ Subtotal ยอดรวมก่อนลด]
+    B --> C[2. ดึงรายการโปรโมชั่นที่เปิดใช้งาน eq is_active, true]
+    C --> D[3. ประมวลผล Auto-Apply Promotions]
+    D --> E{ประเภทโปรโมชั่น?}
+    
+    E -->|Percentage %| F[คำนวณส่วนลด % รายไอเทม/ทั้งบิล + เช็ค Happy Hour]
+    E -->|Fixed บาท / Coupon| G[เช็คยอดขั้นต่ำ min_order_amount + หักเงินคงที่]
+    E -->|Buy X Get Y| H[คำนวณจำนวนชุด setSize = buy_qty + free_qty + ตัดราคาแถม]
+
+    F --> I[รวมส่วนลดโปรโมชั่น promoDiscount]
+    G --> I
+    H --> I
+    
+    I --> J[4. รวมส่วนลดสมาชิก loyaltyDiscount]
+    J --> K[5. คำนวณยอดสุทธิ netAmount = subtotal - totalDiscount]
+    K --> L[6. คำนวณแต้มสะสม pointsEarned = netAmount / 25]
+    L --> M[7. เรียก RPC complete_checkout บันทึกธุรกรรมลง DB]
+```
+
+---
+
+### 3.2 สูตรและลอจิกการคำนวณส่วนลด (Discount Calculation Formulas)
+
+#### 1) สูตรคำนวณส่วนลดเปอร์เซ็นต์ (Percentage Discount Algorithm)
+*   **กรณีส่วนลดทั้งร้าน (All Menu):**
+    $$\text{discountValue} = \text{Math.round}\left(\frac{\text{subtotal} \times \text{discount\_percent}}{100}\right)$$
+*   **กรณีส่วนลดเฉพาะเมนู หรือช่วงเวลา Happy Hour:**
+    *   วนลูปตรวจสอบรายการสินค้าที่ไม่ถูกยกเลิก (`status !== 'voided'`)
+    *   ตรวจสอบเงื่อนไขเมนูเฉพาะ: `item.menu_item_id === promo.menu_item_id`
+    *   ตรวจสอบเวลาสั่งซื้อ (`item.created_at` ในรูปแบบ `HH:mm`):
+        $$\text{promo.start\_time} \le \text{itemTimeStr} < \text{promo.end\_time}$$
+    *   สูตรหักส่วนลดต่อไอเทม:
+        $$\text{itemDiscount} = \text{Math.round}\left(\frac{\text{item.quantity} \times \text{item.unit\_price} \times \text{discount\_percent}}{100}\right)$$
+
+#### 2) สูตรคำนวณส่วนลดเงินสด / คูปอง (Fixed Amount & Coupon Algorithm)
+*   **เงื่อนไขยึดถือยอดขั้นต่ำ:**
+    $$\text{subtotal} \ge \text{min\_order\_amount}$$
+*   **คำนวณส่วนลด:**
+    $$\text{discountValue} = \text{discount\_amount}$$
+
+#### 3) สูตรคำนวณซื้อ X แถม Y (Buy X Get Y Algorithm)
+*   **ขนาดต่อชุดโปรโมชั่น (Set Size):**
+    $$\text{setSize} = \text{buy\_qty} + \text{free\_qty}$$
+*   **จำนวนชุดโปรโมชั่นที่ครบเงื่อนไข (Completed Sets):**
+    $$\text{completedSets} = \left\lfloor \frac{\text{totalItemQuantity}}{\text{setSize}} \right\rfloor$$
+*   **จำนวนรายการที่ได้รับแถมฟรี (Free Items Quantity):**
+    $$\text{freeQuantity} = \text{completedSets} \times \text{free\_qty}$$
+*   **มูลค่าส่วนลดรวมของการแถมฟรี (Total Discount Value):**
+    $$\text{discountValue} = \text{freeQuantity} \times \text{unit\_price}$$
+
+---
+
+## ⏰ 4. กฎโปรโมชั่น Happy Hour และการล็อกราคา (Order-Time Price Lock)
 
 1.  **การแสดงผลหน้าเมนู (Client & POS Display):**
     *   เมื่ออยู่ในช่วงเวลา Happy Hour (เช่น 17:00 - 19:00 น.) เมนูที่จัดโปรจะแสดงราคาโปรโมชั่นสีเด่นชัด พร้อมขีดฆ่าราคาปกติ เช่น `~~90~~` ➡️ **50 THB**
@@ -52,9 +110,9 @@
 
 ---
 
-## 🗄️ 4. โครงสร้างฐานข้อมูล (Database Schema)
+## 🗄️ 5. โครงสร้างฐานข้อมูล (Database Schema)
 
-### 4.1 ตาราง `promotions`
+### 5.1 ตาราง `promotions`
 
 | ฟิลด์ | ประเภท | คำอธิบาย |
 |---|---|---|
@@ -73,7 +131,7 @@
 | `is_active` | `BOOLEAN` | สถานะเปิด/ปิดใช้งาน (Default: `true`) |
 | `created_at` | `TIMESTAMPTZ` | วันเวลาที่สร้างรายการ |
 
-### 4.2 ตาราง `payment_promotions`
+### 5.2 ตาราง `payment_promotions`
 
 บันทึกประวัติการใช้โปรโมชั่นในแต่ละบิลเมื่อชำระเงินสำเร็จ (Checkout):
 
@@ -86,7 +144,7 @@
 
 ---
 
-## ⚙️ 5. ฟังก์ชันประมวลผล (Supabase RPC)
+## ⚙️ 6. ฟังก์ชันประมวลผล (Supabase RPC)
 
 ### `complete_checkout`
 ปิดบิลชำระเงิน + บันทึกส่วนลด + ตัดแต้มสะสม + บันทึกประวัติโปรโมชั่น:
@@ -107,7 +165,7 @@ complete_checkout(
 
 ---
 
-## 🎨 6. ส่วนต่อประสานผู้ใช้ (User Interface)
+## 🎨 7. ส่วนต่อประสานผู้ใช้ (User Interface)
 
 *   **หน้าจัดการโปรโมชั่น:** [`components/promo/PromoManager.tsx`](file:///c:/Users/PP/Desktop/React/yokayaki/components/promo/PromoManager.tsx)
 *   **ดีไซน์การ์ดโปรโมชั่น:**
