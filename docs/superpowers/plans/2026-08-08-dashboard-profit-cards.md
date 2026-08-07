@@ -1,3 +1,32 @@
+# Dashboard Top Profit & Sales Cards Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Implement two top KPI cards (Net Sales and Estimated Profit) in `TopKPICards.tsx` on the Owner Dashboard.
+
+**Architecture:** Update `TopKPICards.tsx` to query `payments` (for subtotal, discount, net amount) and `item_ingredients` (for ingredient purchase costs) within the selected date range, and render two cards in a 2-column responsive layout.
+
+**Tech Stack:** Next.js 16, React 19, TypeScript, Supabase JS, Lucide React icons, TailwindCSS.
+
+## Global Constraints
+
+- Files: `components/dashboard/TopKPICards.tsx`
+- No breaking changes to AuthContext or database schemas.
+
+---
+
+### Task 1: Update TopKPICards component to fetch revenue, discounts, ingredient costs and render 2 KPI cards
+
+**Files:**
+- Modify: `components/dashboard/TopKPICards.tsx`
+
+**Interfaces:**
+- Consumes: `startDate: Date`, `endDate: Date`, `refreshKey: number` from `OwnerDashboard`
+- Produces: 2 KPI Cards rendering Net Sales (with gross sales & discount breakdown) and Estimated Profit (with net sales & ingredient cost breakdown).
+
+- [ ] **Step 1: Update implementation of TopKPICards**
+
+```tsx
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -98,7 +127,7 @@ export const TopKPICards: React.FC<TopKPICardsProps> = ({ startDate, endDate, re
           <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
             ยอดขายสุทธิ
           </span>
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-slate-50 dark:bg-neutral-800 border border-slate-100 dark:border-neutral-700 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
             <DollarSign className="w-5 h-5" />
           </div>
         </div>
@@ -115,7 +144,7 @@ export const TopKPICards: React.FC<TopKPICardsProps> = ({ startDate, endDate, re
               <span className="text-xs font-bold text-slate-500 dark:text-neutral-400">฿</span>
             </p>
             <p className="text-[10px] sm:text-xs font-semibold text-slate-400 dark:text-neutral-500 mt-1">
-              (ก่อนหักโปร ฿{data.grossSales.toLocaleString()} • ส่วนลด <span className="text-rose-600 dark:text-rose-400 font-bold">฿{data.totalDiscounts.toLocaleString()}</span>)
+              (ก่อนหักโปร ฿{data.grossSales.toLocaleString()} • ส่วนลด ฿{data.totalDiscounts.toLocaleString()})
             </p>
           </div>
         )}
@@ -127,9 +156,7 @@ export const TopKPICards: React.FC<TopKPICardsProps> = ({ startDate, endDate, re
           <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
             กำไรประมาณการ
           </span>
-          <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-slate-50 dark:bg-neutral-800 border border-slate-100 dark:border-neutral-700 flex items-center justify-center shrink-0 ${
-            data.estimatedProfit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
-          }`}>
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-violet-50 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
             <TrendingUp className="w-5 h-5" />
           </div>
         </div>
@@ -141,14 +168,12 @@ export const TopKPICards: React.FC<TopKPICardsProps> = ({ startDate, endDate, re
           </div>
         ) : (
           <div>
-            <p className={`text-xl sm:text-2xl font-black ${
-              data.estimatedProfit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
-            }`}>
+            <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-neutral-100">
               {data.estimatedProfit.toLocaleString()}{' '}
-              <span className="text-xs font-bold">฿</span>
+              <span className="text-xs font-bold text-slate-500 dark:text-neutral-400">฿</span>
             </p>
             <p className="text-[10px] sm:text-xs font-semibold text-slate-400 dark:text-neutral-500 mt-1">
-              (ยอดขายสุทธิ ฿{data.netRevenue.toLocaleString()} • จัดซื้อ <span className="text-rose-600 dark:text-rose-400 font-bold">฿{data.totalIngredientCost.toLocaleString()}</span>)
+              (ยอดขายสุทธิ ฿{data.netRevenue.toLocaleString()} • จัดซื้อ ฿{data.totalIngredientCost.toLocaleString()})
             </p>
           </div>
         )}
@@ -156,3 +181,9 @@ export const TopKPICards: React.FC<TopKPICardsProps> = ({ startDate, endDate, re
     </div>
   );
 };
+```
+
+- [ ] **Step 2: Verify TypeScript compilation**
+
+Run: `pnpm exec tsc --noEmit`
+Expected: PASS with 0 errors

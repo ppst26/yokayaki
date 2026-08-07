@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { X, Loader2, ImageIcon } from 'lucide-react';
+import { CustomSelect } from '@/components/ui/select';
 
 interface MenuItem {
   id: number;
@@ -73,17 +74,13 @@ export const MenuItemModal: React.FC<MenuItemModalProps> = ({
               <label className="block text-slate-500 dark:text-neutral-400 mb-1">
                 หมวดหมู่ *
               </label>
-              <select
+              <CustomSelect
                 value={formData.category}
-                onChange={e => setFormData({ ...formData, category: e.target.value })}
-                className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none cursor-pointer"
-              >
-                {categories.map(c => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+                onChange={val => setFormData({ ...formData, category: val })}
+                options={categories}
+                placeholder="เลือกหมวดหมู่"
+                searchable={false}
+              />
             </div>
 
             <div>

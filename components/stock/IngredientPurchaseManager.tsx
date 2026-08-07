@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { CustomSelect } from '@/components/ui/select';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -392,21 +393,22 @@ export const IngredientPurchaseManager: React.FC = () => {
       <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white dark:bg-zinc-900 p-4 rounded-2xl border-none shadow-none">
         <div className="flex flex-wrap items-center gap-2">
           {/* Dropdown Filter */}
-          <div className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 border-none">
+          <div className="flex items-center gap-1.5 min-w-[200px]">
             <Filter className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />
-            <select
+            <CustomSelect
               value={dateFilter}
-              onChange={e => setDateFilter(e.target.value as DateFilterType)}
-              className="bg-transparent text-xs font-bold text-zinc-800 dark:text-zinc-100 focus:outline-none cursor-pointer border-none"
-            >
-              <option value="all">ทั้งหมด (All Time)</option>
-              <option value="today">วันนี้ (Today)</option>
-              <option value="weekly">รายสัปดาห์ (7 วันล่าสุด)</option>
-              <option value="monthly">รายเดือน (30 วันล่าสุด)</option>
-              <option value="3months">3 เดือน (90 วันล่าสุด)</option>
-              <option value="6months">6 เดือน (180 วันล่าสุด)</option>
-              <option value="custom">กำหนดเอง (Custom Range)</option>
-            </select>
+              onChange={val => setDateFilter(val as DateFilterType)}
+              options={[
+                { label: 'ทั้งหมด (All Time)', value: 'all' },
+                { label: 'วันนี้ (Today)', value: 'today' },
+                { label: 'รายสัปดาห์ (7 วันล่าสุด)', value: 'weekly' },
+                { label: 'รายเดือน (30 วันล่าสุด)', value: 'monthly' },
+                { label: '3 เดือน (90 วันล่าสุด)', value: '3months' },
+                { label: '6 เดือน (180 วันล่าสุด)', value: '6months' },
+                { label: 'กำหนดเอง (Custom Range)', value: 'custom' },
+              ]}
+              searchable={false}
+            />
           </div>
 
           {/* Custom Date Range Pickers */}
@@ -646,20 +648,6 @@ export const IngredientPurchaseManager: React.FC = () => {
                 </div>
               </div>
 
-              {/* Note */}
-              <div>
-                <label className="block text-[11px] font-extrabold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mb-1.5">
-                  หมายเหตุ (ถ้ามี)
-                </label>
-                <input
-                  type="text"
-                  placeholder="หมายเหตุเพิ่มเติม..."
-                  value={note}
-                  onChange={e => setNote(e.target.value)}
-                  className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-4 py-2.5 text-sm font-semibold text-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500/50 placeholder:text-zinc-400 border-none"
-                />
-              </div>
-
               {/* Ingredient Table */}
               <div>
                 <div className="flex items-center justify-between mb-2">
@@ -685,92 +673,78 @@ export const IngredientPurchaseManager: React.FC = () => {
 
                 {/* Rows */}
                 <div className="space-y-2">
-                  {ingredients.map((row, idx) => (
-                    <div key={idx} className="grid grid-cols-[1fr_80px_100px_90px_32px] gap-2 items-center">
-                      {/* Name Dropdown with Add Custom Option */}
-                      <select
-                        value={row.name}
-                        onChange={e => {
-                          const val = e.target.value;
-                          if (val === '__NEW_INGREDIENT__') {
+                  {ingredients.map((row, idx) => {
+                    const nameOptions = row.name && !availableIngredients.includes(row.name)
+                      ? [row.name, ...availableIngredients]
+                      : availableIngredients;
+                    const unitOptions = row.unit && !availableUnits.includes(row.unit)
+                      ? [row.unit, ...availableUnits]
+                      : availableUnits;
+
+                    return (
+                      <div key={idx} className="grid grid-cols-[1fr_80px_100px_90px_32px] gap-2 items-center relative">
+                        {/* Name Dropdown with CustomSelect (Searchable) */}
+                        <CustomSelect
+                          value={row.name}
+                          onChange={val => updateRow(idx, 'name', val)}
+                          options={nameOptions}
+                          placeholder="-- เลือกวัตถุดิบ --"
+                          addNewLabel="+ เพิ่มชื่อวัตถุดิบใหม่..."
+                          searchable={true}
+                          onAddNew={() => {
                             setCustomModalState({ type: 'ingredient', rowIndex: idx });
                             setCustomValueInput('');
-                          } else {
-                            updateRow(idx, 'name', val);
-                          }
-                        }}
-                        className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500/50 border-none cursor-pointer"
-                      >
-                        <option value="">-- เลือกวัตถุดิบ --</option>
-                        {availableIngredients.map(name => (
-                          <option key={name} value={name}>{name}</option>
-                        ))}
-                        {row.name && !availableIngredients.includes(row.name) && (
-                          <option value={row.name}>{row.name}</option>
-                        )}
-                        <option value="__NEW_INGREDIENT__" className="font-bold text-red-600">
-                          + เพิ่มชื่อวัตถุดิบใหม่...
-                        </option>
-                      </select>
+                          }}
+                        />
 
-                      {/* Quantity */}
-                      <input
-                        type="number"
-                        min={0}
-                        step="0.01"
-                        placeholder="0"
-                        value={row.quantity}
-                        onChange={e => updateRow(idx, 'quantity', e.target.value)}
-                        className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500/50 text-center border-none"
-                      />
+                        {/* Quantity */}
+                        <input
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          placeholder="0"
+                          value={row.quantity}
+                          onChange={e => updateRow(idx, 'quantity', e.target.value)}
+                          className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500/50 text-center border-none"
+                        />
 
-                      {/* Unit Dropdown with Add Custom Option */}
-                      <select
-                        value={row.unit}
-                        onChange={e => {
-                          const val = e.target.value;
-                          if (val === '__NEW_UNIT__') {
+                        {/* Unit Dropdown with CustomSelect (No Search) */}
+                        <CustomSelect
+                          value={row.unit}
+                          onChange={val => updateRow(idx, 'unit', val)}
+                          options={unitOptions}
+                          placeholder="หน่วย"
+                          addNewLabel="+ เพิ่มหน่วยใหม่..."
+                          searchable={false}
+                          onAddNew={() => {
                             setCustomModalState({ type: 'unit', rowIndex: idx });
                             setCustomValueInput('');
-                          } else {
-                            updateRow(idx, 'unit', val);
-                          }
-                        }}
-                        className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-2 py-2 text-xs font-semibold text-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500/50 cursor-pointer border-none"
-                      >
-                        {availableUnits.map(u => (
-                          <option key={u} value={u}>{u}</option>
-                        ))}
-                        {row.unit && !availableUnits.includes(row.unit) && (
-                          <option value={row.unit}>{row.unit}</option>
-                        )}
-                        <option value="__NEW_UNIT__" className="font-bold text-red-600">
-                          + เพิ่มหน่วยใหม่...
-                        </option>
-                      </select>
+                          }}
+                        />
 
-                      {/* Price per unit */}
-                      <input
-                        type="number"
-                        min={0}
-                        step="0.01"
-                        placeholder="0"
-                        value={row.pricePerUnit}
-                        onChange={e => updateRow(idx, 'pricePerUnit', e.target.value)}
-                        className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500/50 text-right border-none"
-                      />
+                        {/* Price per unit */}
+                        <input
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          placeholder="0"
+                          value={row.pricePerUnit}
+                          onChange={e => updateRow(idx, 'pricePerUnit', e.target.value)}
+                          className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500/50 text-right border-none"
+                        />
 
-                      {/* Remove */}
-                      <button
-                        type="button"
-                        onClick={() => removeIngredientRow(idx)}
-                        disabled={ingredients.length === 1}
-                        className="p-1 text-zinc-400 hover:text-rose-500 dark:hover:text-rose-400 disabled:opacity-30 transition cursor-pointer rounded-lg"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
+                        {/* Remove */}
+                        <button
+                          type="button"
+                          onClick={() => removeIngredientRow(idx)}
+                          disabled={ingredients.length === 1}
+                          className="p-1 text-zinc-400 hover:text-rose-500 dark:hover:text-rose-400 disabled:opacity-30 transition cursor-pointer rounded-lg flex items-center justify-center"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
 
                 {/* Row subtotals */}
@@ -788,9 +762,23 @@ export const IngredientPurchaseManager: React.FC = () => {
                 </div>
               </div>
 
-              {/* Total Cost Summary */}
-              <div className="bg-red-50 dark:bg-red-950/40 rounded-2xl p-4 flex items-center justify-between border-none">
-                <span className="text-sm font-extrabold text-red-900 dark:text-red-200">รวมค่าใช้จ่ายทั้งหมด</span>
+              {/* Note (Placed below ingredient table, right before total cost) */}
+              <div>
+                <label className="block text-[11px] font-extrabold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mb-1.5">
+                  หมายเหตุ (ถ้ามี)
+                </label>
+                <input
+                  type="text"
+                  placeholder="หมายเหตุเพิ่มเติม..."
+                  value={note}
+                  onChange={e => setNote(e.target.value)}
+                  className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-4 py-2.5 text-sm font-semibold text-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500/50 placeholder:text-zinc-400 border-none"
+                />
+              </div>
+
+              {/* Total Cost Summary (No background) */}
+              <div className="px-1 pt-1 flex items-center justify-between border-none">
+                <span className="text-sm font-extrabold text-zinc-800 dark:text-zinc-200">รวมค่าใช้จ่ายทั้งหมด</span>
                 <span className="text-xl font-black text-red-600 dark:text-red-400">
                   {totalCost.toLocaleString()} <span className="text-sm font-bold">฿</span>
                 </span>

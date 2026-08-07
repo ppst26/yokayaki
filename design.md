@@ -146,3 +146,43 @@ export const deleteIconBtn = "p-2 rounded-full bg-red-100 dark:bg-red-950/50 tex
 // 6. Highlight Red Price Number
 export const priceText = "text-red-600 dark:text-red-400 font-bold text-base";
 ```
+
+---
+
+## 🔻 6. Custom Dropdown / Select Specification (ข้อกำหนดมาตรฐาน Dropdown)
+
+เพื่อสร้างมาตรฐาน UI เดียวกันทั้งระบบ POS Component `CustomSelect` ถูกออกแบบเป็น Reusable UI Component อยู่ที่ [`components/ui/select.tsx`](file:///c:/Users/PP/Desktop/React/yokayaki/components/ui/select.tsx)
+
+### 6.1 Key Features & Specs
+1. **Portal Floating Layer (`createPortal`)**: Popover ลอยด้วย `position: fixed` + `zIndex: 99999` ไม่โดนตัดขอบโดย Container หรือถูกบังโดย Modal Footers / Buttons
+2. **Smart Auto-Positioning**: คำนวณพื้นที่อัตโนมัติ หากพื้นที่ด้านล่างไม่พอ (< 300px) จะสลับเปิดขึ้นด้านบน (`placeAbove`)
+3. **Scrollable Option Limit**: แสดงผลประมาณ 10 รายการด้วย `max-h-[260px] overflow-y-auto`
+4. **Sticky Bottom Action Button**: ปุ่ม `+ เพิ่มรายการใหม่...` หรือ `+ เพิ่มชื่อวัตถุดิบใหม่...` ถูกตรึง (`sticky bottom-0`) อยู่ด้านล่างเสมอแม้เลื่อนดูรายการ
+5. **Search Input Toggle (`searchable`)**:
+   - `searchable={true}`: แสดงช่องค้นหาด้านบน Popover (เหมาะสำหรับตัวเลือกจำนวนมาก เช่น รายชื่อวัตถุดิบ)
+   - `searchable={false}` (Default): **ไม่แสดง**ช่องค้นหา (เหมาะสำหรับตัวเลือกสั้นๆ เช่น หน่วยสินค้า)
+
+### 6.2 Implementation Usage
+```tsx
+import { CustomSelect } from '@/components/ui/select';
+
+// 1. Dropdown ที่มีช่องค้นหา + ปุ่มเพิ่มรายการใหม่
+<CustomSelect
+  value={selectedItem}
+  onChange={setSelectedItem}
+  options={['แซลมอนสด', 'ปลาซาบะ', 'กุ้งสด']}
+  placeholder="-- เลือกวัตถุดิบ --"
+  searchable={true}
+  addNewLabel="+ เพิ่มชื่อวัตถุดิบใหม่..."
+  onAddNew={() => openNewItemModal()}
+/>
+
+// 2. Dropdown สั้นๆ ไม่มีช่องค้นหา
+<CustomSelect
+  value={selectedUnit}
+  onChange={setSelectedUnit}
+  options={['กก.', 'ขีด', 'กรัม', 'แพ็ค']}
+  placeholder="หน่วย"
+  searchable={false}
+/>
+```

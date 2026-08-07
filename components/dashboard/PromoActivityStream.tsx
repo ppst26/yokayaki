@@ -96,12 +96,12 @@ export const PromoActivityStream: React.FC<PromoActivityStreamProps> = ({ startD
       {loading ? (
         <div className="h-10 bg-slate-100 dark:bg-neutral-800 rounded-lg animate-pulse" />
       ) : (
-        <div className="bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-950/30 dark:to-red-950/30 rounded-2xl p-4">
-          <p className="text-2xl font-black text-red-600 dark:text-red-400">
+        <div className="border border-slate-200/80 dark:border-neutral-700 bg-white dark:bg-neutral-800/50 rounded-2xl p-4">
+          <p className="text-2xl font-black text-rose-600 dark:text-rose-400">
             {totalDiscount.toLocaleString()}{' '}
-            <span className="text-xs font-bold text-red-400 dark:text-red-500">฿</span>
+            <span className="text-xs font-bold text-rose-400 dark:text-rose-500">฿</span>
           </p>
-          <p className="text-[10px] font-bold text-red-400 dark:text-red-500 mt-0.5">ส่วนลดที่ใช้ไปในช่วงนี้</p>
+          <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 mt-0.5">ส่วนลดที่ใช้ไปในช่วงนี้ (ค่าใช้จ่ายโปรโมชั่น)</p>
         </div>
       )}
 

@@ -343,17 +343,17 @@ export const EmployeeManager: React.FC = () => {
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-1.5">
-            <Shield className="w-3.5 h-3.5 text-amber-500" />
+            <Shield className="w-3.5 h-3.5 text-red-500" />
             <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider">Owner</p>
           </div>
-          <p className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{ownerCount}</p>
+          <p className="text-2xl font-black text-red-600 dark:text-red-400 mt-1">{ownerCount}</p>
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-1.5">
-            <User className="w-3.5 h-3.5 text-sky-500" />
+            <User className="w-3.5 h-3.5 text-slate-400" />
             <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider">Staff</p>
           </div>
-          <p className="text-2xl font-black text-sky-600 dark:text-sky-400 mt-1">{staffCount}</p>
+          <p className="text-2xl font-black text-slate-700 dark:text-neutral-300 mt-1">{staffCount}</p>
         </Card>
       </div>
 
@@ -379,67 +379,58 @@ export const EmployeeManager: React.FC = () => {
               >
                 {/* ข้อมูลพนักงาน */}
                 <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${
-                      isOwnerBadge
-                        ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300'
-                        : 'bg-sky-100 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300'
-                    }`}>
-                      {emp.name.charAt(0).toUpperCase()}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-bold text-slate-900 dark:text-neutral-100">{emp.name}</p>
+                      {isSelf && (
+                        <span className="text-[9px] font-bold bg-red-50 dark:bg-red-950/40 text-red-500 dark:text-red-400 px-1.5 py-0.5 rounded-md border border-red-100 dark:border-red-900/50">
+                          คุณ
+                        </span>
+                      )}
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-bold text-slate-900 dark:text-neutral-100">{emp.name}</p>
-                        {isSelf && (
-                          <span className="text-[9px] font-bold bg-red-50 dark:bg-red-950/40 text-red-500 dark:text-red-400 px-1.5 py-0.5 rounded-md border border-red-100 dark:border-red-900/50">
-                            คุณ
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[10px] text-slate-400 dark:text-neutral-500 font-medium">
-                        สร้างเมื่อ {new Date(emp.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </p>
-                    </div>
+                    <p className="text-[10px] text-slate-400 dark:text-neutral-500 font-medium">
+                      สร้างเมื่อ {new Date(emp.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </p>
                   </div>
 
                   <span className={`text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full border ${
                     isOwnerBadge
-                      ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-900/50'
-                      : 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-900/50'
+                      ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/50'
+                      : 'bg-slate-50 dark:bg-neutral-800 text-slate-600 dark:text-neutral-300 border-slate-200 dark:border-neutral-700'
                   }`}>
                     {emp.role}
                   </span>
                 </div>
 
-                {/* ปุ่ม Actions */}
+                {/* ปุ่ม Actions (ธีมขาว-แดง) */}
                 <div className="flex flex-wrap gap-2 pt-3 border-t border-slate-100 dark:border-neutral-800">
                   <button
                     onClick={() => openModal('editName', emp)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 dark:bg-neutral-800 hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-600 dark:text-neutral-300 hover:text-slate-800 dark:hover:text-neutral-100 rounded-lg text-[11px] font-bold transition active:scale-95 border border-slate-200 dark:border-neutral-700 cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-700/80 text-slate-700 dark:text-neutral-200 hover:text-red-600 dark:hover:text-red-400 rounded-xl text-[11px] font-bold transition active:scale-95 border border-slate-200 dark:border-neutral-700 hover:border-red-200 dark:hover:border-red-900/50 shadow-2xs cursor-pointer"
                   >
-                    <Pencil className="w-3 h-3" />
+                    <Pencil className="w-3 h-3 text-slate-400" />
                     แก้ไขชื่อ
                   </button>
                   <button
                     onClick={() => openModal('changePin', emp)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 dark:bg-neutral-800 hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-600 dark:text-neutral-300 hover:text-slate-800 dark:hover:text-neutral-100 rounded-lg text-[11px] font-bold transition active:scale-95 border border-slate-200 dark:border-neutral-700 cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-700/80 text-slate-700 dark:text-neutral-200 hover:text-red-600 dark:hover:text-red-400 rounded-xl text-[11px] font-bold transition active:scale-95 border border-slate-200 dark:border-neutral-700 hover:border-red-200 dark:hover:border-red-900/50 shadow-2xs cursor-pointer"
                   >
-                    <KeyRound className="w-3 h-3" />
+                    <KeyRound className="w-3 h-3 text-slate-400" />
                     เปลี่ยน PIN
                   </button>
                   <button
                     onClick={() => openModal('changeRole', emp)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 rounded-lg text-[11px] font-bold transition active:scale-95 border border-amber-200 dark:border-amber-900/50 cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-700/80 text-slate-700 dark:text-neutral-200 hover:text-red-600 dark:hover:text-red-400 rounded-xl text-[11px] font-bold transition active:scale-95 border border-slate-200 dark:border-neutral-700 hover:border-red-200 dark:hover:border-red-900/50 shadow-2xs cursor-pointer"
                   >
-                    <ArrowLeftRight className="w-3 h-3" />
+                    <ArrowLeftRight className="w-3 h-3 text-slate-400" />
                     เปลี่ยนตำแหน่ง
                   </button>
                   {!isSelf && (
                     <button
                       onClick={() => openModal('delete', emp)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-300 rounded-lg text-[11px] font-bold transition active:scale-95 border border-rose-200 dark:border-rose-900/50 cursor-pointer"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[11px] font-bold transition active:scale-95 shadow-md shadow-red-600/20 cursor-pointer"
                     >
-                      <Trash2 className="w-3 h-3" />
+                      <Trash2 className="w-3 h-3 text-white" />
                       ลบ
                     </button>
                   )}

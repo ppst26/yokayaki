@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { CustomSelect } from '@/components/ui/select';
 import { MenuItemModal } from './MenuItemModal';
 
 interface MenuItem {
@@ -383,15 +384,18 @@ export const MenuManager: React.FC = () => {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-1 py-2 text-xs font-semibold text-slate-500 dark:text-neutral-400">
             <div className="flex items-center gap-2">
               <span>แสดงหน้า:</span>
-              <select
-                value={pageSize}
-                onChange={e => setPageSize(Number(e.target.value))}
-                className="bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-lg px-2 py-1 text-slate-800 dark:text-neutral-100 focus:outline-none cursor-pointer font-bold"
-              >
-                <option value={10}>10 รายการ</option>
-                <option value={20}>20 รายการ</option>
-                <option value={50}>50 รายการ</option>
-              </select>
+              <div className="w-28">
+                <CustomSelect
+                  value={String(pageSize)}
+                  onChange={val => setPageSize(Number(val))}
+                  options={[
+                    { label: '10 รายการ', value: '10' },
+                    { label: '20 รายการ', value: '20' },
+                    { label: '50 รายการ', value: '50' },
+                  ]}
+                  searchable={false}
+                />
+              </div>
               <span>(ทั้งหมด {filteredItems.length} รายการ)</span>
             </div>
 

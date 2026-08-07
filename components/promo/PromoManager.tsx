@@ -15,6 +15,7 @@ import {
   TicketPercent,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { CustomSelect } from '@/components/ui/select';
 
 interface MenuItem {
   id: number;
@@ -634,18 +635,16 @@ export const PromoManager: React.FC = () => {
                     <label className="block text-slate-600 dark:text-neutral-300 mb-1 font-bold">
                       เมนูที่ร่วมรายการ ( Optional )
                     </label>
-                    <select
+                    <CustomSelect
                       value={menuItemId}
-                      onChange={e => setMenuItemId(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2 text-xs font-bold text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none cursor-pointer"
-                    >
-                      <option value="">ทุกเมนูในร้าน (ทั้งบิล)</option>
-                      {menuItems.map(m => (
-                        <option key={m.id} value={m.id}>
-                          {m.name} (฿{m.price})
-                        </option>
-                      ))}
-                    </select>
+                      onChange={val => setMenuItemId(val)}
+                      options={[
+                        { label: 'ทุกเมนูในร้าน (ทั้งบิล)', value: '' },
+                        ...menuItems.map(m => ({ label: `${m.name} (฿${m.price})`, value: String(m.id) }))
+                      ]}
+                      placeholder="ทุกเมนูในร้าน (ทั้งบิล)"
+                      searchable={true}
+                    />
                   </div>
                 </div>
               )}
@@ -658,18 +657,16 @@ export const PromoManager: React.FC = () => {
                     <label className="block text-slate-600 dark:text-neutral-300 mb-1 font-bold">
                       เลือกเมนูที่จัดโปรโมชั่น *
                     </label>
-                    <select
+                    <CustomSelect
                       value={menuItemId}
-                      onChange={e => setMenuItemId(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2 text-xs font-bold text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none cursor-pointer"
-                    >
-                      <option value="">-- เลือกเมนูอาหาร / เครื่องดื่ม --</option>
-                      {menuItems.map(m => (
-                        <option key={m.id} value={m.id}>
-                          {m.name} (฿{m.price})
-                        </option>
-                      ))}
-                    </select>
+                      onChange={val => setMenuItemId(val)}
+                      options={[
+                        { label: '-- เลือกเมนูอาหาร / เครื่องดื่ม --', value: '' },
+                        ...menuItems.map(m => ({ label: `${m.name} (฿${m.price})`, value: String(m.id) }))
+                      ]}
+                      placeholder="-- เลือกเมนูอาหาร / เครื่องดื่ม --"
+                      searchable={true}
+                    />
                   </div>
 
                   {/* Buy Qty & Free Qty */}

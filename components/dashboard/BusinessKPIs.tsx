@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Users, Tag, Star } from 'lucide-react';
+import { Users, Receipt, ShoppingBag } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 
 interface BusinessKPIsProps {
@@ -13,12 +13,12 @@ interface BusinessKPIsProps {
 
 interface KPIValues {
   totalMembers: number;
-  activePromos: number;
-  totalPointsRedeemed: number;
+  totalBills: number;
+  totalItemsSold: number;
 }
 
 export const BusinessKPIs: React.FC<BusinessKPIsProps> = ({ startDate, endDate, refreshKey }) => {
-  const [data, setData] = useState<KPIValues>({ totalMembers: 0, activePromos: 0, totalPointsRedeemed: 0 });
+  const [data, setData] = useState<KPIValues>({ totalMembers: 0, totalBills: 0, totalItemsSold: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,25 +33,29 @@ export const BusinessKPIs: React.FC<BusinessKPIsProps> = ({ startDate, endDate, 
           .from('loyalty_members')
           .select('*', { count: 'exact', head: true });
 
-        // Active Promotions
-        const { count: promoCount } = await supabase
-          .from('promotions')
-          .select('*', { count: 'exact', head: true })
-          .eq('is_active', true);
-
-        // Total Points Redeemed in date range
+        // Total Bills in date range
         const { data: payments } = await supabase
           .from('payments')
-          .select('points_redeemed')
+          .select('id')
           .gte('created_at', startISO)
           .lte('created_at', endISO);
 
-        const totalPointsRedeemed = (payments || []).reduce((s, p) => s + (p.points_redeemed || 0), 0);
+        const totalBills = (payments || []).length;
+
+        // Total Orders (Items Sold) in date range
+        const { data: items } = await supabase
+          .from('order_items')
+          .select('quantity')
+          .neq('status', 'voided')
+          .gte('created_at', startISO)
+          .lte('created_at', endISO);
+
+        const totalItemsSold = (items || []).reduce((s, i) => s + i.quantity, 0);
 
         setData({
           totalMembers: memberCount || 0,
-          activePromos: promoCount || 0,
-          totalPointsRedeemed,
+          totalBills,
+          totalItemsSold,
         });
       } catch (err) {
         console.error('BusinessKPIs fetch error:', err);
@@ -72,20 +76,20 @@ export const BusinessKPIs: React.FC<BusinessKPIsProps> = ({ startDate, endDate, 
       bg: 'bg-blue-50 dark:bg-blue-950/40',
     },
     {
-      label: 'โปรโมชั่นเปิดใช้งาน',
-      value: data.activePromos,
-      unit: 'รายการ',
-      icon: Tag,
-      color: 'text-violet-600 dark:text-violet-400',
-      bg: 'bg-violet-50 dark:bg-violet-950/40',
-    },
-    {
-      label: 'แต้มที่ใช้ทั้งหมด',
-      value: data.totalPointsRedeemed,
-      unit: 'แต้ม',
-      icon: Star,
+      label: 'ยอดบิลทั้งหมด',
+      value: data.totalBills,
+      unit: 'บิล',
+      icon: Receipt,
       color: 'text-amber-600 dark:text-amber-400',
       bg: 'bg-amber-50 dark:bg-amber-950/40',
+    },
+    {
+      label: 'ยอดออเดอร์ทั้งหมด',
+      value: data.totalItemsSold,
+      unit: 'จาน',
+      icon: ShoppingBag,
+      color: 'text-red-600 dark:text-red-400',
+      bg: 'bg-red-50 dark:bg-red-950/40',
     },
   ];
 
