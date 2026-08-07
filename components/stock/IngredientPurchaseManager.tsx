@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import {
   Plus, X, ChevronDown, ChevronUp, ShoppingCart,
-  Calendar, User, Trash2, PackagePlus, Receipt,
+  Calendar, User, Trash2, PackagePlus, Receipt, Search, Filter, RefreshCw
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -41,6 +41,8 @@ interface NewIngredientRow {
   pricePerUnit: string;
 }
 
+type DateFilterType = 'all' | 'today' | 'weekly' | 'monthly' | '3months' | '6months' | 'custom';
+
 const UNIT_OPTIONS = ['กก.', 'ขีด', 'กรัม', 'ถุง', 'แพ็ค', 'แผง', 'ขวด', 'กล่อง', 'ลัง', 'ชิ้น', 'ก้าน', 'ลิตร'];
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -52,6 +54,12 @@ export const IngredientPurchaseManager: React.FC = () => {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [expandedItems, setExpandedItems] = useState<Record<number, IngredientItem[]>>({});
   const [itemsLoading, setItemsLoading] = useState<Record<number, boolean>>({});
+
+  // Date Filter & Search state
+  const [dateFilter, setDateFilter] = useState<DateFilterType>('all');
+  const [customStartDate, setCustomStartDate] = useState<string>('');
+  const [customEndDate, setCustomEndDate] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
@@ -87,6 +95,71 @@ export const IngredientPurchaseManager: React.FC = () => {
   }, []);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
+
+  // ── Filter orders logic ──────────────────────────────────────────────────
+
+  const filteredOrders = orders.filter(order => {
+    // 1. Search term match
+    const poIdStr = `PO-${String(order.id).padStart(4, '0')}`;
+    const matchSearch =
+      !searchTerm.trim() ||
+      poIdStr.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.buyer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (order.note && order.note.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    if (!matchSearch) return false;
+
+    // 2. Date range filter
+    if (dateFilter === 'all') return true;
+
+    const poDateStr = order.purchase_date;
+    const poDate = new Date(poDateStr);
+    const now = new Date();
+    now.setHours(23, 59, 59, 999);
+
+    if (dateFilter === 'today') {
+      const todayStr = new Date().toISOString().slice(0, 10);
+      return poDateStr === todayStr;
+    }
+
+    if (dateFilter === 'weekly') {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      sevenDaysAgo.setHours(0, 0, 0, 0);
+      return poDate >= sevenDaysAgo && poDate <= now;
+    }
+
+    if (dateFilter === 'monthly') {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      thirtyDaysAgo.setHours(0, 0, 0, 0);
+      return poDate >= thirtyDaysAgo && poDate <= now;
+    }
+
+    if (dateFilter === '3months') {
+      const ninetyDaysAgo = new Date();
+      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+      ninetyDaysAgo.setHours(0, 0, 0, 0);
+      return poDate >= ninetyDaysAgo && poDate <= now;
+    }
+
+    if (dateFilter === '6months') {
+      const halfYearAgo = new Date();
+      halfYearAgo.setDate(halfYearAgo.getDate() - 180);
+      halfYearAgo.setHours(0, 0, 0, 0);
+      return poDate >= halfYearAgo && poDate <= now;
+    }
+
+    if (dateFilter === 'custom') {
+      if (customStartDate && poDateStr < customStartDate) return false;
+      if (customEndDate && poDateStr > customEndDate) return false;
+      return true;
+    }
+
+    return true;
+  });
+
+  const filteredTotalCost = filteredOrders.reduce((sum, o) => sum + o.total_cost, 0);
 
   // ── Fetch items for a purchase order ──────────────────────────────────────
 
@@ -226,23 +299,92 @@ export const IngredientPurchaseManager: React.FC = () => {
   return (
     <div className="space-y-5">
       {/* Header row */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-base font-black text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
             <ShoppingCart className="w-5 h-5 text-red-600 dark:text-red-400" />
             ประวัติการสั่งซื้อวัตถุดิบ
           </h2>
           <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-semibold mt-0.5">
-            บันทึกการสั่งซื้อวัตถุดิบแต่ละรอบ พร้อมรายการและต้นทุน
+            บันทึกและดูรายงานการสั่งซื้อวัตถุดิบแต่ละรอบ พร้อมรายการและต้นทุน
           </p>
         </div>
-        <button
-          onClick={openModal}
-          className="flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-medium border-none shadow-none transition active:scale-95 cursor-pointer"
-        >
-          <PackagePlus className="w-4 h-4" />
-          เพิ่มรายการสั่งซื้อ
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            onClick={fetchOrders}
+            className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full text-xs font-semibold border-none shadow-none transition active:scale-95 cursor-pointer"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>รีเฟรช</span>
+          </button>
+          <button
+            onClick={openModal}
+            className="flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-medium border-none shadow-none transition active:scale-95 cursor-pointer"
+          >
+            <PackagePlus className="w-4 h-4" />
+            เพิ่มรายการสั่งซื้อ
+          </button>
+        </div>
+      </div>
+
+      {/* Filter & Search Bar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-zinc-900 p-4 rounded-2xl border-none shadow-none">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Dropdown Filter */}
+          <div className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 border-none">
+            <Filter className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />
+            <select
+              value={dateFilter}
+              onChange={e => setDateFilter(e.target.value as DateFilterType)}
+              className="bg-transparent text-xs font-bold text-zinc-800 dark:text-zinc-100 focus:outline-none cursor-pointer border-none"
+            >
+              <option value="all">ทั้งหมด (All Time)</option>
+              <option value="today">วันนี้ (Today)</option>
+              <option value="weekly">รายสัปดาห์ (7 วันล่าสุด)</option>
+              <option value="monthly">รายเดือน (30 วันล่าสุด)</option>
+              <option value="3months">3 เดือน (90 วันล่าสุด)</option>
+              <option value="6months">6 เดือน (180 วันล่าสุด)</option>
+              <option value="custom">กำหนดเอง (Custom Range)</option>
+            </select>
+          </div>
+
+          {/* Custom Date Range Pickers */}
+          {dateFilter === 'custom' && (
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={customStartDate}
+                onChange={e => setCustomStartDate(e.target.value)}
+                className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-1.5 text-xs font-semibold text-zinc-800 dark:text-zinc-100 focus:outline-none border-none"
+              />
+              <span className="text-xs font-bold text-zinc-400">ถึง</span>
+              <input
+                type="date"
+                value={customEndDate}
+                onChange={e => setCustomEndDate(e.target.value)}
+                className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-1.5 text-xs font-semibold text-zinc-800 dark:text-zinc-100 focus:outline-none border-none"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Search input */}
+        <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3.5 py-2 border-none w-full sm:w-64">
+          <Search className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />
+          <input
+            type="text"
+            placeholder="ค้นหา PO#, ชื่อผู้สั่งซื้อ..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className="w-full bg-transparent border-none text-xs font-semibold text-zinc-800 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none"
+          />
+        </div>
+      </div>
+
+      {/* Filter Summary Stats */}
+      <div className="flex items-center justify-between px-1 text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+        <span>แสดง {filteredOrders.length} รายการ (จากทั้งหมด {orders.length} รายการ)</span>
+        <span>รวมค่าใช้จ่ายจัดซื้อ: <strong className="text-red-600 dark:text-red-400 font-extrabold text-sm">{filteredTotalCost.toLocaleString()} ฿</strong></span>
       </div>
 
       {/* Table */}
@@ -250,15 +392,15 @@ export const IngredientPurchaseManager: React.FC = () => {
         <div className="flex justify-center py-16">
           <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
         </div>
-      ) : orders.length === 0 ? (
+      ) : filteredOrders.length === 0 ? (
         <Card className="py-16 text-center space-y-2 border-none shadow-none bg-white dark:bg-zinc-900 rounded-2xl">
           <Receipt className="w-8 h-8 text-zinc-300 dark:text-zinc-600 mx-auto" />
-          <p className="text-sm font-bold text-zinc-400 dark:text-zinc-500">ยังไม่มีรายการสั่งซื้อวัตถุดิบ</p>
-          <p className="text-xs text-zinc-400 dark:text-zinc-600">กดปุ่ม "เพิ่มรายการสั่งซื้อ" เพื่อเริ่มบันทึก</p>
+          <p className="text-sm font-bold text-zinc-400 dark:text-zinc-500">ไม่พบรายการสั่งซื้อวัตถุดิบตามเงื่อนไข</p>
+          <p className="text-xs text-zinc-400 dark:text-zinc-600">ลองเปลี่ยนตัวกรองวันเวลา หรือค้นหาใหม่อีกครั้ง</p>
         </Card>
       ) : (
         <div className="space-y-2">
-          {orders.map(order => (
+          {filteredOrders.map(order => (
             <div key={order.id} className="rounded-2xl border-none shadow-none bg-white dark:bg-zinc-900 overflow-hidden">
               {/* Order header row */}
               <button
