@@ -140,7 +140,7 @@ export const TableMap: React.FC = () => {
   const isOwner = employee?.role === 'owner';
 
   return (
-    <div className="min-h-screen bg-gray-100 text-slate-800 flex flex-col md:flex-row font-sans">
+    <div className="min-h-screen bg-gray-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col md:flex-row font-sans transition-colors duration-200">
       {/* Reusable Sidebar & Mobile Navigation */}
       <SidebarNav activeTab={activeTab} onSelectTab={handleTabSelect} />
 
@@ -159,9 +159,9 @@ export const TableMap: React.FC = () => {
         ) : (
           <>
             {/* Top Action Bar */}
-            <header className="flex flex-row justify-between items-center mb-6 pb-4 border-b border-slate-200/80">
+            <header className="flex flex-row justify-between items-center mb-6 pb-4 border-b border-slate-200/80 dark:border-slate-800">
               <div>
-                <h2 className="text-2xl font-extrabold text-slate-900">
+                <h2 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">
                   {activeTab === 'floor' && 'ผังโต๊ะอาหาร'}
                   {activeTab === 'kitchen' && 'หน้าจอห้องครัว (KDS)'}
                   {activeTab === 'history' && 'ประวัติการขาย'}
@@ -172,7 +172,7 @@ export const TableMap: React.FC = () => {
                   {activeTab === 'loyalty' && 'ระบบสมาชิก & CRM'}
                   {activeTab === 'employees' && 'จัดการพนักงาน'}
                 </h2>
-                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
                   {activeTab === 'floor' && 'เลือกโต๊ะที่ต้องการสั่งอาหารหรือเช็คบิล'}
                   {activeTab === 'kitchen' && 'รายการอาหารที่ต้องจัดทำตามลำดับออเดอร์'}
                 </p>
