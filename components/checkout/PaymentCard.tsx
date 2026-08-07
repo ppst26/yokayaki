@@ -28,7 +28,7 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({
   isProcessing,
 }) => {
   return (
-    <Card className="p-5 space-y-4">
+    <Card className="fixed lg:relative bottom-0 left-0 right-0 z-40 lg:z-auto w-full rounded-t-3xl lg:rounded-2xl rounded-b-none lg:rounded-b-2xl border-t lg:border border-slate-200 dark:border-neutral-800 shadow-[0_-8px_30px_rgba(0,0,0,0.15)] lg:shadow-xs p-4 sm:p-5 bg-white dark:bg-neutral-900 space-y-3 sm:space-y-4 transition-all">
       {/* Cash Input */}
       <div>
         <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-400 mb-2 flex items-center gap-2">
