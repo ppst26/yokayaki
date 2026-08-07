@@ -60,6 +60,10 @@ export const PromoManager: React.FC = () => {
   const [deleteTarget, setDeleteTarget] = useState<Promotion | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const [promoCategory, setPromoCategory] = useState<'discount' | 'coupon' | 'buy_x_get_y'>('discount');
+  const [discountUnit, setDiscountUnit] = useState<'percent' | 'amount'>('percent');
+  const [isHappyHour, setIsHappyHour] = useState(false);
+
   const [name, setName] = useState('');
   const [type, setType] = useState<'percentage' | 'fixed' | 'buy_x_get_y'>('percentage');
   const [discountPercent, setDiscountPercent] = useState('');
@@ -110,6 +114,9 @@ export const PromoManager: React.FC = () => {
   const openAdd = () => {
     setEditingPromo(null);
     setName('');
+    setPromoCategory('discount');
+    setDiscountUnit('percent');
+    setIsHappyHour(false);
     setType('percentage');
     setDiscountPercent('');
     setDiscountAmount('');
@@ -128,6 +135,18 @@ export const PromoManager: React.FC = () => {
   const openEdit = (p: Promotion) => {
     setEditingPromo(p);
     setName(p.name);
+
+    if (p.coupon_code) {
+      setPromoCategory('coupon');
+    } else if (p.type === 'buy_x_get_y') {
+      setPromoCategory('buy_x_get_y');
+    } else {
+      setPromoCategory('discount');
+    }
+
+    setDiscountUnit(p.discount_percent ? 'percent' : 'amount');
+    setIsHappyHour(!!(p.start_time || p.end_time));
+
     setType(p.type);
     setDiscountPercent(p.discount_percent ? String(p.discount_percent) : '');
     setDiscountAmount(p.discount_amount ? String(p.discount_amount) : '');
@@ -146,28 +165,43 @@ export const PromoManager: React.FC = () => {
   const handleSave = async () => {
     if (!name.trim()) return showMsg('กรุณากรอกชื่อโปรโมชั่น', 'error');
 
+    if (promoCategory === 'coupon' && !couponCode.trim()) {
+      return showMsg('กรุณากรอกรหัสคูปอง', 'error');
+    }
+
+    if (promoCategory === 'buy_x_get_y' && !menuItemId) {
+      return showMsg('กรุณาเลือกเมนูที่จัดโปรโมชั่น ซื้อ - แถม', 'error');
+    }
+
+    let finalType: 'percentage' | 'fixed' | 'buy_x_get_y' = 'percentage';
+    if (promoCategory === 'buy_x_get_y') {
+      finalType = 'buy_x_get_y';
+    } else {
+      finalType = discountUnit === 'percent' ? 'percentage' : 'fixed';
+    }
+
     try {
       setIsSaving(true);
       const payload: any = {
         name: name.trim(),
-        type,
+        type: finalType,
         min_order_amount: Number(minOrderAmount) || 0,
         start_date: startDate || null,
         end_date: endDate || null,
-        start_time: startTime || null,
-        end_time: endTime || null,
+        start_time: isHappyHour ? (startTime || null) : null,
+        end_time: isHappyHour ? (endTime || null) : null,
         menu_item_id: menuItemId ? Number(menuItemId) : null,
-        coupon_code: couponCode.trim() ? couponCode.trim().toUpperCase() : null,
-        is_active: true,
+        coupon_code: promoCategory === 'coupon' && couponCode.trim() ? couponCode.trim().toUpperCase() : null,
+        is_active: editingPromo ? editingPromo.is_active : true,
       };
 
-      if (type === 'percentage') {
+      if (finalType === 'percentage') {
         payload.discount_percent = Number(discountPercent) || 0;
         payload.discount_amount = null;
-      } else if (type === 'fixed') {
+      } else if (finalType === 'fixed') {
         payload.discount_amount = Number(discountAmount) || 0;
         payload.discount_percent = null;
-      } else if (type === 'buy_x_get_y') {
+      } else if (finalType === 'buy_x_get_y') {
         payload.buy_qty = Number(buyQty) || 1;
         payload.free_qty = Number(freeQty) || 1;
       }
@@ -275,160 +309,463 @@ export const PromoManager: React.FC = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {promotions.map(p => (
-            <Card
-              key={p.id}
-              className={`p-5 space-y-3 transition flex flex-col justify-between ${
-                p.is_active ? '' : 'opacity-60'
-              }`}
-            >
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 px-2 py-0.5 rounded-full border border-red-200 dark:border-red-900/50">
-                    {TYPE_LABELS[p.type]?.label || p.type}
+          {promotions.map(p => {
+            const targetMenu = menuItems.find(m => m.id === p.menu_item_id);
+
+            return (
+              <Card
+                key={p.id}
+                className={`p-5 rounded-2xl border border-slate-200/80 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between space-y-4 ${
+                  p.is_active ? '' : 'opacity-65 grayscale-[20%]'
+                }`}
+              >
+                {/* Upper Section */}
+                <div className="space-y-3">
+                  {/* Category Badge & Active Toggle */}
+                  <div className="flex items-center justify-between gap-2">
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-extrabold tracking-wide uppercase ${
+                        p.type === 'percentage'
+                          ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/40'
+                          : p.type === 'fixed'
+                          ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-900/40'
+                          : 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/40'
+                      }`}
+                    >
+                      {p.type === 'percentage' && <TicketPercent className="w-3.5 h-3.5" />}
+                      {p.type === 'fixed' && <Tag className="w-3.5 h-3.5" />}
+                      {p.type === 'buy_x_get_y' && <Gift className="w-3.5 h-3.5" />}
+                      <span>{TYPE_LABELS[p.type]?.label || p.type}</span>
+                    </span>
+
+                    <button
+                      onClick={() => toggleActive(p)}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold transition cursor-pointer ${
+                        p.is_active
+                          ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60'
+                          : 'bg-slate-100 dark:bg-neutral-800 text-slate-400 dark:text-neutral-500 border border-slate-200/60 dark:border-neutral-700'
+                      }`}
+                    >
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          p.is_active ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'
+                        }`}
+                      />
+                      <span>{p.is_active ? 'เปิดใช้งานอยู่' : 'ปิดอยู่'}</span>
+                    </button>
+                  </div>
+
+                  {/* Promo Name */}
+                  <h3 className="font-extrabold text-base text-slate-900 dark:text-neutral-100 leading-snug">
+                    {p.name}
+                  </h3>
+
+                  {/* Badges / Value / Info */}
+                  <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                    {/* Main Value Tag */}
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-black bg-red-600 text-white shadow-xs">
+                      {p.type === 'percentage' && `ลด ${p.discount_percent}%`}
+                      {p.type === 'fixed' && `ลด ฿${p.discount_amount}`}
+                      {p.type === 'buy_x_get_y' && `ซื้อ ${p.buy_qty} แถม ${p.free_qty}`}
+                    </span>
+
+                    {/* Min Order Condition */}
+                    {p.min_order_amount > 0 && (
+                      <span className="inline-flex items-center text-[11px] font-bold text-slate-600 dark:text-neutral-300 bg-slate-100 dark:bg-neutral-800 border border-slate-200/60 dark:border-neutral-700 px-2 py-0.5 rounded-md">
+                        ขั้นต่ำ ฿{p.min_order_amount.toLocaleString()}
+                      </span>
+                    )}
+
+                    {/* Coupon Code Badge */}
+                    {p.coupon_code && (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-slate-700 dark:text-neutral-200 bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 px-2 py-0.5 rounded-md">
+                        รหัส: <span className="text-red-600 dark:text-red-400 font-extrabold">{p.coupon_code}</span>
+                      </span>
+                    )}
+
+                    {/* Specific Menu Item */}
+                    {targetMenu && (
+                      <span className="inline-flex items-center text-[11px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/40 px-2 py-0.5 rounded-md">
+                        เฉพาะ {targetMenu.name}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Happy Hour / Date range if present */}
+                  {(p.start_time || p.end_time) && (
+                    <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 dark:text-neutral-400 pt-0.5">
+                      <Clock className="w-3.5 h-3.5 text-slate-400" />
+                      <span>
+                        Happy Hour: {p.start_time || '00:00'} - {p.end_time || '23:59'} น.
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Middle Action Bar (Above the Line) */}
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-[11px] font-semibold text-slate-400 dark:text-neutral-500">
+                    จัดการโปรโมชั่น
                   </span>
-                  <button
-                    onClick={() => toggleActive(p)}
-                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold cursor-pointer ${
-                      p.is_active
-                        ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300'
-                        : 'bg-slate-100 dark:bg-neutral-800 text-slate-500 dark:text-neutral-400'
-                    }`}
-                  >
-                    {p.is_active ? 'เปิดใช้งานอยู่' : 'ปิดอยู่'}
-                  </button>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => openEdit(p)}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-200 rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer"
+                      title="แก้ไข"
+                    >
+                      <Pencil className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400" />
+                      <span>แก้ไข</span>
+                    </button>
+                    <button
+                      onClick={() => setDeleteTarget(p)}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer"
+                      title="ลบ"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>ลบ</span>
+                    </button>
+                  </div>
                 </div>
 
-                <h3 className="font-extrabold text-base text-slate-900 dark:text-neutral-100">
-                  {p.name}
-                </h3>
-
-                <div className="text-xs font-bold text-red-600 dark:text-red-400">
-                  {p.type === 'percentage' && `ลด ${p.discount_percent}%`}
-                  {p.type === 'fixed' && `ลด ${p.discount_amount} บาท`}
-                  {p.type === 'buy_x_get_y' && `ซื้อ ${p.buy_qty} แถม ${p.free_qty}`}
+                {/* Bottom Divider Line & Footer */}
+                <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 flex items-center justify-between text-[10px] font-semibold text-slate-400 dark:text-neutral-500">
+                  <span>สร้างเมื่อ {new Date(p.created_at).toLocaleDateString('th-TH')}</span>
+                  <span>ID: #{p.id}</span>
                 </div>
-
-                {p.coupon_code && (
-                  <p className="text-xs font-mono font-bold text-slate-700 dark:text-neutral-300 bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 px-2 py-1 rounded-lg inline-block">
-                    รหัสคูปอง: {p.coupon_code}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-neutral-800">
-                <button
-                  onClick={() => openEdit(p)}
-                  className="p-2 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-200 rounded-xl transition cursor-pointer"
-                  title="แก้ไข"
-                >
-                  <Pencil className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setDeleteTarget(p)}
-                  className="p-2 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 rounded-xl transition cursor-pointer"
-                  title="ลบ"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       )}
 
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs">
-          <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-black text-slate-900 dark:text-neutral-100">
-                {editingPromo ? 'แก้ไขโปรโมชั่น' : 'สร้างโปรโมชั่นใหม่'}
-              </h3>
+          <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto space-y-5">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-neutral-800 pb-3">
+              <div>
+                <h3 className="text-lg font-black text-slate-900 dark:text-neutral-100">
+                  {editingPromo ? 'แก้ไขโปรโมชั่น' : 'สร้างโปรโมชั่นใหม่'}
+                </h3>
+                <p className="text-xs text-slate-400 dark:text-neutral-500 font-semibold">
+                  เลือกประเภทและกำหนดเงื่อนไขโปรโมชั่น
+                </p>
+              </div>
               <button
                 onClick={() => setShowModal(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-300 rounded-full cursor-pointer"
+                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-300 rounded-full cursor-pointer transition"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="space-y-4 text-xs font-semibold">
+              {/* Category Selector: Grid 3 */}
               <div>
-                <label className="block text-slate-500 dark:text-neutral-400 mb-1">
+                <label className="block text-slate-600 dark:text-neutral-300 mb-2 font-extrabold">
+                  ประเภทโปรโมชั่น *
+                </label>
+                <div className="grid grid-cols-3 gap-2.5">
+                  {/* Option 1: Discount */}
+                  <button
+                    type="button"
+                    onClick={() => setPromoCategory('discount')}
+                    className={`p-3 rounded-2xl border text-left transition flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
+                      promoCategory === 'discount'
+                        ? 'bg-red-50 dark:bg-red-950/50 border-red-500 text-red-600 dark:text-red-400 ring-2 ring-red-500/20'
+                        : 'bg-slate-50 dark:bg-neutral-800/60 border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-neutral-400 hover:bg-slate-100 dark:hover:bg-neutral-800'
+                    }`}
+                  >
+                    <TicketPercent className="w-5 h-5" />
+                    <span className="font-extrabold text-xs">ส่วนลด</span>
+                  </button>
+
+                  {/* Option 2: Coupon */}
+                  <button
+                    type="button"
+                    onClick={() => setPromoCategory('coupon')}
+                    className={`p-3 rounded-2xl border text-left transition flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
+                      promoCategory === 'coupon'
+                        ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-500 text-amber-600 dark:text-amber-400 ring-2 ring-amber-500/20'
+                        : 'bg-slate-50 dark:bg-neutral-800/60 border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-neutral-400 hover:bg-slate-100 dark:hover:bg-neutral-800'
+                    }`}
+                  >
+                    <Tag className="w-5 h-5" />
+                    <span className="font-extrabold text-xs">คูปอง</span>
+                  </button>
+
+                  {/* Option 3: Buy X Get Y */}
+                  <button
+                    type="button"
+                    onClick={() => setPromoCategory('buy_x_get_y')}
+                    className={`p-3 rounded-2xl border text-left transition flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
+                      promoCategory === 'buy_x_get_y'
+                        ? 'bg-indigo-50 dark:bg-indigo-950/50 border-indigo-500 text-indigo-600 dark:text-indigo-400 ring-2 ring-indigo-500/20'
+                        : 'bg-slate-50 dark:bg-neutral-800/60 border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-neutral-400 hover:bg-slate-100 dark:hover:bg-neutral-800'
+                    }`}
+                  >
+                    <Gift className="w-5 h-5" />
+                    <span className="font-extrabold text-xs">ซื้อ - แถม</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Promo Name */}
+              <div>
+                <label className="block text-slate-600 dark:text-neutral-300 mb-1 font-bold">
                   ชื่อโปรโมชั่น *
                 </label>
                 <input
                   type="text"
                   value={name}
                   onChange={e => setName(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2 text-xs font-bold text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none"
-                  placeholder="เช่น ลด 10% ฉลองเปิดร้าน"
+                  className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none"
+                  placeholder={
+                    promoCategory === 'discount'
+                      ? 'เช่น ลด 20% ฉลองเปิดร้าน'
+                      : promoCategory === 'coupon'
+                      ? 'เช่น โค้ดลด 50 บาทประจำเดือน'
+                      : 'เช่น ซื้อยากิโทริ 2 แถม 1'
+                  }
                 />
               </div>
 
-              <div>
-                <label className="block text-slate-500 dark:text-neutral-400 mb-1">
-                  ประเภทโปรโมชั่น *
-                </label>
-                <select
-                  value={type}
-                  onChange={e => setType(e.target.value as any)}
-                  className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2 text-xs font-bold text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none cursor-pointer"
-                >
-                  {Object.entries(TYPE_LABELS).map(([k, v]) => (
-                    <option key={k} value={k}>
-                      {v.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* Category 1 & 2: Discount & Coupon Unit Selector */}
+              {(promoCategory === 'discount' || promoCategory === 'coupon') && (
+                <div className="space-y-3">
+                  {/* Unit Segmented Control */}
+                  <div>
+                    <label className="block text-slate-600 dark:text-neutral-300 mb-1 font-bold">
+                      รูปแบบส่วนลด *
+                    </label>
+                    <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-neutral-800 rounded-xl">
+                      <button
+                        type="button"
+                        onClick={() => setDiscountUnit('percent')}
+                        className={`py-1.5 rounded-lg font-extrabold text-xs transition cursor-pointer ${
+                          discountUnit === 'percent'
+                            ? 'bg-white dark:bg-neutral-700 text-red-600 dark:text-red-400 shadow-xs'
+                            : 'text-slate-500 dark:text-neutral-400'
+                        }`}
+                      >
+                        เปอร์เซ็นต์ (%)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDiscountUnit('amount')}
+                        className={`py-1.5 rounded-lg font-extrabold text-xs transition cursor-pointer ${
+                          discountUnit === 'amount'
+                            ? 'bg-white dark:bg-neutral-700 text-red-600 dark:text-red-400 shadow-xs'
+                            : 'text-slate-500 dark:text-neutral-400'
+                        }`}
+                      >
+                        จำนวนเงิน (บาท)
+                      </button>
+                    </div>
+                  </div>
 
-              {type === 'percentage' && (
-                <div>
-                  <label className="block text-slate-500 dark:text-neutral-400 mb-1">
-                    เปอร์เซ็นต์ส่วนลด (%) *
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={100}
-                    value={discountPercent}
-                    onChange={e => setDiscountPercent(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2 text-xs font-bold text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none"
-                  />
+                  {/* Discount Value Input */}
+                  {discountUnit === 'percent' ? (
+                    <div>
+                      <label className="block text-slate-600 dark:text-neutral-300 mb-1 font-bold">
+                        เปอร์เซ็นต์ส่วนลด (%) *
+                      </label>
+                      <input
+                        type="number"
+                        min={1}
+                        max={100}
+                        value={discountPercent}
+                        onChange={e => setDiscountPercent(e.target.value)}
+                        placeholder="เช่น 20"
+                        className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2 text-xs font-bold text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none"
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block text-slate-600 dark:text-neutral-300 mb-1 font-bold">
+                        ส่วนลดจำนวนเงิน (บาท) *
+                      </label>
+                      <input
+                        type="number"
+                        min={1}
+                        value={discountAmount}
+                        onChange={e => setDiscountAmount(e.target.value)}
+                        placeholder="เช่น 50"
+                        className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2 text-xs font-bold text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none"
+                      />
+                    </div>
+                  )}
+
+                  {/* Coupon Code specific field */}
+                  {promoCategory === 'coupon' && (
+                    <div>
+                      <label className="block text-slate-600 dark:text-neutral-300 mb-1 font-bold">
+                        รหัสคูปอง *
+                      </label>
+                      <input
+                        type="text"
+                        value={couponCode}
+                        onChange={e => setCouponCode(e.target.value.toUpperCase())}
+                        placeholder="เช่น YOKA50"
+                        className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2 text-xs font-mono font-bold text-red-600 dark:text-red-400 tracking-wider focus:border-red-500 focus:outline-none uppercase"
+                      />
+                    </div>
+                  )}
+
+                  {/* Min order amount */}
+                  <div>
+                    <label className="block text-slate-600 dark:text-neutral-300 mb-1 font-bold">
+                      ยอดสั่งซื้อขั้นต่ำ (บาท)
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={minOrderAmount}
+                      onChange={e => setMinOrderAmount(e.target.value)}
+                      placeholder="0 (ไม่มีขั้นต่ำ)"
+                      className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2 text-xs font-bold text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Target Menu Item (Optional) */}
+                  <div>
+                    <label className="block text-slate-600 dark:text-neutral-300 mb-1 font-bold">
+                      เมนูที่ร่วมรายการ ( Optional )
+                    </label>
+                    <select
+                      value={menuItemId}
+                      onChange={e => setMenuItemId(e.target.value)}
+                      className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2 text-xs font-bold text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none cursor-pointer"
+                    >
+                      <option value="">ทุกเมนูในร้าน (ทั้งบิล)</option>
+                      {menuItems.map(m => (
+                        <option key={m.id} value={m.id}>
+                          {m.name} (฿{m.price})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               )}
 
-              {type === 'fixed' && (
-                <div>
-                  <label className="block text-slate-500 dark:text-neutral-400 mb-1">
-                    ส่วนลดจำนวนเงิน (บาท) *
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={discountAmount}
-                    onChange={e => setDiscountAmount(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2 text-xs font-bold text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none"
-                  />
+              {/* Category 3: Buy X Get Y */}
+              {promoCategory === 'buy_x_get_y' && (
+                <div className="space-y-3">
+                  {/* Select Target Menu Item (Required) */}
+                  <div>
+                    <label className="block text-slate-600 dark:text-neutral-300 mb-1 font-bold">
+                      เลือกเมนูที่จัดโปรโมชั่น *
+                    </label>
+                    <select
+                      value={menuItemId}
+                      onChange={e => setMenuItemId(e.target.value)}
+                      className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2 text-xs font-bold text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none cursor-pointer"
+                    >
+                      <option value="">-- เลือกเมนูอาหาร / เครื่องดื่ม --</option>
+                      {menuItems.map(m => (
+                        <option key={m.id} value={m.id}>
+                          {m.name} (฿{m.price})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Buy Qty & Free Qty */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-slate-600 dark:text-neutral-300 mb-1 font-bold">
+                        จำนวนซื้อ (X) *
+                      </label>
+                      <input
+                        type="number"
+                        min={1}
+                        value={buyQty}
+                        onChange={e => setBuyQty(e.target.value)}
+                        placeholder="1"
+                        className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2 text-xs font-bold text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-600 dark:text-neutral-300 mb-1 font-bold">
+                        จำนวนแถมฟรี (Y) *
+                      </label>
+                      <input
+                        type="number"
+                        min={1}
+                        value={freeQty}
+                        onChange={e => setFreeQty(e.target.value)}
+                        placeholder="1"
+                        className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2 text-xs font-bold text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none"
+                      />
+                    </div>
+                  </div>
                 </div>
               )}
 
-              <div>
-                <label className="block text-slate-500 dark:text-neutral-400 mb-1">
-                  รหัสคูปอง (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={couponCode}
-                  onChange={e => setCouponCode(e.target.value.toUpperCase())}
-                  placeholder="เช่น YOKA50"
-                  className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2 text-xs font-bold text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none uppercase"
-                />
-              </div>
+              {/* Happy Hour Toggle & Time inputs (Supported for Discount & Buy X Get Y) */}
+              {(promoCategory === 'discount' || promoCategory === 'buy_x_get_y') && (
+                <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-amber-500" />
+                      <div>
+                        <span className="block text-xs font-extrabold text-slate-800 dark:text-neutral-200">
+                          กำหนดช่วงเวลา (Happy Hour)
+                        </span>
+                        <span className="block text-[10px] font-medium text-slate-400 dark:text-neutral-500">
+                          ให้โปรโมชั่นมีผลเฉพาะช่วงเวลาที่กำหนด
+                        </span>
+                      </div>
+                    </div>
 
-              <div className="flex gap-2 pt-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsHappyHour(!isHappyHour)}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        isHappyHour ? 'bg-amber-500' : 'bg-slate-200 dark:bg-neutral-700'
+                      }`}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                          isHappyHour ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  {isHappyHour && (
+                    <div className="grid grid-cols-2 gap-3 p-3 bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 rounded-2xl">
+                      <div>
+                        <label className="block text-[11px] font-bold text-amber-800 dark:text-amber-300 mb-1">
+                          เวลาเริ่มต้น
+                        </label>
+                        <input
+                          type="time"
+                          value={startTime}
+                          onChange={e => setStartTime(e.target.value)}
+                          className="w-full bg-white dark:bg-neutral-800 border border-amber-200 dark:border-amber-900/50 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-800 dark:text-neutral-100 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-amber-800 dark:text-amber-300 mb-1">
+                          เวลาสิ้นสุด
+                        </label>
+                        <input
+                          type="time"
+                          value={endTime}
+                          onChange={e => setEndTime(e.target.value)}
+                          className="w-full bg-white dark:bg-neutral-800 border border-amber-200 dark:border-amber-900/50 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-800 dark:text-neutral-100 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-2 pt-3 border-t border-slate-100 dark:border-neutral-800">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
