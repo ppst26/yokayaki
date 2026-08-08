@@ -81,7 +81,7 @@ export const KitchenOrderCard: React.FC<KitchenOrderCardProps> = ({
                   <span className="text-h3 text-slate-900 dark:text-neutral-100">
                     {item.menu_items?.name}
                   </span>
-                  <span className="text-price text-caption font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900/50 px-2 py-0.5 rounded-full">
+                  <span className="text-xs font-black text-slate-700 dark:text-neutral-300 ml-1">
                     x{item.quantity} จาน
                   </span>
                 </div>
@@ -94,10 +94,10 @@ export const KitchenOrderCard: React.FC<KitchenOrderCardProps> = ({
 
               <button
                 onClick={() => markItemAsServed(item.id)}
-                className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white border border-emerald-200 dark:border-emerald-900/50 flex items-center justify-center transition active:scale-95 cursor-pointer shrink-0"
+                className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 via-emerald-600 to-green-600 text-white shadow-md shadow-emerald-500/30 hover:shadow-lg hover:shadow-emerald-500/40 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center border-none cursor-pointer shrink-0"
                 title="กดเสิร์ฟรายการนี้"
               >
-                <CheckCircle className="w-5 h-5" />
+                <CheckCircle className="w-5 h-5 stroke-[2.2]" />
               </button>
             </div>
           ))}
