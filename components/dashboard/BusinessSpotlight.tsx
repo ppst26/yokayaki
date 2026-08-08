@@ -144,24 +144,17 @@ export const BusinessSpotlight: React.FC<BusinessSpotlightProps> = ({ startDate,
         ) : (
           <div className="space-y-3">
             {/* Combined Cash + QR Total Display */}
-            <div className="bg-slate-50 dark:bg-neutral-800/60 border border-slate-200/70 dark:border-neutral-700/60 rounded-xl p-3 flex items-center justify-between">
+            <div className=" dark:bg-neutral-800/60  dark:border-neutral-700/60 rounded-xl p-3 flex items-center justify-center">
               <div>
-                <span className="text-card-sublabel block">
-                  ยอดรวม 2 ช่องทาง (เงินสด + QR)
-                </span>
-                <p className="text-2xl font-black text-slate-900 dark:text-neutral-100 leading-tight mt-0.5">
+                <p className="text-2xl lg:text-5xl font-black text-emerald-600 dark:text-emerald-400 leading-tight mt-0.5 text-center">
                   {totalMoney.toLocaleString()}
                   <span className="text-card-unit ml-1">฿</span>
                 </p>
-              </div>
-              <div className="text-right">
-                <span className="text-card-sublabel block">
-                  จำนวนบิล
-                </span>
-                <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">
-                  {paymentBreakdown.total} บิล
+                <span className="text-card-sublabel block text-center">
+                  ยอดรวม 2 ช่องทาง (เงินสด + QR)
                 </span>
               </div>
+              
             </div>
 
             {/* 2 Summary Boxes: เงินสด vs QR */}
@@ -178,9 +171,7 @@ export const BusinessSpotlight: React.FC<BusinessSpotlightProps> = ({ startDate,
                   {paymentBreakdown.cashAmount.toLocaleString()}
                   <span className="text-xs font-bold ml-0.5">฿</span>
                 </p>
-                <p className="text-xs font-semibold text-slate-400 dark:text-neutral-500">
-                  สัดส่วน {cashPercent}% ของยอดขาย
-                </p>
+                
               </div>
 
               {/* QR PromptPay */}
@@ -195,9 +186,7 @@ export const BusinessSpotlight: React.FC<BusinessSpotlightProps> = ({ startDate,
                   {paymentBreakdown.promptpayAmount.toLocaleString()}
                   <span className="text-xs font-bold ml-0.5">฿</span>
                 </p>
-                <p className="text-xs font-semibold text-slate-400 dark:text-neutral-500">
-                  สัดส่วน {promptpayPercent}% ของยอดขาย
-                </p>
+                
               </div>
             </div>
 

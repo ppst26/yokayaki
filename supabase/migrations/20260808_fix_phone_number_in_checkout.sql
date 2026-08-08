@@ -1,17 +1,6 @@
--- Migration: เพิ่ม cash_amount และ promptpay_amount ในตาราง payments
--- เพื่อเก็บยอดแยกสำหรับการชำระแบบผสม (เงินสด + QR)
+-- Fix: complete_checkout RPC ลืม INSERT phone_number เข้า payments
+-- ทำให้ไม่สามารถแสดงชื่อสมาชิกในประวัติบิลได้
 
--- 1. เพิ่มคอลัมน์ใหม่
-ALTER TABLE payments
-  ADD COLUMN IF NOT EXISTS cash_amount DECIMAL(10, 2) NOT NULL DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS promptpay_amount DECIMAL(10, 2) NOT NULL DEFAULT 0;
-
--- 2. Back-fill ข้อมูลเก่าตาม payment_method
-UPDATE payments SET cash_amount = net_amount, promptpay_amount = 0 WHERE payment_method = 'cash';
-UPDATE payments SET promptpay_amount = net_amount, cash_amount = 0 WHERE payment_method = 'promptpay';
--- mixed: ไม่รู้แบ่งยังไง ปล่อย 0 ทั้งคู่ (historical data ไม่มีข้อมูลแยก)
-
--- 3. อัปเดต complete_checkout RPC ให้รับ p_cash_amount และ p_promptpay_amount
 CREATE OR REPLACE FUNCTION complete_checkout(
   p_order_id INT,
   p_payment_method VARCHAR,
@@ -33,6 +22,7 @@ BEGIN
   SELECT table_id INTO v_table_id FROM orders WHERE id = p_order_id;
   IF v_table_id IS NULL THEN RETURN FALSE; END IF;
 
+  -- INSERT พร้อม phone_number ด้วย
   INSERT INTO payments (
     order_id, payment_method, subtotal, discount_amount, net_amount,
     points_earned, points_redeemed, cash_amount, promptpay_amount, phone_number
@@ -62,7 +52,7 @@ BEGIN
   UPDATE order_items SET status = 'served' WHERE order_id = p_order_id AND status = 'pending';
   UPDATE tables SET status = 'vacant' WHERE id = v_table_id;
   UPDATE qr_sessions SET status = 'expired', expired_at = NOW()
-  WHERE table_id = v_table_id AND status = 'active';
+    WHERE table_id = v_table_id AND status = 'active';
 
   IF p_phone_number IS NOT NULL AND p_phone_number != '' THEN
     UPDATE loyalty_members
