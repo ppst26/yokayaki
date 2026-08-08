@@ -337,10 +337,10 @@ export const SalesHistory: React.FC = () => {
             <button
               type="button"
               onClick={() => setAuditRange('today')}
-              className={`px-3 py-1.5 rounded-xl text-xs md:text-sm font-extrabold transition cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl  text-xs md:text-sm font-extrabold transition cursor-pointer ${
                 auditRange === 'today'
                   ? 'bg-red-600 text-white shadow-md shadow-red-600/25 border-none'
-                  : 'text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-neutral-100 border-none'
+                  : 'text-slate-600  dark:text-neutral-300 hover:text-slate-900 dark:hover:text-neutral-100 border-none'
               }`}
             >
               วันนี้ (Today)
