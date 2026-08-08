@@ -299,6 +299,65 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
         </div>
       )}
 
+      {/* Mobile Fixed Bottom Navigation Bar */}
+      <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-zinc-200/80 dark:border-zinc-800 px-3 py-1.5 flex items-center justify-around shadow-lg">
+        {/* 1. แผนผังโต๊ะ */}
+        <button
+          onClick={() => onSelectTab('floor')}
+          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all duration-200 cursor-pointer ${
+            activeTab === 'floor'
+              ? 'text-red-600 dark:text-red-400 font-extrabold scale-105'
+              : 'text-zinc-500 dark:text-zinc-400 font-bold hover:text-zinc-800 dark:hover:text-zinc-200'
+          }`}
+        >
+          <div className={`p-1.5 rounded-xl transition-colors ${activeTab === 'floor' ? 'bg-red-50 dark:bg-red-950/60 shadow-2xs' : ''}`}>
+            <Layers className="w-5 h-5 stroke-[2.2]" />
+          </div>
+          <span className="text-[10px] mt-0.5 leading-none font-bold">ผังโต๊ะ</span>
+        </button>
+
+        {/* 2. หน้าจอครัว */}
+        <button
+          onClick={() => onSelectTab('kitchen')}
+          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all duration-200 cursor-pointer ${
+            activeTab === 'kitchen'
+              ? 'text-red-600 dark:text-red-400 font-extrabold scale-105'
+              : 'text-zinc-500 dark:text-zinc-400 font-bold hover:text-zinc-800 dark:hover:text-zinc-200'
+          }`}
+        >
+          <div className={`p-1.5 rounded-xl transition-colors ${activeTab === 'kitchen' ? 'bg-red-50 dark:bg-red-950/60 shadow-2xs' : ''}`}>
+            <ChefHat className="w-5 h-5 stroke-[2.2]" />
+          </div>
+          <span className="text-[10px] mt-0.5 leading-none font-bold">หน้าครัว</span>
+        </button>
+
+        {/* 3. ประวัติการขาย */}
+        <button
+          onClick={() => onSelectTab('history')}
+          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all duration-200 cursor-pointer ${
+            activeTab === 'history'
+              ? 'text-red-600 dark:text-red-400 font-extrabold scale-105'
+              : 'text-zinc-500 dark:text-zinc-400 font-bold hover:text-zinc-800 dark:hover:text-zinc-200'
+          }`}
+        >
+          <div className={`p-1.5 rounded-xl transition-colors ${activeTab === 'history' ? 'bg-red-50 dark:bg-red-950/60 shadow-2xs' : ''}`}>
+            <History className="w-5 h-5 stroke-[2.2]" />
+          </div>
+          <span className="text-[10px] mt-0.5 leading-none font-bold">ออเดอร์</span>
+        </button>
+
+        {/* 4. เมนูเพิ่มเติม (Open Drawer) */}
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="flex flex-col items-center justify-center py-1 px-3 rounded-xl text-zinc-500 dark:text-zinc-400 font-bold hover:text-zinc-800 dark:hover:text-zinc-200 transition-all cursor-pointer"
+        >
+          <div className="p-1.5">
+            <Menu className="w-5 h-5 stroke-[2.2]" />
+          </div>
+          <span className="text-[10px] mt-0.5 leading-none font-bold">เพิ่มเติม</span>
+        </button>
+      </div>
+
       {/* Desktop Left Sidebar Navigation */}
       <aside className="hidden md:flex w-64 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 p-5 flex-col justify-between shadow-sm shrink-0 sticky top-0 h-screen">
         <div>

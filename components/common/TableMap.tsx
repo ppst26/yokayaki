@@ -181,7 +181,7 @@ export const TableMap: React.FC = () => {
     <div className="flex flex-col md:flex-row h-screen bg-gray-100 dark:bg-neutral-950 font-sans text-slate-800 dark:text-neutral-100 overflow-hidden">
       <SidebarNav activeTab={activeTab} onSelectTab={handleTabChange} />
 
-      <main className="flex-1 overflow-y-auto no-scrollbar p-4 md:p-8">
+      <main className="flex-1 overflow-y-auto no-scrollbar p-4 md:p-8 pb-24 md:pb-8">
         {activeTab === 'kitchen' && <KitchenScreen />}
         {activeTab === 'history' && <SalesHistory />}
         {activeTab === 'menu' && isOwner && <MenuManager />}
