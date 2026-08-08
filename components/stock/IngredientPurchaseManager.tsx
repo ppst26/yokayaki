@@ -452,26 +452,26 @@ export const IngredientPurchaseManager: React.FC = () => {
           </button>
           <button
             onClick={openModal}
-            className="flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-medium border-none shadow-none transition active:scale-95 cursor-pointer shrink-0"
+            className="flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-extrabold border-none shadow-none transition active:scale-95 cursor-pointer shrink-0"
           >
             <PackagePlus className="w-4 h-4" />
-            เพิ่มรายการสั่งซื้อ
+            <span>เพิ่มรายการสั่งซื้อ</span>
           </button>
         </div>
       </div>
 
       {/* Section Title (Placed BELOW filter as requested) */}
       <div className="flex items-center justify-between pt-1">
-        <h2 className="text-base font-black text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+        <h2 className="text-h2 text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
           <ShoppingCart className="w-5 h-5 text-red-600 dark:text-red-400" />
           ประวัติการสั่งซื้อวัตถุดิบ
         </h2>
       </div>
 
       {/* Filter Summary Stats */}
-      <div className="flex items-center justify-between px-1 text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+      <div className="flex items-center justify-between px-1 text-table-meta">
         <span>แสดง {filteredOrders.length} รายการ (จากทั้งหมด {orders.length} รายการ)</span>
-        <span>รวมค่าใช้จ่ายจัดซื้อ: <strong className="text-red-600 dark:text-red-400 font-extrabold text-sm">{filteredTotalCost.toLocaleString()} ฿</strong></span>
+        <span>รวมค่าใช้จ่ายจัดซื้อ: <strong className="text-table-value text-base ml-1">{filteredTotalCost.toLocaleString()} ฿</strong></span>
       </div>
 
       {/* Table */}
@@ -495,35 +495,35 @@ export const IngredientPurchaseManager: React.FC = () => {
                 onClick={() => toggleExpand(order.id)}
               >
                 {/* PO# */}
-                <span className="w-20 shrink-0 text-xs font-black text-zinc-400 dark:text-zinc-500">
+                <span className="w-20 shrink-0 text-table-meta font-extrabold">
                   PO-{String(order.id).padStart(4, '0')}
                 </span>
 
                 {/* Date */}
                 <div className="flex items-center gap-1.5 w-32 shrink-0">
-                  <Calendar className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
-                  <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                  <Calendar className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
+                  <span className="text-table-cell">
                     {formatDate(order.purchase_date)}
                   </span>
                 </div>
 
                 {/* Buyer */}
                 <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                  <User className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500 shrink-0" />
-                  <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200 truncate">
+                  <User className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />
+                  <span className="text-table-cell font-bold truncate">
                     {order.buyer_name}
                   </span>
                 </div>
 
                 {/* Note (if any) */}
                 {order.note && (
-                  <span className="text-[10px] font-medium text-zinc-400 dark:text-zinc-500 truncate max-w-[140px] hidden sm:block">
+                  <span className="text-table-meta truncate max-w-[140px] hidden sm:block">
                     {order.note}
                   </span>
                 )}
 
                 {/* Total */}
-                <span className="text-sm font-black text-red-600 dark:text-red-400 shrink-0">
+                <span className="text-table-value shrink-0">
                   {order.total_cost.toLocaleString()} ฿
                 </span>
 
