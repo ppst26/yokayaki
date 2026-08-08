@@ -47,10 +47,10 @@ export const DateFilterBar: React.FC<DateFilterBarProps> = ({
               key={preset.value}
               type="button"
               onClick={() => onPresetChange(preset.value)}
-              className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all duration-200 whitespace-nowrap cursor-pointer shrink-0 shadow-2xs ${
+              className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all duration-200 whitespace-nowrap cursor-pointer shrink-0 ${
                 isActive
-                  ? 'bg-red-600 text-white shadow-sm shadow-red-600/20 scale-100'
-                  : 'bg-white dark:bg-neutral-900 text-slate-600 dark:text-neutral-300 border border-slate-200/60 dark:border-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-800'
+                  ? 'bg-red-600 text-white shadow-md shadow-red-600/25 border-none'
+                  : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-100 hover:bg-slate-100/60 dark:hover:bg-neutral-800/60 border-none'
               }`}
             >
               {preset.label}

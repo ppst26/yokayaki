@@ -336,8 +336,8 @@ export const SalesHistory: React.FC = () => {
               onClick={() => setAuditRange('today')}
               className={`px-3.5 py-2 rounded-xl text-xs font-black transition cursor-pointer ${
                 auditRange === 'today'
-                  ? 'bg-red-600 text-white shadow-xs'
-                  : 'text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-neutral-100'
+                  ? 'bg-red-600 text-white shadow-md shadow-red-600/25 border-none'
+                  : 'text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-neutral-100 border-none'
               }`}
             >
               วันนี้ (Today)
@@ -347,8 +347,8 @@ export const SalesHistory: React.FC = () => {
               onClick={() => setAuditRange('yesterday')}
               className={`px-3.5 py-2 rounded-xl text-xs font-black transition cursor-pointer ${
                 auditRange === 'yesterday'
-                  ? 'bg-red-600 text-white shadow-xs'
-                  : 'text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-neutral-100'
+                  ? 'bg-red-600 text-white shadow-md shadow-red-600/25 border-none'
+                  : 'text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-neutral-100 border-none'
               }`}
             >
               เมื่อวาน (Yesterday)
@@ -380,8 +380,8 @@ export const SalesHistory: React.FC = () => {
           onClick={() => setActiveSubTab('sales')}
           className={`px-4 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer ${
             activeSubTab === 'sales'
-              ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
-              : 'bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-neutral-800'
+              ? 'bg-red-600 text-white shadow-md shadow-red-600/25 border-none'
+              : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-100 hover:bg-slate-100/60 dark:hover:bg-neutral-800/60 border-none'
           }`}
         >
           รายการการขายวันนี้ ({orders.length})
@@ -391,8 +391,8 @@ export const SalesHistory: React.FC = () => {
           onClick={() => setActiveSubTab('voids')}
           className={`px-4 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer ${
             activeSubTab === 'voids'
-              ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
-              : 'bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-neutral-800'
+              ? 'bg-red-600 text-white shadow-md shadow-red-600/25 border-none'
+              : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-100 hover:bg-slate-100/60 dark:hover:bg-neutral-800/60 border-none'
           }`}
         >
           ประวัติการ Void ยกเลิกรายการ ({voidLogs.length})
