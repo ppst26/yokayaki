@@ -546,13 +546,13 @@ export const IngredientPurchaseManager: React.FC = () => {
                       <p className="text-[11px] font-extrabold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-3">
                         รายการวัตถุดิบ
                       </p>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>ชื่อวัตถุดิบ</TableHead>
-                            <TableHead className="text-center">จำนวน</TableHead>
-                            <TableHead className="text-center">หน่วย</TableHead>
-                            <TableHead className="text-right">ราคารวม</TableHead>
+                      <Table containerClassName="rounded-none bg-transparent">
+                        <TableHeader className="bg-transparent border-b border-zinc-200 dark:border-zinc-800 text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                          <TableRow className="hover:bg-transparent">
+                            <TableHead className="bg-transparent text-zinc-500 dark:text-zinc-400 font-bold p-2 text-xs">ชื่อวัตถุดิบ</TableHead>
+                            <TableHead className="bg-transparent text-zinc-500 dark:text-zinc-400 font-bold p-2 text-xs text-center">จำนวน</TableHead>
+                            <TableHead className="bg-transparent text-zinc-500 dark:text-zinc-400 font-bold p-2 text-xs text-center">หน่วย</TableHead>
+                            <TableHead className="bg-transparent text-zinc-500 dark:text-zinc-400 font-bold p-2 text-xs text-right">ราคารวม</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>

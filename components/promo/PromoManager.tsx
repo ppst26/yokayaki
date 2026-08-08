@@ -404,11 +404,7 @@ export const PromoManager: React.FC = () => {
                 </div>
 
                 {/* Middle Action Bar (Above the Line) */}
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-[11px] font-semibold text-slate-400 dark:text-neutral-500">
-                    จัดการโปรโมชั่น
-                  </span>
-
+                <div className="flex items-center justify-end pt-1">
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => openEdit(p)}

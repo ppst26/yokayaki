@@ -121,17 +121,18 @@ export const BusinessSpotlight: React.FC<BusinessSpotlightProps> = ({ startDate,
 
   return (
     <div className="h-full flex flex-col justify-between gap-3 sm:gap-4">
-      {/* Payment Method Breakdown */}
-      <Card className="p-5 space-y-4 flex-1 flex flex-col justify-between">
+      {/* Account Total / Payment Breakdown */}
+      <Card className="p-5 space-y-3.5 flex-[1.4] flex flex-col justify-between">
         <div className="flex items-center gap-2">
           <CreditCard className="w-4 h-4 text-blue-500" />
           <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-            สัดส่วนวิธีชำระเงิน
+            ยอดบัญชี
           </span>
         </div>
 
         {loading ? (
           <div className="space-y-3">
+            <div className="h-12 bg-slate-100 dark:bg-neutral-800 rounded-xl animate-pulse" />
             <div className="grid grid-cols-2 gap-2">
               <div className="h-16 bg-slate-100 dark:bg-neutral-800 rounded-xl animate-pulse" />
               <div className="h-16 bg-slate-100 dark:bg-neutral-800 rounded-xl animate-pulse" />
@@ -142,6 +143,27 @@ export const BusinessSpotlight: React.FC<BusinessSpotlightProps> = ({ startDate,
           <p className="text-xs text-slate-400 dark:text-neutral-500 py-2 text-center">ยังไม่มีข้อมูลการชำระเงิน</p>
         ) : (
           <div className="space-y-3">
+            {/* Combined Cash + QR Total Display */}
+            <div className="bg-slate-50 dark:bg-neutral-800/60 border border-slate-200/70 dark:border-neutral-700/60 rounded-xl p-3 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-extrabold text-slate-400 dark:text-neutral-500 uppercase tracking-wider block">
+                  ยอดรวม 2 ช่องทาง (เงินสด + QR)
+                </span>
+                <p className="text-2xl font-black text-slate-900 dark:text-neutral-100 leading-tight mt-0.5">
+                  {totalMoney.toLocaleString()}
+                  <span className="text-xs font-bold ml-1 text-slate-500 dark:text-neutral-400">฿</span>
+                </p>
+              </div>
+              <div className="text-right">
+                <span className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 block">
+                  จำนวนบิล
+                </span>
+                <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">
+                  {paymentBreakdown.total} บิล
+                </span>
+              </div>
+            </div>
+
             {/* 2 Summary Boxes: เงินสด vs QR */}
             <div className="grid grid-cols-2 gap-2">
               {/* เงินสด */}
@@ -220,25 +242,27 @@ export const BusinessSpotlight: React.FC<BusinessSpotlightProps> = ({ startDate,
       </Card>
 
       {/* Ingredient Cost Card */}
-      <Card className="p-5 space-y-3 flex-1 flex flex-col justify-between">
-        <div className="flex items-center gap-2">
+      <Card className="p-4 sm:p-5 flex-[0.6] flex flex-col items-center justify-center text-center space-y-1">
+        <div className="flex items-center gap-2 justify-center">
           <ShoppingCart className="w-4 h-4 text-rose-500" />
           <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
             ยอดต้นทุนวัตถุดิบ
           </span>
         </div>
         {loading ? (
-          <div className="space-y-2">
-            <div className="h-6 w-3/4 bg-slate-100 dark:bg-neutral-800 rounded-lg animate-pulse" />
-            <div className="h-4 w-1/2 bg-slate-100 dark:bg-neutral-800 rounded-lg animate-pulse" />
+          <div className="space-y-1.5 flex flex-col items-center">
+            <div className="h-6 w-24 bg-slate-100 dark:bg-neutral-800 rounded-lg animate-pulse" />
+            <div className="h-3 w-36 bg-slate-100 dark:bg-neutral-800 rounded-lg animate-pulse" />
           </div>
         ) : (
-          <div>
-            <p className="text-xl font-black text-rose-600 dark:text-rose-400">
+          <div className="flex flex-col items-center justify-center">
+            <p className="text-2xl sm:text-3xl font-black text-rose-600 dark:text-rose-400 leading-tight">
               {totalIngredientCost.toLocaleString()}
-              <span className="text-xs font-bold ml-1">฿</span>
+              <span className="text-sm font-bold ml-1">฿</span>
             </p>
-            <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 mt-0.5">ต้นทุนจัดซื้อในช่วงนี้ (ค่าใช้จ่าย)</p>
+            <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 mt-0.5">
+              ต้นทุนจัดซื้อในช่วงนี้ (ค่าใช้จ่าย)
+            </p>
           </div>
         )}
       </Card>

@@ -35,12 +35,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [mounted, setMounted] = useState(false);
-  const [coords, setCoords] = useState<{ top: number; bottom?: number; left: number; width: number; placeAbove: boolean }>({
-    top: 0,
-    left: 0,
-    width: 0,
-    placeAbove: false,
-  });
+  const [coords, setCoords] = useState<{ top: number; bottom?: number; left: number; width: number; placeAbove: boolean } | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -66,17 +61,32 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       const dropdownHeight = 300;
       const placeAbove = spaceBelow < dropdownHeight && rect.top > dropdownHeight;
 
-      setCoords({
+      const newCoords = {
         top: placeAbove ? 0 : rect.bottom + 4,
         bottom: placeAbove ? window.innerHeight - rect.top + 4 : undefined,
         left: rect.left,
         width: Math.max(rect.width, 180),
         placeAbove,
-      });
+      };
+      setCoords(newCoords);
+      return newCoords;
     }
+    return null;
   }, []);
 
-  useEffect(() => {
+  const handleToggle = () => {
+    if (disabled) return;
+    if (!isOpen) {
+      updateCoords();
+      setIsOpen(true);
+    } else {
+      setIsOpen(false);
+    }
+  };
+
+  const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? React.useLayoutEffect : React.useEffect;
+
+  useIsomorphicLayoutEffect(() => {
     if (isOpen) {
       updateCoords();
       window.addEventListener('resize', updateCoords);
@@ -117,7 +127,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       <button
         type="button"
         disabled={disabled}
-        onClick={() => !disabled && setIsOpen(!isOpen)}
+        onClick={handleToggle}
         className={`w-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200/70 dark:hover:bg-zinc-700/70 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500/50 border border-transparent transition flex items-center justify-between cursor-pointer gap-1.5 ${
           disabled ? 'opacity-50 cursor-not-allowed' : ''
         }`}
@@ -129,7 +139,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       </button>
 
       {/* Popover Dropdown (Portaled to document.body) */}
-      {isOpen && mounted && createPortal(
+      {isOpen && mounted && coords && createPortal(
         <div
           ref={popoverRef}
           style={{
