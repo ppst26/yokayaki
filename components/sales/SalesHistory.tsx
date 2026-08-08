@@ -60,6 +60,7 @@ interface VoidLog {
 
 export const SalesHistory: React.FC = () => {
   const [activeSubTab, setActiveSubTab] = useState<'sales' | 'voids'>('sales');
+  const [auditRange, setAuditRange] = useState<'today' | 'yesterday'>('today');
   const [orders, setOrders] = useState<CompletedOrder[]>([]);
   const [voidLogs, setVoidLogs] = useState<VoidLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,17 +69,32 @@ export const SalesHistory: React.FC = () => {
   const [orderItems, setOrderItems] = useState<OrderItemDetail[]>([]);
   const [detailLoading, setDetailLoading] = useState(false);
 
-  const fetchTodayOrders = async () => {
+  const getDateRange = (range: 'today' | 'yesterday') => {
+    const start = new Date();
+    const end = new Date();
+
+    if (range === 'yesterday') {
+      start.setDate(start.getDate() - 1);
+      end.setDate(end.getDate() - 1);
+    }
+
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+
+    return { startISO: start.toISOString(), endISO: end.toISOString() };
+  };
+
+  const fetchOrdersForRange = async (range: 'today' | 'yesterday') => {
     try {
       setLoading(true);
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
+      const { startISO, endISO } = getDateRange(range);
 
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .select('id, table_id, created_at')
         .eq('status', 'completed')
-        .gte('created_at', todayStart.toISOString())
+        .gte('created_at', startISO)
+        .lte('created_at', endISO)
         .order('created_at', { ascending: false });
 
       if (orderError) throw orderError;
@@ -196,16 +212,16 @@ export const SalesHistory: React.FC = () => {
     }
   };
 
-  const fetchVoidLogs = async () => {
+  const fetchVoidLogsForRange = async (range: 'today' | 'yesterday') => {
     try {
       setVoidLoading(true);
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
+      const { startISO, endISO } = getDateRange(range);
 
       const { data, error } = await supabase
         .from('void_logs')
         .select('*')
-        .gte('created_at', todayStart.toISOString())
+        .gte('created_at', startISO)
+        .lte('created_at', endISO)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -219,9 +235,9 @@ export const SalesHistory: React.FC = () => {
 
   const handleRefresh = async () => {
     if (activeSubTab === 'sales') {
-      await fetchTodayOrders();
+      await fetchOrdersForRange(auditRange);
     } else {
-      await fetchVoidLogs();
+      await fetchVoidLogsForRange(auditRange);
     }
   };
 
@@ -247,9 +263,9 @@ export const SalesHistory: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchTodayOrders();
-    fetchVoidLogs();
-  }, []);
+    fetchOrdersForRange(auditRange);
+    fetchVoidLogsForRange(auditRange);
+  }, [auditRange]);
 
   const totalRevenue = orders.reduce((s, o) => s + (o.payment?.net_amount || 0), 0);
   const totalDiscount = orders.reduce((s, o) => s + (o.payment?.discount_amount || 0), 0);
@@ -308,17 +324,45 @@ export const SalesHistory: React.FC = () => {
             ประวัติการขายประจำวัน (Sales & Audit History)
           </h1>
           <p className="text-xs text-slate-500 dark:text-neutral-400 font-semibold mt-0.5">
-            ตรวจสอบรายการที่เช็คบิลแล้ว และประวัติการ Void ยกเลิกออเดอร์ในวันนี้
+            ตรวจสอบรายการที่เช็คบิลแล้ว และประวัติการ Void ยกเลิกออเดอร์ ({auditRange === 'today' ? 'ในวันนี้' : 'ของเมื่อวาน'})
           </p>
         </div>
 
-        <button
-          onClick={handleRefresh}
-          className="flex items-center gap-1.5 px-4 py-2.5 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-200 rounded-xl text-xs font-bold transition active:scale-95 shadow-xs cursor-pointer self-start md:self-auto"
-        >
-          <RefreshCw className="w-4 h-4" />
-          <span>รีเฟรชข้อมูล</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
+          {/* Today / Yesterday Toggle Pills */}
+          <div className="bg-slate-100 dark:bg-neutral-800/80 p-1 rounded-2xl flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setAuditRange('today')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-black transition cursor-pointer ${
+                auditRange === 'today'
+                  ? 'bg-red-600 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-neutral-100'
+              }`}
+            >
+              วันนี้ (Today)
+            </button>
+            <button
+              type="button"
+              onClick={() => setAuditRange('yesterday')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-black transition cursor-pointer ${
+                auditRange === 'yesterday'
+                  ? 'bg-red-600 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-neutral-100'
+              }`}
+            >
+              เมื่อวาน (Yesterday)
+            </button>
+          </div>
+
+          <button
+            onClick={handleRefresh}
+            className="flex items-center gap-1.5 px-4 py-2.5 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-200 rounded-xl text-xs font-bold transition active:scale-95 shadow-xs cursor-pointer"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span>รีเฟรชข้อมูล</span>
+          </button>
+        </div>
       </div>
 
       {/* Sales Summary Cards */}
