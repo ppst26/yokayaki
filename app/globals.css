@@ -70,7 +70,7 @@ body {
     @apply text-base font-normal md:font-medium leading-relaxed;
   }
   .text-caption {
-    @apply text-sm font-medium text-muted-foreground leading-normal;
+    @apply text-xs sm:text-sm font-semibold text-slate-500 dark:text-neutral-400 leading-normal;
   }
   .text-micro {
     @apply text-xs font-semibold uppercase tracking-wider;

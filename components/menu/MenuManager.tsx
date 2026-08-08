@@ -218,7 +218,7 @@ export const MenuManager: React.FC = () => {
             <UtensilsCrossed className="w-6 h-6 text-red-600 dark:text-red-400" />
             จัดการรายการอาหาร (Menu Manager)
           </h1>
-          <p className="text-xs text-slate-500 dark:text-neutral-400 font-semibold mt-0.5">
+          <p className="text-caption mt-0.5">
             เพิ่ม แก้ไข ลบเมนู กำหนดราคา รูปภาพ และหมวดหมู่สินค้า
           </p>
         </div>

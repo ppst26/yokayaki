@@ -307,7 +307,7 @@ export const LoyaltyManager: React.FC = () => {
             <Users className="w-6 h-6 text-red-600 dark:text-red-400" />
             ระบบสมาชิก CRM (Loyalty CRM)
           </h1>
-          <p className="text-xs text-slate-500 dark:text-neutral-400 font-semibold mt-0.5">
+          <p className="text-caption mt-0.5">
             จัดการข้อมูลสมาชิก ค้นหาเบอร์โทร ประวัติการสะสมแต้ม และตรวจสอบสิทธิ์
           </p>
         </div>

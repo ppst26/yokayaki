@@ -293,7 +293,7 @@ export const EmployeeManager: React.FC = () => {
             <Users className="w-6 h-6 text-red-600 dark:text-red-400" />
             จัดการพนักงาน (Employee Management)
           </h1>
-          <p className="text-xs text-slate-500 dark:text-neutral-400 font-semibold mt-0.5">
+          <p className="text-caption mt-0.5">
             จัดการข้อมูลพนักงาน กำหนดตำแหน่ง และรหัส PIN เข้าใช้งานระบบ
           </p>
         </div>

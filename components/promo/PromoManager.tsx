@@ -268,7 +268,7 @@ export const PromoManager: React.FC = () => {
             <Tag className="w-6 h-6 text-red-600 dark:text-red-400" />
             จัดการโปรโมชั่น & คูปองส่วนลด
           </h1>
-          <p className="text-xs text-slate-500 dark:text-neutral-400 font-semibold mt-0.5">
+          <p className="text-caption mt-0.5">
             กำหนดส่วนลด %, คูปองส่วนลดด่วน, ซื้อแถม, Happy Hour และรหัสคูปอง
           </p>
         </div>

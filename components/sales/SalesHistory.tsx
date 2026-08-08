@@ -323,7 +323,7 @@ export const SalesHistory: React.FC = () => {
           <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-neutral-100 tracking-tight">
             ประวัติการขายประจำวัน (Sales & Audit History)
           </h1>
-          <p className="text-sm text-slate-500 dark:text-neutral-400 font-semibold mt-0.5">
+          <p className="text-caption mt-0.5">
             ตรวจสอบรายการที่เช็คบิลแล้ว และประวัติการ Void ยกเลิกออเดอร์ ({auditRange === 'today' ? 'ในวันนี้' : 'ของเมื่อวาน'})
           </p>
         </div>
