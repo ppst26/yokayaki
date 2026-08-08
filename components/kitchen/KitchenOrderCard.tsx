@@ -57,15 +57,15 @@ export const KitchenOrderCard: React.FC<KitchenOrderCardProps> = ({
         {/* Card Header */}
         <div className={`p-4 flex items-center justify-between transition ${cardHeaderStyle}`}>
           <div>
-            <h3 className="text-xl font-black tracking-tight text-white">โต๊ะ {group.table_id}</h3>
-            <span className="text-[11px] font-extrabold text-red-100 block">
+            <h3 className="text-h2 text-white">โต๊ะ {group.table_id}</h3>
+            <span className="text-caption text-red-100 block">
               รวม {group.items.reduce((s, i) => s + i.quantity, 0)} รายการ
             </span>
           </div>
 
-          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black shadow-xs ${badgeStyle}`}>
+          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-caption font-bold shadow-xs ${badgeStyle}`}>
             <Clock className="w-3.5 h-3.5" />
-            <span>{waitMinutes} นาทีที่แล้ว</span>
+            <span className="text-price">{waitMinutes} นาทีที่แล้ว</span>
           </div>
         </div>
 
@@ -78,15 +78,15 @@ export const KitchenOrderCard: React.FC<KitchenOrderCardProps> = ({
             >
               <div className="flex-1 space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-sm text-slate-900 dark:text-neutral-100">
+                  <span className="text-h3 text-slate-900 dark:text-neutral-100">
                     {item.menu_items?.name}
                   </span>
-                  <span className="text-xs font-black text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900/50 px-2 py-0.5 rounded-full">
+                  <span className="text-price text-caption font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900/50 px-2 py-0.5 rounded-full">
                     x{item.quantity} จาน
                   </span>
                 </div>
                 {item.notes && (
-                  <p className="text-xs text-red-600 dark:text-red-400 font-bold">
+                  <p className="text-caption text-red-600 dark:text-red-400 font-medium">
                     📝 {item.notes}
                   </p>
                 )}
@@ -108,7 +108,7 @@ export const KitchenOrderCard: React.FC<KitchenOrderCardProps> = ({
       <div className="p-4 pt-0">
         <button
           onClick={() => markAllTableItemsAsServed(group.items)}
-          className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs rounded-xl shadow-md shadow-red-600/20 transition active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-3 bg-red-600 hover:bg-red-700 text-white text-body font-bold rounded-xl shadow-md shadow-red-600/20 transition active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
         >
           <CheckCircle className="w-4 h-4" />
           <span>เสิร์ฟทั้งหมดของโต๊ะ {group.table_id}</span>
