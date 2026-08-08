@@ -7,7 +7,7 @@ interface TableProps extends React.ComponentProps<"table"> {
 
 function Table({ className, containerClassName, ...props }: TableProps) {
   return (
-    <div className={cn("relative w-full overflow-x-auto rounded-t-2xl sm:rounded-t-3xl rounded-b-none bg-white dark:bg-neutral-900 border-none shadow-none", containerClassName)}>
+    <div className={cn("relative w-full overflow-x-auto rounded-sm bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 shadow-2xs", containerClassName)}>
       <table
         className={cn("w-full min-w-full text-left border-collapse", className)}
         {...props}

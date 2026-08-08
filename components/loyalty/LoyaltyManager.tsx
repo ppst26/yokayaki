@@ -22,6 +22,7 @@ import {
 import { Card } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { CustomSelect } from '@/components/ui/select';
+import { TablePagination } from '@/components/ui/pagination';
 import { MemberInfoCard } from './MemberInfoCard';
 import { PointsHistoryModal } from './PointsHistoryModal';
 
@@ -441,49 +442,15 @@ export const LoyaltyManager: React.FC = () => {
                 </TableBody>
               </Table>
 
-              {/* Pagination controls (No Card) */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-1 py-2 text-xs font-semibold text-slate-500 dark:text-neutral-400">
-                <div className="flex items-center gap-2">
-                  <span>แสดงหน้า:</span>
-                  <div className="w-28">
-                    <CustomSelect
-                      value={String(pageSize)}
-                      onChange={val => setPageSize(Number(val))}
-                      options={[
-                        { label: '10 รายการ', value: '10' },
-                        { label: '20 รายการ', value: '20' },
-                        { label: '50 รายการ', value: '50' },
-                      ]}
-                      searchable={false}
-                    />
-                  </div>
-                  <span>
-                    (ทั้งหมด {filteredMembers.length} รายการ)
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="p-1.5 bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-lg hover:bg-slate-200 dark:hover:bg-neutral-700 disabled:opacity-40 transition cursor-pointer"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-
-                  <span>
-                    หน้า {currentPage} / {totalPages}
-                  </span>
-
-                  <button
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                    className="p-1.5 bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-lg hover:bg-slate-200 dark:hover:bg-neutral-700 disabled:opacity-40 transition cursor-pointer"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
+              {/* Pagination controls */}
+              <TablePagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                pageSize={pageSize}
+                totalItems={filteredMembers.length}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={setPageSize}
+              />
             </div>
           )}
         </>

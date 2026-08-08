@@ -18,6 +18,7 @@ export interface CustomSelectProps {
   onAddNew?: () => void;
   searchable?: boolean; // Default false. Only shows search input when true
   className?: string;
+  triggerClassName?: string;
   disabled?: boolean;
 }
 
@@ -30,6 +31,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   onAddNew,
   searchable = false,
   className = '',
+  triggerClassName = '',
   disabled = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -128,7 +130,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         type="button"
         disabled={disabled}
         onClick={handleToggle}
-        className={`w-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200/70 dark:hover:bg-zinc-700/70 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500/50 border border-transparent transition flex items-center justify-between cursor-pointer gap-1.5 ${
+        className={triggerClassName || `w-full bg-white dark:bg-neutral-900 hover:bg-slate-50 dark:hover:bg-neutral-800 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-red-500/50 border border-slate-200 dark:border-neutral-700 shadow-2xs transition flex items-center justify-between cursor-pointer gap-1.5 ${
           disabled ? 'opacity-50 cursor-not-allowed' : ''
         }`}
       >
