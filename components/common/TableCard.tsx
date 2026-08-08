@@ -34,7 +34,7 @@ export const TableCard: React.FC<TableCardProps> = ({ table, onClick, className 
   const renderBadge = () => {
     if (isCheckingOut) {
       return (
-        <span className="bg-white/30 backdrop-blur-xs text-white border border-white/40 text-[9px] sm:text-[10px] font-extrabold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full uppercase tracking-wider shrink-0 self-start sm:self-auto flex items-center gap-1">
+        <span className="bg-white/30 backdrop-blur-xs text-white border border-white/40 text-micro px-2 sm:px-3 py-0.5 sm:py-1 rounded-full uppercase tracking-wider shrink-0 self-start sm:self-auto flex items-center gap-1">
           <BellRing className="w-3 h-3 animate-bounce" />
           <span>เรียกเช็คบิล</span>
         </span>
@@ -42,13 +42,13 @@ export const TableCard: React.FC<TableCardProps> = ({ table, onClick, className 
     }
     if (isOccupied) {
       return (
-        <span className="bg-white/20 backdrop-blur-xs text-white border border-white/30 text-[9px] sm:text-[10px] font-extrabold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full uppercase tracking-wider shrink-0 self-start sm:self-auto">
+        <span className="bg-white/20 backdrop-blur-xs text-white border border-white/30 text-micro px-2 sm:px-3 py-0.5 sm:py-1 rounded-full uppercase tracking-wider shrink-0 self-start sm:self-auto">
           มีลูกค้า
         </span>
       );
     }
     return (
-      <span className="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50 text-[9px] sm:text-[10px] font-extrabold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full uppercase tracking-wider shrink-0 self-start sm:self-auto">
+      <span className="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50 text-micro px-2 sm:px-3 py-0.5 sm:py-1 rounded-full uppercase tracking-wider shrink-0 self-start sm:self-auto">
         ว่าง (Vacant)
       </span>
     );
@@ -91,14 +91,14 @@ export const TableCard: React.FC<TableCardProps> = ({ table, onClick, className 
       className={`group relative p-4 sm:p-6 rounded-2xl sm:rounded-3xl transition duration-200 text-left flex flex-col justify-between h-40 sm:h-48 cursor-pointer active:scale-95 overflow-hidden ${getCardStyle()} ${className}`}
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
-        <span className={`text-lg sm:text-2xl font-black ${isOccupied || isCheckingOut ? 'text-white' : 'text-slate-900 dark:text-neutral-100'}`}>
+        <span className={`text-h2 ${isOccupied || isCheckingOut ? 'text-white' : 'text-slate-900 dark:text-neutral-100'}`}>
           โต๊ะ {table.id}
         </span>
         {renderBadge()}
       </div>
 
       <div className={`flex items-center justify-between pt-2 sm:pt-4 border-t ${actionInfo.border}`}>
-        <span className={`text-[11px] sm:text-xs font-bold line-clamp-1 ${actionInfo.labelColor}`}>
+        <span className={`text-body font-semibold line-clamp-1 ${actionInfo.labelColor}`}>
           {actionInfo.label}
         </span>
         <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl flex items-center justify-center transition shrink-0 ${actionInfo.iconContainer}`}>

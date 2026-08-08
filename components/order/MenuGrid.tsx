@@ -37,7 +37,7 @@ export const MenuGrid: React.FC<MenuGridProps> = ({
           <button
             key={cat}
             onClick={() => setSelectedCategory(cat)}
-            className={`px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition cursor-pointer ${
+            className={`px-4 py-2 rounded-xl text-h3 whitespace-nowrap transition cursor-pointer ${
               selectedCategory === cat
                 ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
                 : 'bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-neutral-800'
@@ -56,7 +56,7 @@ export const MenuGrid: React.FC<MenuGridProps> = ({
       ) : filteredMenuItems.length === 0 ? (
         <div className="text-center py-16 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl p-8">
           <UtensilsCrossed className="w-12 h-12 text-slate-300 dark:text-neutral-600 mx-auto mb-3" />
-          <p className="text-sm font-bold text-slate-500 dark:text-neutral-400">
+          <p className="text-body font-bold text-slate-500 dark:text-neutral-400">
             ไม่พบรายการอาหารในหมวดหมู่นี้
           </p>
         </div>
@@ -78,11 +78,11 @@ export const MenuGrid: React.FC<MenuGridProps> = ({
                 {/* Stock Quantity Badge at Top Right */}
                 <div className="absolute top-2.5 right-2.5 z-10">
                   {isOutOfStock ? (
-                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border-none shadow-none">
+                    <span className="text-micro px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border-none shadow-none">
                       หมด
                     </span>
                   ) : (
-                    <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-none shadow-none">
+                    <span className="text-micro px-2.5 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-none shadow-none">
                       เหลือ {item.stock}
                     </span>
                   )}
@@ -99,20 +99,20 @@ export const MenuGrid: React.FC<MenuGridProps> = ({
                 ) : null}
 
                 <div className="space-y-1 mb-3 pr-12">
-                  <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider block">
+                  <span className="text-micro text-zinc-400 dark:text-zinc-500 uppercase block">
                     {item.category}
                   </span>
-                  <h3 className="font-extrabold text-sm text-zinc-900 dark:text-zinc-100 line-clamp-2">
+                  <h3 className="text-h3 text-zinc-900 dark:text-zinc-100 line-clamp-2">
                     {item.name}
                   </h3>
                 </div>
 
                 <div className="flex items-center justify-between pt-2 border-t border-zinc-100 dark:border-zinc-800/80 w-full">
-                  <span className="font-black text-red-600 dark:text-red-400 text-base">
+                  <span className="text-price text-h3 text-red-600 dark:text-red-400">
                     {item.price.toLocaleString()} ฿
                   </span>
                   {isOutOfStock ? (
-                    <span className="text-[10px] font-extrabold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded-md border-none">
+                    <span className="text-micro text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded-md border-none">
                       หมด
                     </span>
                   ) : (

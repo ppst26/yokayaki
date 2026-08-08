@@ -195,17 +195,17 @@ export const TableMap: React.FC = () => {
           <div className="w-full space-y-6">
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-neutral-100 tracking-tight">
+                <h1 className="text-h1 text-slate-900 dark:text-neutral-100">
                   ผังโต๊ะอาหาร (Table Map)
                 </h1>
-                <p className="text-xs text-slate-500 dark:text-neutral-400 font-semibold mt-0.5">
+                <p className="text-caption mt-0.5">
                   เลือกโต๊ะเพื่อเปิดออเดอร์ หรือเช็คบิลชำระเงิน
                 </p>
               </div>
 
               <button
                 onClick={fetchTables}
-                className="flex items-center gap-1.5 px-4 py-2.5 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-200 rounded-xl text-xs font-bold transition active:scale-95 shadow-xs cursor-pointer self-start md:self-auto"
+                className="flex items-center gap-1.5 px-4 py-2.5 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-200 rounded-xl text-caption font-semibold transition active:scale-95 shadow-xs cursor-pointer self-start md:self-auto"
               >
                 <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
                 <span>รีเฟรชผังโต๊ะ</span>
@@ -213,7 +213,7 @@ export const TableMap: React.FC = () => {
             </header>
 
             {errorMsg && (
-              <div className="p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-300 rounded-2xl text-xs font-semibold flex items-center gap-3">
+              <div className="p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-300 rounded-2xl text-caption font-semibold flex items-center gap-3">
                 <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
                 <span>{errorMsg}</span>
               </div>
@@ -237,7 +237,7 @@ export const TableMap: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs">
           <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl w-full max-w-sm p-6 shadow-xl space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-black text-slate-900 dark:text-neutral-100">
+              <h3 className="text-h2 text-slate-900 dark:text-neutral-100">
                 จัดการ โต๊ะ {actionSelectorTable}
               </h3>
               <button
