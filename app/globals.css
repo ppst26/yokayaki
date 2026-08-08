@@ -105,15 +105,16 @@ body {
   .text-price {
     @apply font-mono tabular-nums;
   }
-  .badge-pill {
-    @apply px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-extrabold transition-all duration-200 cursor-pointer whitespace-nowrap shrink-0;
-  }
-  .badge-active {
-    @apply bg-red-600 text-white shadow-md shadow-red-600/25 border-none;
-  }
-  .badge-inactive {
-    @apply bg-white dark:bg-neutral-900 text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-neutral-100 hover:bg-slate-100 dark:hover:bg-neutral-800 border border-slate-200/80 dark:border-neutral-800 shadow-2xs;
-  }
+}
+
+@utility badge-pill {
+  @apply px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all duration-200 cursor-pointer whitespace-nowrap shrink-0 border-none;
+}
+@utility badge-active {
+  @apply bg-red-600 text-white shadow-md shadow-red-600/25 border-none;
+}
+@utility badge-inactive {
+  @apply text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-100 hover:bg-slate-100/60 dark:hover:bg-neutral-800/60 border-none;
 }
 
 /* Hide scrollbars globally while keeping scroll functionality active */
