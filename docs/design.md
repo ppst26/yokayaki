@@ -55,15 +55,21 @@
 
 ## 🏷️ 2. Badges & Filter Pills (มาตรฐานป้ายกรองข้อมูล)
 
-### 🎯 Active Filter Badge (ป้ายฟิลเตอร์ที่ถูกเลือก)
-- **สไตล์:** สีแดงทึบคมชัด โดดเด่น
-- **Tailwind Classes:**  
-  `bg-red-600 text-white font-black shadow-md shadow-red-600/25 border-none px-3.5 py-1.5 rounded-xl`
+กำหนดเป็น CSS `@utility` ใน `app/globals.css` สำหรับ Tailwind CSS v4:
 
-### 🌫️ Inactive Filter Badge (ป้ายฟิลเตอร์ที่ไม่ได้เลือก)
-- **สไตล์:** ไร้พื้นหลังทึบ ไร้เส้นขอบ (Clean Transparent)
-- **Tailwind Classes:**  
-  `text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-100 hover:bg-slate-100/60 dark:hover:bg-neutral-800/60 border-none px-3.5 py-1.5 rounded-xl`
+- **Base Style (`badge-pill`):**  
+  `px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all duration-200 cursor-pointer whitespace-nowrap shrink-0 border-none`
+- **Active State (`badge-active`):**  
+  `bg-red-600 text-white shadow-md shadow-red-600/25 border-none` (ปุ่มสีแดงสดทึบ พร้อมเงานุ่มนวล)
+- **Inactive State (`badge-inactive`):**  
+  `text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-100 hover:bg-slate-100/60 dark:hover:bg-neutral-800/60 border-none` (ไร้พื้นหลังทึบ ไร้เส้นขอบ)
+
+**ตัวอย่างการใช้งาน:**
+```tsx
+<button className={`badge-pill ${isActive ? 'badge-active' : 'badge-inactive'}`}>
+  {label}
+</button>
+```
 
 ---
 
