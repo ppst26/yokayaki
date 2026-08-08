@@ -1,9 +1,13 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-function Table({ className, ...props }: React.ComponentProps<"table">) {
+interface TableProps extends React.ComponentProps<"table"> {
+  containerClassName?: string;
+}
+
+function Table({ className, containerClassName, ...props }: TableProps) {
   return (
-    <div className="relative overflow-x-auto rounded-none bg-white dark:bg-neutral-900 border-none shadow-none -mx-4 md:-mx-8 w-[calc(100%+2rem)] md:w-[calc(100%+4rem)]">
+    <div className={cn("relative w-full overflow-x-auto rounded-t-2xl sm:rounded-t-3xl rounded-b-none bg-white dark:bg-neutral-900 border-none shadow-none", containerClassName)}>
       <table
         className={cn("w-full min-w-full text-left border-collapse", className)}
         {...props}
