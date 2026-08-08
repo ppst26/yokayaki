@@ -32,11 +32,11 @@ export const OwnerDashboard: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-neutral-100 tracking-tight flex items-center gap-2">
+          <h1 className="text-h1 text-slate-900 dark:text-neutral-100 flex items-center gap-2">
             <TrendingUp className="w-6 h-6 text-red-600 dark:text-red-400" />
             แดชบอร์ดเจ้าของร้าน
           </h1>
-          <p className="text-xs text-slate-500 dark:text-neutral-400 font-semibold mt-0.5">
+          <p className="text-caption mt-0.5">
             ภาพรวมผลประกอบการ • ยอดขาย • โปรโมชั่น • CRM
           </p>
         </div>

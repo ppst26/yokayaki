@@ -618,16 +618,16 @@ export default function CustomerOrderPortal() {
                         )}
                         <div>
                           <div className="flex items-start justify-between gap-1">
-                            <h3 className="font-bold text-xs text-slate-900 line-clamp-2 leading-snug">{item.name}</h3>
+                            <h3 className="text-h3 text-slate-900 line-clamp-2">{item.name}</h3>
                             {!item.image_url && (
                               isSoldOut ? (
-                                <span className="text-[9px] font-black tracking-wider bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded shrink-0">SOLD OUT</span>
+                                <span className="text-micro bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded shrink-0">SOLD OUT</span>
                               ) : isLowStock ? (
-                                <span className="text-[9px] font-bold tracking-wider bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded shrink-0">เหลือ {item.stock}</span>
+                                <span className="text-micro bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded shrink-0">เหลือ {item.stock}</span>
                               ) : null
                             )}
                           </div>
-                          <p className="text-red-600 font-extrabold text-xs sm:text-sm mt-1">฿{item.price.toLocaleString()}</p>
+                          <p className="text-price text-body font-bold text-red-600 mt-1">฿{item.price.toLocaleString()}</p>
                         </div>
                       </div>
 
@@ -641,7 +641,7 @@ export default function CustomerOrderPortal() {
                             >
                               <Minus className="w-3.5 h-3.5" />
                             </button>
-                            <span className="font-extrabold text-xs text-slate-900">{qty}</span>
+                            <span className="text-price text-body font-bold text-slate-900">{qty}</span>
                             <button
                               onClick={() => addToCart(item)}
                               disabled={qty >= item.stock}
