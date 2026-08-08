@@ -64,16 +64,16 @@ body {
     @apply text-lg md:text-xl font-bold leading-snug;
   }
   .text-h3 {
-    @apply text-base font-semibold leading-normal;
+    @apply text-base md:text-lg font-semibold leading-normal;
   }
   .text-body {
-    @apply text-sm font-normal md:font-medium leading-relaxed;
+    @apply text-base font-normal md:font-medium leading-relaxed;
   }
   .text-caption {
-    @apply text-xs font-normal text-muted-foreground leading-normal;
+    @apply text-sm font-medium text-muted-foreground leading-normal;
   }
   .text-micro {
-    @apply text-[10px] md:text-[11px] font-semibold uppercase tracking-wider;
+    @apply text-xs font-semibold uppercase tracking-wider;
   }
   .text-price {
     @apply font-mono tabular-nums;

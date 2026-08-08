@@ -6,6 +6,15 @@
 
 ---
 
+## 🔤 0. Typography Font Size Standard (มาตรฐานขนาดตัวหนังสือ +2 ถึง +4px)
+
+- **Menu Buttons & Navigation Links:** เปลี่ยนจาก `12px (text-xs)` -> **`14px (text-sm)`**  
+- **Page Subtitles & Descriptions:** เปลี่ยนจาก `12px (text-caption)` -> **`14px (text-caption)`**  
+- **Body & Paragraph Texts (`p`, `span`, `li`):** เปลี่ยนจาก `14px (text-sm)` -> **`16px (text-base)`**  
+- **Section Headers & Small Badges (`text-micro`):** เปลี่ยนจาก `10-11px` -> **`12px (text-xs)`**
+
+---
+
 ## 🎨 1. Navigation Menu Links (มาตรฐานแถบเมนูและลิงก์)
 
 ### 🔴 Active Menu State (เมนูที่ถูกเลือกใช้งาน)

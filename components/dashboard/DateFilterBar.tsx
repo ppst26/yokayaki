@@ -35,7 +35,7 @@ export const DateFilterBar: React.FC<DateFilterBarProps> = ({
       <div className="flex items-center justify-end gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-0.5 w-full">
         <div className="flex items-center gap-1.5 text-slate-500 dark:text-neutral-400 shrink-0 mr-1 ml-auto">
           <Calendar className="w-4 h-4 text-red-600 dark:text-red-400" />
-          <span className="text-[11px] font-black uppercase tracking-wider text-slate-700 dark:text-neutral-200">
+          <span className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-neutral-200">
             ช่วงเวลา
           </span>
         </div>
@@ -47,7 +47,7 @@ export const DateFilterBar: React.FC<DateFilterBarProps> = ({
               key={preset.value}
               type="button"
               onClick={() => onPresetChange(preset.value)}
-              className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all duration-200 whitespace-nowrap cursor-pointer shrink-0 ${
+              className={`px-3 py-1.5 rounded-xl text-xs md:text-sm font-black transition-all duration-200 whitespace-nowrap cursor-pointer shrink-0 ${
                 isActive
                   ? 'bg-red-600 text-white shadow-md shadow-red-600/25 border-none'
                   : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-100 hover:bg-slate-100/60 dark:hover:bg-neutral-800/60 border-none'

@@ -142,117 +142,117 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
               <nav className="space-y-1">
                 <button
                   onClick={() => handleTabClick('floor')}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ease-out cursor-pointer ${
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
                     activeTab === 'floor'
                       ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
                   }`}
                 >
-                  <Layers className="w-4 h-4" />
+                  <Layers className="w-4.5 h-4.5" />
                   <span>แผนผังโต๊ะ</span>
                 </button>
 
                 <button
                   onClick={() => handleTabClick('kitchen')}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ease-out cursor-pointer ${
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
                     activeTab === 'kitchen'
                       ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
                   }`}
                 >
-                  <ChefHat className="w-4 h-4" />
+                  <ChefHat className="w-4.5 h-4.5" />
                   <span>หน้าจอครัว (KDS)</span>
                 </button>
 
                 <button
                   onClick={() => handleTabClick('history')}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ease-out cursor-pointer ${
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
                     activeTab === 'history'
                       ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
                   }`}
                 >
-                  <History className="w-4 h-4" />
+                  <History className="w-4.5 h-4.5" />
                   <span>ประวัติการขาย</span>
                 </button>
 
                 {isOwner && (
                   <>
                     <div className="pt-4 pb-1">
-                      <p className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 px-3">
+                      <p className="text-xs font-extrabold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 px-3">
                         OWNER CONTROLS
                       </p>
                     </div>
 
                     <button
                       onClick={() => handleTabClick('menu')}
-                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ease-out cursor-pointer ${
+                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
                         activeTab === 'menu'
                           ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
                           : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
                       }`}
                     >
-                      <UtensilsCrossed className="w-4 h-4" />
+                      <UtensilsCrossed className="w-4.5 h-4.5" />
                       <span>จัดการเมนู</span>
                     </button>
 
                     <button
                       onClick={() => handleTabClick('stock')}
-                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ease-out cursor-pointer ${
+                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
                         activeTab === 'stock'
                           ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
                           : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
                       }`}
                     >
-                      <Package className="w-4 h-4" />
+                      <Package className="w-4.5 h-4.5" />
                       <span>ต้นทุนวัตถุดิบ</span>
                     </button>
 
                     <button
                       onClick={() => handleTabClick('promo')}
-                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ease-out cursor-pointer ${
+                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
                         activeTab === 'promo'
                           ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
                           : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
                       }`}
                     >
-                      <Tag className="w-4 h-4" />
+                      <Tag className="w-4.5 h-4.5" />
                       <span>โปรโมชั่น</span>
                     </button>
 
                     <button
                       onClick={() => handleTabClick('dashboard')}
-                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ease-out cursor-pointer ${
+                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
                         activeTab === 'dashboard'
                           ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
                           : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
                       }`}
                     >
-                      <LayoutDashboard className="w-4 h-4" />
+                      <LayoutDashboard className="w-4.5 h-4.5" />
                       <span>รายงาน / Dashboard</span>
                     </button>
 
                     <button
                       onClick={() => handleTabClick('loyalty')}
-                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ease-out cursor-pointer ${
+                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
                         activeTab === 'loyalty'
                           ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
                           : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
                       }`}
                     >
-                      <Users className="w-4 h-4" />
+                      <Users className="w-4.5 h-4.5" />
                       <span>สมาชิก</span>
                     </button>
 
                     <button
                       onClick={() => handleTabClick('employees')}
-                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ease-out cursor-pointer ${
+                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
                         activeTab === 'employees'
                           ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
                           : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
                       }`}
                     >
-                      <UserCog className="w-4 h-4" />
+                      <UserCog className="w-4.5 h-4.5" />
                       <span>จัดการพนักงาน</span>
                     </button>
                   </>
@@ -313,7 +313,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
           <div className={`p-1.5 rounded-xl transition-all ${activeTab === 'floor' ? 'bg-red-600 text-white shadow-md shadow-red-600/30' : ''}`}>
             <Layers className="w-5 h-5 stroke-[2.2]" />
           </div>
-          <span className="text-[10px] mt-0.5 leading-none font-bold">ผังโต๊ะ</span>
+          <span className="text-xs mt-0.5 leading-none font-bold">ผังโต๊ะ</span>
         </button>
 
         {/* 2. หน้าจอครัว */}
@@ -328,7 +328,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
           <div className={`p-1.5 rounded-xl transition-all ${activeTab === 'kitchen' ? 'bg-red-600 text-white shadow-md shadow-red-600/30' : ''}`}>
             <ChefHat className="w-5 h-5 stroke-[2.2]" />
           </div>
-          <span className="text-[10px] mt-0.5 leading-none font-bold">หน้าครัว</span>
+          <span className="text-xs mt-0.5 leading-none font-bold">หน้าครัว</span>
         </button>
 
         {/* 3. ประวัติการขาย */}
@@ -343,7 +343,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
           <div className={`p-1.5 rounded-xl transition-all ${activeTab === 'history' ? 'bg-red-600 text-white shadow-md shadow-red-600/30' : ''}`}>
             <History className="w-5 h-5 stroke-[2.2]" />
           </div>
-          <span className="text-[10px] mt-0.5 leading-none font-bold">ออเดอร์</span>
+          <span className="text-xs mt-0.5 leading-none font-bold">ออเดอร์</span>
         </button>
 
         {/* 4. เมนูเพิ่มเติม (Open Drawer) */}
@@ -354,7 +354,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
           <div className="p-1.5">
             <Menu className="w-5 h-5 stroke-[2.2]" />
           </div>
-          <span className="text-[10px] mt-0.5 leading-none font-bold">เพิ่มเติม</span>
+          <span className="text-xs mt-0.5 leading-none font-bold">เพิ่มเติม</span>
         </button>
       </div>
 
@@ -369,124 +369,124 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
               <h1 className="text-xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">
                 Yokayaki <span className="text-red-600">POS</span>
               </h1>
-              <p className="text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 tracking-wider">MANAGEMENT SYSTEM</p>
+              <p className="text-xs font-semibold text-zinc-400 dark:text-zinc-500 tracking-wider">MANAGEMENT SYSTEM</p>
             </div>
           </div>
 
           <nav className="space-y-1">
             <button
               onClick={() => onSelectTab('floor')}
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                 activeTab === 'floor'
                   ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
               }`}
             >
-              <Layers className="w-4 h-4" />
+              <Layers className="w-4.5 h-4.5" />
               <span>แผนผังโต๊ะ</span>
             </button>
 
             <button
               onClick={() => onSelectTab('kitchen')}
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                 activeTab === 'kitchen'
                   ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
               }`}
             >
-              <ChefHat className="w-4 h-4" />
+              <ChefHat className="w-4.5 h-4.5" />
               <span>หน้าจอครัว (KDS)</span>
             </button>
 
             <button
               onClick={() => onSelectTab('history')}
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                 activeTab === 'history'
                   ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
               }`}
             >
-              <History className="w-4 h-4" />
+              <History className="w-4.5 h-4.5" />
               <span>ออเดอร์ประจำวัน</span>
             </button>
 
             {isOwner && (
               <>
                 <div className="pt-4 pb-1">
-                  <p className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 px-3">
+                  <p className="text-xs font-extrabold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 px-3">
                     OWNER CONTROLS
                   </p>
                 </div>
 
                 <button
                   onClick={() => onSelectTab('menu')}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                     activeTab === 'menu'
                       ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                   }`}
                 >
-                  <UtensilsCrossed className="w-4 h-4" />
+                  <UtensilsCrossed className="w-4.5 h-4.5" />
                   <span>จัดการเมนู</span>
                 </button>
 
                 <button
                   onClick={() => onSelectTab('stock')}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                     activeTab === 'stock'
                       ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                   }`}
                 >
-                  <Package className="w-4 h-4" />
+                  <Package className="w-4.5 h-4.5" />
                   <span>ต้นทุนวัตถุดิบ</span>
                 </button>
 
                 <button
                   onClick={() => onSelectTab('promo')}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                     activeTab === 'promo'
                       ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                   }`}
                 >
-                  <Tag className="w-4 h-4" />
+                  <Tag className="w-4.5 h-4.5" />
                   <span>โปรโมชั่น</span>
                 </button>
 
                 <button
                   onClick={() => onSelectTab('dashboard')}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                     activeTab === 'dashboard'
                       ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                   }`}
                 >
-                  <LayoutDashboard className="w-4 h-4" />
+                  <LayoutDashboard className="w-4.5 h-4.5" />
                   <span>รายงาน / Dashboard</span>
                 </button>
 
                 <button
                   onClick={() => onSelectTab('loyalty')}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                     activeTab === 'loyalty'
                       ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                   }`}
                 >
-                  <Users className="w-4 h-4" />
+                  <Users className="w-4.5 h-4.5" />
                   <span>สมาชิก</span>
                 </button>
 
                 <button
                   onClick={() => onSelectTab('employees')}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                     activeTab === 'employees'
                       ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                   }`}
                 >
-                  <UserCog className="w-4 h-4" />
+                  <UserCog className="w-4.5 h-4.5" />
                   <span>จัดการพนักงาน</span>
                 </button>
               </>
@@ -497,16 +497,16 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
         <div className="pt-6 border-t border-zinc-100 dark:border-zinc-800 space-y-3 mt-6">
           <button
             onClick={toggleTheme}
-            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition cursor-pointer border border-zinc-200/80 dark:border-zinc-700/80 shadow-2xs"
+            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition cursor-pointer border border-zinc-200/80 dark:border-zinc-700/80 shadow-2xs"
           >
             {theme === 'light' ? (
               <>
-                <Moon className="w-4 h-4 text-indigo-500 fill-indigo-500/20 shrink-0" />
+                <Moon className="w-4.5 h-4.5 text-indigo-500 fill-indigo-500/20 shrink-0" />
                 <span>สลับไปโหมดมืด</span>
               </>
             ) : (
               <>
-                <Sun className="w-4 h-4 text-amber-400 fill-amber-400/20 shrink-0" />
+                <Sun className="w-4.5 h-4.5 text-amber-400 fill-amber-400/20 shrink-0" />
                 <span>สลับไปโหมดสว่าง</span>
               </>
             )}
@@ -514,8 +514,8 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
 
           <div className="flex items-center gap-3 p-2.5 bg-zinc-50 dark:bg-zinc-800/80 rounded-xl border border-zinc-200/70 dark:border-zinc-700">
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-zinc-800 dark:text-zinc-100 truncate">{employee?.name}</p>
-              <p className="text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
+              <p className="text-sm font-bold text-zinc-800 dark:text-zinc-100 truncate">{employee?.name}</p>
+              <p className="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
                 {employee?.role}
               </p>
             </div>
@@ -523,9 +523,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
 
           <button
             onClick={logout}
-            className="w-full flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-zinc-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition duration-150 cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-sm font-bold text-zinc-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition duration-150 cursor-pointer"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-4.5 h-4.5" />
             <span>ออกจากระบบ (Logout)</span>
           </button>
         </div>

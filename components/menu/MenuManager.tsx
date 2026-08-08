@@ -254,7 +254,7 @@ export const MenuManager: React.FC = () => {
             <button
               key={cat}
               onClick={() => setFilterCategory(cat)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-xl text-sm font-black whitespace-nowrap transition cursor-pointer ${
                 filterCategory === cat
                   ? 'bg-red-600 text-white shadow-md shadow-red-600/25 border-none'
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 border-none'
