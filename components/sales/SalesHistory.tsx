@@ -113,21 +113,22 @@ export const SalesHistory: React.FC = () => {
 
       if (paymentError) throw paymentError;
 
+      const normalizePhone = (phone?: string | null) => (phone ? phone.replace(/\D/g, '') : '');
+
       // Fetch member names separately
-      const phoneNumbers = Array.from(
-        new Set((paymentData || []).map(p => p.phone_number).filter((p): p is string => Boolean(p)))
-      );
       const memberMap: Record<string, string> = {};
-      if (phoneNumbers.length > 0) {
-        const { data: memberData } = await supabase
-          .from('loyalty_members')
-          .select('phone_number, name')
-          .in('phone_number', phoneNumbers);
-        if (memberData) {
-          memberData.forEach(m => {
+      const { data: memberData } = await supabase
+        .from('loyalty_members')
+        .select('phone_number, name');
+
+      if (memberData) {
+        memberData.forEach(m => {
+          if (m.name) {
             memberMap[m.phone_number] = m.name;
-          });
-        }
+            const clean = normalizePhone(m.phone_number);
+            if (clean) memberMap[clean] = m.name;
+          }
+        });
       }
 
       const paymentIds = (paymentData || []).map(p => p.id);
@@ -196,7 +197,9 @@ export const SalesHistory: React.FC = () => {
                 points_earned: payment.points_earned,
                 points_redeemed: payment.points_redeemed,
                 phone_number: payment.phone_number || null,
-                member_name: payment.phone_number ? memberMap[payment.phone_number] || null : null,
+                member_name: payment.phone_number
+                  ? memberMap[payment.phone_number] || memberMap[normalizePhone(payment.phone_number)] || null
+                  : null,
                 created_at: payment.created_at,
               }
             : null,

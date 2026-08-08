@@ -77,11 +77,11 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
               </h3>
               {selectedOrder.payment?.member_name ? (
                 <span className="text-sm font-black text-emerald-400">
-                  (คุณ{selectedOrder.payment.member_name})
+                  ({selectedOrder.payment.member_name})
                 </span>
               ) : selectedOrder.payment?.phone_number ? (
                 <span className="text-sm font-black text-emerald-400">
-                  (สมาชิก {selectedOrder.payment.phone_number})
+                  ({selectedOrder.payment.phone_number})
                 </span>
               ) : null}
             </div>
@@ -163,11 +163,11 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
                     <div>
                       {selectedOrder.payment?.member_name ? (
                         <span className="text-base sm:text-lg font-black text-emerald-600 dark:text-emerald-400">
-                          คุณ{selectedOrder.payment.member_name}
+                          {selectedOrder.payment.member_name}
                         </span>
                       ) : selectedOrder.payment?.phone_number ? (
                         <span className="text-base sm:text-lg font-black text-emerald-600 dark:text-emerald-400">
-                          สมาชิก CRM ({selectedOrder.payment.phone_number})
+                          {selectedOrder.payment.phone_number}
                         </span>
                       ) : (
                         <span className="text-base font-bold text-slate-500 dark:text-neutral-400">
