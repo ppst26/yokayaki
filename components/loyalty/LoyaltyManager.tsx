@@ -498,122 +498,125 @@ export const LoyaltyManager: React.FC = () => {
             <span>ย้อนกลับไปหน้ารายชื่อสมาชิก</span>
           </button>
 
-          {/* Single Minimal Card View */}
-          <MemberInfoCard
-            selectedMember={selectedMember}
-            setShowEditModal={setShowEditModal}
-            setEditName={setEditName}
-            setEditPhone={setEditPhone}
-            setShowPointsModal={setShowPointsModal}
-            setShowDeleteModal={setShowDeleteModal}
-            formatDate={formatDate}
-          />
+          {/* SINGLE MAIN OUTER CARD */}
+          <Card className="p-6 md:p-8 space-y-6">
+            {/* Member Info Card Header */}
+            <MemberInfoCard
+              selectedMember={selectedMember}
+              setShowEditModal={setShowEditModal}
+              setEditName={setEditName}
+              setEditPhone={setEditPhone}
+              setShowPointsModal={setShowPointsModal}
+              setShowDeleteModal={setShowDeleteModal}
+              formatDate={formatDate}
+            />
 
-          {/* Member Purchase & Points History */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Purchase History */}
-            <Card className="p-5 space-y-4">
-              <h3 className="text-sm font-extrabold text-slate-900 dark:text-neutral-100 flex items-center gap-2">
-                <Clock className="w-4 h-4 text-red-600 dark:text-red-400" />
-                ประวัติการใช้บริการ (ชำระเงิน)
-              </h3>
+            {/* Member Purchase & Points History Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Purchase History Inner Section */}
+              <div className="bg-slate-50 dark:bg-neutral-800/50 border border-slate-200/80 dark:border-neutral-700/60 rounded-2xl p-5 space-y-4">
+                <h3 className="text-sm font-extrabold text-slate-900 dark:text-neutral-100 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-red-600 dark:text-red-400" />
+                  ประวัติการใช้บริการ (ชำระเงิน)
+                </h3>
 
-              {detailLoading ? (
-                <div className="flex justify-center py-10">
-                  <div className="w-8 h-8 border-3 border-red-600 border-t-transparent rounded-full animate-spin" />
-                </div>
-              ) : bills.length === 0 ? (
-                <p className="text-xs text-slate-400 dark:text-neutral-500 text-center py-8">
-                  ยังไม่มีประวัติการชำระเงิน
-                </p>
-              ) : (
-                <div className="space-y-2.5 max-h-[400px] overflow-y-auto pr-1">
-                  {bills.map(b => (
-                    <div
-                      key={b.id}
-                      className="p-3 bg-slate-50 dark:bg-neutral-800 border border-slate-200/80 dark:border-neutral-700 rounded-xl text-xs space-y-1"
-                    >
-                      <div className="flex justify-between items-center font-bold text-slate-900 dark:text-neutral-100">
-                        <span>
-                          บิล ORD-{b.order_id} ({b.orders?.table_id ? `โต๊ะ ${b.orders.table_id}` : 'กลับบ้าน'})
-                        </span>
-                        <span className="text-red-600 dark:text-red-400">
-                          {b.net_amount.toLocaleString()} ฿
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center text-[11px] text-slate-500 dark:text-neutral-400 font-semibold">
-                        <span>
-                          {formatDate(b.created_at)} {formatTime(b.created_at)} น. •{' '}
-                          {getPaymentLabel(b.payment_method)}
-                        </span>
-                        <div className="flex gap-2">
-                          {b.points_earned > 0 && (
-                            <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">
-                              +{b.points_earned} แต้ม
-                            </span>
-                          )}
-                          {b.points_redeemed > 0 && (
-                            <span className="text-rose-600 dark:text-rose-400 font-extrabold">
-                              ใช้ {b.points_redeemed} แต้ม
-                            </span>
-                          )}
+                {detailLoading ? (
+                  <div className="flex justify-center py-10">
+                    <div className="w-8 h-8 border-3 border-red-600 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : bills.length === 0 ? (
+                  <p className="text-xs text-slate-400 dark:text-neutral-500 text-center py-8">
+                    ยังไม่มีประวัติการชำระเงิน
+                  </p>
+                ) : (
+                  <div className="space-y-2.5 max-h-[400px] overflow-y-auto pr-1">
+                    {bills.map(b => (
+                      <div
+                        key={b.id}
+                        className="p-3 bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-700 rounded-xl text-xs space-y-1 shadow-2xs"
+                      >
+                        <div className="flex justify-between items-center font-bold text-slate-900 dark:text-neutral-100">
+                          <span>
+                            บิล ORD-{b.order_id} ({b.orders?.table_id ? `โต๊ะ ${b.orders.table_id}` : 'กลับบ้าน'})
+                          </span>
+                          <span className="text-red-600 dark:text-red-400">
+                            {b.net_amount.toLocaleString()} ฿
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center text-[11px] text-slate-500 dark:text-neutral-400 font-semibold">
+                          <span>
+                            {formatDate(b.created_at)} {formatTime(b.created_at)} น. •{' '}
+                            {getPaymentLabel(b.payment_method)}
+                          </span>
+                          <div className="flex gap-2">
+                            {b.points_earned > 0 && (
+                              <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">
+                                +{b.points_earned} แต้ม
+                              </span>
+                            )}
+                            {b.points_redeemed > 0 && (
+                              <span className="text-rose-600 dark:text-rose-400 font-extrabold">
+                                ใช้ {b.points_redeemed} แต้ม
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-            {/* Points Logs */}
-            <Card className="p-5 space-y-4">
-              <h3 className="text-sm font-extrabold text-slate-900 dark:text-neutral-100 flex items-center gap-2">
-                <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                ประวัติการปรับแต่งแต้มด้วยมือ
-              </h3>
+              {/* Points Logs Inner Section */}
+              <div className="bg-slate-50 dark:bg-neutral-800/50 border border-slate-200/80 dark:border-neutral-700/60 rounded-2xl p-5 space-y-4">
+                <h3 className="text-sm font-extrabold text-slate-900 dark:text-neutral-100 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                  ประวัติการปรับแต่งแต้มด้วยมือ
+                </h3>
 
-              {detailLoading ? (
-                <div className="flex justify-center py-10">
-                  <div className="w-8 h-8 border-3 border-amber-600 border-t-transparent rounded-full animate-spin" />
-                </div>
-              ) : pointsLogs.length === 0 ? (
-                <p className="text-xs text-slate-400 dark:text-neutral-500 text-center py-8">
-                  ไม่มีประวัติการปรับแต้มด้วยมือ
-                </p>
-              ) : (
-                <div className="space-y-2.5 max-h-[400px] overflow-y-auto pr-1">
-                  {pointsLogs.map(log => (
-                    <div
-                      key={log.id}
-                      className="p-3 bg-slate-50 dark:bg-neutral-800 border border-slate-200/80 dark:border-neutral-700 rounded-xl text-xs space-y-1"
-                    >
-                      <div className="flex justify-between items-center font-bold">
-                        <span
-                          className={
-                            log.adjustment > 0
-                              ? 'text-emerald-600 dark:text-emerald-400'
-                              : 'text-rose-600 dark:text-rose-400'
-                          }
-                        >
-                          {log.adjustment > 0 ? '+' : ''}
-                          {log.adjustment} แต้ม
-                        </span>
-                        <span className="text-[10px] text-slate-400 dark:text-neutral-500 font-semibold">
-                          โดย: {log.adjusted_by}
-                        </span>
+                {detailLoading ? (
+                  <div className="flex justify-center py-10">
+                    <div className="w-8 h-8 border-3 border-amber-600 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : pointsLogs.length === 0 ? (
+                  <p className="text-xs text-slate-400 dark:text-neutral-500 text-center py-8">
+                    ไม่มีประวัติการปรับแต้มด้วยมือ
+                  </p>
+                ) : (
+                  <div className="space-y-2.5 max-h-[400px] overflow-y-auto pr-1">
+                    {pointsLogs.map(log => (
+                      <div
+                        key={log.id}
+                        className="p-3 bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-700 rounded-xl text-xs space-y-1 shadow-2xs"
+                      >
+                        <div className="flex justify-between items-center font-bold">
+                          <span
+                            className={
+                              log.adjustment > 0
+                                ? 'text-emerald-600 dark:text-emerald-400'
+                                : 'text-rose-600 dark:text-rose-400'
+                            }
+                          >
+                            {log.adjustment > 0 ? '+' : ''}
+                            {log.adjustment} แต้ม
+                          </span>
+                          <span className="text-[10px] text-slate-400 dark:text-neutral-500 font-semibold">
+                            โดย: {log.adjusted_by}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-600 dark:text-neutral-300 font-semibold">
+                          เหตุผล: {log.reason}
+                        </p>
+                        <p className="text-[10px] text-slate-400 dark:text-neutral-500">
+                          {formatDate(log.created_at)} {formatTime(log.created_at)} น.
+                        </p>
                       </div>
-                      <p className="text-[11px] text-slate-600 dark:text-neutral-300 font-semibold">
-                        เหตุผล: {log.reason}
-                      </p>
-                      <p className="text-[10px] text-slate-400 dark:text-neutral-500">
-                        {formatDate(log.created_at)} {formatTime(log.created_at)} น.
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Card>
-          </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
         </div>
       )}
 

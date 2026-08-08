@@ -31,12 +31,12 @@ export const MemberInfoCard: React.FC<MemberInfoCardProps> = ({
   formatDate,
 }) => {
   return (
-    <Card className="p-6">
+    <div className="bg-slate-50 dark:bg-neutral-800/50 border border-slate-200/80 dark:border-neutral-700/60 rounded-2xl p-5 md:p-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        {/* Left: Member info & points summary */}
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-xl font-black text-slate-900 dark:text-neutral-100">
+        {/* Left: Member info */}
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2.5">
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-neutral-100 tracking-tight">
               {selectedMember.name}
             </h2>
             <button
@@ -51,23 +51,23 @@ export const MemberInfoCard: React.FC<MemberInfoCardProps> = ({
               <Pencil className="w-4 h-4" />
             </button>
           </div>
-          <div className="mt-1 space-y-0.5">
-            <p className="text-caption font-semibold text-slate-600 dark:text-neutral-300">
-              เบอร์โทร: <span className="font-mono font-bold text-slate-900 dark:text-neutral-100">{selectedMember.phone_number}</span>
-            </p>
-            <p className="text-caption font-medium text-slate-400 dark:text-neutral-500">
-              สมาชิกเมื่อ {formatDate(selectedMember.created_at)}
-            </p>
-          </div>
+
+          <p className="text-sm font-semibold text-slate-500 dark:text-neutral-400">
+            เบอร์โทร: <span className="font-mono text-base md:text-lg font-black text-slate-900 dark:text-neutral-100 ml-1">{selectedMember.phone_number}</span>
+          </p>
+
+          <p className="text-xs font-medium text-slate-400 dark:text-neutral-500">
+            สมาชิกเมื่อ {formatDate(selectedMember.created_at)}
+          </p>
         </div>
 
         {/* Right: Points counter & actions */}
         <div className="flex items-center gap-4 self-end md:self-auto">
-          <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-2xl px-5 py-3 text-right">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 dark:text-amber-400 block">
+          <div className="bg-white dark:bg-neutral-900 border border-amber-200/80 dark:border-amber-900/50 rounded-2xl px-5 py-3 text-right shadow-2xs">
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400 block">
               แต้มคงเหลือ
             </span>
-            <span className="text-2xl font-black text-amber-600 dark:text-amber-400">
+            <span className="text-2xl md:text-3xl font-black text-amber-600 dark:text-amber-400">
               {selectedMember.points.toLocaleString()}{' '}
               <span className="text-xs font-bold">แต้ม</span>
             </span>
@@ -84,7 +84,7 @@ export const MemberInfoCard: React.FC<MemberInfoCardProps> = ({
 
             <button
               onClick={() => setShowDeleteModal(true)}
-              className="p-3 bg-slate-100 dark:bg-neutral-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-slate-200 dark:border-neutral-700 hover:border-rose-200 text-slate-500 hover:text-rose-600 dark:text-neutral-400 dark:hover:text-rose-400 rounded-xl transition active:scale-95 cursor-pointer"
+              className="p-3 bg-white dark:bg-neutral-900 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-slate-200 dark:border-neutral-700 hover:border-rose-200 text-slate-500 hover:text-rose-600 dark:text-neutral-400 dark:hover:text-rose-400 rounded-xl transition active:scale-95 cursor-pointer shadow-2xs"
               title="ลบสมาชิก"
             >
               <Trash2 className="w-4.5 h-4.5" />
@@ -92,6 +92,6 @@ export const MemberInfoCard: React.FC<MemberInfoCardProps> = ({
           </div>
         </div>
       </div>
-    </Card>
+    </div>
   );
 };
