@@ -21,6 +21,7 @@ interface CRMMemberCardProps {
   setRegisterName: (val: string) => void;
   registerMember: () => void;
   subtotal: number;
+  onOpenAddMember?: () => void;
 }
 
 export const CRMMemberCard: React.FC<CRMMemberCardProps> = ({
@@ -36,12 +37,25 @@ export const CRMMemberCard: React.FC<CRMMemberCardProps> = ({
   setRegisterName,
   registerMember,
   subtotal,
+  onOpenAddMember,
 }) => {
   return (
     <Card className="p-5">
-      <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-400 mb-3">
-        สมาชิกสะสมแต้ม (CRM)
-      </h3>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-400">
+          สมาชิกสะสมแต้ม (CRM)
+        </h3>
+        {onOpenAddMember && (
+          <button
+            type="button"
+            onClick={onOpenAddMember}
+            className="flex items-center gap-1.5 text-xs font-extrabold text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/40 px-2.5 py-1 rounded-xl transition cursor-pointer border-none active:scale-95"
+          >
+            <UserPlus className="w-3.5 h-3.5" />
+            <span>+ เพิ่มสมาชิกใหม่</span>
+          </button>
+        )}
+      </div>
       <div className="flex gap-2">
         <input
           type="tel"

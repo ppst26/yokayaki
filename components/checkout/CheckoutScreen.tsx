@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { ArrowLeft, Receipt, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Receipt, AlertTriangle, UserPlus, X } from 'lucide-react';
 import { OrderSummaryCard } from './OrderSummaryCard';
 import { CRMMemberCard } from './CRMMemberCard';
 import { CouponInputCard } from './CouponInputCard';
@@ -105,6 +105,12 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
   const [registerName, setRegisterName] = useState('');
   const [showRegister, setShowRegister] = useState(false);
   const [pointsToRedeem, setPointsToRedeem] = useState(0);
+
+  // Quick Add Member Modal State
+  const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+  const [newMemberPhone, setNewMemberPhone] = useState('');
+  const [newMemberName, setNewMemberName] = useState('');
+  const [isSubmittingMember, setIsSubmittingMember] = useState(false);
 
   // Payment
   const [cashReceived, setCashReceived] = useState<string>('');
@@ -362,6 +368,54 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
     }
   };
 
+  const handleOpenAddMemberModal = () => {
+    setNewMemberPhone(phoneInput || '');
+    setNewMemberName('');
+    setShowAddMemberModal(true);
+  };
+
+  const handleQuickSubmitMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanPhone = newMemberPhone.replace(/\D/g, '');
+    const cleanName = newMemberName.trim();
+    if (cleanPhone.length !== 10 || !cleanName) return;
+
+    try {
+      setIsSubmittingMember(true);
+      const { data: existingMember } = await supabase
+        .from('loyalty_members')
+        .select('*')
+        .eq('phone_number', cleanPhone)
+        .maybeSingle();
+
+      if (existingMember) {
+        setMember(existingMember as LoyaltyMember);
+        setPhoneInput(cleanPhone);
+        setShowAddMemberModal(false);
+        alert(`เบอร์โทรศัพท์นี้เป็นสมาชิกอยู่แล้ว ระบบได้เลือกสมาชิกคุณ (${existingMember.name}) ให้เรียบร้อยครับ`);
+        return;
+      }
+
+      const { data: created, error } = await supabase
+        .from('loyalty_members')
+        .insert([{ phone_number: cleanPhone, name: cleanName, points: 0 }])
+        .select('*')
+        .single();
+
+      if (error) throw error;
+
+      if (created) {
+        setMember(created as LoyaltyMember);
+        setPhoneInput(cleanPhone);
+        setShowAddMemberModal(false);
+      }
+    } catch (err: any) {
+      alert('เกิดข้อผิดพลาดในการสมัครสมาชิก: ' + (err?.message || ''));
+    } finally {
+      setIsSubmittingMember(false);
+    }
+  };
+
   const processPayment = async () => {
     if (!orderId || netAmount <= 0) return;
     if (pendingItemsCount > 0) {
@@ -522,6 +576,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
               setRegisterName={setRegisterName}
               registerMember={registerMember}
               subtotal={subtotal}
+              onOpenAddMember={handleOpenAddMemberModal}
             />
 
             <CouponInputCard
@@ -549,6 +604,87 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
           </div>
         </div>
       </div>
+
+      {/* Quick Add Member Modal */}
+      {showAddMemberModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in-50 duration-200">
+          <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-neutral-800 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center">
+                  <UserPlus className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900 dark:text-neutral-100">สมัครสมาชิกใหม่ (Quick Register)</h3>
+                  <p className="text-[11px] font-bold text-slate-400 dark:text-neutral-400">จะได้รับแต้มสะสมจากบิลนี้ทันทีเมื่อชำระเงิน</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddMemberModal(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-neutral-800 transition cursor-pointer border-none"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleQuickSubmitMember} className="space-y-4 pt-1">
+              <div className="space-y-1.5">
+                <label className="text-xs font-extrabold text-slate-700 dark:text-neutral-300">
+                  เบอร์โทรศัพท์ (10 หลัก) <span className="text-red-600">*</span>
+                </label>
+                <input
+                  type="tel"
+                  maxLength={10}
+                  required
+                  placeholder="08X-XXX-XXXX"
+                  value={newMemberPhone}
+                  onChange={e => setNewMemberPhone(e.target.value.replace(/\D/g, ''))}
+                  className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-neutral-100 focus:outline-none focus:border-red-500"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-extrabold text-slate-700 dark:text-neutral-300">
+                  ชื่อลูกค้า / ชื่อเล่น <span className="text-red-600">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="ระบุชื่อลูกค้า..."
+                  value={newMemberName}
+                  onChange={e => setNewMemberName(e.target.value)}
+                  className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-neutral-100 focus:outline-none focus:border-red-500"
+                />
+              </div>
+
+              {pointsEarned > 0 && (
+                <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-2xl p-3 flex items-center gap-2">
+                  <span className="text-amber-600 dark:text-amber-400 text-xs font-black">🎁 สมาชิกใหม่นี้จะได้รับ +{pointsEarned} แต้ม ทันทีจากบิลนี้</span>
+                </div>
+              )}
+
+              <div className="pt-2 flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowAddMemberModal(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition cursor-pointer border-none"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="submit"
+                  disabled={newMemberPhone.length !== 10 || !newMemberName.trim() || isSubmittingMember}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl text-xs shadow-md shadow-red-600/25 disabled:opacity-50 transition active:scale-95 cursor-pointer border-none"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span>{isSubmittingMember ? 'กำลังบันทึก...' : 'สมัครสมาชิก & สะสมแต้มบิลนี้'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <PromptPayQRModal
         showQrModal={showQrModal}
