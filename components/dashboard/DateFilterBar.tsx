@@ -64,9 +64,9 @@ export const DateFilterBar: React.FC<DateFilterBarProps> = ({
         </div>
       </div>
 
-      {/* Custom Date Range Picker (Capsule Style) */}
+      {/* Custom Date Range Picker (Capsule Style — Max 30-40% width on tablet/desktop, right-aligned) */}
       {datePreset === 'custom' && (
-        <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-700/80 rounded-2xl p-2.5 shadow-xs flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 animate-in fade-in-50 zoom-in-95 duration-150">
+        <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-700/80 rounded-2xl p-2.5 shadow-xs flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 w-full sm:w-[380px] sm:ml-auto animate-in fade-in-50 zoom-in-95 duration-150">
           <div className="flex items-center gap-2 flex-1 min-w-[130px]">
             <span className="text-[10px] font-extrabold text-slate-400 dark:text-neutral-500 uppercase tracking-wider shrink-0">
               เริ่ม
