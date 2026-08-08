@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/lib/supabase';
 import {
   LogOut,
   ChefHat,
@@ -38,6 +39,53 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDrawerClosing, setIsDrawerClosing] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [pendingTablesCount, setPendingTablesCount] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchPendingTables = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('order_items')
+          .select('id, orders!inner(table_id, status)')
+          .eq('status', 'pending')
+          .eq('orders.status', 'active');
+
+        if (error) throw error;
+        if (data) {
+          const uniqueTableIds = new Set(
+            data.map((item: any) => item.orders?.table_id).filter(Boolean)
+          );
+          setPendingTablesCount(uniqueTableIds.size);
+        }
+      } catch (err) {
+        console.error('Error fetching pending tables count for sidebar:', err);
+      }
+    };
+
+    fetchPendingTables();
+
+    const channel = supabase
+      .channel('realtime:sidebar_pending_tables')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'order_items' },
+        () => {
+          fetchPendingTables();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders' },
+        () => {
+          fetchPendingTables();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem('yokayaki_theme');
@@ -154,14 +202,27 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
 
                 <button
                   onClick={() => handleTabClick('kitchen')}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
                     activeTab === 'kitchen'
                       ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
                   }`}
                 >
-                  <ChefHat className="w-4.5 h-4.5" />
-                  <span>หน้าจอครัว (KDS)</span>
+                  <div className="flex items-center gap-3">
+                    <ChefHat className="w-4.5 h-4.5" />
+                    <span>หน้าจอครัว (KDS)</span>
+                  </div>
+                  {pendingTablesCount > 0 && (
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-xs font-black transition-all ${
+                        activeTab === 'kitchen'
+                          ? 'bg-white text-red-600 shadow-xs'
+                          : 'bg-red-600 text-white shadow-xs animate-pulse'
+                      }`}
+                    >
+                      {pendingTablesCount}
+                    </span>
+                  )}
                 </button>
 
                 <button
@@ -331,8 +392,13 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
               : 'text-zinc-500 dark:text-zinc-400 font-bold hover:text-zinc-800 dark:hover:text-zinc-200'
           }`}
         >
-          <div className={`p-1.5 rounded-xl transition-all ${activeTab === 'kitchen' ? 'bg-red-600 text-white shadow-md shadow-red-600/30' : ''}`}>
+          <div className={`p-1.5 rounded-xl transition-all relative ${activeTab === 'kitchen' ? 'bg-red-600 text-white shadow-md shadow-red-600/30' : ''}`}>
             <ChefHat className="w-5 h-5 stroke-[2.2]" />
+            {pendingTablesCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-black min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-900 animate-pulse">
+                {pendingTablesCount}
+              </span>
+            )}
           </div>
           <span className="text-xs mt-0.5 leading-none font-bold">หน้าครัว</span>
         </button>
@@ -394,14 +460,27 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
 
             <button
               onClick={() => onSelectTab('kitchen')}
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                 activeTab === 'kitchen'
                   ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
               }`}
             >
-              <ChefHat className="w-4.5 h-4.5" />
-              <span>หน้าจอครัว (KDS)</span>
+              <div className="flex items-center gap-3">
+                <ChefHat className="w-4.5 h-4.5" />
+                <span>หน้าจอครัว (KDS)</span>
+              </div>
+              {pendingTablesCount > 0 && (
+                <span
+                  className={`px-2 py-0.5 rounded-full text-xs font-black transition-all ${
+                    activeTab === 'kitchen'
+                      ? 'bg-white text-red-600 shadow-xs'
+                      : 'bg-red-600 text-white shadow-xs animate-pulse'
+                  }`}
+                >
+                  {pendingTablesCount}
+                </span>
+              )}
             </button>
 
             <button
