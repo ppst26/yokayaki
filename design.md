@@ -186,3 +186,29 @@ import { CustomSelect } from '@/components/ui/select';
   searchable={false}
 />
 ```
+
+---
+
+## 🔤 7. Typography Hierarchy & Font Specification (ข้อกำหนดตัวอักษรและ Noto Sans Thai)
+
+ระบบ **YOKAYAKI POS** ใช้ **Noto Sans Thai** เป็น Primary Font สำหรับข้อความภาษาไทยและภาษาอังกฤษทั่วทั้งแอปพลิเคชัน เพื่อความอ่านง่าย คมชัด และเป็นมืออาชีพ พร้อมใช้ **Geist Mono** ร่วมกับ `tabular-nums` สำหรับตัวเลข ราคา และจำนวน
+
+### 7.1 Font Engine Setup
+- **Primary Font**: `Noto Sans Thai` (`--font-noto-sans-thai`)
+- **Monospace Font**: `Geist Mono` (`--font-geist-mono`)
+- **Root Variable Mapping**: `--font-sans` และ `--font-heading` แมปกับ `var(--font-noto-sans-thai), system-ui, sans-serif` ใน `globals.css`
+- **Thai Tone Mark Clearance**: กำหนด `leading-relaxed` สำหรับ Body Text และ `leading-snug` สำหรับ Headings เพื่อป้องกันสระและวรรณยุกต์ลอยทับซ้อน
+
+### 7.2 Standard 8-Level Typography Hierarchy Scale
+
+| Level | Class / Utility | Size | Font Weight | Line Height & Tracking | Target Usage |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Display / Hero** | `.text-display` | `30px - 36px` (`text-3xl / text-4xl`) | `font-bold` / `font-black` | `leading-tight tracking-tight` | ยอดรวมเงิน POS, ยอดขายหลักใน Dashboard, ปุ่มตัวเลข PinPad |
+| **Heading 1** | `.text-h1` | `24px` (`text-2xl`) | `font-bold` | `leading-snug tracking-tight` | หัวข้อหลักของแต่ละหน้า (ผังโต๊ะ, สต็อกสินค้า, KDS, Dashboard) |
+| **Heading 2** | `.text-h2` | `18px - 20px` (`text-lg / text-xl`) | `font-bold` / `font-semibold` | `leading-snug` | หัวข้อ Modal & Drawer, Card headers, ชื่อโต๊ะ |
+| **Heading 3** | `.text-h3` | `16px` (`text-base`) | `font-semibold` | `leading-normal` | ชื่อรายการอาหารในเมนู/ตะกร้า, หัวข้อตาราง, Category Tab labels |
+| **Body Primary** | `.text-body` | `14px` (`text-sm`) | `font-normal` / `font-medium` | `leading-relaxed` | คำอธิบายรายการอาหาร, Form input text, ข้อความหลักทั่วไป |
+| **Caption / Meta** | `.text-caption` | `12px` (`text-xs`) | `font-normal` / `font-medium` | `leading-normal text-muted-foreground` | หมายเหตุโน้ตพิเศษ, เวลาออเดอร์, Subtitle, Help text |
+| **Micro Tag** | `.text-micro` | `10px - 11px` (`text-[10px] / text-[11px]`) | `font-semibold` / `font-bold` | `tracking-wider uppercase` | Badge สถานะ (โต๊ะว่าง, โต๊ะมีลูกค้า, สต็อกเหลือน้อย, pending) |
+| **Numeric / Price** | `.text-price` | Varied size | `font-mono` | `tabular-nums` | ราคาสินค้า (`฿150`), ตัวเลขจำนวน (`x2`), เวลา, เบอร์โทร |
+
