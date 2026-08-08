@@ -524,47 +524,7 @@ export const EmployeeManager: React.FC = () => {
               </>
             )}
 
-            {/* === Modal: แก้ไขชื่อ === */}
-            {activeModal === 'editName' && targetEmployee && (
-              <>
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-extrabold text-slate-900 dark:text-neutral-100 flex items-center gap-2">
-                    <Pencil className="w-5 h-5 text-sky-600 dark:text-sky-400" />
-                    แก้ไขชื่อพนักงาน
-                  </h3>
-                  <button onClick={resetModal} className="p-1.5 hover:bg-slate-100 dark:hover:bg-neutral-800 rounded-lg transition cursor-pointer">
-                    <X className="w-5 h-5 text-slate-400" />
-                  </button>
-                </div>
 
-                <p className="text-xs text-slate-500 dark:text-neutral-400 font-medium">
-                  ชื่อปัจจุบัน: <span className="font-bold text-slate-700 dark:text-neutral-200">{targetEmployee.name}</span>
-                </p>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1.5">ชื่อใหม่</label>
-                  <input
-                    type="text"
-                    value={editName}
-                    onChange={e => setEditName(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-sm text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 transition"
-                  />
-                </div>
-
-                <div className="flex gap-3 pt-2">
-                  <button onClick={resetModal} className="flex-1 py-2.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-600 dark:text-neutral-300 rounded-xl text-xs font-bold transition cursor-pointer">
-                    ยกเลิก
-                  </button>
-                  <button
-                    onClick={handleEditName}
-                    disabled={isSaving || !editName.trim()}
-                    className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-extrabold transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-red-600/20"
-                  >
-                    {isSaving ? 'กำลังบันทึก...' : '✅ บันทึก'}
-                  </button>
-                </div>
-              </>
-            )}
 
             {/* === Modal: แก้ไขพนักงาน (รวมชื่อ ตำแหน่ง และ PIN) === */}
             {activeModal === 'edit' && targetEmployee && (
