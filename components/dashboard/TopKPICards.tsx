@@ -95,7 +95,7 @@ export const TopKPICards: React.FC<TopKPICardsProps> = ({ startDate, endDate, re
       {/* Card 1: ยอดขายสุทธิ (Net Sales) */}
       <Card className="p-4 sm:p-5 space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+          <span className="text-card-label">
             ยอดขายสุทธิ
           </span>
           <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-slate-50 dark:bg-neutral-800 border border-slate-100 dark:border-neutral-700 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
@@ -112,9 +112,9 @@ export const TopKPICards: React.FC<TopKPICardsProps> = ({ startDate, endDate, re
           <div>
             <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-neutral-100">
               {data.netRevenue.toLocaleString()}{' '}
-              <span className="text-xs font-bold text-slate-500 dark:text-neutral-400">฿</span>
+              <span className="text-card-unit">฿</span>
             </p>
-            <p className="text-[10px] sm:text-xs font-semibold text-slate-400 dark:text-neutral-500 mt-1">
+            <p className="text-card-sublabel mt-1">
               (ก่อนหักโปร ฿{data.grossSales.toLocaleString()} • ส่วนลด <span className="text-rose-600 dark:text-rose-400 font-bold">฿{data.totalDiscounts.toLocaleString()}</span>)
             </p>
           </div>
@@ -124,7 +124,7 @@ export const TopKPICards: React.FC<TopKPICardsProps> = ({ startDate, endDate, re
       {/* Card 2: กำไรประมาณการ (Estimated Profit) */}
       <Card className="p-4 sm:p-5 space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+          <span className="text-card-label">
             กำไรประมาณการ
           </span>
           <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-slate-50 dark:bg-neutral-800 border border-slate-100 dark:border-neutral-700 flex items-center justify-center shrink-0 ${
@@ -145,9 +145,9 @@ export const TopKPICards: React.FC<TopKPICardsProps> = ({ startDate, endDate, re
               data.estimatedProfit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
             }`}>
               {data.estimatedProfit.toLocaleString()}{' '}
-              <span className="text-xs font-bold">฿</span>
+              <span className="text-card-unit">฿</span>
             </p>
-            <p className="text-[10px] sm:text-xs font-semibold text-slate-400 dark:text-neutral-500 mt-1">
+            <p className="text-card-sublabel mt-1">
               (ยอดขายสุทธิ ฿{data.netRevenue.toLocaleString()} • จัดซื้อ <span className="text-rose-600 dark:text-rose-400 font-bold">฿{data.totalIngredientCost.toLocaleString()}</span>)
             </p>
           </div>

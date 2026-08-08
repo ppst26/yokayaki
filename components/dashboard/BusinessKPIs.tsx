@@ -98,7 +98,7 @@ export const BusinessKPIs: React.FC<BusinessKPIsProps> = ({ startDate, endDate, 
       {kpis.map(kpi => (
         <Card key={kpi.label} className="p-4 flex-1 flex items-center justify-between">
           <div className="space-y-0.5">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block">
+            <span className="text-card-label block">
               {kpi.label}
             </span>
             {loading ? (
@@ -106,7 +106,7 @@ export const BusinessKPIs: React.FC<BusinessKPIsProps> = ({ startDate, endDate, 
             ) : (
               <p className="text-xl font-black text-slate-900 dark:text-neutral-100">
                 {kpi.value.toLocaleString()}{' '}
-                <span className="text-[10px] font-bold text-slate-400 dark:text-neutral-500">{kpi.unit}</span>
+                <span className="text-card-unit">{kpi.unit}</span>
               </p>
             )}
           </div>

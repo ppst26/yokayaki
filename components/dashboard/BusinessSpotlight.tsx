@@ -125,7 +125,7 @@ export const BusinessSpotlight: React.FC<BusinessSpotlightProps> = ({ startDate,
       <Card className="p-5 space-y-3.5 flex-[1.4] flex flex-col justify-between">
         <div className="flex items-center gap-2">
           <CreditCard className="w-4 h-4 text-blue-500" />
-          <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+          <span className="text-card-label">
             ยอดบัญชี
           </span>
         </div>
@@ -146,19 +146,19 @@ export const BusinessSpotlight: React.FC<BusinessSpotlightProps> = ({ startDate,
             {/* Combined Cash + QR Total Display */}
             <div className="bg-slate-50 dark:bg-neutral-800/60 border border-slate-200/70 dark:border-neutral-700/60 rounded-xl p-3 flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-extrabold text-slate-400 dark:text-neutral-500 uppercase tracking-wider block">
+                <span className="text-card-sublabel block">
                   ยอดรวม 2 ช่องทาง (เงินสด + QR)
                 </span>
                 <p className="text-2xl font-black text-slate-900 dark:text-neutral-100 leading-tight mt-0.5">
                   {totalMoney.toLocaleString()}
-                  <span className="text-xs font-bold ml-1 text-slate-500 dark:text-neutral-400">฿</span>
+                  <span className="text-card-unit ml-1">฿</span>
                 </p>
               </div>
               <div className="text-right">
-                <span className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 block">
+                <span className="text-card-sublabel block">
                   จำนวนบิล
                 </span>
-                <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">
+                <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">
                   {paymentBreakdown.total} บิล
                 </span>
               </div>
@@ -170,15 +170,15 @@ export const BusinessSpotlight: React.FC<BusinessSpotlightProps> = ({ startDate,
               <div className="border border-slate-200/80 dark:border-neutral-700 bg-white dark:bg-neutral-800/50 rounded-xl p-3 space-y-1">
                 <div className="flex items-center gap-1.5">
                   <Banknote className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                  <span className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide">
+                  <span className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide">
                     เงินสด
                   </span>
                 </div>
                 <p className="text-base font-black text-emerald-600 dark:text-emerald-400 leading-tight">
                   {paymentBreakdown.cashAmount.toLocaleString()}
-                  <span className="text-[10px] font-bold ml-0.5">฿</span>
+                  <span className="text-xs font-bold ml-0.5">฿</span>
                 </p>
-                <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-500">
+                <p className="text-xs font-semibold text-slate-400 dark:text-neutral-500">
                   สัดส่วน {cashPercent}% ของยอดขาย
                 </p>
               </div>
@@ -187,15 +187,15 @@ export const BusinessSpotlight: React.FC<BusinessSpotlightProps> = ({ startDate,
               <div className="border border-slate-200/80 dark:border-neutral-700 bg-white dark:bg-neutral-800/50 rounded-xl p-3 space-y-1">
                 <div className="flex items-center gap-1.5">
                   <Smartphone className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                  <span className="text-[10px] font-extrabold text-blue-700 dark:text-blue-400 uppercase tracking-wide">
+                  <span className="text-xs font-extrabold text-blue-700 dark:text-blue-400 uppercase tracking-wide">
                     QR / โอน
                   </span>
                 </div>
                 <p className="text-base font-black text-blue-600 dark:text-blue-400 leading-tight">
                   {paymentBreakdown.promptpayAmount.toLocaleString()}
-                  <span className="text-[10px] font-bold ml-0.5">฿</span>
+                  <span className="text-xs font-bold ml-0.5">฿</span>
                 </p>
-                <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-500">
+                <p className="text-xs font-semibold text-slate-400 dark:text-neutral-500">
                   สัดส่วน {promptpayPercent}% ของยอดขาย
                 </p>
               </div>
@@ -221,7 +221,7 @@ export const BusinessSpotlight: React.FC<BusinessSpotlightProps> = ({ startDate,
               </div>
 
               {/* Legend */}
-              <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 dark:text-neutral-400">
+              <div className="flex items-center justify-between text-xs font-bold text-slate-500 dark:text-neutral-400">
                 <div className="flex items-center gap-2.5">
                   <span className="flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
@@ -245,7 +245,7 @@ export const BusinessSpotlight: React.FC<BusinessSpotlightProps> = ({ startDate,
       <Card className="p-4 sm:p-5 flex-[0.6] flex flex-col items-center justify-center text-center space-y-1">
         <div className="flex items-center gap-2 justify-center">
           <ShoppingCart className="w-4 h-4 text-rose-500" />
-          <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+          <span className="text-card-label">
             ยอดต้นทุนวัตถุดิบ
           </span>
         </div>
@@ -260,7 +260,7 @@ export const BusinessSpotlight: React.FC<BusinessSpotlightProps> = ({ startDate,
               {totalIngredientCost.toLocaleString()}
               <span className="text-sm font-bold ml-1">฿</span>
             </p>
-            <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 mt-0.5">
+            <p className="text-card-sublabel mt-0.5">
               ต้นทุนจัดซื้อในช่วงนี้ (ค่าใช้จ่าย)
             </p>
           </div>

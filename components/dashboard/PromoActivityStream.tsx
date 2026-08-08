@@ -99,16 +99,16 @@ export const PromoActivityStream: React.FC<PromoActivityStreamProps> = ({ startD
         <div className="border border-slate-200/80 dark:border-neutral-700 bg-white dark:bg-neutral-800/50 rounded-2xl p-4">
           <p className="text-2xl font-black text-rose-600 dark:text-rose-400">
             {totalDiscount.toLocaleString()}{' '}
-            <span className="text-xs font-bold text-rose-400 dark:text-rose-500">฿</span>
+            <span className="text-sm font-bold text-rose-400 dark:text-rose-500">฿</span>
           </p>
-          <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 mt-0.5">ส่วนลดที่ใช้ไปในช่วงนี้ (ค่าใช้จ่ายโปรโมชั่น)</p>
+          <p className="text-card-sublabel mt-0.5">ส่วนลดที่ใช้ไปในช่วงนี้ (ค่าใช้จ่ายโปรโมชั่น)</p>
         </div>
       )}
 
       {/* Top Promotion Highlight */}
       <div className="flex items-center gap-2 pt-1">
         <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-        <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+        <span className="text-card-label">
           โปรโมชั่นยอดฮิต
         </span>
       </div>
@@ -127,20 +127,20 @@ export const PromoActivityStream: React.FC<PromoActivityStreamProps> = ({ startD
           promoList.map((promo, idx) => (
             <div key={promo.name} className="py-3 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 flex-1 min-w-0">
-                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0
+                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-black shrink-0
                   ${idx === 0 ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400' :
                     idx === 1 ? 'bg-slate-100 dark:bg-neutral-800 text-slate-500 dark:text-neutral-400' :
                     'bg-orange-100 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400'}`}
                 >
                   {idx + 1}
                 </span>
-                <span className="text-xs font-bold text-slate-800 dark:text-neutral-100 truncate">{promo.name}</span>
+                <span className="text-sm font-bold text-slate-800 dark:text-neutral-100 truncate">{promo.name}</span>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400">
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400">
                   {promo.usageCount} ครั้ง
                 </span>
-                <span className="text-[10px] font-bold text-slate-500 dark:text-neutral-400">
+                <span className="text-xs font-bold text-slate-500 dark:text-neutral-400">
                   -{promo.totalDiscount.toLocaleString()}฿
                 </span>
               </div>

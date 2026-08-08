@@ -182,7 +182,7 @@ export const SalesChart: React.FC<SalesChartProps> = ({ startDate, endDate, refr
             <span className="text-sm font-extrabold text-slate-900 dark:text-neutral-100 block leading-tight">
               ภาพรวมยอดขาย
             </span>
-            <span className="text-[10px] font-bold text-slate-400 dark:text-neutral-500">
+            <span className="text-card-sublabel">
               {bars.length} แท่ง • ยอดรวม ฿{totalRevenue.toLocaleString()}
             </span>
           </div>
@@ -206,14 +206,14 @@ export const SalesChart: React.FC<SalesChartProps> = ({ startDate, endDate, refr
                     tickLine={false}
                     axisLine={false}
                     tickMargin={8}
-                    className="text-[10px] font-bold fill-slate-500 dark:fill-neutral-400"
+                    className="text-xs font-bold fill-slate-500 dark:fill-neutral-400"
                   />
                   <YAxis
                     tickLine={false}
                     axisLine={false}
                     tickMargin={4}
                     tickFormatter={(val) => (val >= 1000 ? `${(val / 1000).toFixed(val % 1000 === 0 ? 0 : 1)}k` : val)}
-                    className="text-[9px] font-bold fill-slate-400 dark:fill-neutral-500"
+                    className="text-xs font-bold fill-slate-400 dark:fill-neutral-500"
                   />
                   <ChartTooltip
                     cursor={{ fill: 'rgba(0, 0, 0, 0.04)' }}
@@ -224,7 +224,7 @@ export const SalesChart: React.FC<SalesChartProps> = ({ startDate, endDate, refr
                             <span className="text-xs font-black text-red-600 dark:text-red-400">
                               ฿{Number(val).toLocaleString()}
                             </span>
-                            <span className="text-[10px] font-bold text-slate-500 dark:text-neutral-400">
+                            <span className="text-xs font-bold text-slate-500 dark:text-neutral-400">
                               {item.payload.billCount} บิล ({item.payload.label})
                             </span>
                           </div>

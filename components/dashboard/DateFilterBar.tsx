@@ -63,28 +63,28 @@ export const DateFilterBar: React.FC<DateFilterBarProps> = ({
       {datePreset === 'custom' && (
         <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-700/80 rounded-2xl p-2.5 shadow-xs flex flex-wrap sm:flex-nowrap items-center justify-between gap-2.5 w-full sm:w-[540px] sm:ml-auto animate-in fade-in-50 zoom-in-95 duration-150">
           <div className="flex items-center gap-2 flex-1 min-w-[130px]">
-            <span className="text-[10px] font-extrabold text-slate-400 dark:text-neutral-500 uppercase tracking-wider shrink-0">
+            <span className="text-card-sublabel shrink-0">
               เริ่ม
             </span>
             <input
               type="date"
               value={customStartDate}
               onChange={e => onCustomStartChange(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-800 dark:text-neutral-100 focus:outline-none focus:border-red-500 cursor-pointer"
+              className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-2.5 py-1.5 text-sm font-bold text-slate-800 dark:text-neutral-100 focus:outline-none focus:border-red-500 cursor-pointer"
             />
           </div>
 
           <ArrowRight className="w-3.5 h-3.5 text-slate-400 dark:text-neutral-500 shrink-0 hidden sm:block" />
 
           <div className="flex items-center gap-2 flex-1 min-w-[130px]">
-            <span className="text-[10px] font-extrabold text-slate-400 dark:text-neutral-500 uppercase tracking-wider shrink-0">
+            <span className="text-card-sublabel shrink-0">
               ถึง
             </span>
             <input
               type="date"
               value={customEndDate}
               onChange={e => onCustomEndChange(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-800 dark:text-neutral-100 focus:outline-none focus:border-red-500 cursor-pointer"
+              className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-2.5 py-1.5 text-sm font-bold text-slate-800 dark:text-neutral-100 focus:outline-none focus:border-red-500 cursor-pointer"
             />
           </div>
         </div>

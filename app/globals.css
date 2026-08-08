@@ -75,6 +75,18 @@ body {
   .text-micro {
     @apply text-xs font-semibold uppercase tracking-wider;
   }
+  .text-card-label {
+    @apply text-xs md:text-sm font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500;
+  }
+  .text-card-sublabel {
+    @apply text-xs font-semibold text-slate-400 dark:text-neutral-500;
+  }
+  .text-card-value {
+    @apply text-xl md:text-2xl font-black text-slate-900 dark:text-neutral-100;
+  }
+  .text-card-unit {
+    @apply text-xs md:text-sm font-bold text-slate-400 dark:text-neutral-500;
+  }
   .text-price {
     @apply font-mono tabular-nums;
   }

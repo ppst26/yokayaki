@@ -67,12 +67,12 @@ export const TopDishes: React.FC<TopDishesProps> = ({ startDate, endDate, refres
     <Card className="p-5 space-y-4 h-full flex flex-col">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Award className="w-4 h-4 text-amber-500" />
+          <Award className="w-4.5 h-4.5 text-amber-500" />
           <span className="text-sm font-extrabold text-slate-900 dark:text-neutral-100">
             8 อันดับอาหารขายดี
           </span>
         </div>
-        <span className="text-[10px] font-bold text-slate-400 dark:text-neutral-500">Top Dishes</span>
+        <span className="text-card-sublabel">Top Dishes</span>
       </div>
 
       <div className="flex-1 space-y-0 divide-y divide-slate-100 dark:divide-neutral-800">
@@ -96,7 +96,7 @@ export const TopDishes: React.FC<TopDishesProps> = ({ startDate, endDate, refres
                 {/* Rank + Emoji */}
                 <div className="relative shrink-0">
                   <span className="text-2xl">{foodEmojis[idx] || '🍽️'}</span>
-                  <span className="absolute -top-1 -left-1 w-5 h-5 rounded-md bg-gradient-to-br from-red-500 to-red-700 text-white text-[9px] font-black flex items-center justify-center shadow-sm">
+                  <span className="absolute -top-1 -left-1 w-5 h-5 rounded-md bg-gradient-to-br from-red-500 to-red-700 text-white text-xs font-black flex items-center justify-center shadow-sm">
                     {idx + 1}
                   </span>
                 </div>
@@ -104,11 +104,11 @@ export const TopDishes: React.FC<TopDishesProps> = ({ startDate, endDate, refres
                 {/* Name + Progress Bar */}
                 <div className="flex-1 min-w-0 space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-extrabold text-slate-900 dark:text-neutral-100 truncate">
+                    <span className="text-sm font-extrabold text-slate-900 dark:text-neutral-100 truncate">
                       {dish.name}
                     </span>
-                    <span className="text-xs font-black text-red-600 dark:text-red-400 shrink-0 ml-2">
-                      {dish.totalQty} <span className="text-[10px] font-bold text-slate-400 dark:text-neutral-500">จาน</span>
+                    <span className="text-sm font-black text-red-600 dark:text-red-400 shrink-0 ml-2">
+                      {dish.totalQty} <span className="text-card-unit">จาน</span>
                     </span>
                   </div>
                   <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-neutral-800 overflow-hidden">
