@@ -256,10 +256,20 @@ body {
   * {
     @apply border-border outline-ring/50;
   }
+  html, body, button, input, textarea, select {
+    touch-action: manipulation;
+  }
   body {
     @apply bg-background text-foreground;
   }
   html {
     @apply font-sans;
+  }
+
+  /* Prevent auto-zooming on focus in mobile browsers (iOS Safari requires >= 16px font size) */
+  @media screen and (max-width: 768px) {
+    input, textarea, select {
+      font-size: 16px !important;
+    }
   }
 }

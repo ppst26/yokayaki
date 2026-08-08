@@ -427,7 +427,7 @@ export default function CustomerOrderPortal() {
   const pendingCount = orderedItems.filter(i => i.status === 'pending').length;
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-28">
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-36">
       
       {/* Sticky Top Header */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-xs">
@@ -905,7 +905,7 @@ export default function CustomerOrderPortal() {
 
       {/* Floating Cart Summary Bar (Positioned above bottom nav bar when active) */}
       {cart.length > 0 && !showCartDrawer && (
-        <div className="fixed bottom-16 inset-x-0 z-30 px-4 max-w-md mx-auto">
+        <div className="fixed bottom-20 inset-x-0 z-30 px-4 max-w-md mx-auto">
           <button 
             onClick={() => setShowCartDrawer(true)}
             className="w-full bg-red-600 text-white p-3.5 rounded-2xl shadow-lg flex items-center justify-between hover:bg-red-700 active:scale-98 transition cursor-pointer"
