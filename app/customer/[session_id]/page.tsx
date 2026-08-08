@@ -785,6 +785,14 @@ export default function CustomerOrderPortal() {
                               ยกเลิกการเรียกเช็คบิล
                             </button>
                           </div>
+                        ) : pendingCount > 0 ? (
+                          <button
+                            disabled
+                            className="w-full py-3.5 bg-slate-200 text-slate-500 font-extrabold text-xs sm:text-sm rounded-2xl border border-slate-300 flex items-center justify-center gap-2 cursor-not-allowed shadow-none"
+                          >
+                            <Clock className="w-4 h-4 text-slate-400 shrink-0" />
+                            <span>กรุณารออาหารเสริฟครบ ก่อนเรียกเช็คบิล</span>
+                          </button>
                         ) : (
                           <button
                             onClick={() => setShowCheckBillConfirm(true)}
