@@ -26,6 +26,9 @@
 - `.text-table-value` -> `text-sm sm:text-base font-black text-red-600 dark:text-red-400` (ยอดเงิน/ตัวเลขในตาราง)
 - `.text-table-meta` -> `text-xs sm:text-sm font-bold text-slate-500 dark:text-neutral-400` (รายละเอียด/ตัวนับล่างตาราง)
 - `.text-badge` -> `text-xs font-extrabold uppercase tracking-wider` (ป้ายกำกับ/สถานะทุกชนิด)
+- `.badge-pill` -> `px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-extrabold transition-all duration-200 cursor-pointer whitespace-nowrap shrink-0` (สไตล์พื้นฐานปุ่ม Badge ทุกตัว)
+- `.badge-active` -> `bg-red-600 text-white shadow-md shadow-red-600/25 border-none` (สไตล์ปุ่ม Badge ตอนเลือก active)
+- `.badge-inactive` -> `bg-white dark:bg-neutral-900 text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-neutral-100 hover:bg-slate-100 dark:hover:bg-neutral-800 border border-slate-200/80 dark:border-neutral-800 shadow-2xs` (สไตล์ปุ่ม Badge ตอนยังไม่เลือก inactive)
 
 ---
 
