@@ -41,14 +41,14 @@ export const KitchenOrderCard: React.FC<KitchenOrderCardProps> = ({
   const waitMinutes = getWaitTimeMinutes(group.oldest_created_at);
 
   let cardHeaderStyle = 'bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white';
-  let badgeStyle = 'bg-white/20 backdrop-blur-xs text-white border border-white/30';
+  let badgeStyle = 'bg-white text-slate-900 font-black shadow-xs';
 
   if (waitMinutes >= 15) {
     cardHeaderStyle = 'bg-gradient-to-r from-rose-600 via-red-700 to-rose-800 text-white animate-pulse';
-    badgeStyle = 'bg-white/25 backdrop-blur-xs text-white border border-white/40';
+    badgeStyle = 'bg-amber-300 text-slate-950 font-black shadow-md animate-bounce';
   } else if (waitMinutes >= 8) {
     cardHeaderStyle = 'bg-gradient-to-r from-amber-500 via-amber-600 to-red-600 text-white';
-    badgeStyle = 'bg-white/20 backdrop-blur-xs text-white border border-white/30';
+    badgeStyle = 'bg-amber-100 text-amber-950 font-black shadow-xs';
   }
 
   return (
@@ -58,13 +58,13 @@ export const KitchenOrderCard: React.FC<KitchenOrderCardProps> = ({
         <div className={`p-4 flex items-center justify-between transition ${cardHeaderStyle}`}>
           <div>
             <h3 className="text-h2 text-white">โต๊ะ {group.table_id}</h3>
-            <span className="text-caption text-red-100 block">
+            <span className="text-xs text-white font-extrabold block mt-0.5 opacity-95">
               รวม {group.items.reduce((s, i) => s + i.quantity, 0)} รายการ
             </span>
           </div>
 
-          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-caption font-bold shadow-xs ${badgeStyle}`}>
-            <Clock className="w-3.5 h-3.5" />
+          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-caption shadow-xs ${badgeStyle}`}>
+            <Clock className="w-3.5 h-3.5 stroke-[2.5]" />
             <span className="text-price">{waitMinutes} นาทีที่แล้ว</span>
           </div>
         </div>
