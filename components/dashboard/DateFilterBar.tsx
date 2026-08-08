@@ -82,6 +82,7 @@ export const DateFilterBar: React.FC<DateFilterBarProps> = ({
               onChange={onCustomEndChange}
               placeholder="วันสิ้นสุด..."
               className="w-full"
+              align="right"
             />
           </div>
         </div>

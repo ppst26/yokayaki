@@ -11,6 +11,7 @@ interface DatePickerProps {
   disabled?: boolean;
   minDate?: string;
   maxDate?: string;
+  align?: 'left' | 'right' | 'auto';
 }
 
 const THAI_MONTHS = [
@@ -29,9 +30,30 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   disabled = false,
   minDate,
   maxDate,
+  align = 'auto',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [popoverAlign, setPopoverAlign] = useState<'left' | 'right'>('left');
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Auto detect smart alignment relative to viewport bounds
+  useEffect(() => {
+    if (isOpen && containerRef.current) {
+      if (align === 'right') {
+        setPopoverAlign('right');
+      } else if (align === 'left') {
+        setPopoverAlign('left');
+      } else {
+        const rect = containerRef.current.getBoundingClientRect();
+        const spaceOnRight = window.innerWidth - rect.left;
+        if (spaceOnRight < 300) {
+          setPopoverAlign('right');
+        } else {
+          setPopoverAlign('left');
+        }
+      }
+    }
+  }, [isOpen, align]);
 
   // Parse current selected date or fallback to today
   const selectedDate = value ? new Date(value + 'T00:00:00') : null;
@@ -162,7 +184,9 @@ export const DatePicker: React.FC<DatePickerProps> = ({
 
       {/* Popover Calendar Modal */}
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 z-50 w-72 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl shadow-2xl p-4 animate-in fade-in zoom-in-95 duration-150">
+        <div className={`absolute top-full mt-2 z-50 w-72 max-w-[calc(100vw-2rem)] bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl shadow-2xl p-4 animate-in fade-in zoom-in-95 duration-150 ${
+          popoverAlign === 'right' ? 'right-0 left-auto' : 'left-0 right-auto'
+        }`}>
           {/* Calendar Header (Month & Year + Nav) */}
           <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100 dark:border-neutral-800">
             <span className="text-sm font-black text-slate-900 dark:text-neutral-100">
