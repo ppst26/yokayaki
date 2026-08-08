@@ -66,7 +66,7 @@ export const VoidLogsTable: React.FC<VoidLogsTableProps> = ({
               {Number(log.total_amount).toLocaleString()} ฿
             </TableCell>
             <TableCell>
-              <span className="bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 px-2 py-1 rounded-md text-[11px]">
+              <span className="bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 px-2.5 py-1 rounded-md text-xs font-semibold">
                 {log.reason}
               </span>
             </TableCell>

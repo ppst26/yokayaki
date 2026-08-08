@@ -33,22 +33,22 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
   }));
 
   return (
-    <div className={`flex flex-col sm:flex-row items-center justify-between gap-4 px-1 py-3 text-xs font-semibold text-slate-500 dark:text-neutral-400 ${className}`}>
+    <div className={`flex flex-col sm:flex-row items-center justify-between gap-4 px-1 py-3 text-sm font-semibold text-slate-500 dark:text-neutral-400 ${className}`}>
       {/* Left Side: Page Size Selector & Total Counter */}
       <div className="flex items-center gap-2">
-        <span className="font-extrabold text-slate-600 dark:text-neutral-300 shrink-0">
+        <span className="font-extrabold text-slate-600 dark:text-neutral-300 shrink-0 text-sm">
           แสดงหน้า:
         </span>
-        <div className="w-32">
+        <div className="w-36">
           <CustomSelect
             value={String(pageSize)}
             onChange={val => onPageSizeChange(Number(val))}
             options={selectOptions}
             searchable={false}
-            triggerClassName="w-full bg-white dark:bg-neutral-900 border border-slate-300 dark:border-neutral-700 hover:bg-slate-50 dark:hover:bg-neutral-800 rounded-xl px-3 py-1.5 text-xs font-black text-slate-800 dark:text-neutral-100 shadow-2xs transition flex items-center justify-between cursor-pointer gap-1.5"
+            triggerClassName="w-full bg-white dark:bg-neutral-900 border border-slate-300 dark:border-neutral-700 hover:bg-slate-50 dark:hover:bg-neutral-800 rounded-xl px-3 py-1.5 text-sm font-black text-slate-800 dark:text-neutral-100 shadow-2xs transition flex items-center justify-between cursor-pointer gap-1.5"
           />
         </div>
-        <span className="text-[11px] font-bold text-slate-500 dark:text-neutral-400">
+        <span className="text-xs sm:text-sm font-bold text-slate-500 dark:text-neutral-400">
           (ทั้งหมด {totalItems} รายการ)
         </span>
       </div>
@@ -65,7 +65,7 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
           <ChevronLeft className="w-4 h-4" />
         </button>
 
-        <span className="text-xs font-black text-slate-700 dark:text-neutral-200 px-1">
+        <span className="text-sm font-black text-slate-700 dark:text-neutral-200 px-1">
           หน้า {currentPage} / {safeTotalPages}
         </span>
 

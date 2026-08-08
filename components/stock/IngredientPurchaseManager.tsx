@@ -543,31 +543,31 @@ export const IngredientPurchaseManager: React.FC = () => {
                     </div>
                   ) : (
                     <>
-                      <p className="text-[11px] font-extrabold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-3">
+                      <p className="text-card-label mb-3">
                         รายการวัตถุดิบ
                       </p>
                       <Table containerClassName="rounded-none bg-transparent">
-                        <TableHeader className="bg-transparent border-b border-zinc-200 dark:border-zinc-800 text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                        <TableHeader className="bg-transparent border-b border-zinc-200 dark:border-zinc-800 text-xs sm:text-sm font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                           <TableRow className="hover:bg-transparent">
-                            <TableHead className="bg-transparent text-zinc-500 dark:text-zinc-400 font-bold p-2 text-xs">ชื่อวัตถุดิบ</TableHead>
-                            <TableHead className="bg-transparent text-zinc-500 dark:text-zinc-400 font-bold p-2 text-xs text-center">จำนวน</TableHead>
-                            <TableHead className="bg-transparent text-zinc-500 dark:text-zinc-400 font-bold p-2 text-xs text-center">หน่วย</TableHead>
-                            <TableHead className="bg-transparent text-zinc-500 dark:text-zinc-400 font-bold p-2 text-xs text-right">ราคารวม</TableHead>
+                            <TableHead className="bg-transparent text-zinc-500 dark:text-zinc-400 font-bold p-2 text-xs sm:text-sm">ชื่อวัตถุดิบ</TableHead>
+                            <TableHead className="bg-transparent text-zinc-500 dark:text-zinc-400 font-bold p-2 text-xs sm:text-sm text-center">จำนวน</TableHead>
+                            <TableHead className="bg-transparent text-zinc-500 dark:text-zinc-400 font-bold p-2 text-xs sm:text-sm text-center">หน่วย</TableHead>
+                            <TableHead className="bg-transparent text-zinc-500 dark:text-zinc-400 font-bold p-2 text-xs sm:text-sm text-right">ราคารวม</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {(expandedItems[order.id] || []).map(item => (
                             <TableRow key={item.id}>
-                              <TableCell className="font-bold text-zinc-900 dark:text-zinc-100">
+                              <TableCell className="font-bold text-zinc-900 dark:text-zinc-100 text-sm">
                                 {item.name}
                               </TableCell>
-                              <TableCell className="text-center text-zinc-700 dark:text-zinc-300 font-semibold">
+                              <TableCell className="text-center text-zinc-700 dark:text-zinc-300 font-semibold text-sm">
                                 {item.quantity}
                               </TableCell>
-                              <TableCell className="text-center text-zinc-500 dark:text-zinc-400 font-semibold">
+                              <TableCell className="text-center text-zinc-500 dark:text-zinc-400 font-semibold text-sm">
                                 {item.unit}
                               </TableCell>
-                              <TableCell className="text-right font-black text-red-600 dark:text-red-400">
+                              <TableCell className="text-right font-black text-red-600 dark:text-red-400 text-sm">
                                 {item.cost.toLocaleString()} ฿
                               </TableCell>
                             </TableRow>
@@ -577,10 +577,10 @@ export const IngredientPurchaseManager: React.FC = () => {
 
                       {/* Detail footer */}
                       <div className="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800/80 flex justify-between items-center">
-                        <span className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500">
+                        <span className="text-xs sm:text-sm font-bold text-zinc-400 dark:text-zinc-500">
                           {(expandedItems[order.id] || []).length} รายการวัตถุดิบ
                         </span>
-                        <span className="text-sm font-black text-red-600 dark:text-red-400">
+                        <span className="text-base font-black text-red-600 dark:text-red-400">
                           รวม {order.total_cost.toLocaleString()} ฿
                         </span>
                       </div>
@@ -624,7 +624,7 @@ export const IngredientPurchaseManager: React.FC = () => {
               {/* Row 1: Date + Buyer */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] font-extrabold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mb-1.5">
+                  <label className="block text-card-label mb-1.5">
                     วันที่สั่งซื้อ
                   </label>
                   <input
@@ -635,7 +635,7 @@ export const IngredientPurchaseManager: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-extrabold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mb-1.5">
+                  <label className="block text-card-label mb-1.5">
                     ผู้สั่งซื้อ
                   </label>
                   <input
@@ -651,15 +651,15 @@ export const IngredientPurchaseManager: React.FC = () => {
               {/* Ingredient Table */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-[11px] font-extrabold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">
+                  <label className="text-card-label">
                     รายการวัตถุดิบ
                   </label>
                   <button
                     type="button"
                     onClick={addIngredientRow}
-                    className="flex items-center gap-1 text-[11px] font-bold text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 cursor-pointer transition"
+                    className="flex items-center gap-1 text-xs sm:text-sm font-bold text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 cursor-pointer transition"
                   >
-                    <Plus className="w-3.5 h-3.5" />
+                    <Plus className="w-4 h-4" />
                     เพิ่มรายการ
                   </button>
                 </div>
@@ -667,7 +667,7 @@ export const IngredientPurchaseManager: React.FC = () => {
                 {/* Column headers */}
                 <div className="grid grid-cols-[1fr_80px_100px_90px_32px] gap-2 mb-1.5 px-1">
                   {['ชื่อวัตถุดิบ', 'จำนวน', 'หน่วย', 'ราคา/หน่วย', ''].map(h => (
-                    <span key={h} className="text-[10px] font-extrabold text-zinc-400 dark:text-zinc-500 uppercase tracking-wide">{h}</span>
+                    <span key={h} className="text-xs font-extrabold text-zinc-400 dark:text-zinc-500 uppercase tracking-wide">{h}</span>
                   ))}
                 </div>
 

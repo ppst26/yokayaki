@@ -20,7 +20,7 @@ function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return (
     <thead
       className={cn(
-        "bg-neutral-800 text-white text-[11px] font-black uppercase tracking-wider rounded-none",
+        "bg-neutral-800 text-white text-xs sm:text-sm font-black uppercase tracking-wider rounded-none",
         className
       )}
       {...props}
@@ -32,7 +32,7 @@ function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
   return (
     <tbody
       className={cn(
-        "divide-y divide-slate-100 dark:divide-neutral-800 text-xs font-semibold text-slate-800 dark:text-neutral-200",
+        "divide-y divide-slate-100 dark:divide-neutral-800 text-sm font-semibold text-slate-800 dark:text-neutral-200",
         className
       )}
       {...props}

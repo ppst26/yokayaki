@@ -79,26 +79,26 @@ export const ClosedBillTable: React.FC<ClosedBillTableProps> = ({
           className="p-4 flex items-center justify-between transition active:scale-98 cursor-pointer"
         >
           <div className="flex items-center gap-4">
-            <div className="px-2.5 h-9 rounded-xl bg-red-600 text-white flex items-center justify-center font-black text-xs tracking-tight whitespace-nowrap shrink-0 shadow-xs">
+            <div className="px-3 h-9 rounded-xl bg-red-600 text-white flex items-center justify-center font-black text-sm tracking-tight whitespace-nowrap shrink-0 shadow-xs">
               ORD-{order.id}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-extrabold text-sm text-slate-900 dark:text-neutral-100">
+                <span className="font-extrabold text-base text-slate-900 dark:text-neutral-100">
                   โต๊ะ {order.table_id}
                 </span>
-                <span className="text-xs text-slate-400 dark:text-neutral-500 font-semibold">
+                <span className="text-sm text-slate-400 dark:text-neutral-500 font-medium">
                   • {formatTime(order.payment?.created_at || order.created_at)} น.
                 </span>
               </div>
               <div className="flex items-center gap-2 mt-1">
-                <span className="text-xs font-bold text-slate-600 dark:text-neutral-300 flex items-center gap-1">
+                <span className="text-sm font-semibold text-slate-600 dark:text-neutral-300 flex items-center gap-1">
                   {order.payment && getPaymentIcon(order.payment.payment_method)}
                   {order.payment && getPaymentLabel(order.payment.payment_method)}
                 </span>
                 {order.promos.length > 0 && (
-                  <span className="text-xs font-extrabold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 px-2 py-0.5 rounded-full flex items-center gap-1 border border-red-100 dark:border-red-900/50">
-                    <Tag className="w-3 h-3" />
+                  <span className="text-xs sm:text-sm font-extrabold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 px-2 py-0.5 rounded-full flex items-center gap-1 border border-red-100 dark:border-red-900/50">
+                    <Tag className="w-3.5 h-3.5" />
                     ใช้โปรโมชั่น ({order.promos.length})
                   </span>
                 )}
@@ -108,11 +108,11 @@ export const ClosedBillTable: React.FC<ClosedBillTableProps> = ({
 
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <span className="text-base font-black text-slate-900 dark:text-neutral-100 block">
+              <span className="text-lg font-black text-slate-900 dark:text-neutral-100 block">
                 {order.payment?.net_amount.toLocaleString()} ฿
               </span>
               {order.payment && order.payment.discount_amount > 0 && (
-                <span className="text-xs text-rose-600 dark:text-rose-400 font-bold block">
+                <span className="text-xs sm:text-sm text-rose-600 dark:text-rose-400 font-bold block">
                   ประหยัด -{order.payment.discount_amount.toLocaleString()} ฿
                 </span>
               )}

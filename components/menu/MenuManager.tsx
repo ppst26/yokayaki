@@ -318,9 +318,9 @@ export const MenuManager: React.FC = () => {
                       </div>
                     )}
                   </TableCell>
-                  <TableCell className="font-extrabold text-zinc-900 dark:text-zinc-100">{item.name}</TableCell>
+                  <TableCell className="font-extrabold text-zinc-900 dark:text-zinc-100 text-sm sm:text-base">{item.name}</TableCell>
                   <TableCell>
-                    <span className="bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2.5 py-1 rounded-lg text-[11px] font-bold">
+                    <span className="bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2.5 py-1 rounded-lg text-xs font-extrabold">
                       {item.category || 'ทั่วไป'}
                     </span>
                   </TableCell>
@@ -344,7 +344,7 @@ export const MenuManager: React.FC = () => {
                             handleQuickStockUpdate(item, val, true);
                           }
                         }}
-                        className="w-14 text-center bg-zinc-100 dark:bg-zinc-800 text-xs font-bold rounded-lg py-1 text-zinc-900 dark:text-zinc-100 border-none focus:outline-none focus:ring-2 focus:ring-red-500/50"
+                        className="w-14 text-center bg-zinc-100 dark:bg-zinc-800 text-sm font-extrabold rounded-lg py-1 text-zinc-900 dark:text-zinc-100 border-none focus:outline-none focus:ring-2 focus:ring-red-500/50"
                       />
                       <button
                         onClick={() => handleQuickStockUpdate(item, 1)}
@@ -355,7 +355,7 @@ export const MenuManager: React.FC = () => {
                       </button>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right font-black text-red-600 dark:text-red-400 text-sm">
+                  <TableCell className="text-right font-black text-red-600 dark:text-red-400 text-base">
                     {item.price.toLocaleString()} ฿
                   </TableCell>
                   <TableCell>
