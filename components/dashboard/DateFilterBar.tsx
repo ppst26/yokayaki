@@ -56,10 +56,10 @@ export const DateFilterBar: React.FC<DateFilterBarProps> = ({
         })}
       </div>
 
-      {/* Custom Date Range Picker (Capsule Style — Right-aligned) */}
+      {/* Custom Date Range Picker (Capsule Style — Left-aligned) */}
       {datePreset === 'custom' && (
-        <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-700/80 rounded-2xl p-2.5 shadow-xs flex flex-wrap sm:flex-nowrap items-center justify-between gap-2.5 w-full sm:w-[540px] sm:ml-auto animate-in fade-in-50 zoom-in-95 duration-150">
-          <div className="flex items-center gap-2 flex-1 min-w-[150px]">
+        <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-700/80 rounded-2xl p-2.5 shadow-xs flex flex-wrap sm:flex-nowrap items-center justify-start gap-2.5 w-full sm:w-fit animate-in fade-in-50 zoom-in-95 duration-150">
+          <div className="flex items-center gap-2 flex-1 sm:flex-initial min-w-[150px]">
             <span className="text-card-sublabel shrink-0">
               เริ่ม
             </span>
@@ -67,13 +67,14 @@ export const DateFilterBar: React.FC<DateFilterBarProps> = ({
               value={customStartDate}
               onChange={onCustomStartChange}
               placeholder="วันเริ่มต้น..."
-              className="w-full"
+              className="w-full sm:w-44"
+              align="auto"
             />
           </div>
 
-          <ArrowRight className="w-4 h-4 text-slate-400 dark:text-neutral-500 shrink-0 hidden sm:block" />
+          <ArrowRight className="w-4 h-4 text-slate-400 dark:text-neutral-500 shrink-0 hidden sm:block mx-1" />
 
-          <div className="flex items-center gap-2 flex-1 min-w-[150px]">
+          <div className="flex items-center gap-2 flex-1 sm:flex-initial min-w-[150px]">
             <span className="text-card-sublabel shrink-0">
               ถึง
             </span>
@@ -81,8 +82,8 @@ export const DateFilterBar: React.FC<DateFilterBarProps> = ({
               value={customEndDate}
               onChange={onCustomEndChange}
               placeholder="วันสิ้นสุด..."
-              className="w-full"
-              align="right"
+              className="w-full sm:w-44"
+              align="auto"
             />
           </div>
         </div>
