@@ -70,15 +70,14 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
       <div className="bg-white dark:bg-neutral-900 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Modal Header */}
         <div className="px-6 py-4 bg-neutral-800 text-white flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2 flex-wrap">
               <h3 className="text-lg md:text-xl font-black text-white">
                 รายละเอียดบิล ORD-{selectedOrder.id}
               </h3>
               {selectedOrder.payment?.member_name && (
-                <span className="text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                  <User className="w-3.5 h-3.5" />
-                  คุณ{selectedOrder.payment.member_name}
+                <span className="text-xs font-black text-amber-400">
+                  (คุณ{selectedOrder.payment.member_name})
                 </span>
               )}
             </div>
@@ -97,7 +96,7 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
         </div>
 
         {/* Modal Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-6 space-y-5">
           {detailLoading ? (
             <div className="flex justify-center py-12">
               <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
@@ -105,7 +104,7 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
           ) : (
             <>
               {/* รายการอาหาร */}
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <h4 className="text-card-label">
                   รายการอาหาร
                 </h4>
@@ -113,7 +112,7 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
                   {orderItems.map(item => (
                     <div
                       key={item.id}
-                      className="py-3 px-1 hover:bg-slate-50/50 dark:hover:bg-neutral-800/30 transition rounded-xl"
+                      className="py-2.5 px-1 hover:bg-slate-50/50 dark:hover:bg-neutral-800/30 transition"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
@@ -136,7 +135,7 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
                         </div>
                       </div>
                       {item.notes && (
-                        <div className="mt-1.5 text-xs text-red-600 dark:text-red-400 font-semibold">
+                        <div className="mt-1 text-xs text-red-600 dark:text-red-400 font-semibold">
                           📝 {item.notes}
                         </div>
                       )}
@@ -152,32 +151,31 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
 
               {/* ข้อมูลลูกค้า & สมาชิก CRM */}
               {(selectedOrder.payment?.member_name || selectedOrder.payment?.phone_number || (selectedOrder.payment?.points_earned ?? 0) > 0 || (selectedOrder.payment?.points_redeemed ?? 0) > 0) && (
-                <div className="space-y-3 bg-amber-500/5 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 p-4 rounded-2xl">
-                  <h4 className="text-card-label text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
-                    <User className="w-4 h-4" />
+                <div className="space-y-1 pt-1">
+                  <h4 className="text-card-label">
                     ข้อมูลลูกค้า & สมาชิก CRM
                   </h4>
-                  <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2 py-1">
                     <div>
-                      <p className="text-sm font-black text-slate-900 dark:text-neutral-100">
+                      <span className="text-base font-black text-slate-900 dark:text-neutral-100">
                         {selectedOrder.payment?.member_name
                           ? `คุณ${selectedOrder.payment.member_name}`
                           : 'ลูกค้าทั่วไป'}
-                      </p>
+                      </span>
                       {selectedOrder.payment?.phone_number && (
-                        <p className="text-xs text-slate-500 dark:text-neutral-400 font-bold mt-0.5">
-                          เบอร์โทร: <span className="font-mono text-slate-800 dark:text-neutral-200">{selectedOrder.payment.phone_number}</span>
-                        </p>
+                        <span className="text-xs text-slate-500 dark:text-neutral-400 font-bold ml-2">
+                          ({selectedOrder.payment.phone_number})
+                        </span>
                       )}
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-3">
                       {(selectedOrder.payment?.points_redeemed ?? 0) > 0 && (
-                        <span className="text-xs font-extrabold text-rose-700 dark:text-rose-300 bg-rose-100 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900/60 px-3 py-1 rounded-xl">
+                        <span className="text-xs font-black text-rose-600 dark:text-rose-400">
                           ใช้ไป {selectedOrder.payment?.points_redeemed} แต้ม (-{selectedOrder.payment?.points_redeemed} ฿)
                         </span>
                       )}
                       {(selectedOrder.payment?.points_earned ?? 0) > 0 && (
-                        <span className="text-xs font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-900/60 px-3 py-1 rounded-xl">
+                        <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">
                           ได้รับ +{selectedOrder.payment?.points_earned} แต้ม
                         </span>
                       )}
@@ -188,33 +186,30 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
 
               {/* โปรโมชั่นที่ใช้ */}
               {selectedOrder.promos.length > 0 && (
-                <div className="space-y-3">
+                <div className="space-y-2 pt-1">
                   <h4 className="text-card-label">
                     โปรโมชั่น & คูปองส่วนลดที่ใช้
                   </h4>
-                  <div className="space-y-2">
+                  <div className="space-y-2 divide-y divide-slate-100 dark:divide-neutral-800">
                     {selectedOrder.promos.map(promo => (
                       <div
                         key={promo.id}
-                        className="py-2.5 px-3 bg-slate-50 dark:bg-neutral-800/60 rounded-xl space-y-1"
+                        className="pt-2 first:pt-0 space-y-1"
                       >
                         <div className="flex items-center justify-between">
                           <div className="space-y-0.5">
                             <div className="flex items-center gap-2">
                               <Tag className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0" />
-                              <span className="text-sm font-bold text-slate-900 dark:text-neutral-100">
+                              <span className="text-sm font-extrabold text-slate-900 dark:text-neutral-100">
                                 {promo.promotion_name}
                               </span>
-                              <span className="text-xs font-bold text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-950/60 px-2 py-0.5 rounded-lg">
-                                {getPromoTypeLabel(promo.promotion_type)}
+                              <span className="text-xs font-bold text-red-600 dark:text-red-400">
+                                ({getPromoTypeLabel(promo.promotion_type)})
                               </span>
                             </div>
                             {promo.coupon_code && (
                               <p className="text-xs text-slate-500 dark:text-neutral-400 font-semibold pl-6">
-                                รหัสคูปอง:{' '}
-                                <span className="font-mono font-bold bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 px-2 py-0.5 rounded-lg text-xs">
-                                  {promo.coupon_code}
-                                </span>
+                                รหัสคูปอง: <span className="font-mono font-bold text-slate-800 dark:text-neutral-200">{promo.coupon_code}</span>
                               </p>
                             )}
                           </div>
@@ -223,11 +218,11 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
                           </span>
                         </div>
                         {promo.free_items && promo.free_items.length > 0 && (
-                          <div className="mt-2 space-y-1 pl-6">
+                          <div className="mt-1 space-y-1 pl-6">
                             {promo.free_items.map((fi, idx) => (
                               <div
                                 key={idx}
-                                className="flex items-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-400 font-bold"
+                                className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-bold"
                               >
                                 <Gift className="w-3.5 h-3.5" />
                                 <span>
@@ -245,11 +240,11 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
 
               {/* สรุปยอด */}
               {selectedOrder.payment && (
-                <div className="space-y-3">
+                <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-neutral-800">
                   <h4 className="text-card-label">
                     สรุปยอดชำระ
                   </h4>
-                  <div className="py-2 space-y-3">
+                  <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-slate-500 dark:text-neutral-400 font-semibold">
                         ยอดรวม
@@ -285,74 +280,45 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
                       </div>
                     )}
 
-                    <div className="border-t border-slate-200 dark:border-neutral-800 pt-3 flex justify-between items-center">
-                      <span className="text-base font-bold text-slate-900 dark:text-neutral-100">
+                    <div className="pt-2 flex justify-between items-center">
+                      <span className="text-base font-extrabold text-slate-900 dark:text-neutral-100">
                         ยอดสุทธิ
                       </span>
-                      <span className="text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400">
+                      <span className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">
                         {selectedOrder.payment.net_amount.toLocaleString()} ฿
                       </span>
                     </div>
 
-                    <div className="border-t border-slate-200 dark:border-neutral-800 pt-3 space-y-3">
-                      {/* Payment split boxes */}
-                      <div className="grid grid-cols-2 gap-3">
-                        {/* เงินสด */}
-                        <div className={`rounded-2xl p-3.5 space-y-1 ${
-                          selectedOrder.payment.cash_amount > 0
-                            ? 'bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-900/40'
-                            : 'bg-slate-50 dark:bg-neutral-800/50 opacity-50'
-                        }`}>
-                          <div className="flex items-center gap-1.5">
-                            <Banknote className={`w-4 h-4 ${
-                              selectedOrder.payment.cash_amount > 0
-                                ? 'text-emerald-600 dark:text-emerald-400'
-                                : 'text-slate-400'
-                            }`} />
-                            <span className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide">
-                              เงินสด
+                    {/* Payment methods & Points earned */}
+                    <div className="pt-2 space-y-2 text-sm">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <span className="text-slate-500 dark:text-neutral-400 font-semibold">
+                          ช่องทางชำระเงิน:
+                        </span>
+                        <div className="flex items-center gap-4 font-black">
+                          {selectedOrder.payment.cash_amount > 0 && (
+                            <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                              <Banknote className="w-4 h-4" />
+                              เงินสด {selectedOrder.payment.cash_amount.toLocaleString()} ฿
                             </span>
-                          </div>
-                          <p className="text-base font-black text-emerald-700 dark:text-emerald-300">
-                            {selectedOrder.payment.cash_amount > 0
-                              ? `${selectedOrder.payment.cash_amount.toLocaleString()} ฿`
-                              : '—'
-                            }
-                          </p>
-                        </div>
-
-                        {/* QR / โอน */}
-                        <div className={`rounded-2xl p-3.5 space-y-1 ${
-                          selectedOrder.payment.promptpay_amount > 0
-                            ? 'bg-blue-50 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-900/40'
-                            : 'bg-slate-50 dark:bg-neutral-800/50 opacity-50'
-                        }`}>
-                          <div className="flex items-center gap-1.5">
-                            <Smartphone className={`w-4 h-4 ${
-                              selectedOrder.payment.promptpay_amount > 0
-                                ? 'text-blue-600 dark:text-blue-400'
-                                : 'text-slate-400'
-                            }`} />
-                            <span className="text-xs font-extrabold text-blue-700 dark:text-blue-400 uppercase tracking-wide">
-                              QR / โอน
+                          )}
+                          {selectedOrder.payment.promptpay_amount > 0 && (
+                            <span className="text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                              <Smartphone className="w-4 h-4" />
+                              QR/โอน {selectedOrder.payment.promptpay_amount.toLocaleString()} ฿
                             </span>
-                          </div>
-                          <p className="text-base font-black text-blue-700 dark:text-blue-300">
-                            {selectedOrder.payment.promptpay_amount > 0
-                              ? `${selectedOrder.payment.promptpay_amount.toLocaleString()} ฿`
-                              : '—'
-                            }
-                          </p>
+                          )}
                         </div>
                       </div>
 
-                      {/* Points earned badge */}
                       {selectedOrder.payment.points_earned > 0 && (
-                        <div className="flex justify-end pt-1">
-                          <div className="text-xs font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-900/60 px-3.5 py-1 rounded-full flex items-center gap-1">
-                            <span>ได้รับแต้มสะสม:</span>
-                            <span className="text-sm font-black">+{selectedOrder.payment.points_earned} แต้ม</span>
-                          </div>
+                        <div className="flex items-center justify-between text-sm pt-0.5">
+                          <span className="text-slate-500 dark:text-neutral-400 font-semibold">
+                            แต้มสะสมได้รับ:
+                          </span>
+                          <span className="font-black text-emerald-600 dark:text-emerald-400">
+                            +{selectedOrder.payment.points_earned} แต้ม
+                          </span>
                         </div>
                       )}
                     </div>
