@@ -41,14 +41,14 @@ export const KitchenOrderCard: React.FC<KitchenOrderCardProps> = ({
   const waitMinutes = getWaitTimeMinutes(group.oldest_created_at);
 
   let cardHeaderStyle = 'bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white';
-  let badgeStyle = 'bg-white text-slate-900 font-black shadow-xs';
+  let badgeStyle = 'bg-white text-slate-900 dark:text-slate-900 font-black shadow-xs';
 
   if (waitMinutes >= 15) {
     cardHeaderStyle = 'bg-gradient-to-r from-rose-600 via-red-700 to-rose-800 text-white animate-pulse';
-    badgeStyle = 'bg-amber-300 text-slate-950 font-black shadow-md animate-bounce';
+    badgeStyle = 'bg-amber-300 text-slate-950 dark:text-slate-950 font-black shadow-md animate-bounce';
   } else if (waitMinutes >= 8) {
     cardHeaderStyle = 'bg-gradient-to-r from-amber-500 via-amber-600 to-red-600 text-white';
-    badgeStyle = 'bg-amber-100 text-amber-950 font-black shadow-xs';
+    badgeStyle = 'bg-amber-100 text-amber-950 dark:text-amber-950 font-black shadow-xs';
   }
 
   return (
@@ -63,8 +63,8 @@ export const KitchenOrderCard: React.FC<KitchenOrderCardProps> = ({
             </span>
           </div>
 
-          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-caption shadow-xs ${badgeStyle}`}>
-            <Clock className="w-3.5 h-3.5 stroke-[2.5]" />
+          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black shadow-xs ${badgeStyle}`}>
+            <Clock className="w-3.5 h-3.5 stroke-[2.5] shrink-0" />
             <span className="text-price">{waitMinutes} นาทีที่แล้ว</span>
           </div>
         </div>
