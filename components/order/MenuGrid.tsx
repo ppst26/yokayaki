@@ -37,11 +37,7 @@ export const MenuGrid: React.FC<MenuGridProps> = ({
           <button
             key={cat}
             onClick={() => setSelectedCategory(cat)}
-            className={`px-4 py-2 rounded-xl text-h3 whitespace-nowrap transition cursor-pointer ${
-              selectedCategory === cat
-                ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
-                : 'bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-neutral-800'
-            }`}
+            className={`badge-pill ${selectedCategory === cat ? 'badge-active' : 'badge-inactive'}`}
           >
             {cat}
           </button>

@@ -44,11 +44,7 @@ export const DateFilterBar: React.FC<DateFilterBarProps> = ({
             <button
               key={preset.value}
               onClick={() => onPresetChange(preset.value)}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap border-none shrink-0 ${
-                isActive
-                  ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
-                  : 'bg-white dark:bg-neutral-900 text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-neutral-100 hover:bg-slate-100 dark:hover:bg-neutral-800'
-              }`}
+              className={`badge-pill ${isActive ? 'badge-active' : 'badge-inactive'}`}
             >
               {preset.label}
             </button>

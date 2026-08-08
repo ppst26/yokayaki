@@ -88,10 +88,10 @@ body {
     @apply text-xs md:text-sm font-bold text-slate-700 dark:text-neutral-100;
   }
   .text-table-head {
-    @apply text-xs sm:text-sm font-black uppercase tracking-wider text-white;
+    @apply text-xs sm:text-sm font-semibold uppercase tracking-wider text-white;
   }
   .text-table-cell {
-    @apply text-sm font-semibold text-slate-800 dark:text-neutral-200;
+    @apply text-sm font-medium text-slate-800 dark:text-neutral-200;
   }
   .text-table-value {
     @apply text-sm sm:text-base font-black text-red-600 dark:text-red-400;
@@ -104,6 +104,15 @@ body {
   }
   .text-price {
     @apply font-mono tabular-nums;
+  }
+  .badge-pill {
+    @apply px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-extrabold transition-all duration-200 cursor-pointer whitespace-nowrap shrink-0;
+  }
+  .badge-active {
+    @apply bg-red-600 text-white shadow-md shadow-red-600/25 border-none;
+  }
+  .badge-inactive {
+    @apply bg-white dark:bg-neutral-900 text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-neutral-100 hover:bg-slate-100 dark:hover:bg-neutral-800 border border-slate-200/80 dark:border-neutral-800 shadow-2xs;
   }
 }
 
