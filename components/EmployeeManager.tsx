@@ -300,7 +300,7 @@ export const EmployeeManager: React.FC = () => {
 
         <button
           onClick={() => openModal('add')}
-          className="flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow-md shadow-red-600/20 transition active:scale-95 cursor-pointer shrink-0 self-start md:self-auto"
+          className="flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-extrabold shadow-md shadow-red-600/20 transition active:scale-95 cursor-pointer shrink-0 self-start md:self-auto border-none"
         >
           <Plus className="w-4 h-4" />
           เพิ่มพนักงานใหม่
@@ -310,20 +310,20 @@ export const EmployeeManager: React.FC = () => {
       {/* Summary Cards */}
       <div className="grid grid-cols-3 gap-4">
         <Card className="p-4">
-          <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider">พนักงานทั้งหมด</p>
-          <p className="text-2xl font-black text-slate-900 dark:text-neutral-100 mt-1">{employees.length}</p>
+          <p className="text-card-label">พนักงานทั้งหมด</p>
+          <p className="text-card-value mt-1">{employees.length}</p>
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-1.5">
-            <Shield className="w-3.5 h-3.5 text-red-500" />
-            <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider">Owner</p>
+            <Shield className="w-4 h-4 text-red-500" />
+            <p className="text-card-label">Owner</p>
           </div>
           <p className="text-2xl font-black text-red-600 dark:text-red-400 mt-1">{ownerCount}</p>
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-1.5">
-            <User className="w-3.5 h-3.5 text-slate-400" />
-            <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider">Staff</p>
+            <User className="w-4 h-4 text-slate-400" />
+            <p className="text-card-label">Staff</p>
           </div>
           <p className="text-2xl font-black text-slate-700 dark:text-neutral-300 mt-1">{staffCount}</p>
         </Card>
@@ -353,19 +353,19 @@ export const EmployeeManager: React.FC = () => {
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-bold text-slate-900 dark:text-neutral-100">{emp.name}</p>
+                      <p className="text-base font-extrabold text-slate-900 dark:text-neutral-100">{emp.name}</p>
                       {isSelf && (
-                        <span className="text-[9px] font-bold bg-red-50 dark:bg-red-950/40 text-red-500 dark:text-red-400 px-1.5 py-0.5 rounded-md border border-red-100 dark:border-red-900/50">
+                        <span className="text-xs font-extrabold bg-red-50 dark:bg-red-950/40 text-red-500 dark:text-red-400 px-2 py-0.5 rounded-md border border-red-100 dark:border-red-900/50">
                           คุณ
                         </span>
                       )}
                     </div>
-                    <p className="text-[10px] text-slate-400 dark:text-neutral-500 font-medium">
+                    <p className="text-card-sublabel mt-0.5">
                       สร้างเมื่อ {new Date(emp.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </p>
                   </div>
 
-                  <span className={`text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full border ${
+                  <span className={`text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full border ${
                     isOwnerBadge
                       ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/50'
                       : 'bg-slate-50 dark:bg-neutral-800 text-slate-600 dark:text-neutral-300 border-slate-200 dark:border-neutral-700'
@@ -378,17 +378,17 @@ export const EmployeeManager: React.FC = () => {
                 <div className="flex flex-wrap gap-2 pt-3 border-t border-slate-100 dark:border-neutral-800">
                   <button
                     onClick={() => openModal('edit', emp)}
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-700/80 text-slate-700 dark:text-neutral-200 hover:text-red-600 dark:hover:text-red-400 rounded-xl text-[11px] font-bold transition active:scale-95 border border-slate-200 dark:border-neutral-700 hover:border-red-200 dark:hover:border-red-900/50 shadow-2xs cursor-pointer"
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-700/80 text-slate-700 dark:text-neutral-200 hover:text-red-600 dark:hover:text-red-400 rounded-xl text-sm font-bold transition active:scale-95 border border-slate-200 dark:border-neutral-700 hover:border-red-200 dark:hover:border-red-900/50 shadow-2xs cursor-pointer"
                   >
-                    <Pencil className="w-3.5 h-3.5 text-slate-400" />
+                    <Pencil className="w-4 h-4 text-slate-400" />
                     แก้ไข
                   </button>
                   {!isSelf && (
                     <button
                       onClick={() => openModal('delete', emp)}
-                      className="flex items-center gap-1.5 px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[11px] font-bold transition active:scale-95 shadow-md shadow-red-600/20 cursor-pointer"
+                      className="flex items-center gap-1.5 px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold transition active:scale-95 shadow-md shadow-red-600/20 cursor-pointer border-none"
                     >
-                      <Trash2 className="w-3.5 h-3.5 text-white" />
+                      <Trash2 className="w-4 h-4 text-white" />
                       ลบ
                     </button>
                   )}
@@ -421,7 +421,7 @@ export const EmployeeManager: React.FC = () => {
                 <div className="space-y-4">
                   {/* ชื่อ */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1.5">ชื่อพนักงาน</label>
+                    <label className="block text-sm font-bold text-slate-600 dark:text-neutral-300 mb-1.5">ชื่อพนักงาน</label>
                     <input
                       type="text"
                       value={addName}
@@ -433,7 +433,7 @@ export const EmployeeManager: React.FC = () => {
 
                   {/* PIN */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1.5">PIN 6 หลัก</label>
+                    <label className="block text-sm font-bold text-slate-600 dark:text-neutral-300 mb-1.5">PIN 6 หลัก</label>
                     <div className="relative">
                       <input
                         type={showAddPin ? 'text' : 'password'}
@@ -456,7 +456,7 @@ export const EmployeeManager: React.FC = () => {
 
                   {/* ยืนยัน PIN */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1.5">ยืนยัน PIN</label>
+                    <label className="block text-sm font-bold text-slate-600 dark:text-neutral-300 mb-1.5">ยืนยัน PIN</label>
                     <input
                       type={showAddPin ? 'text' : 'password'}
                       value={addPinConfirm}
@@ -471,17 +471,17 @@ export const EmployeeManager: React.FC = () => {
                       }`}
                     />
                     {addPinConfirm && addPinConfirm !== addPin && (
-                      <p className="text-[10px] text-rose-500 dark:text-rose-400 font-semibold mt-1">PIN ไม่ตรงกัน</p>
+                      <p className="text-xs text-rose-500 dark:text-rose-400 font-semibold mt-1">PIN ไม่ตรงกัน</p>
                     )}
                   </div>
 
                   {/* Role */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1.5">ตำแหน่ง</label>
+                    <label className="block text-sm font-bold text-slate-600 dark:text-neutral-300 mb-1.5">ตำแหน่ง</label>
                     <div className="flex gap-3">
                       <button
                         onClick={() => setAddRole('staff')}
-                        className={`flex-1 py-2.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
+                        className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition cursor-pointer ${
                           addRole === 'staff'
                             ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-sky-300 dark:border-sky-800 ring-1 ring-sky-200 dark:ring-sky-900/50'
                             : 'bg-white dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 border-slate-200 dark:border-neutral-700 hover:bg-slate-50 dark:hover:bg-neutral-700'
@@ -492,7 +492,7 @@ export const EmployeeManager: React.FC = () => {
                       </button>
                       <button
                         onClick={() => setAddRole('owner')}
-                        className={`flex-1 py-2.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
+                        className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition cursor-pointer ${
                           addRole === 'owner'
                             ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-800 ring-1 ring-amber-200 dark:ring-amber-900/50'
                             : 'bg-white dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 border-slate-200 dark:border-neutral-700 hover:bg-slate-50 dark:hover:bg-neutral-700'
@@ -509,14 +509,14 @@ export const EmployeeManager: React.FC = () => {
                 <div className="flex gap-3 pt-2">
                   <button
                     onClick={resetModal}
-                    className="flex-1 py-2.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-600 dark:text-neutral-300 rounded-xl text-xs font-bold transition cursor-pointer"
+                    className="flex-1 py-2.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-600 dark:text-neutral-300 rounded-xl text-sm font-bold transition cursor-pointer"
                   >
                     ยกเลิก
                   </button>
                   <button
                     onClick={handleAddEmployee}
                     disabled={isSaving || !addName.trim() || addPin.length !== 6 || addPin !== addPinConfirm}
-                    className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-extrabold transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-red-600/20"
+                    className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-extrabold transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-red-600/20 border-none"
                   >
                     {isSaving ? 'กำลังบันทึก...' : '✅ บันทึก'}
                   </button>
@@ -542,7 +542,7 @@ export const EmployeeManager: React.FC = () => {
                 <div className="space-y-4">
                   {/* ชื่อพนักงาน */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1.5">ชื่อพนักงาน</label>
+                    <label className="block text-sm font-bold text-slate-600 dark:text-neutral-300 mb-1.5">ชื่อพนักงาน</label>
                     <input
                       type="text"
                       value={editName}
@@ -554,12 +554,12 @@ export const EmployeeManager: React.FC = () => {
 
                   {/* ตำแหน่ง (Role) */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1.5">ตำแหน่ง</label>
+                    <label className="block text-sm font-bold text-slate-600 dark:text-neutral-300 mb-1.5">ตำแหน่ง</label>
                     <div className="flex gap-3">
                       <button
                         type="button"
                         onClick={() => setEditRole('staff')}
-                        className={`flex-1 py-2.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
+                        className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition cursor-pointer ${
                           editRole === 'staff'
                             ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-sky-300 dark:border-sky-800 ring-1 ring-sky-200 dark:ring-sky-900/50'
                             : 'bg-white dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 border-slate-200 dark:border-neutral-700 hover:bg-slate-50 dark:hover:bg-neutral-700'
@@ -571,7 +571,7 @@ export const EmployeeManager: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setEditRole('owner')}
-                        className={`flex-1 py-2.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
+                        className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition cursor-pointer ${
                           editRole === 'owner'
                             ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-800 ring-1 ring-amber-200 dark:ring-amber-900/50'
                             : 'bg-white dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 border-slate-200 dark:border-neutral-700 hover:bg-slate-50 dark:hover:bg-neutral-700'
@@ -585,8 +585,8 @@ export const EmployeeManager: React.FC = () => {
 
                   {/* เปลี่ยน PIN (ไม่บังคับ — ปล่อยว่างถ้าไม่เปลี่ยน) */}
                   <div className="pt-2 border-t border-slate-100 dark:border-neutral-800">
-                    <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1">
-                      เปลี่ยน PIN 6 หลัก <span className="text-slate-400 font-normal">(เว้นว่างไว้หากไม่ต้องการเปลี่ยน)</span>
+                    <label className="block text-sm font-bold text-slate-600 dark:text-neutral-300 mb-1">
+                      เปลี่ยน PIN 6 หลัก <span className="text-slate-400 font-normal text-xs">(เว้นว่างไว้หากไม่ต้องการเปลี่ยน)</span>
                     </label>
                     <div className="relative">
                       <input
@@ -609,7 +609,7 @@ export const EmployeeManager: React.FC = () => {
 
                     {editPin.length > 0 && (
                       <div className="mt-3">
-                        <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1.5">ยืนยัน PIN ใหม่</label>
+                        <label className="block text-sm font-bold text-slate-600 dark:text-neutral-300 mb-1.5">ยืนยัน PIN ใหม่</label>
                         <input
                           type={showEditPin ? 'text' : 'password'}
                           value={editPinConfirm}
@@ -624,7 +624,7 @@ export const EmployeeManager: React.FC = () => {
                           }`}
                         />
                         {editPinConfirm && editPinConfirm !== editPin && (
-                          <p className="text-[10px] text-rose-500 dark:text-rose-400 font-semibold mt-1">PIN ไม่ตรงกัน</p>
+                          <p className="text-xs text-rose-500 dark:text-rose-400 font-semibold mt-1">PIN ไม่ตรงกัน</p>
                         )}
                       </div>
                     )}
@@ -633,7 +633,7 @@ export const EmployeeManager: React.FC = () => {
                   {/* PIN ยืนยันสิทธิ์ Owner (แสดงเมื่อมีการเปลี่ยนตำแหน่ง หรือเปลี่ยน PIN) */}
                   {(editRole !== targetEmployee.role || editPin.length > 0) && (
                     <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 bg-amber-50/50 dark:bg-amber-950/20 p-3 rounded-2xl border border-amber-200/60 dark:border-amber-900/40">
-                      <label className="block text-xs font-bold text-amber-800 dark:text-amber-300 mb-1.5">
+                      <label className="block text-sm font-bold text-amber-800 dark:text-amber-300 mb-1.5">
                         🔐 กรอก PIN ของคุณเพื่ออนุมัติการเปลี่ยนตำแหน่ง/PIN
                       </label>
                       <div className="relative">
@@ -662,7 +662,7 @@ export const EmployeeManager: React.FC = () => {
                 <div className="flex gap-3 pt-2">
                   <button
                     onClick={resetModal}
-                    className="flex-1 py-2.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-600 dark:text-neutral-300 rounded-xl text-xs font-bold transition cursor-pointer"
+                    className="flex-1 py-2.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-600 dark:text-neutral-300 rounded-xl text-sm font-bold transition cursor-pointer"
                   >
                     ยกเลิก
                   </button>
@@ -674,7 +674,7 @@ export const EmployeeManager: React.FC = () => {
                       (editPin.length > 0 && (editPin.length !== 6 || editPin !== editPinConfirm)) ||
                       ((editRole !== targetEmployee.role || editPin.length > 0) && confirmPin.length !== 6)
                     }
-                    className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-extrabold transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-red-600/20"
+                    className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-extrabold transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-red-600/20 border-none"
                   >
                     {isSaving ? 'กำลังบันทึก...' : '✅ บันทึก'}
                   </button>
@@ -695,13 +695,13 @@ export const EmployeeManager: React.FC = () => {
                   </button>
                 </div>
 
-                <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl p-3 text-xs text-rose-700 dark:text-rose-300 font-semibold">
+                <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl p-3 text-sm text-rose-700 dark:text-rose-300 font-semibold">
                   <p>⚠️ คุณกำลังจะลบพนักงาน <span className="font-extrabold">{targetEmployee.name}</span> ({targetEmployee.role}) ออกจากระบบ</p>
                   <p className="mt-1 text-rose-500 dark:text-rose-400">การลบนี้ไม่สามารถย้อนกลับได้</p>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1.5">🔐 กรุณากรอก PIN ของคุณเพื่อยืนยัน</label>
+                  <label className="block text-sm font-bold text-slate-600 dark:text-neutral-300 mb-1.5">🔐 กรุณากรอก PIN ของคุณเพื่อยืนยัน</label>
                   <div className="relative">
                     <input
                       type={showConfirmPin ? 'text' : 'password'}
@@ -723,13 +723,13 @@ export const EmployeeManager: React.FC = () => {
                 </div>
 
                 <div className="flex gap-3 pt-2">
-                  <button onClick={resetModal} className="flex-1 py-2.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-600 dark:text-neutral-300 rounded-xl text-xs font-bold transition cursor-pointer">
+                  <button onClick={resetModal} className="flex-1 py-2.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-600 dark:text-neutral-300 rounded-xl text-sm font-bold transition cursor-pointer">
                     ยกเลิก
                   </button>
                   <button
                     onClick={handleDeleteEmployee}
                     disabled={isSaving || confirmPin.length !== 6}
-                    className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-extrabold transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-rose-600/20"
+                    className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-extrabold transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-rose-600/20 border-none"
                   >
                     {isSaving ? 'กำลังลบ...' : '🗑️ ยืนยันลบ'}
                   </button>
