@@ -325,7 +325,7 @@ export const PromoManager: React.FC = () => {
                   {/* Category Badge & Active Toggle */}
                   <div className="flex items-center justify-between gap-2">
                     <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-extrabold tracking-wide uppercase ${
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-badge ${
                         p.type === 'percentage'
                           ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/40'
                           : p.type === 'fixed'
@@ -341,7 +341,7 @@ export const PromoManager: React.FC = () => {
 
                     <button
                       onClick={() => toggleActive(p)}
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold transition cursor-pointer ${
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-badge transition cursor-pointer ${
                         p.is_active
                           ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60'
                           : 'bg-slate-100 dark:bg-neutral-800 text-slate-400 dark:text-neutral-500 border border-slate-200/60 dark:border-neutral-700'

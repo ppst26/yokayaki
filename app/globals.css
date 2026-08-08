@@ -70,22 +70,37 @@ body {
     @apply text-base font-normal md:font-medium leading-relaxed;
   }
   .text-caption {
-    @apply text-xs sm:text-sm font-semibold text-slate-500 dark:text-neutral-400 leading-normal;
+    @apply text-xs sm:text-sm font-normal text-slate-700 dark:text-neutral-100 leading-normal;
   }
   .text-micro {
-    @apply text-xs font-semibold uppercase tracking-wider;
+    @apply text-xs font-normal uppercase;
   }
   .text-card-label {
-    @apply text-xs md:text-sm font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500;
+    @apply text-xs md:text-sm font-medium uppercase text-slate-700 dark:text-neutral-100;
   }
   .text-card-sublabel {
-    @apply text-xs font-semibold text-slate-400 dark:text-neutral-500;
+    @apply text-xs font-normal text-slate-700 dark:text-neutral-100;
   }
   .text-card-value {
     @apply text-xl md:text-2xl font-black text-slate-900 dark:text-neutral-100;
   }
   .text-card-unit {
-    @apply text-xs md:text-sm font-bold text-slate-400 dark:text-neutral-500;
+    @apply text-xs md:text-sm font-bold text-slate-700 dark:text-neutral-100;
+  }
+  .text-table-head {
+    @apply text-xs sm:text-sm font-black uppercase tracking-wider text-white;
+  }
+  .text-table-cell {
+    @apply text-sm font-semibold text-slate-800 dark:text-neutral-200;
+  }
+  .text-table-value {
+    @apply text-sm sm:text-base font-black text-red-600 dark:text-red-400;
+  }
+  .text-table-meta {
+    @apply text-xs sm:text-sm font-bold text-slate-500 dark:text-neutral-400;
+  }
+  .text-badge {
+    @apply text-xs font-extrabold uppercase tracking-wider;
   }
   .text-price {
     @apply font-mono tabular-nums;

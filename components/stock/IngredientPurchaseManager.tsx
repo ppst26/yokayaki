@@ -547,27 +547,27 @@ export const IngredientPurchaseManager: React.FC = () => {
                         รายการวัตถุดิบ
                       </p>
                       <Table containerClassName="rounded-none bg-transparent">
-                        <TableHeader className="bg-transparent border-b border-zinc-200 dark:border-zinc-800 text-xs sm:text-sm font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                        <TableHeader className="bg-transparent border-b border-zinc-200 dark:border-zinc-800 text-table-head text-zinc-500 dark:text-zinc-400">
                           <TableRow className="hover:bg-transparent">
-                            <TableHead className="bg-transparent text-zinc-500 dark:text-zinc-400 font-bold p-2 text-xs sm:text-sm">ชื่อวัตถุดิบ</TableHead>
-                            <TableHead className="bg-transparent text-zinc-500 dark:text-zinc-400 font-bold p-2 text-xs sm:text-sm text-center">จำนวน</TableHead>
-                            <TableHead className="bg-transparent text-zinc-500 dark:text-zinc-400 font-bold p-2 text-xs sm:text-sm text-center">หน่วย</TableHead>
-                            <TableHead className="bg-transparent text-zinc-500 dark:text-zinc-400 font-bold p-2 text-xs sm:text-sm text-right">ราคารวม</TableHead>
+                            <TableHead className="bg-transparent text-zinc-500 dark:text-zinc-400 p-2 text-table-head">ชื่อวัตถุดิบ</TableHead>
+                            <TableHead className="bg-transparent text-zinc-500 dark:text-zinc-400 p-2 text-table-head text-center">จำนวน</TableHead>
+                            <TableHead className="bg-transparent text-zinc-500 dark:text-zinc-400 p-2 text-table-head text-center">หน่วย</TableHead>
+                            <TableHead className="bg-transparent text-zinc-500 dark:text-zinc-400 p-2 text-table-head text-right">ราคารวม</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {(expandedItems[order.id] || []).map(item => (
                             <TableRow key={item.id}>
-                              <TableCell className="font-bold text-zinc-900 dark:text-zinc-100 text-sm">
+                              <TableCell className="font-bold text-zinc-900 dark:text-zinc-100 text-table-cell">
                                 {item.name}
                               </TableCell>
-                              <TableCell className="text-center text-zinc-700 dark:text-zinc-300 font-semibold text-sm">
+                              <TableCell className="text-center text-zinc-700 dark:text-zinc-300 text-table-cell">
                                 {item.quantity}
                               </TableCell>
-                              <TableCell className="text-center text-zinc-500 dark:text-zinc-400 font-semibold text-sm">
+                              <TableCell className="text-center text-zinc-500 dark:text-zinc-400 text-table-cell">
                                 {item.unit}
                               </TableCell>
-                              <TableCell className="text-right font-black text-red-600 dark:text-red-400 text-sm">
+                              <TableCell className="text-right text-table-value">
                                 {item.cost.toLocaleString()} ฿
                               </TableCell>
                             </TableRow>
@@ -577,10 +577,10 @@ export const IngredientPurchaseManager: React.FC = () => {
 
                       {/* Detail footer */}
                       <div className="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800/80 flex justify-between items-center">
-                        <span className="text-xs sm:text-sm font-bold text-zinc-400 dark:text-zinc-500">
+                        <span className="text-table-meta">
                           {(expandedItems[order.id] || []).length} รายการวัตถุดิบ
                         </span>
-                        <span className="text-base font-black text-red-600 dark:text-red-400">
+                        <span className="text-table-value text-base">
                           รวม {order.total_cost.toLocaleString()} ฿
                         </span>
                       </div>

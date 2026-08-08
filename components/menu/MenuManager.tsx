@@ -318,9 +318,9 @@ export const MenuManager: React.FC = () => {
                       </div>
                     )}
                   </TableCell>
-                  <TableCell className="font-extrabold text-zinc-900 dark:text-zinc-100 text-sm sm:text-base">{item.name}</TableCell>
+                  <TableCell className="font-extrabold text-zinc-900 dark:text-zinc-100 text-table-cell">{item.name}</TableCell>
                   <TableCell>
-                    <span className="bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2.5 py-1 rounded-lg text-xs font-extrabold">
+                    <span className="bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2.5 py-1 rounded-lg text-badge">
                       {item.category || 'ทั่วไป'}
                     </span>
                   </TableCell>
@@ -355,7 +355,7 @@ export const MenuManager: React.FC = () => {
                       </button>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right font-black text-red-600 dark:text-red-400 text-base">
+                  <TableCell className="text-right text-table-value text-base">
                     {item.price.toLocaleString()} ฿
                   </TableCell>
                   <TableCell>

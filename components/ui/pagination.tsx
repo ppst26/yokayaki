@@ -48,7 +48,7 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
             triggerClassName="w-full bg-white dark:bg-neutral-900 border border-slate-300 dark:border-neutral-700 hover:bg-slate-50 dark:hover:bg-neutral-800 rounded-xl px-3 py-1.5 text-sm font-black text-slate-800 dark:text-neutral-100 shadow-2xs transition flex items-center justify-between cursor-pointer gap-1.5"
           />
         </div>
-        <span className="text-xs sm:text-sm font-bold text-slate-500 dark:text-neutral-400">
+        <span className="text-table-meta">
           (ทั้งหมด {totalItems} รายการ)
         </span>
       </div>

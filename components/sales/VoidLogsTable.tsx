@@ -59,18 +59,18 @@ export const VoidLogsTable: React.FC<VoidLogsTableProps> = ({
       <TableBody>
         {voidLogs.map(log => (
           <TableRow key={log.id}>
-            <TableCell className="text-slate-500 dark:text-neutral-400">{formatTime(log.created_at)} น.</TableCell>
-            <TableCell className="font-bold text-slate-900 dark:text-neutral-100">{log.menu_name}</TableCell>
-            <TableCell className="text-center font-bold">{log.quantity}</TableCell>
-            <TableCell className="text-right font-extrabold text-rose-600 dark:text-rose-400">
+            <TableCell className="text-table-meta">{formatTime(log.created_at)} น.</TableCell>
+            <TableCell className="font-extrabold text-slate-900 dark:text-neutral-100 text-table-cell">{log.menu_name}</TableCell>
+            <TableCell className="text-center font-bold text-table-cell">{log.quantity}</TableCell>
+            <TableCell className="text-right text-table-value text-rose-600 dark:text-rose-400">
               {Number(log.total_amount).toLocaleString()} ฿
             </TableCell>
             <TableCell>
-              <span className="bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 px-2.5 py-1 rounded-md text-xs font-semibold">
+              <span className="bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 px-2.5 py-1 rounded-md text-badge">
                 {log.reason}
               </span>
             </TableCell>
-            <TableCell className="text-slate-600 dark:text-neutral-300">{log.employee_name}</TableCell>
+            <TableCell className="text-table-cell">{log.employee_name}</TableCell>
           </TableRow>
         ))}
       </TableBody>
