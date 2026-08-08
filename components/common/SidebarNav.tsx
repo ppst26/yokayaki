@@ -94,7 +94,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
 
         <button
           onClick={() => setIsMobileMenuOpen(true)}
-          className="p-2 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 border border-red-200/80 dark:border-red-900/50 rounded-xl transition-all duration-200 active:scale-90 hover:scale-105 cursor-pointer shadow-xs"
+          className="p-1.5 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-all duration-200 active:scale-90 cursor-pointer"
           aria-label="Open navigation menu"
         >
           <Menu className="w-6 h-6 stroke-[2.5]" />
