@@ -5,7 +5,7 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
     <div className="relative w-full overflow-x-auto rounded-t-2xl sm:rounded-t-3xl rounded-b-none bg-white dark:bg-neutral-900 border-none shadow-none">
       <table
-        className={cn("w-full text-left border-collapse", className)}
+        className={cn("w-full min-w-full text-left border-collapse", className)}
         {...props}
       />
     </div>
@@ -52,7 +52,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   return (
     <th
       className={cn(
-        "p-3.5 sm:p-4 bg-neutral-800 text-white font-black rounded-none align-middle",
+        "p-3.5 sm:p-4 bg-neutral-800 text-white font-black rounded-none align-middle whitespace-nowrap",
         className
       )}
       {...props}
@@ -63,7 +63,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
 function TableCell({ className, ...props }: React.ComponentProps<"td">) {
   return (
     <td
-      className={cn("p-3.5 sm:p-4 align-middle", className)}
+      className={cn("p-3.5 sm:p-4 align-middle whitespace-nowrap", className)}
       {...props}
     />
   );
