@@ -56,7 +56,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   return (
     <th
       className={cn(
-        "p-3.5 sm:p-4 bg-neutral-800 text-white font-black rounded-none align-middle whitespace-nowrap",
+        "p-3.5 sm:p-4 bg-neutral-800 text-white font-black align-middle whitespace-nowrap first:rounded-tl-sm last:rounded-tr-sm",
         className
       )}
       {...props}

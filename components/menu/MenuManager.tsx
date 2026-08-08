@@ -291,7 +291,7 @@ export const MenuManager: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          <Table containerClassName="-mx-4 md:mx-0 w-[calc(100%+2rem)] md:w-full rounded-none md:rounded-t-2xl sm:md:rounded-t-3xl">
+          <Table containerClassName="-mx-4 md:mx-0 w-[calc(100%+2rem)] md:w-full rounded-sm">
             <TableHeader>
               <TableRow>
                 <TableHead>รูปภาพ</TableHead>
