@@ -9,11 +9,12 @@
 ## 🔤 0. Typography Font Size Standard (มาตรฐานขนาดตัวหนังสือ +2 ถึง +4px)
 
 - **Menu Buttons & Navigation Links:** เปลี่ยนจาก `12px (text-xs)` -> **`14px (text-sm)`**  
-- **Page Subtitles & Descriptions:** เปลี่ยนจาก `12px (text-caption)` -> **`14px (text-caption)`**  
+- **Page Subtitles & Descriptions:** ใช้คลาสส่วนกลาง **`text-caption`** (`text-xs sm:text-sm font-semibold text-slate-500 dark:text-neutral-400 leading-normal`) ครบถ้วนทั้ง 9 หน้าจอหลัก  
 - **Body & Paragraph Texts (`p`, `span`, `li`):** เปลี่ยนจาก `14px (text-sm)` -> **`16px (text-base)`**  
 - **Section Headers & Small Badges (`text-micro`):** เปลี่ยนจาก `10-11px` -> **`12px (text-xs)`**
 
 ### 📦 Reusable Card Typography Utility Classes (สไตล์ส่วนกลาง reusable ใน `globals.css`):
+- `.text-caption` -> `text-xs sm:text-sm font-semibold text-slate-500 dark:text-neutral-400 leading-normal` (ใช้กับคำอธิบายหัวข้อทุกหน้าจอ)
 - `.text-card-label` -> `text-xs md:text-sm font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500` (ใช้กับหัวข้อการ์ด KPI ทุกใบ)
 - `.text-card-sublabel` -> `text-xs font-semibold text-slate-400 dark:text-neutral-500` (ใช้กับคำอธิบายการ์ด)
 - `.text-card-value` -> `text-xl md:text-2xl font-black text-slate-900 dark:text-neutral-100` (ใช้กับตัวเลขสรุปผล)
