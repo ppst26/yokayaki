@@ -32,7 +32,7 @@ export const DateFilterBar: React.FC<DateFilterBarProps> = ({
   return (
     <div className="space-y-2.5 w-full">
       {/* Header & Segmented Control Container */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+      <div className="flex items-center justify-between gap-2 w-full">
         <div className="flex items-center gap-1.5 text-slate-500 dark:text-neutral-400 shrink-0">
           <Calendar className="w-4 h-4 text-red-600 dark:text-red-400" />
           <span className="text-[11px] font-black uppercase tracking-wider text-slate-700 dark:text-neutral-200">
@@ -40,9 +40,9 @@ export const DateFilterBar: React.FC<DateFilterBarProps> = ({
           </span>
         </div>
 
-        {/* Badges Container: Inactive = White, Active = Red (Right-aligned) */}
-        <div className="flex items-center justify-start sm:justify-end gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-0.5 w-full sm:w-auto">
-          {PRESETS.map(preset => {
+        {/* Badges Container: Right-aligned using ml-auto */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-0.5 min-w-0">
+          {PRESETS.map((preset, index) => {
             const isActive = datePreset === preset.value;
             return (
               <button
@@ -50,6 +50,8 @@ export const DateFilterBar: React.FC<DateFilterBarProps> = ({
                 type="button"
                 onClick={() => onPresetChange(preset.value)}
                 className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all duration-200 whitespace-nowrap cursor-pointer shrink-0 shadow-2xs ${
+                  index === 0 ? 'ml-auto' : ''
+                } ${
                   isActive
                     ? 'bg-red-600 text-white shadow-sm shadow-red-600/20 scale-100'
                     : 'bg-white dark:bg-neutral-900 text-slate-600 dark:text-neutral-300 border border-slate-200/60 dark:border-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-800'
