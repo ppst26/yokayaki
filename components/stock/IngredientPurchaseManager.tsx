@@ -546,25 +546,25 @@ export const IngredientPurchaseManager: React.FC = () => {
                       <p className="text-card-label mb-3">
                         รายการวัตถุดิบ
                       </p>
-                      <Table containerClassName="rounded-none bg-transparent">
-                        <TableHeader className="bg-transparent border-b border-zinc-200 dark:border-zinc-800 text-table-head text-zinc-500 dark:text-zinc-400">
-                          <TableRow className="hover:bg-transparent">
-                            <TableHead className="bg-transparent text-zinc-500 dark:text-zinc-400 p-2 text-table-head">ชื่อวัตถุดิบ</TableHead>
-                            <TableHead className="bg-transparent text-zinc-500 dark:text-zinc-400 p-2 text-table-head text-center">จำนวน</TableHead>
-                            <TableHead className="bg-transparent text-zinc-500 dark:text-zinc-400 p-2 text-table-head text-center">หน่วย</TableHead>
-                            <TableHead className="bg-transparent text-zinc-500 dark:text-zinc-400 p-2 text-table-head text-right">ราคารวม</TableHead>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>ชื่อวัตถุดิบ</TableHead>
+                            <TableHead className="text-center">จำนวน</TableHead>
+                            <TableHead className="text-center">หน่วย</TableHead>
+                            <TableHead className="text-right">ราคารวม</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {(expandedItems[order.id] || []).map(item => (
                             <TableRow key={item.id}>
-                              <TableCell className="font-bold text-zinc-900 dark:text-zinc-100 text-table-cell">
+                              <TableCell className="font-bold text-zinc-900 dark:text-zinc-100">
                                 {item.name}
                               </TableCell>
-                              <TableCell className="text-center text-zinc-700 dark:text-zinc-300 text-table-cell">
+                              <TableCell className="text-center text-zinc-700 dark:text-zinc-300">
                                 {item.quantity}
                               </TableCell>
-                              <TableCell className="text-center text-zinc-500 dark:text-zinc-400 text-table-cell">
+                              <TableCell className="text-center text-zinc-500 dark:text-zinc-400">
                                 {item.unit}
                               </TableCell>
                               <TableCell className="text-right text-table-value">
