@@ -205,10 +205,10 @@ export const SalesChart: React.FC<SalesChartProps> = ({ startDate, endDate, refr
             </div>
 
             {/* Bars Wrapper Container (Scrollable when many bars) */}
-            <div className="pl-10 w-full overflow-x-auto no-scrollbar scroll-smooth relative z-10 pt-6 pb-0.5">
+            <div className="pl-10 w-full overflow-x-auto no-scrollbar scroll-smooth relative z-10 pt-12 pb-0.5">
               <div className={`flex items-end gap-1.5 sm:gap-2.5 h-[160px] ${isManyBars ? 'min-w-[640px]' : 'w-full'}`}>
                 {bars.map((bar, idx) => {
-                  const heightPercent = bar.revenue > 0 ? Math.max(8, (bar.revenue / yMax) * 100) : 3;
+                  const heightPercent = bar.revenue > 0 ? Math.max(8, (bar.revenue / yMax) * 82) : 3;
                   const isHovered = hoveredIdx === idx;
                   const isPeak = hasSales && idx === peakIdx && bar.revenue > 0;
 
