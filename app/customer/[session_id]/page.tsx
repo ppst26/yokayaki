@@ -79,6 +79,7 @@ export default function CustomerOrderPortal() {
   const [noteEditTarget, setNoteEditTarget] = useState<{ index: number; notes: string } | null>(null);
 
   const [tableStatus, setTableStatus] = useState<'vacant' | 'occupied' | 'checking_out'>('occupied');
+  const [isCheckoutCompleted, setIsCheckoutCompleted] = useState(false);
   const [showCheckBillConfirm, setShowCheckBillConfirm] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
@@ -88,7 +89,7 @@ export default function CustomerOrderPortal() {
     }
   }, [sessionId]);
 
-  // Realtime subscriptions for table status, order items, and menu changes
+  // Realtime subscriptions for table status, qr_session status, orders status, order items, and menu changes
   useEffect(() => {
     if (!tableId) return;
 
@@ -100,13 +101,45 @@ export default function CustomerOrderPortal() {
         { event: 'UPDATE', schema: 'public', table: 'tables', filter: `id=eq.${tableId}` },
         (payload) => {
           if (payload.new && payload.new.status) {
-            setTableStatus(payload.new.status as 'vacant' | 'occupied' | 'checking_out');
+            const newStatus = payload.new.status as 'vacant' | 'occupied' | 'checking_out';
+            setTableStatus(newStatus);
+            if (newStatus === 'vacant') {
+              setIsCheckoutCompleted(true);
+            }
           }
         }
       )
       .subscribe();
 
-    // 2. Listen to order_items changes (e.g. kitchen marks item as served or voided)
+    // 2. Listen to qr_sessions status changes (e.g. expired)
+    const sessionChannel = supabase
+      .channel(`realtime:customer_session_${sessionId}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'qr_sessions', filter: `id=eq.${sessionId}` },
+        (payload) => {
+          if (payload.new && payload.new.status === 'expired') {
+            setIsCheckoutCompleted(true);
+          }
+        }
+      )
+      .subscribe();
+
+    // 3. Listen to orders status changes (e.g. completed)
+    const ordersChannel = supabase
+      .channel(`realtime:customer_orders_${tableId}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'orders', filter: `table_id=eq.${tableId}` },
+        (payload) => {
+          if (payload.new && payload.new.status === 'completed') {
+            setIsCheckoutCompleted(true);
+          }
+        }
+      )
+      .subscribe();
+
+    // 4. Listen to order_items changes (e.g. kitchen marks item as served or voided)
     const orderItemsChannel = supabase
       .channel(`realtime:customer_order_items_${tableId}`)
       .on(
@@ -118,7 +151,7 @@ export default function CustomerOrderPortal() {
       )
       .subscribe();
 
-    // 3. Listen to menu_items changes (e.g. stock or price update)
+    // 5. Listen to menu_items changes (e.g. stock or price update)
     const menuChannel = supabase
       .channel(`realtime:customer_menu_items`)
       .on(
@@ -136,10 +169,12 @@ export default function CustomerOrderPortal() {
 
     return () => {
       tableChannel.unsubscribe();
+      sessionChannel.unsubscribe();
+      ordersChannel.unsubscribe();
       orderItemsChannel.unsubscribe();
       menuChannel.unsubscribe();
     };
-  }, [tableId]);
+  }, [tableId, sessionId]);
 
   const verifySessionAndFetchData = async () => {
     try {
@@ -156,11 +191,13 @@ export default function CustomerOrderPortal() {
       if (sessionError) throw sessionError;
       
       if (!sessionData || sessionData.status !== 'active') {
+        setIsCheckoutCompleted(true);
         setSessionValid(false);
         return;
       }
 
       if (sessionData.expired_at && new Date(sessionData.expired_at) < new Date()) {
+        setIsCheckoutCompleted(true);
         setSessionValid(false);
         return;
       }
@@ -175,7 +212,13 @@ export default function CustomerOrderPortal() {
         .eq('id', sessionData.table_id)
         .maybeSingle();
 
-      if (tableData) setTableStatus(tableData.status as 'vacant' | 'occupied' | 'checking_out');
+      if (tableData) {
+        const currentStatus = tableData.status as 'vacant' | 'occupied' | 'checking_out';
+        setTableStatus(currentStatus);
+        if (currentStatus === 'vacant') {
+          setIsCheckoutCompleted(true);
+        }
+      }
 
       // 2. Fetch Menu
       const { data: menuData, error: menuError } = await supabase
@@ -399,6 +442,53 @@ export default function CustomerOrderPortal() {
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
         <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
         <p className="text-slate-600 mt-4 font-bold text-sm animate-pulse">กำลังดาวน์โหลดเมนู Yokayaki...</p>
+      </div>
+    );
+  }
+
+  // Render Thank You / Checkout Completed Screen (Light Theme)
+  if (isCheckoutCompleted || tableStatus === 'vacant') {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center font-sans animate-fade-in">
+        <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-xl max-w-sm w-full flex flex-col items-center space-y-4 relative overflow-hidden">
+          {/* Top Decorative Banner */}
+          <div className="absolute top-0 inset-x-0 h-3 bg-gradient-to-r from-red-600 via-rose-500 to-orange-500" />
+          
+          <div className="w-20 h-20 bg-emerald-50 border-2 border-emerald-200 rounded-full flex items-center justify-center text-emerald-600 shadow-md shadow-emerald-500/10 animate-bounce">
+            <CheckCircle2 className="w-10 h-10 stroke-[2.5]" />
+          </div>
+
+          <div className="space-y-1 pt-1">
+            <span className="inline-block px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-black tracking-wide uppercase">
+              ชำระเงินเรียบร้อยแล้ว
+            </span>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight pt-2">
+              ขอบคุณที่ใช้บริการ!
+            </h1>
+            <p className="text-slate-500 text-xs font-semibold">
+              Yokayaki Izakaya • โต๊ะ {tableId || ''}
+            </p>
+          </div>
+
+          <div className="w-full bg-slate-50 border border-slate-200/80 rounded-2xl p-4 text-slate-600 text-xs font-medium leading-relaxed space-y-2 text-left">
+            <div className="flex items-center gap-2 text-slate-900 font-bold border-b border-slate-200 pb-2">
+              <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+              <span>ทางร้านได้รับการชำระเงินเรียบร้อยแล้ว</span>
+            </div>
+            <p className="text-slate-500 text-[11px] leading-relaxed pt-1">
+              ขอบพระคุณลูกค้าที่มาร่วมรับประทานอาหารกับ Yokayaki ครับ หวังว่าจะได้รับความไว้วางใจและมีโอกาสให้บริการท่านอีกครั้งครับ 🙏
+            </p>
+          </div>
+
+          <div className="w-full pt-2">
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition cursor-pointer"
+            >
+              รีเฟรช / สแกนโต๊ะใหม่
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
