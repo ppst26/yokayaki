@@ -1,9 +1,23 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { BarChart3, TrendingUp, Sparkles } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from '@/components/ui/chart';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Cell,
+} from 'recharts';
 
 interface SalesChartProps {
   startDate: Date;
@@ -19,11 +33,16 @@ interface ChartBar {
   billCount: number;
 }
 
+const chartConfig = {
+  revenue: {
+    label: "ยอดขายสุทธิ",
+    color: "#dc2626",
+  },
+} satisfies ChartConfig;
+
 export const SalesChart: React.FC<SalesChartProps> = ({ startDate, endDate, refreshKey }) => {
   const [bars, setBars] = useState<ChartBar[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
-  const chartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchSalesData = async () => {
@@ -63,7 +82,6 @@ export const SalesChart: React.FC<SalesChartProps> = ({ startDate, endDate, refr
             const hourKey = `hour_${h}`;
             let slot = generatedBars.find(s => s.key === hourKey);
             if (!slot) {
-              // กรณีมีออเดอร์นอกเวลา 17-23 (เช่น 16:00 หรือ 00:00) ให้เพิ่มสล็อตอัตโนมัติ
               slot = {
                 key: hourKey,
                 label: `${h.toString().padStart(2, '0')}:00`,
@@ -76,7 +94,6 @@ export const SalesChart: React.FC<SalesChartProps> = ({ startDate, endDate, refr
             slot.billCount++;
           });
 
-          // จัดเรียงสล็อตชั่วโมงตามลำดับ
           generatedBars.sort((a, b) => parseInt(a.key.replace('hour_', '')) - parseInt(b.key.replace('hour_', '')));
         } else if (diffDays <= 7) {
           // 2. สัปดาห์นี้: 7 สล็อตวัน (จันทร์ - อาทิตย์)
@@ -149,15 +166,8 @@ export const SalesChart: React.FC<SalesChartProps> = ({ startDate, endDate, refr
     fetchSalesData();
   }, [startDate, endDate, refreshKey]);
 
-  const maxRevenue = Math.max(...bars.map(b => b.revenue), 1);
   const peakIdx = bars.reduce((maxI, b, idx, arr) => (b.revenue > (arr[maxI]?.revenue || 0) ? idx : maxI), 0);
-  const hasSales = bars.some(b => b.revenue > 0);
-
-  // คำนวณแกน Y อัตโนมัติ
-  const yStep = Math.ceil(maxRevenue / 4 / 100) * 100 || 250;
-  const yMax = yStep * 4;
-  const gridLines = Array.from({ length: 5 }, (_, i) => yStep * i);
-
+  const totalRevenue = bars.reduce((s, b) => s + b.revenue, 0);
   const isManyBars = bars.length > 10;
 
   return (
@@ -173,12 +183,12 @@ export const SalesChart: React.FC<SalesChartProps> = ({ startDate, endDate, refr
               ภาพรวมยอดขาย
             </span>
             <span className="text-[10px] font-bold text-slate-400 dark:text-neutral-500">
-              {bars.length} แท่ง • ยอดรวม ฿{bars.reduce((s, b) => s + b.revenue, 0).toLocaleString()}
+              {bars.length} แท่ง • ยอดรวม ฿{totalRevenue.toLocaleString()}
             </span>
           </div>
         </div>
-        <span className="text-[10px] font-extrabold text-slate-400 dark:text-neutral-500 uppercase tracking-wider bg-slate-100 dark:bg-neutral-800 px-2.5 py-1 rounded-full">
-          Bar Chart
+        <span className="text-[10px] font-extrabold text-slate-500 dark:text-neutral-400 uppercase tracking-wider bg-slate-100 dark:bg-neutral-800 px-2.5 py-1 rounded-full">
+          Shadcn Chart
         </span>
       </div>
 
@@ -188,89 +198,58 @@ export const SalesChart: React.FC<SalesChartProps> = ({ startDate, endDate, refr
           <div className="w-8 h-8 border-3 border-red-600 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
-        <div className="flex-1 flex flex-col justify-end min-h-[190px] relative">
-          {/* Main Container: Y-Axis + Bars */}
-          <div className="flex items-end flex-1 relative" ref={chartRef}>
-            
-            {/* Fixed Y-Axis Labels & Dashed Lines */}
-            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none z-0">
-              {gridLines.slice().reverse().map((val, i) => (
-                <div key={i} className="flex items-center w-full">
-                  <span className="text-[9px] font-bold text-slate-400 dark:text-neutral-500 w-9 text-right pr-1.5 shrink-0">
-                    {val >= 1000 ? `${(val / 1000).toFixed(val % 1000 === 0 ? 0 : 1)}k` : val}
-                  </span>
-                  <div className="flex-1 border-t border-dashed border-slate-200/80 dark:border-neutral-800/80" />
-                </div>
-              ))}
-            </div>
-
-            {/* Bars Wrapper Container (Scrollable when many bars) */}
-            <div className="pl-10 w-full overflow-x-auto no-scrollbar scroll-smooth relative z-10 pt-12 pb-0.5">
-              <div className={`flex items-end gap-1.5 sm:gap-2.5 h-[160px] ${isManyBars ? 'min-w-[640px]' : 'w-full'}`}>
-                {bars.map((bar, idx) => {
-                  const heightPercent = bar.revenue > 0 ? Math.max(8, (bar.revenue / yMax) * 82) : 3;
-                  const isHovered = hoveredIdx === idx;
-                  const isPeak = hasSales && idx === peakIdx && bar.revenue > 0;
-
-                  return (
-                    <div
-                      key={bar.key}
-                      className="flex-1 flex flex-col items-center justify-end h-full relative group cursor-pointer"
-                      onMouseEnter={() => setHoveredIdx(idx)}
-                      onMouseLeave={() => setHoveredIdx(null)}
-                      onClick={() => setHoveredIdx(hoveredIdx === idx ? null : idx)}
-                    >
-                      {/* Tooltip on Hover / Touch */}
-                      {isHovered && (
-                        <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-30 bg-slate-900 dark:bg-neutral-100 text-white dark:text-neutral-900 rounded-xl px-3 py-1.5 text-center whitespace-nowrap shadow-xl pointer-events-none animate-in fade-in-50 zoom-in-95 duration-100">
-                          <p className="text-[11px] font-black leading-tight">฿{bar.revenue.toLocaleString()}</p>
-                          <p className="text-[9px] font-extrabold opacity-75">{bar.billCount} บิล ({bar.label})</p>
-                          <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-slate-900 dark:border-t-neutral-100" />
-                        </div>
-                      )}
-
-                      {/* Peak Sales Indicator Icon */}
-                      {isPeak && !isHovered && (
-                        <div className="absolute bottom-full mb-1 text-red-500 animate-bounce">
-                          <Sparkles className="w-3 h-3 fill-red-500" />
-                        </div>
-                      )}
-
-                      {/* Bar Pillar */}
-                      <div
-                        className={`w-full rounded-t-lg transition-all duration-300 ${
-                          bar.revenue > 0
-                            ? isPeak
-                              ? 'bg-gradient-to-t from-red-600 via-rose-500 to-amber-400 shadow-xs shadow-red-500/30'
-                              : 'bg-gradient-to-t from-red-600 to-rose-400 hover:from-red-700 hover:to-rose-500'
-                            : 'bg-slate-200/70 dark:bg-neutral-800/80 hover:bg-slate-300 dark:hover:bg-neutral-700'
-                        } ${isHovered ? 'ring-2 ring-red-400 dark:ring-red-500 ring-offset-1 scale-x-105' : ''}`}
-                        style={{ height: `${heightPercent}%` }}
-                      />
-
-                      {/* X-Axis Label */}
-                      <div className="mt-1.5 text-center w-full">
-                        <span className={`block text-[10px] font-black truncate leading-none ${
-                          isHovered
-                            ? 'text-red-600 dark:text-red-400 font-extrabold'
-                            : isPeak
-                            ? 'text-red-500 dark:text-red-400'
-                            : 'text-slate-500 dark:text-neutral-400'
-                        }`}>
-                          {bar.label}
-                        </span>
-                        {bar.subLabel && (
-                          <span className="block text-[8px] font-bold text-slate-400 dark:text-neutral-500 mt-0.5 leading-none">
-                            {bar.subLabel}
-                          </span>
+        <div className="flex-1 flex flex-col justify-end min-h-[220px] relative">
+          <div className={`w-full ${isManyBars ? 'overflow-x-auto no-scrollbar scroll-smooth' : ''}`}>
+            <div className={`h-[210px] ${isManyBars ? 'min-w-[650px]' : 'w-full'}`}>
+              <ChartContainer config={chartConfig} className="h-full w-full">
+                <BarChart data={bars} margin={{ top: 12, right: 8, left: -16, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-slate-200/80 dark:stroke-neutral-800/80" />
+                  <XAxis
+                    dataKey="label"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    className="text-[10px] font-bold fill-slate-500 dark:fill-neutral-400"
+                  />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={4}
+                    tickFormatter={(val) => (val >= 1000 ? `${(val / 1000).toFixed(val % 1000 === 0 ? 0 : 1)}k` : val)}
+                    className="text-[9px] font-bold fill-slate-400 dark:fill-neutral-500"
+                  />
+                  <ChartTooltip
+                    cursor={{ fill: 'rgba(0, 0, 0, 0.04)' }}
+                    content={
+                      <ChartTooltipContent
+                        formatter={(val, _name, item) => (
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-xs font-black text-red-600 dark:text-red-400">
+                              ฿{Number(val).toLocaleString()}
+                            </span>
+                            <span className="text-[10px] font-bold text-slate-500 dark:text-neutral-400">
+                              {item.payload.billCount} บิล ({item.payload.label})
+                            </span>
+                          </div>
                         )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                      />
+                    }
+                  />
+                  <Bar dataKey="revenue" radius={[6, 6, 0, 0]}>
+                    {bars.map((entry, index) => {
+                      const isPeak = index === peakIdx && entry.revenue > 0;
+                      return (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={isPeak ? '#ef4444' : entry.revenue > 0 ? '#dc2626' : '#e2e8f0'}
+                          className="transition-all duration-200 hover:opacity-80 cursor-pointer"
+                        />
+                      );
+                    })}
+                  </Bar>
+                </BarChart>
+              </ChartContainer>
             </div>
-
           </div>
         </div>
       )}
