@@ -15,12 +15,17 @@
 - **Table Cells (`TableBody` / `TableCell`):** ขยายจาก `12px (text-xs)` -> **`14px (text-sm) font-semibold`**  
 - **Table Pagination (`TablePagination`):** ขยายคำว่า "แสดงหน้า:", จำนวนรายการ และ "หน้า 1/2" เป็น **`14px (text-sm)`**  
 
-### 📦 Reusable Card Typography Utility Classes (สไตล์ส่วนกลาง reusable ใน `globals.css`):
-- `.text-caption` -> `text-xs sm:text-sm font-semibold text-slate-500 dark:text-neutral-400 leading-normal` (ใช้กับคำอธิบายหัวข้อทุกหน้าจอ)
-- `.text-card-label` -> `text-xs md:text-sm font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500` (ใช้กับหัวข้อการ์ด KPI ทุกใบ)
-- `.text-card-sublabel` -> `text-xs font-semibold text-slate-400 dark:text-neutral-500` (ใช้กับคำอธิบายการ์ด)
-- `.text-card-value` -> `text-xl md:text-2xl font-black text-slate-900 dark:text-neutral-100` (ใช้กับตัวเลขสรุปผล)
-- `.text-card-unit` -> `text-xs md:text-sm font-bold text-slate-400 dark:text-neutral-500` (ใช้กับหน่วยบาท/บิล/จาน)
+### 📦 Reusable Typography Utility Classes (สไตล์ส่วนกลาง reusable ใน `globals.css`):
+- `.text-caption` -> `text-xs sm:text-sm font-semibold text-slate-500 dark:text-neutral-400 leading-normal` (คำอธิบายหัวข้อทุกหน้า)
+- `.text-card-label` -> `text-xs md:text-sm font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500` (หัวข้อการ์ด KPI)
+- `.text-card-sublabel` -> `text-xs font-semibold text-slate-400 dark:text-neutral-500` (คำอธิบายการ์ด)
+- `.text-card-value` -> `text-xl md:text-2xl font-black text-slate-900 dark:text-neutral-100` (ตัวเลขสรุปผลการ์ด)
+- `.text-card-unit` -> `text-xs md:text-sm font-bold text-slate-400 dark:text-neutral-500` (หน่วยบาท/บิล/จาน)
+- `.text-table-head` -> `text-xs sm:text-sm font-black uppercase tracking-wider text-white` (หัวตารางทุกตัว)
+- `.text-table-cell` -> `text-sm font-semibold text-slate-800 dark:text-neutral-200` (ข้อความในช่องตาราง)
+- `.text-table-value` -> `text-sm sm:text-base font-black text-red-600 dark:text-red-400` (ยอดเงิน/ตัวเลขในตาราง)
+- `.text-table-meta` -> `text-xs sm:text-sm font-bold text-slate-500 dark:text-neutral-400` (รายละเอียด/ตัวนับล่างตาราง)
+- `.text-badge` -> `text-xs font-extrabold uppercase tracking-wider` (ป้ายกำกับ/สถานะทุกชนิด)
 
 ---
 
