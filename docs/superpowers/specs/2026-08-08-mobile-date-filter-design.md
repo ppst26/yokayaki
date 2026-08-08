@@ -1,47 +1,36 @@
-# 📅 Design Spec: Mobile Date Filter Clean UI Redesign
+# Mobile Date Filter UI Redesign — Segmented Control & Capsule Date Picker
 
-**Date:** 2026-08-08  
-**Target File:** `components/dashboard/DateFilterBar.tsx`
-
----
-
-## 🎯 Problem Statement
-Currently, the date filter bar (`DateFilterBar.tsx`) renders 7 pill buttons ("วันนี้", "เมื่อวาน", "สัปดาห์นี้", "เดือนนี้", "3 เดือน", "6 เดือน", "กำหนดเอง") using flex-wrap. On mobile devices (<640px), these buttons break into 3-4 vertical rows, taking up excessive vertical screen space before the user can see any dashboard KPI cards or charts.
+## Overview
+Redesign the `DateFilterBar` component on mobile screens (`< 640px`) to use a sleek **Segmented Control** tab bar for preset options and a **Capsule-style Floating Badge Date Picker** when custom date range is selected.
 
 ---
 
-## 💡 Proposed Solution
-Implement a responsive date filter bar layout:
-1. **Mobile Layout (`<640px` / `sm:hidden`)**:
-   - Collapse the 7 preset buttons into a single `<CustomSelect>` dropdown component (e.g. `[ 📅 วันนี้ ▾ ]`).
-   - When "กำหนดเอง" (`custom`) is selected, reveal a compact, modern date range picker inline below the dropdown (`เริ่ม` / `ถึง` inputs).
-2. **Desktop Layout (`≥640px` / `hidden sm:flex`)**:
-   - Maintain the horizontal pill buttons row for fast 1-click preset switching on desktop.
+## Proposed Layout & Design System
+
+### 1. Segmented Control Filter Tabs
+- Container: `bg-slate-100 dark:bg-neutral-800/80 p-1 rounded-2xl`
+- Scrollable/Flex container for preset options (`วันนี้`, `เมื่อวาน`, `สัปดาห์นี้`, `เดือนนี้`, `3 เดือน`, `6 เดือน`, `กำหนดเอง`).
+- Active Preset: `bg-white dark:bg-neutral-900 text-red-600 dark:text-red-400 shadow-xs font-black rounded-xl transition-all duration-200`
+- Inactive Preset: `text-slate-500 dark:text-neutral-400 font-bold hover:text-slate-800 dark:hover:text-neutral-200`
+
+### 2. Custom Date Range Pickers (Capsule Style)
+When `datePreset === 'custom'`:
+- Renders a clean floating capsule container (`bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-700/80 rounded-2xl p-2.5 shadow-xs transition-all animate-in fade-in-50 zoom-in-95`).
+- Grid/Flex layout of two date input capsules:
+  - Start Date: `[ 📅 เริ่มต้น: YYYY-MM-DD ]`
+  - Separator arrow: `➔`
+  - End Date: `[ 📅 สิ้นสุด: YYYY-MM-DD ]`
+- Enhanced date input styling with `cursor-pointer font-bold text-xs` and clean borders.
 
 ---
 
-## 🛠️ Detailed Component Changes
-
-### 1. `components/dashboard/DateFilterBar.tsx`
-- **Imports**:
-  - Add `CustomSelect` from `@/components/ui/select`.
-- **Mobile Render Container (`block sm:hidden`)**:
-  - Single row containing `<CustomSelect>` initialized with options:
-    - `วันนี้` (`today`)
-    - `เมื่อวาน` (`yesterday`)
-    - `สัปดาห์นี้` (`this_week`)
-    - `เดือนนี้` (`this_month`)
-    - `3 เดือน` (`3_months`)
-    - `6 เดือน` (`6_months`)
-    - `กำหนดเอง` (`custom`)
-  - When `datePreset === 'custom'`, render a clean inline date picker card with styled `<input type="date">` fields for start and end dates.
-- **Desktop Render Container (`hidden sm:flex`)**:
-  - Retain existing pill button row and inline custom date inputs.
+## Affected Files
+- `components/dashboard/DateFilterBar.tsx` — Update UI structure & Tailwind classes for mobile & desktop views.
 
 ---
 
-## 🧪 Verification Plan
-1. Test on mobile screen sizes (< 640px) using Browser Subagent or browser dev tools.
-2. Verify that presets switch correctly and update dashboard data.
-3. Select "กำหนดเอง" and verify date range input behavior.
-4. Verify desktop view (≥ 640px) remains clean and functional.
+## Verification Plan
+1. Test mobile view (`< 640px`) for smooth scrollable segmented controls.
+2. Verify active state switching (`bg-white` active pill).
+3. Test selecting "กำหนดเอง" and picking start/end dates.
+4. Verify desktop view layout consistency (`≥ 640px`).
