@@ -40,6 +40,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
   const [isDrawerClosing, setIsDrawerClosing] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [pendingTablesCount, setPendingTablesCount] = useState<number>(0);
+  const [checkingOutCount, setCheckingOutCount] = useState<number>(0);
 
   useEffect(() => {
     const fetchPendingTables = async () => {
@@ -62,10 +63,25 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
       }
     };
 
+    const fetchCheckingOutCount = async () => {
+      try {
+        const { count, error } = await supabase
+          .from('tables')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'checking_out');
+
+        if (error) throw error;
+        setCheckingOutCount(count || 0);
+      } catch (err) {
+        console.error('Error fetching checking out tables count:', err);
+      }
+    };
+
     fetchPendingTables();
+    fetchCheckingOutCount();
 
     const channel = supabase
-      .channel('realtime:sidebar_pending_tables')
+      .channel('realtime:sidebar_badges')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'order_items' },
@@ -77,6 +93,14 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
         'postgres_changes',
         { event: '*', schema: 'public', table: 'orders' },
         () => {
+          fetchPendingTables();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'tables' },
+        () => {
+          fetchCheckingOutCount();
           fetchPendingTables();
         }
       )
@@ -190,14 +214,27 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
               <nav className="space-y-1">
                 <button
                   onClick={() => handleTabClick('floor')}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
                     activeTab === 'floor'
                       ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
                   }`}
                 >
-                  <Layers className="w-4.5 h-4.5" />
-                  <span>แผนผังโต๊ะ</span>
+                  <div className="flex items-center gap-3">
+                    <Layers className="w-4.5 h-4.5" />
+                    <span>แผนผังโต๊ะ</span>
+                  </div>
+                  {checkingOutCount > 0 && (
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-xs font-black transition-all ${
+                        activeTab === 'floor'
+                          ? 'bg-white text-red-600 shadow-xs'
+                          : 'bg-rose-500 text-white shadow-xs animate-bounce'
+                      }`}
+                    >
+                      {checkingOutCount}
+                    </span>
+                  )}
                 </button>
 
                 <button
@@ -377,8 +414,13 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
               : 'text-zinc-500 dark:text-zinc-400 font-bold hover:text-zinc-800 dark:hover:text-zinc-200'
           }`}
         >
-          <div className={`p-1.5 rounded-xl transition-all ${activeTab === 'floor' ? 'bg-red-600 text-white shadow-md shadow-red-600/30' : ''}`}>
+          <div className={`p-1.5 rounded-xl transition-all relative ${activeTab === 'floor' ? 'bg-red-600 text-white shadow-md shadow-red-600/30' : ''}`}>
             <Layers className="w-5 h-5 stroke-[2.2]" />
+            {checkingOutCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-black min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-900 animate-bounce">
+                {checkingOutCount}
+              </span>
+            )}
           </div>
           <span className="text-xs mt-0.5 leading-none font-bold">ผังโต๊ะ</span>
         </button>
@@ -448,14 +490,27 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
           <nav className="space-y-1">
             <button
               onClick={() => onSelectTab('floor')}
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                 activeTab === 'floor'
                   ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
               }`}
             >
-              <Layers className="w-4.5 h-4.5" />
-              <span>แผนผังโต๊ะ</span>
+              <div className="flex items-center gap-3">
+                <Layers className="w-4.5 h-4.5" />
+                <span>แผนผังโต๊ะ</span>
+              </div>
+              {checkingOutCount > 0 && (
+                <span
+                  className={`px-2 py-0.5 rounded-full text-xs font-black transition-all ${
+                    activeTab === 'floor'
+                      ? 'bg-white text-red-600 shadow-xs'
+                      : 'bg-rose-500 text-white shadow-xs animate-bounce'
+                  }`}
+                >
+                  {checkingOutCount}
+                </span>
+              )}
             </button>
 
             <button
