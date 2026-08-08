@@ -40,8 +40,8 @@ export const DateFilterBar: React.FC<DateFilterBarProps> = ({
           </span>
         </div>
 
-        {/* Badges Container: Inactive = White, Active = Red */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-0.5">
+        {/* Badges Container: Inactive = White, Active = Red (Right-aligned) */}
+        <div className="flex items-center justify-start sm:justify-end gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-0.5 w-full sm:w-auto">
           {PRESETS.map(preset => {
             const isActive = datePreset === preset.value;
             return (
