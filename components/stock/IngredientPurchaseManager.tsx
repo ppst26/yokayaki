@@ -10,6 +10,7 @@ import {
 import { Card } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { CustomSelect } from '@/components/ui/select';
+import { DatePicker } from '@/components/ui/date-picker';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -414,18 +415,18 @@ export const IngredientPurchaseManager: React.FC = () => {
           {/* Custom Date Range Pickers */}
           {dateFilter === 'custom' && (
             <div className="flex items-center gap-2">
-              <input
-                type="date"
+              <DatePicker
                 value={customStartDate}
-                onChange={e => setCustomStartDate(e.target.value)}
-                className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-1.5 text-xs font-semibold text-zinc-800 dark:text-zinc-100 focus:outline-none border-none"
+                onChange={setCustomStartDate}
+                placeholder="เริ่ม..."
+                className="w-36"
               />
               <span className="text-xs font-bold text-zinc-400">ถึง</span>
-              <input
-                type="date"
+              <DatePicker
                 value={customEndDate}
-                onChange={e => setCustomEndDate(e.target.value)}
-                className="bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-1.5 text-xs font-semibold text-zinc-800 dark:text-zinc-100 focus:outline-none border-none"
+                onChange={setCustomEndDate}
+                placeholder="ถึง..."
+                className="w-36"
               />
             </div>
           )}
@@ -461,17 +462,19 @@ export const IngredientPurchaseManager: React.FC = () => {
       </div>
 
       {/* Section Title (Placed BELOW filter as requested) */}
-      <div className="flex items-center justify-between pt-1">
-        <h2 className="text-h2 text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-          <ShoppingCart className="w-5 h-5 text-red-600 dark:text-red-400" />
-          ประวัติการสั่งซื้อวัตถุดิบ
-        </h2>
-      </div>
+      <div>
+        <div className="flex items-center justify-between pt-1">
+          <h2 className="text-h2 text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+            <ShoppingCart className="w-5 h-5 text-red-600 dark:text-red-400" />
+            ประวัติการสั่งซื้อวัตถุดิบ
+          </h2>
+        </div>
 
-      {/* Filter Summary Stats */}
-      <div className="flex items-center justify-between px-1 text-table-meta">
-        <span>แสดง {filteredOrders.length} รายการ (จากทั้งหมด {orders.length} รายการ)</span>
-        <span>รวมค่าใช้จ่ายจัดซื้อ: <strong className="text-table-value text-base ml-1">{filteredTotalCost.toLocaleString()} ฿</strong></span>
+        {/* Filter Summary Stats */}
+        <div className="flex items-center justify-between px-1 text-table-meta">
+          <span>แสดง {filteredOrders.length} รายการ (จากทั้งหมด {orders.length} รายการ)</span>
+          <span>รวมค่าใช้จ่ายจัดซื้อ: <strong className="text-3xl text-red-700  ml-1">{filteredTotalCost.toLocaleString()} ฿</strong></span>
+        </div>
       </div>
 
       {/* Table */}
@@ -627,11 +630,11 @@ export const IngredientPurchaseManager: React.FC = () => {
                   <label className="block text-card-label mb-1.5">
                     วันที่สั่งซื้อ
                   </label>
-                  <input
-                    type="date"
+                  <DatePicker
                     value={purchaseDate}
-                    onChange={e => setPurchaseDate(e.target.value)}
-                    className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-4 py-2.5 text-sm font-semibold text-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500/50 border-none"
+                    onChange={setPurchaseDate}
+                    placeholder="เลือกวันที่สั่งซื้อ..."
+                    className="w-full"
                   />
                 </div>
                 <div>
