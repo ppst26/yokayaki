@@ -13,6 +13,12 @@
 - **Body & Paragraph Texts (`p`, `span`, `li`):** เปลี่ยนจาก `14px (text-sm)` -> **`16px (text-base)`**  
 - **Section Headers & Small Badges (`text-micro`):** เปลี่ยนจาก `10-11px` -> **`12px (text-xs)`**
 
+### 📦 Reusable Card Typography Utility Classes (สไตล์ส่วนกลาง reusable ใน `globals.css`):
+- `.text-card-label` -> `text-xs md:text-sm font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500` (ใช้กับหัวข้อการ์ด KPI ทุกใบ)
+- `.text-card-sublabel` -> `text-xs font-semibold text-slate-400 dark:text-neutral-500` (ใช้กับคำอธิบายการ์ด)
+- `.text-card-value` -> `text-xl md:text-2xl font-black text-slate-900 dark:text-neutral-100` (ใช้กับตัวเลขสรุปผล)
+- `.text-card-unit` -> `text-xs md:text-sm font-bold text-slate-400 dark:text-neutral-500` (ใช้กับหน่วยบาท/บิล/จาน)
+
 ---
 
 ## 🎨 1. Navigation Menu Links (มาตรฐานแถบเมนูและลิงก์)
