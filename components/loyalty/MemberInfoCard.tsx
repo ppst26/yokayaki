@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { User, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 
 interface LoyaltyMember {
@@ -34,29 +34,29 @@ export const MemberInfoCard: React.FC<MemberInfoCardProps> = ({
     <Card className="p-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         {/* Left: Member info & points summary */}
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
-            <User className="w-7 h-7" />
+        <div>
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl font-black text-slate-900 dark:text-neutral-100">
+              {selectedMember.name}
+            </h2>
+            <button
+              onClick={() => {
+                setEditName(selectedMember.name);
+                setEditPhone(selectedMember.phone_number);
+                setShowEditModal(true);
+              }}
+              className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-300 transition cursor-pointer"
+              title="แก้ไขข้อมูล"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl font-black text-slate-900 dark:text-neutral-100">
-                {selectedMember.name}
-              </h2>
-              <button
-                onClick={() => {
-                  setEditName(selectedMember.name);
-                  setEditPhone(selectedMember.phone_number);
-                  setShowEditModal(true);
-                }}
-                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-300 transition cursor-pointer"
-                title="แก้ไขข้อมูล"
-              >
-                <Pencil className="w-4 h-4" />
-              </button>
-            </div>
-            <p className="text-xs font-bold text-slate-500 dark:text-neutral-400 mt-0.5">
-              เบอร์โทร: <span className="font-mono text-slate-800 dark:text-neutral-200">{selectedMember.phone_number}</span> • สมาชิกเมื่อ {formatDate(selectedMember.created_at)}
+          <div className="mt-1 space-y-0.5">
+            <p className="text-caption font-semibold text-slate-600 dark:text-neutral-300">
+              เบอร์โทร: <span className="font-mono font-bold text-slate-900 dark:text-neutral-100">{selectedMember.phone_number}</span>
+            </p>
+            <p className="text-caption font-medium text-slate-400 dark:text-neutral-500">
+              สมาชิกเมื่อ {formatDate(selectedMember.created_at)}
             </p>
           </div>
         </div>
