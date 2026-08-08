@@ -65,6 +65,21 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
 }) => {
   if (!selectedOrder) return null;
 
+  const hasMemberInfo = Boolean(
+    selectedOrder.payment?.member_name ||
+    selectedOrder.payment?.phone_number ||
+    (selectedOrder.payment?.points_earned ?? 0) > 0 ||
+    (selectedOrder.payment?.points_redeemed ?? 0) > 0
+  );
+
+  const memberDisplayName = selectedOrder.payment?.member_name
+    ? `คุณ${selectedOrder.payment.member_name}`
+    : selectedOrder.payment?.phone_number
+    ? `สมาชิก (${selectedOrder.payment.phone_number})`
+    : hasMemberInfo
+    ? 'สมาชิก CRM'
+    : null;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs">
       <div className="bg-white dark:bg-neutral-900 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -75,9 +90,9 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
               <h3 className="text-lg md:text-xl font-black text-white">
                 รายละเอียดบิล ORD-{selectedOrder.id}
               </h3>
-              {selectedOrder.payment?.member_name && (
-                <span className="text-xs font-black text-amber-400">
-                  (คุณ{selectedOrder.payment.member_name})
+              {memberDisplayName && (
+                <span className="text-sm font-black text-emerald-400">
+                  ({memberDisplayName})
                 </span>
               )}
             </div>
@@ -150,39 +165,41 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
               </div>
 
               {/* ข้อมูลลูกค้า & สมาชิก CRM */}
-              {(selectedOrder.payment?.member_name || selectedOrder.payment?.phone_number || (selectedOrder.payment?.points_earned ?? 0) > 0 || (selectedOrder.payment?.points_redeemed ?? 0) > 0) && (
-                <div className="space-y-1 pt-1">
-                  <h4 className="text-card-label">
-                    ข้อมูลลูกค้า & สมาชิก CRM
-                  </h4>
-                  <div className="flex flex-wrap items-center justify-between gap-2 py-1">
-                    <div>
-                      <span className="text-base font-black text-slate-900 dark:text-neutral-100">
-                        {selectedOrder.payment?.member_name
-                          ? `คุณ${selectedOrder.payment.member_name}`
-                          : 'ลูกค้าทั่วไป'}
+              <div className="space-y-1 pt-1">
+                <h4 className="text-card-label">
+                  ข้อมูลลูกค้า & สมาชิก CRM
+                </h4>
+                <div className="flex flex-wrap items-center justify-between gap-2 py-1">
+                  <div>
+                    {memberDisplayName ? (
+                      <span className="text-base font-black text-emerald-600 dark:text-emerald-400">
+                        {memberDisplayName}
                       </span>
-                      {selectedOrder.payment?.phone_number && (
-                        <span className="text-xs text-slate-500 dark:text-neutral-400 font-bold ml-2">
-                          ({selectedOrder.payment.phone_number})
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-3">
-                      {(selectedOrder.payment?.points_redeemed ?? 0) > 0 && (
-                        <span className="text-xs font-black text-rose-600 dark:text-rose-400">
-                          ใช้ไป {selectedOrder.payment?.points_redeemed} แต้ม (-{selectedOrder.payment?.points_redeemed} ฿)
-                        </span>
-                      )}
-                      {(selectedOrder.payment?.points_earned ?? 0) > 0 && (
-                        <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">
-                          ได้รับ +{selectedOrder.payment?.points_earned} แต้ม
-                        </span>
-                      )}
-                    </div>
+                    ) : (
+                      <span className="text-base font-bold text-slate-900 dark:text-neutral-100">
+                        ลูกค้าทั่วไป
+                      </span>
+                    )}
+                    {selectedOrder.payment?.phone_number && selectedOrder.payment?.member_name && (
+                      <span className="text-xs text-slate-500 dark:text-neutral-400 font-bold ml-2">
+                        ({selectedOrder.payment.phone_number})
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    {(selectedOrder.payment?.points_redeemed ?? 0) > 0 && (
+                      <span className="text-xs font-black text-rose-600 dark:text-rose-400">
+                        ใช้ไป {selectedOrder.payment?.points_redeemed} แต้ม (-{selectedOrder.payment?.points_redeemed} ฿)
+                      </span>
+                    )}
+                    {(selectedOrder.payment?.points_earned ?? 0) > 0 && (
+                      <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">
+                        ได้รับ +{selectedOrder.payment?.points_earned} แต้ม
+                      </span>
+                    )}
                   </div>
                 </div>
-              )}
+              </div>
 
               {/* โปรโมชั่นที่ใช้ */}
               {selectedOrder.promos.length > 0 && (
