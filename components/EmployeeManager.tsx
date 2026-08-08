@@ -300,7 +300,7 @@ export const EmployeeManager: React.FC = () => {
 
         <button
           onClick={() => openModal('add')}
-          className="flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-extrabold shadow-md shadow-red-600/20 transition active:scale-95 cursor-pointer shrink-0 self-start md:self-auto border-none"
+          className="flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-extrabold shadow-md shadow-red-600/20 transition active:scale-95 cursor-pointer shrink-0 self-end md:self-auto border-none"
         >
           <Plus className="w-4 h-4" />
           เพิ่มพนักงานใหม่

@@ -461,20 +461,23 @@ export const IngredientPurchaseManager: React.FC = () => {
         </div>
       </div>
 
-      {/* Section Title (Placed BELOW filter as requested) */}
-      <div>
-        <div className="flex items-center justify-between pt-1">
-          <h2 className="text-h2 text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-            <ShoppingCart className="w-5 h-5 text-red-600 dark:text-red-400" />
-            ประวัติการสั่งซื้อวัตถุดิบ
+      {/* Section Title & Summary Stats Card */}
+      <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border-none shadow-none space-y-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <h2 className="text-base sm:text-lg font-black text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+            <ShoppingCart className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-red-600 dark:text-red-400 shrink-0" />
+            <span>ประวัติการสั่งซื้อวัตถุดิบ</span>
           </h2>
+          <div className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-zinc-600 dark:text-zinc-300 whitespace-nowrap self-start sm:self-auto">
+            <span>รวมค่าใช้จ่ายจัดซื้อ:</span>
+            <strong className="text-lg sm:text-xl font-black text-red-600 dark:text-red-400 whitespace-nowrap">
+              {filteredTotalCost.toLocaleString()} ฿
+            </strong>
+          </div>
         </div>
-
-        {/* Filter Summary Stats */}
-        <div className="flex items-center justify-between px-1 text-table-meta">
-          <span>แสดง {filteredOrders.length} รายการ (จากทั้งหมด {orders.length} รายการ)</span>
-          <span>รวมค่าใช้จ่ายจัดซื้อ: <strong className="text-3xl text-red-700  ml-1">{filteredTotalCost.toLocaleString()} ฿</strong></span>
-        </div>
+        <p className="text-xs font-semibold text-zinc-400 dark:text-zinc-500">
+          แสดง {filteredOrders.length} รายการ (จากทั้งหมด {orders.length} รายการ)
+        </p>
       </div>
 
       {/* Table */}
@@ -494,39 +497,39 @@ export const IngredientPurchaseManager: React.FC = () => {
             <div key={order.id} className="rounded-2xl border-none shadow-none bg-white dark:bg-zinc-900 overflow-hidden">
               {/* Order header row */}
               <button
-                className="w-full flex items-center gap-4 px-5 py-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition cursor-pointer text-left"
+                className="w-full flex items-center gap-2 sm:gap-4 px-3.5 sm:px-5 py-3 sm:py-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition cursor-pointer text-left"
                 onClick={() => toggleExpand(order.id)}
               >
                 {/* PO# */}
-                <span className="w-20 shrink-0 text-table-meta font-extrabold">
+                <span className="w-16 sm:w-20 shrink-0 text-xs sm:text-sm font-extrabold text-zinc-800 dark:text-zinc-200">
                   PO-{String(order.id).padStart(4, '0')}
                 </span>
 
                 {/* Date */}
-                <div className="flex items-center gap-1.5 w-32 shrink-0">
-                  <Calendar className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
-                  <span className="text-table-cell">
+                <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+                  <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-400 dark:text-zinc-500" />
+                  <span className="text-xs sm:text-sm font-medium text-zinc-600 dark:text-zinc-300 whitespace-nowrap">
                     {formatDate(order.purchase_date)}
                   </span>
                 </div>
 
                 {/* Buyer */}
-                <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                  <User className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />
-                  <span className="text-table-cell font-bold truncate">
+                <div className="flex items-center gap-1 sm:gap-1.5 flex-1 min-w-0">
+                  <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />
+                  <span className="text-xs sm:text-sm font-bold text-zinc-800 dark:text-zinc-200 truncate">
                     {order.buyer_name}
                   </span>
                 </div>
 
                 {/* Note (if any) */}
                 {order.note && (
-                  <span className="text-table-meta truncate max-w-[140px] hidden sm:block">
+                  <span className="text-xs text-zinc-400 truncate max-w-[140px] hidden sm:block">
                     {order.note}
                   </span>
                 )}
 
                 {/* Total */}
-                <span className="text-table-value shrink-0">
+                <span className="text-xs sm:text-sm font-black text-red-600 dark:text-red-400 whitespace-nowrap shrink-0">
                   {order.total_cost.toLocaleString()} ฿
                 </span>
 

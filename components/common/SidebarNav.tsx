@@ -220,6 +220,12 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                       <span>โปรโมชั่น</span>
                     </button>
 
+                    <div className="pt-3 pb-1 border-t border-zinc-100 dark:border-zinc-800 mt-2">
+                      <p className="text-xs font-extrabold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 px-3">
+                        MANAGEMENT
+                      </p>
+                    </div>
+
                     <button
                       onClick={() => handleTabClick('dashboard')}
                       className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
@@ -453,6 +459,12 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   <Tag className="w-4.5 h-4.5" />
                   <span>โปรโมชั่น</span>
                 </button>
+
+                <div className="pt-3 pb-1 border-t border-zinc-100 dark:border-zinc-800 mt-2">
+                  <p className="text-xs font-extrabold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 px-3">
+                    MANAGEMENT
+                  </p>
+                </div>
 
                 <button
                   onClick={() => onSelectTab('dashboard')}

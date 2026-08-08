@@ -225,7 +225,7 @@ export const MenuManager: React.FC = () => {
 
         <button
           onClick={openAddModal}
-          className="flex items-center gap-1.5 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-extrabold transition active:scale-95 shadow-md shadow-red-600/20 cursor-pointer self-start md:self-auto"
+          className="flex items-center gap-1.5 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-extrabold transition active:scale-95 shadow-md shadow-red-600/20 cursor-pointer self-end md:self-auto"
         >
           <Plus className="w-4 h-4" />
           <span>เพิ่มเมนูอาหารใหม่</span>
