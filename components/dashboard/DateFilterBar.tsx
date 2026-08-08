@@ -31,37 +31,32 @@ export const DateFilterBar: React.FC<DateFilterBarProps> = ({
 }) => {
   return (
     <div className="space-y-2.5 w-full">
-      {/* Header & Segmented Control Container */}
-      <div className="flex items-center justify-between gap-2 w-full">
-        <div className="flex items-center gap-1.5 text-slate-500 dark:text-neutral-400 shrink-0">
+      {/* Filter Badges & Label Container (Grouped Together Right-Aligned) */}
+      <div className="flex items-center justify-end gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-0.5 w-full">
+        <div className="flex items-center gap-1.5 text-slate-500 dark:text-neutral-400 shrink-0 mr-1 ml-auto">
           <Calendar className="w-4 h-4 text-red-600 dark:text-red-400" />
           <span className="text-[11px] font-black uppercase tracking-wider text-slate-700 dark:text-neutral-200">
             ช่วงเวลา
           </span>
         </div>
 
-        {/* Badges Container: Right-aligned using ml-auto */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-0.5 min-w-0">
-          {PRESETS.map((preset, index) => {
-            const isActive = datePreset === preset.value;
-            return (
-              <button
-                key={preset.value}
-                type="button"
-                onClick={() => onPresetChange(preset.value)}
-                className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all duration-200 whitespace-nowrap cursor-pointer shrink-0 shadow-2xs ${
-                  index === 0 ? 'ml-auto' : ''
-                } ${
-                  isActive
-                    ? 'bg-red-600 text-white shadow-sm shadow-red-600/20 scale-100'
-                    : 'bg-white dark:bg-neutral-900 text-slate-600 dark:text-neutral-300 border border-slate-200/60 dark:border-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-800'
-                }`}
-              >
-                {preset.label}
-              </button>
-            );
-          })}
-        </div>
+        {PRESETS.map(preset => {
+          const isActive = datePreset === preset.value;
+          return (
+            <button
+              key={preset.value}
+              type="button"
+              onClick={() => onPresetChange(preset.value)}
+              className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all duration-200 whitespace-nowrap cursor-pointer shrink-0 shadow-2xs ${
+                isActive
+                  ? 'bg-red-600 text-white shadow-sm shadow-red-600/20 scale-100'
+                  : 'bg-white dark:bg-neutral-900 text-slate-600 dark:text-neutral-300 border border-slate-200/60 dark:border-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-800'
+              }`}
+            >
+              {preset.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Custom Date Range Picker (Capsule Style — Right-aligned) */}
