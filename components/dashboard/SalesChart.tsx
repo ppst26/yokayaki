@@ -187,9 +187,6 @@ export const SalesChart: React.FC<SalesChartProps> = ({ startDate, endDate, refr
             </span>
           </div>
         </div>
-        <span className="text-[10px] font-extrabold text-slate-500 dark:text-neutral-400 uppercase tracking-wider bg-slate-100 dark:bg-neutral-800 px-2.5 py-1 rounded-full">
-          Shadcn Chart
-        </span>
       </div>
 
       {/* Chart Body */}
