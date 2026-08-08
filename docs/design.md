@@ -11,7 +11,9 @@
 - **Menu Buttons & Navigation Links:** เปลี่ยนจาก `12px (text-xs)` -> **`14px (text-sm)`**  
 - **Page Subtitles & Descriptions:** ใช้คลาสส่วนกลาง **`text-caption`** (`text-xs sm:text-sm font-semibold text-slate-500 dark:text-neutral-400 leading-normal`) ครบถ้วนทั้ง 9 หน้าจอหลัก  
 - **Body & Paragraph Texts (`p`, `span`, `li`):** เปลี่ยนจาก `14px (text-sm)` -> **`16px (text-base)`**  
-- **Section Headers & Small Badges (`text-micro`):** เปลี่ยนจาก `10-11px` -> **`12px (text-xs)`**
+- **Table Headers (`TableHeader` / `TableHead`):** ขยายจาก `11px` -> **`12px sm:14px (text-xs sm:text-sm) font-black uppercase tracking-wider`**  
+- **Table Cells (`TableBody` / `TableCell`):** ขยายจาก `12px (text-xs)` -> **`14px (text-sm) font-semibold`**  
+- **Table Pagination (`TablePagination`):** ขยายคำว่า "แสดงหน้า:", จำนวนรายการ และ "หน้า 1/2" เป็น **`14px (text-sm)`**  
 
 ### 📦 Reusable Card Typography Utility Classes (สไตล์ส่วนกลาง reusable ใน `globals.css`):
 - `.text-caption` -> `text-xs sm:text-sm font-semibold text-slate-500 dark:text-neutral-400 leading-normal` (ใช้กับคำอธิบายหัวข้อทุกหน้าจอ)
