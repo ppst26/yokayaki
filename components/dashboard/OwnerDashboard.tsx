@@ -30,11 +30,11 @@ export const OwnerDashboard: React.FC = () => {
   return (
     <div className="w-full text-slate-800 dark:text-neutral-100 font-sans space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-h1 text-slate-900 dark:text-neutral-100 flex items-center gap-2">
-            <TrendingUp className="w-6 h-6 text-red-600 dark:text-red-400" />
-            แดชบอร์ดเจ้าของร้าน
+            <TrendingUp className="w-6 h-6 text-red-600 dark:text-red-400 shrink-0" />
+            <span>แดชบอร์ดเจ้าของร้าน</span>
           </h1>
           <p className="text-caption mt-0.5">
             ภาพรวมผลประกอบการ • ยอดขาย • โปรโมชั่น • CRM
@@ -43,9 +43,9 @@ export const OwnerDashboard: React.FC = () => {
 
         <button
           onClick={handleRefresh}
-          className="flex items-center gap-1.5 px-4 py-2.5 bg-white dark:bg-neutral-900 hover:bg-slate-50 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-200 rounded-xl text-xs font-bold transition active:scale-95 shadow-xs cursor-pointer self-start md:self-auto"
+          className="flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 bg-white dark:bg-neutral-900 hover:bg-slate-50 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-200 border border-slate-200/60 dark:border-neutral-800 rounded-xl text-xs font-bold transition active:scale-95 shadow-xs cursor-pointer shrink-0"
         >
-          <RefreshCw className="w-4 h-4" />
+          <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           <span>รีเฟรชข้อมูล</span>
         </button>
       </div>

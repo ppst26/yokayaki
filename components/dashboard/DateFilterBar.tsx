@@ -18,8 +18,6 @@ const PRESETS: { value: DatePreset; label: string }[] = [
   { value: 'yesterday', label: 'เมื่อวาน' },
   { value: 'this_week', label: 'สัปดาห์นี้' },
   { value: 'this_month', label: 'เดือนนี้' },
-  { value: '3_months', label: '3 เดือน' },
-  { value: '6_months', label: '6 เดือน' },
   { value: 'custom', label: 'กำหนดเอง' },
 ];
 
@@ -42,8 +40,8 @@ export const DateFilterBar: React.FC<DateFilterBarProps> = ({
           </span>
         </div>
 
-        {/* Segmented Control Bar (Horizontal Scrollable on Mobile) */}
-        <div className="bg-slate-100 dark:bg-neutral-800/80 p-1 rounded-2xl flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth">
+        {/* Badges Container: Inactive = White, Active = Red */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-0.5">
           {PRESETS.map(preset => {
             const isActive = datePreset === preset.value;
             return (
@@ -51,10 +49,10 @@ export const DateFilterBar: React.FC<DateFilterBarProps> = ({
                 key={preset.value}
                 type="button"
                 onClick={() => onPresetChange(preset.value)}
-                className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all duration-200 whitespace-nowrap cursor-pointer shrink-0 ${
+                className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all duration-200 whitespace-nowrap cursor-pointer shrink-0 shadow-2xs ${
                   isActive
-                    ? 'bg-white dark:bg-neutral-900 text-red-600 dark:text-red-400 shadow-xs scale-100'
-                    : 'text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-neutral-200 hover:bg-slate-200/50 dark:hover:bg-neutral-700/40'
+                    ? 'bg-red-600 text-white shadow-sm shadow-red-600/20 scale-100'
+                    : 'bg-white dark:bg-neutral-900 text-slate-600 dark:text-neutral-300 border border-slate-200/60 dark:border-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-800'
                 }`}
               >
                 {preset.label}
