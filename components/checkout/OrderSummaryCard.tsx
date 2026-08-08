@@ -72,7 +72,7 @@ export const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
         {activeItems.map(item => (
           <div
             key={item.id}
-            className="py-3 text-xs space-y-1"
+            className="py-3 text-sm space-y-1"
           >
             <div className="flex justify-between items-center">
               <div>
@@ -88,7 +88,7 @@ export const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
               </span>
             </div>
             {item.notes && (
-              <div className="text-[11px] text-amber-700 dark:text-amber-400 font-semibold">
+              <div className="text-xs text-amber-700 dark:text-amber-400 font-semibold">
                 โน้ต: {item.notes}
               </div>
             )}
@@ -97,7 +97,7 @@ export const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
       </div>
 
       <div className="mt-6 pt-4 border-t border-slate-100 dark:border-neutral-800 space-y-2">
-        <div className="flex justify-between text-xs font-semibold">
+        <div className="flex justify-between text-sm font-semibold">
           <span className="text-slate-500 dark:text-neutral-400">
             ยอดรวม ({activeItems.reduce((s, i) => s + i.quantity, 0)} ชิ้น)
           </span>
@@ -106,10 +106,10 @@ export const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
           </span>
         </div>
         {appliedPromos.map(ap => (
-          <div key={ap.promo.id} className="text-xs space-y-1">
+          <div key={ap.promo.id} className="text-sm space-y-1">
             <div className="flex justify-between">
               <span className="text-red-600 dark:text-red-400 font-semibold flex items-center gap-1">
-                <Tag className="w-3 h-3" />
+                <Tag className="w-3.5 h-3.5" />
                 {ap.promo.name}
               </span>
               <span className="text-red-600 dark:text-red-400 font-extrabold">
@@ -120,7 +120,7 @@ export const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
               ap.freeItems.map((fi, idx) => (
                 <div
                   key={idx}
-                  className="text-[11px] text-slate-500 dark:text-neutral-400 pl-4 font-semibold"
+                  className="text-xs text-slate-500 dark:text-neutral-400 pl-4 font-semibold"
                 >
                   • ฟรี: {fi.name} x{fi.qty}
                 </div>
@@ -128,7 +128,7 @@ export const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
           </div>
         ))}
         {loyaltyDiscount > 0 && (
-          <div className="flex justify-between text-xs font-semibold">
+          <div className="flex justify-between text-sm font-semibold">
             <span className="text-emerald-600 dark:text-emerald-400">
               ส่วนลดแต้มสมาชิก
             </span>
@@ -150,9 +150,9 @@ export const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
         {(cashNum > 0 || transferAmount > 0) && (
           <div className="pt-2 space-y-1.5">
             {cashNum > 0 && (
-              <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center justify-between text-sm">
                 <span className="flex items-center gap-1.5 text-slate-500 dark:text-neutral-400 font-semibold">
-                  <Banknote className="w-3.5 h-3.5" />
+                  <Banknote className="w-4 h-4" />
                   จ่ายเงินสด
                 </span>
                 <span className="font-extrabold text-slate-800 dark:text-neutral-200">
@@ -161,9 +161,9 @@ export const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
               </div>
             )}
             {transferAmount > 0 && (
-              <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center justify-between text-sm">
                 <span className="flex items-center gap-1.5 text-slate-500 dark:text-neutral-400 font-semibold">
-                  <Smartphone className="w-3.5 h-3.5" />
+                  <Smartphone className="w-4 h-4" />
                   โอน (QR PromptPay)
                 </span>
                 <span className="font-extrabold text-blue-600 dark:text-blue-400">
@@ -181,21 +181,21 @@ export const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
               <Coins className="w-4.5 h-4.5" />
             </div>
             <div>
-              <span className="text-xs font-bold text-slate-800 dark:text-neutral-200 block">
+              <span className="text-sm font-bold text-slate-800 dark:text-neutral-200 block">
                 แต้มที่จะได้รับจากบิลนี้
               </span>
               {member ? (
-                <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold block">
+                <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold block">
                   สะสมให้: {member.name} ({member.phone_number})
                 </span>
               ) : (
-                <span className="text-[11px] text-slate-400 dark:text-neutral-500 font-medium block">
+                <span className="text-xs text-slate-400 dark:text-neutral-500 font-medium block">
                   *ระบุสมาชิก CRM เพื่อสะสมแต้ม
                 </span>
               )}
             </div>
           </div>
-          <span className="font-black text-base text-amber-600 dark:text-amber-400">
+          <span className="font-black text-lg text-amber-600 dark:text-amber-400">
             +{pointsEarned.toLocaleString()} แต้ม
           </span>
         </div>

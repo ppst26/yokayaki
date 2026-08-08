@@ -31,8 +31,8 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({
     <Card className="fixed lg:relative bottom-0 left-0 right-0 z-40 lg:z-auto w-full rounded-t-3xl lg:rounded-2xl rounded-b-none lg:rounded-b-2xl border-t lg:border border-slate-200 dark:border-neutral-800 shadow-[0_-8px_30px_rgba(0,0,0,0.15)] lg:shadow-xs p-4 sm:p-5 bg-white dark:bg-neutral-900 space-y-3 sm:space-y-4 transition-all">
       {/* Cash Input */}
       <div>
-        <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-400 mb-2 flex items-center gap-2">
-          <Banknote className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+        <h3 className="text-xs md:text-sm font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-400 mb-2 flex items-center gap-2">
+          <Banknote className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400" />
           เงินสดรับ
         </h3>
         <input
@@ -50,21 +50,21 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({
             <button
               key={amt}
               onClick={() => setCashReceived(prev => String((parseFloat(prev) || 0) + amt))}
-              className="flex-1 py-2 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 rounded-lg text-xs font-bold text-slate-700 dark:text-neutral-200 transition active:scale-95 cursor-pointer"
+              className="flex-1 py-2 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 rounded-lg text-sm font-bold text-slate-700 dark:text-neutral-200 transition active:scale-95 cursor-pointer border-none"
             >
               +{amt}
             </button>
           ))}
           <button
             onClick={() => setCashReceived(String(netAmount))}
-            className="flex-1 py-2 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 rounded-lg text-xs font-bold text-emerald-700 dark:text-emerald-300 transition active:scale-95 cursor-pointer"
+            className="flex-1 py-2 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 rounded-lg text-sm font-bold text-emerald-700 dark:text-emerald-300 transition active:scale-95 cursor-pointer border-none"
           >
             เต็มจำนวน
           </button>
           {cashNum > 0 && (
             <button
               onClick={() => setCashReceived('')}
-              className="px-2.5 py-2 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 rounded-lg text-xs font-bold text-rose-600 dark:text-rose-400 transition active:scale-95 cursor-pointer"
+              className="px-2.5 py-2 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 rounded-lg text-sm font-bold text-rose-600 dark:text-rose-400 transition active:scale-95 cursor-pointer border-none"
               title="ล้างยอดเงินสด"
             >
               ล้าง
@@ -75,7 +75,7 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({
         {/* Change calculation */}
         {cashNum > 0 && changeAmount > 0 && (
           <div className="mt-3 py-2 flex justify-between items-center">
-            <span className="text-emerald-600 dark:text-emerald-400 text-xs font-bold">
+            <span className="text-emerald-600 dark:text-emerald-400 text-sm font-bold">
               เงินทอน
             </span>
             <span className="text-emerald-600 dark:text-emerald-400 font-black text-lg">
@@ -87,7 +87,7 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({
         {/* Transfer remaining */}
         {cashNum > 0 && cashNum < netAmount && (
           <div className="mt-3 py-2 flex justify-between items-center">
-            <span className="text-blue-600 dark:text-blue-400 text-xs font-bold">
+            <span className="text-blue-600 dark:text-blue-400 text-sm font-bold">
               ยอดค้างชำระ (โอน)
             </span>
             <span className="text-blue-600 dark:text-blue-400 font-black text-lg">
@@ -104,9 +104,9 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({
           <button
             onClick={() => setShowQrModal(true)}
             disabled={pendingItemsCount > 0}
-            className="w-full py-3 bg-slate-800 dark:bg-neutral-800 hover:bg-slate-900 dark:hover:bg-neutral-700 disabled:opacity-50 text-white font-extrabold text-xs rounded-xl transition active:scale-98 flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:cursor-not-allowed"
+            className="w-full py-3 bg-slate-800 dark:bg-neutral-800 hover:bg-slate-900 dark:hover:bg-neutral-700 disabled:opacity-50 text-white font-extrabold text-sm rounded-xl transition active:scale-98 flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:cursor-not-allowed border-none"
           >
-            <CreditCard className="w-4 h-4" />
+            <CreditCard className="w-4.5 h-4.5" />
             สร้าง QR พร้อมเพย์ ({transferAmount.toLocaleString()} บาท)
           </button>
         )}
@@ -115,10 +115,10 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({
         <button
           onClick={processPayment}
           disabled={isProcessing || netAmount <= 0 || pendingItemsCount > 0}
-          className={`w-full py-3.5 rounded-xl font-extrabold text-sm transition active:scale-98 flex items-center justify-center gap-2 shadow-md ${
+          className={`w-full py-3.5 rounded-xl font-extrabold text-base transition active:scale-98 flex items-center justify-center gap-2 shadow-md ${
             pendingItemsCount > 0
               ? 'bg-slate-300 dark:bg-neutral-800 text-slate-500 dark:text-neutral-500 cursor-not-allowed shadow-none'
-              : 'bg-red-600 hover:bg-red-700 disabled:bg-slate-300 dark:disabled:bg-neutral-800 text-white shadow-red-600/20 cursor-pointer'
+              : 'bg-red-600 hover:bg-red-700 disabled:bg-slate-300 dark:disabled:bg-neutral-800 text-white shadow-red-600/20 cursor-pointer border-none'
           }`}
         >
           {isProcessing ? (
