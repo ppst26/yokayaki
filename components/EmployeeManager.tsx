@@ -20,7 +20,7 @@ interface Employee {
   created_at: string;
 }
 
-type ModalType = 'add' | 'editName' | 'changePin' | 'changeRole' | 'delete' | null;
+type ModalType = 'add' | 'edit' | 'delete' | null;
 
 // ========== Component ==========
 
@@ -44,15 +44,14 @@ export const EmployeeManager: React.FC = () => {
   const [addRole, setAddRole] = useState<'staff' | 'owner'>('staff');
   const [showAddPin, setShowAddPin] = useState(false);
 
-  // ฟอร์มแก้ไขชื่อ
+  // ฟอร์มแก้ไขพนักงาน (รวม ชื่อ, ตำแหน่ง, และ PIN)
   const [editName, setEditName] = useState('');
+  const [editRole, setEditRole] = useState<'staff' | 'owner'>('staff');
+  const [editPin, setEditPin] = useState('');
+  const [editPinConfirm, setEditPinConfirm] = useState('');
+  const [showEditPin, setShowEditPin] = useState(false);
 
-  // ฟอร์มเปลี่ยน PIN
-  const [newPin, setNewPin] = useState('');
-  const [newPinConfirm, setNewPinConfirm] = useState('');
-  const [showNewPin, setShowNewPin] = useState(false);
-
-  // ฟอร์มยืนยัน PIN (ลบ / เปลี่ยน Role)
+  // ฟอร์มยืนยัน PIN (ลบ / อนุมัติเปลี่ยนตำแหน่งหรือ PIN)
   const [confirmPin, setConfirmPin] = useState('');
   const [showConfirmPin, setShowConfirmPin] = useState(false);
 
@@ -107,9 +106,10 @@ export const EmployeeManager: React.FC = () => {
     setAddRole('staff');
     setShowAddPin(false);
     setEditName('');
-    setNewPin('');
-    setNewPinConfirm('');
-    setShowNewPin(false);
+    setEditRole('staff');
+    setEditPin('');
+    setEditPinConfirm('');
+    setShowEditPin(false);
     setConfirmPin('');
     setShowConfirmPin(false);
   };
@@ -119,7 +119,10 @@ export const EmployeeManager: React.FC = () => {
     setActiveModal(type);
     if (emp) {
       setTargetEmployee(emp);
-      if (type === 'editName') setEditName(emp.name);
+      if (type === 'edit') {
+        setEditName(emp.name);
+        setEditRole(emp.role);
+      }
     }
   };
 
@@ -158,43 +161,51 @@ export const EmployeeManager: React.FC = () => {
     }
   };
 
-  // แก้ไขชื่อ
-  const handleEditName = async () => {
+  // แก้ไขข้อมูลพนักงาน (รวม ชื่อ, ตำแหน่ง, PIN)
+  const handleEditEmployee = async () => {
     if (!targetEmployee) return;
     if (!editName.trim()) return showMessage('กรุณากรอกชื่อพนักงาน', 'error');
-    if (editName.trim() === targetEmployee.name) { resetModal(); return; }
 
-    try {
-      setIsSaving(true);
-      const { error } = await supabase.rpc('update_employee', {
-        p_employee_id: targetEmployee.id,
-        p_name: editName.trim(),
-      });
+    const isRoleChanged = editRole !== targetEmployee.role;
+    const isPinEntered = editPin.length > 0;
 
-      if (error) throw error;
-
-      showMessage(`เปลี่ยนชื่อเป็น "${editName.trim()}" สำเร็จ`, 'success');
-      resetModal();
-      fetchEmployees();
-    } catch (err: any) {
-      console.error('Error updating name:', err);
-      showMessage(err.message || 'เกิดข้อผิดพลาดในการแก้ไขชื่อ', 'error');
-    } finally {
-      setIsSaving(false);
+    if (isPinEntered) {
+      if (editPin.length !== 6 || !/^\d{6}$/.test(editPin)) return showMessage('PIN ต้องเป็นตัวเลข 6 หลัก', 'error');
+      if (editPin !== editPinConfirm) return showMessage('PIN ทั้ง 2 ช่องไม่ตรงกัน', 'error');
     }
-  };
 
-  // เปลี่ยน PIN
-  const handleChangePin = async () => {
-    if (!targetEmployee) return;
-    if (newPin.length !== 6 || !/^\d{6}$/.test(newPin)) return showMessage('PIN ต้องเป็นตัวเลข 6 หลัก', 'error');
-    if (newPin !== newPinConfirm) return showMessage('PIN ทั้ง 2 ช่องไม่ตรงกัน', 'error');
+    // หากมีการเปลี่ยน Role หรือเปลี่ยน PIN ให้ยืนยัน PIN ของ Owner
+    if ((isRoleChanged || isPinEntered) && confirmPin.length !== 6) {
+      return showMessage('กรุณากรอก PIN 6 หลักของคุณเพื่อยืนยันการทำรายการ', 'error');
+    }
 
     try {
       setIsSaving(true);
-      const pinHash = await hashPin(newPin);
+
+      if ((isRoleChanged || isPinEntered) && confirmPin.length === 6) {
+        const ownerPinHash = await hashPin(confirmPin);
+        const { data: ownerCheck } = await supabase
+          .from('employees')
+          .select('id, role')
+          .eq('pin_hash', ownerPinHash)
+          .limit(1);
+
+        if (!ownerCheck || ownerCheck.length === 0 || ownerCheck[0].role !== 'owner') {
+          showMessage('PIN ไม่ถูกต้อง หรือไม่ใช่ PIN ของ Owner', 'error');
+          setIsSaving(false);
+          return;
+        }
+      }
+
+      let pinHash: string | null = null;
+      if (isPinEntered) {
+        pinHash = await hashPin(editPin);
+      }
+
       const { error } = await supabase.rpc('update_employee', {
         p_employee_id: targetEmployee.id,
+        p_name: editName.trim() !== targetEmployee.name ? editName.trim() : null,
+        p_role: isRoleChanged ? editRole : null,
         p_pin_hash: pinHash,
       });
 
@@ -206,51 +217,12 @@ export const EmployeeManager: React.FC = () => {
         throw error;
       }
 
-      showMessage(`เปลี่ยน PIN ของ "${targetEmployee.name}" สำเร็จ`, 'success');
-      resetModal();
-    } catch (err: any) {
-      console.error('Error changing PIN:', err);
-      showMessage(err.message || 'เกิดข้อผิดพลาดในการเปลี่ยน PIN', 'error');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  // เปลี่ยน Role (ต้องยืนยัน PIN)
-  const handleChangeRole = async () => {
-    if (!targetEmployee) return;
-    if (confirmPin.length !== 6 || !/^\d{6}$/.test(confirmPin)) return showMessage('กรุณากรอก PIN 6 หลัก', 'error');
-
-    try {
-      setIsSaving(true);
-      // ตรวจสอบ PIN ของ Owner ฝั่ง client ก่อน
-      const ownerPinHash = await hashPin(confirmPin);
-      const { data: ownerCheck } = await supabase
-        .from('employees')
-        .select('id, role')
-        .eq('pin_hash', ownerPinHash)
-        .limit(1);
-
-      if (!ownerCheck || ownerCheck.length === 0 || ownerCheck[0].role !== 'owner') {
-        showMessage('PIN ไม่ถูกต้อง หรือไม่ใช่ PIN ของ Owner', 'error');
-        setIsSaving(false);
-        return;
-      }
-
-      const newRole = targetEmployee.role === 'owner' ? 'staff' : 'owner';
-      const { error } = await supabase.rpc('update_employee', {
-        p_employee_id: targetEmployee.id,
-        p_role: newRole,
-      });
-
-      if (error) throw error;
-
-      showMessage(`เปลี่ยนตำแหน่ง "${targetEmployee.name}" เป็น ${newRole === 'owner' ? 'Owner' : 'Staff'} สำเร็จ`, 'success');
+      showMessage(`อัปเดตข้อมูลพนักงาน "${editName.trim()}" สำเร็จ`, 'success');
       resetModal();
       fetchEmployees();
     } catch (err: any) {
-      console.error('Error changing role:', err);
-      showMessage(err.message || 'เกิดข้อผิดพลาดในการเปลี่ยนตำแหน่ง', 'error');
+      console.error('Error updating employee:', err);
+      showMessage(err.message || 'เกิดข้อผิดพลาดในการแก้ไขข้อมูลพนักงาน', 'error');
     } finally {
       setIsSaving(false);
     }
@@ -402,35 +374,21 @@ export const EmployeeManager: React.FC = () => {
                   </span>
                 </div>
 
-                {/* ปุ่ม Actions (ธีมขาว-แดง) */}
+                {/* ปุ่ม Actions (แก้ไข & ลบ) */}
                 <div className="flex flex-wrap gap-2 pt-3 border-t border-slate-100 dark:border-neutral-800">
                   <button
-                    onClick={() => openModal('editName', emp)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-700/80 text-slate-700 dark:text-neutral-200 hover:text-red-600 dark:hover:text-red-400 rounded-xl text-[11px] font-bold transition active:scale-95 border border-slate-200 dark:border-neutral-700 hover:border-red-200 dark:hover:border-red-900/50 shadow-2xs cursor-pointer"
+                    onClick={() => openModal('edit', emp)}
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-700/80 text-slate-700 dark:text-neutral-200 hover:text-red-600 dark:hover:text-red-400 rounded-xl text-[11px] font-bold transition active:scale-95 border border-slate-200 dark:border-neutral-700 hover:border-red-200 dark:hover:border-red-900/50 shadow-2xs cursor-pointer"
                   >
-                    <Pencil className="w-3 h-3 text-slate-400" />
-                    แก้ไขชื่อ
-                  </button>
-                  <button
-                    onClick={() => openModal('changePin', emp)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-700/80 text-slate-700 dark:text-neutral-200 hover:text-red-600 dark:hover:text-red-400 rounded-xl text-[11px] font-bold transition active:scale-95 border border-slate-200 dark:border-neutral-700 hover:border-red-200 dark:hover:border-red-900/50 shadow-2xs cursor-pointer"
-                  >
-                    <KeyRound className="w-3 h-3 text-slate-400" />
-                    เปลี่ยน PIN
-                  </button>
-                  <button
-                    onClick={() => openModal('changeRole', emp)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-700/80 text-slate-700 dark:text-neutral-200 hover:text-red-600 dark:hover:text-red-400 rounded-xl text-[11px] font-bold transition active:scale-95 border border-slate-200 dark:border-neutral-700 hover:border-red-200 dark:hover:border-red-900/50 shadow-2xs cursor-pointer"
-                  >
-                    <ArrowLeftRight className="w-3 h-3 text-slate-400" />
-                    เปลี่ยนตำแหน่ง
+                    <Pencil className="w-3.5 h-3.5 text-slate-400" />
+                    แก้ไข
                   </button>
                   {!isSelf && (
                     <button
                       onClick={() => openModal('delete', emp)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[11px] font-bold transition active:scale-95 shadow-md shadow-red-600/20 cursor-pointer"
+                      className="flex items-center gap-1.5 px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[11px] font-bold transition active:scale-95 shadow-md shadow-red-600/20 cursor-pointer"
                     >
-                      <Trash2 className="w-3 h-3 text-white" />
+                      <Trash2 className="w-3.5 h-3.5 text-white" />
                       ลบ
                     </button>
                   )}
@@ -608,31 +566,73 @@ export const EmployeeManager: React.FC = () => {
               </>
             )}
 
-            {/* === Modal: เปลี่ยน PIN === */}
-            {activeModal === 'changePin' && targetEmployee && (
+            {/* === Modal: แก้ไขพนักงาน (รวมชื่อ ตำแหน่ง และ PIN) === */}
+            {activeModal === 'edit' && targetEmployee && (
               <>
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-extrabold text-slate-900 dark:text-neutral-100 flex items-center gap-2">
-                    <KeyRound className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                    เปลี่ยน PIN
+                    <Pencil className="w-5 h-5 text-red-600 dark:text-red-400" />
+                    แก้ไขข้อมูลพนักงาน
                   </h3>
                   <button onClick={resetModal} className="p-1.5 hover:bg-slate-100 dark:hover:bg-neutral-800 rounded-lg transition cursor-pointer">
                     <X className="w-5 h-5 text-slate-400" />
                   </button>
                 </div>
 
-                <p className="text-xs text-slate-500 dark:text-neutral-400 font-medium">
-                  พนักงาน: <span className="font-bold text-slate-700 dark:text-neutral-200">{targetEmployee.name} ({targetEmployee.role})</span>
-                </p>
-
                 <div className="space-y-4">
+                  {/* ชื่อพนักงาน */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1.5">PIN ใหม่ (6 หลัก)</label>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1.5">ชื่อพนักงาน</label>
+                    <input
+                      type="text"
+                      value={editName}
+                      onChange={e => setEditName(e.target.value)}
+                      placeholder="เช่น สมชาย"
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-sm text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 transition"
+                    />
+                  </div>
+
+                  {/* ตำแหน่ง (Role) */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1.5">ตำแหน่ง</label>
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setEditRole('staff')}
+                        className={`flex-1 py-2.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
+                          editRole === 'staff'
+                            ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-sky-300 dark:border-sky-800 ring-1 ring-sky-200 dark:ring-sky-900/50'
+                            : 'bg-white dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 border-slate-200 dark:border-neutral-700 hover:bg-slate-50 dark:hover:bg-neutral-700'
+                        }`}
+                      >
+                        <User className="w-4 h-4 inline mr-1.5" />
+                        Staff
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditRole('owner')}
+                        className={`flex-1 py-2.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
+                          editRole === 'owner'
+                            ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-800 ring-1 ring-amber-200 dark:ring-amber-900/50'
+                            : 'bg-white dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 border-slate-200 dark:border-neutral-700 hover:bg-slate-50 dark:hover:bg-neutral-700'
+                        }`}
+                      >
+                        <Shield className="w-4 h-4 inline mr-1.5" />
+                        Owner
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* เปลี่ยน PIN (ไม่บังคับ — ปล่อยว่างถ้าไม่เปลี่ยน) */}
+                  <div className="pt-2 border-t border-slate-100 dark:border-neutral-800">
+                    <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1">
+                      เปลี่ยน PIN 6 หลัก <span className="text-slate-400 font-normal">(เว้นว่างไว้หากไม่ต้องการเปลี่ยน)</span>
+                    </label>
                     <div className="relative">
                       <input
-                        type={showNewPin ? 'text' : 'password'}
-                        value={newPin}
-                        onChange={e => { if (/^\d{0,6}$/.test(e.target.value)) setNewPin(e.target.value); }}
+                        type={showEditPin ? 'text' : 'password'}
+                        value={editPin}
+                        onChange={e => { if (/^\d{0,6}$/.test(e.target.value)) setEditPin(e.target.value); }}
                         placeholder="● ● ● ● ● ●"
                         maxLength={6}
                         inputMode="numeric"
@@ -640,103 +640,83 @@ export const EmployeeManager: React.FC = () => {
                       />
                       <button
                         type="button"
-                        onClick={() => setShowNewPin(!showNewPin)}
+                        onClick={() => setShowEditPin(!showEditPin)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 cursor-pointer"
                       >
-                        {showNewPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {showEditPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
-                  </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1.5">ยืนยัน PIN ใหม่</label>
-                    <input
-                      type={showNewPin ? 'text' : 'password'}
-                      value={newPinConfirm}
-                      onChange={e => { if (/^\d{0,6}$/.test(e.target.value)) setNewPinConfirm(e.target.value); }}
-                      placeholder="● ● ● ● ● ●"
-                      maxLength={6}
-                      inputMode="numeric"
-                      className={`w-full px-4 py-2.5 bg-slate-50 dark:bg-neutral-800 border rounded-xl text-sm text-slate-800 dark:text-neutral-100 font-mono tracking-[0.3em] focus:outline-none focus:ring-2 transition ${
-                        newPinConfirm && newPinConfirm !== newPin
-                          ? 'border-rose-300 dark:border-rose-800 focus:ring-rose-500/30 focus:border-rose-400'
-                          : 'border-slate-200 dark:border-neutral-700 focus:ring-red-500/30 focus:border-red-400'
-                      }`}
-                    />
-                    {newPinConfirm && newPinConfirm !== newPin && (
-                      <p className="text-[10px] text-rose-500 dark:text-rose-400 font-semibold mt-1">PIN ไม่ตรงกัน</p>
+                    {editPin.length > 0 && (
+                      <div className="mt-3">
+                        <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1.5">ยืนยัน PIN ใหม่</label>
+                        <input
+                          type={showEditPin ? 'text' : 'password'}
+                          value={editPinConfirm}
+                          onChange={e => { if (/^\d{0,6}$/.test(e.target.value)) setEditPinConfirm(e.target.value); }}
+                          placeholder="● ● ● ● ● ●"
+                          maxLength={6}
+                          inputMode="numeric"
+                          className={`w-full px-4 py-2.5 bg-slate-50 dark:bg-neutral-800 border rounded-xl text-sm text-slate-800 dark:text-neutral-100 font-mono tracking-[0.3em] focus:outline-none focus:ring-2 transition ${
+                            editPinConfirm && editPinConfirm !== editPin
+                              ? 'border-rose-300 dark:border-rose-800 focus:ring-rose-500/30 focus:border-rose-400'
+                              : 'border-slate-200 dark:border-neutral-700 focus:ring-red-500/30 focus:border-red-400'
+                          }`}
+                        />
+                        {editPinConfirm && editPinConfirm !== editPin && (
+                          <p className="text-[10px] text-rose-500 dark:text-rose-400 font-semibold mt-1">PIN ไม่ตรงกัน</p>
+                        )}
+                      </div>
                     )}
                   </div>
+
+                  {/* PIN ยืนยันสิทธิ์ Owner (แสดงเมื่อมีการเปลี่ยนตำแหน่ง หรือเปลี่ยน PIN) */}
+                  {(editRole !== targetEmployee.role || editPin.length > 0) && (
+                    <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 bg-amber-50/50 dark:bg-amber-950/20 p-3 rounded-2xl border border-amber-200/60 dark:border-amber-900/40">
+                      <label className="block text-xs font-bold text-amber-800 dark:text-amber-300 mb-1.5">
+                        🔐 กรอก PIN ของคุณเพื่ออนุมัติการเปลี่ยนตำแหน่ง/PIN
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showConfirmPin ? 'text' : 'password'}
+                          value={confirmPin}
+                          onChange={e => { if (/^\d{0,6}$/.test(e.target.value)) setConfirmPin(e.target.value); }}
+                          placeholder="● ● ● ● ● ●"
+                          maxLength={6}
+                          inputMode="numeric"
+                          className="w-full px-4 py-2 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-sm text-slate-800 dark:text-neutral-100 font-mono tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 transition pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPin(!showConfirmPin)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 cursor-pointer"
+                        >
+                          {showConfirmPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
+                {/* ปุ่มกดยืนยัน */}
                 <div className="flex gap-3 pt-2">
-                  <button onClick={resetModal} className="flex-1 py-2.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-600 dark:text-neutral-300 rounded-xl text-xs font-bold transition cursor-pointer">
+                  <button
+                    onClick={resetModal}
+                    className="flex-1 py-2.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-600 dark:text-neutral-300 rounded-xl text-xs font-bold transition cursor-pointer"
+                  >
                     ยกเลิก
                   </button>
                   <button
-                    onClick={handleChangePin}
-                    disabled={isSaving || newPin.length !== 6 || newPin !== newPinConfirm}
+                    onClick={handleEditEmployee}
+                    disabled={
+                      isSaving ||
+                      !editName.trim() ||
+                      (editPin.length > 0 && (editPin.length !== 6 || editPin !== editPinConfirm)) ||
+                      ((editRole !== targetEmployee.role || editPin.length > 0) && confirmPin.length !== 6)
+                    }
                     className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-extrabold transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-red-600/20"
                   >
                     {isSaving ? 'กำลังบันทึก...' : '✅ บันทึก'}
-                  </button>
-                </div>
-              </>
-            )}
-
-            {/* === Modal: เปลี่ยน Role (ต้องยืนยัน PIN) === */}
-            {activeModal === 'changeRole' && targetEmployee && (
-              <>
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-extrabold text-slate-900 dark:text-neutral-100 flex items-center gap-2">
-                    <ArrowLeftRight className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                    เปลี่ยนตำแหน่ง
-                  </h3>
-                  <button onClick={resetModal} className="p-1.5 hover:bg-slate-100 dark:hover:bg-neutral-800 rounded-lg transition cursor-pointer">
-                    <X className="w-5 h-5 text-slate-400" />
-                  </button>
-                </div>
-
-                <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-xl p-3 text-xs text-amber-800 dark:text-amber-300 font-semibold">
-                  <p>คุณกำลังจะเปลี่ยนตำแหน่งของ <span className="font-extrabold">{targetEmployee.name}</span></p>
-                  <p className="mt-1">
-                    จาก <span className="font-extrabold uppercase">{targetEmployee.role}</span> →{' '}
-                    <span className="font-extrabold uppercase">{targetEmployee.role === 'owner' ? 'staff' : 'owner'}</span>
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-neutral-300 mb-1.5">🔐 กรุณากรอก PIN ของคุณเพื่อยืนยัน</label>
-                  <div className="relative">
-                    <input
-                      type={showConfirmPin ? 'text' : 'password'}
-                      value={confirmPin}
-                      onChange={e => { if (/^\d{0,6}$/.test(e.target.value)) setConfirmPin(e.target.value); }}
-                      placeholder="● ● ● ● ● ●"
-                      maxLength={6}
-                      inputMode="numeric"
-                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-sm text-slate-800 dark:text-neutral-100 font-mono tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 transition pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPin(!showConfirmPin)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 cursor-pointer"
-                    >
-                      {showConfirmPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex gap-3 pt-2">
-                  <button onClick={resetModal} className="flex-1 py-2.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-600 dark:text-neutral-300 rounded-xl text-xs font-bold transition cursor-pointer">
-                    ยกเลิก
-                  </button>
-                  <button
-                    onClick={handleChangeRole}
-                    disabled={isSaving || confirmPin.length !== 6}
-                    className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-extrabold transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-amber-500/20"
-                  >
-                    {isSaving ? 'กำลังบันทึก...' : '✅ ยืนยัน'}
                   </button>
                 </div>
               </>
