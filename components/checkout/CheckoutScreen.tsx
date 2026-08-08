@@ -126,6 +126,32 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
   const [couponError, setCouponError] = useState<string | null>(null);
   const [couponApplied, setCouponApplied] = useState<Promotion | null>(null);
 
+  const handleResetTableToVacant = async () => {
+    try {
+      setIsProcessing(true);
+      const { error: tableError } = await supabase
+        .from('tables')
+        .update({ status: 'vacant', updated_at: new Date().toISOString() })
+        .eq('id', tableId);
+
+      if (tableError) throw tableError;
+
+      await supabase
+        .from('qr_sessions')
+        .update({ status: 'expired' })
+        .eq('table_id', tableId)
+        .eq('status', 'active');
+
+      alert(`เคลียร์สถานะ โต๊ะ ${tableId} เป็นโต๊ะว่างเรียบร้อยแล้ว`);
+      onBack();
+    } catch (err: any) {
+      console.error('Error resetting table:', err);
+      alert('ไม่สามารถเคลียร์โต๊ะได้: ' + (err?.message || ''));
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   // Computed values
   const activeItems = orderedItems.filter(i => i.status !== 'voided');
   const pendingItemsCount = orderedItems.filter(i => i.status === 'pending').length;
@@ -527,9 +553,21 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
         </header>
 
         {errorMsg && (
-          <div className="mb-6 p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-300 rounded-2xl text-xs font-semibold flex items-center gap-3">
-            <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
-            <span>{errorMsg}</span>
+          <div className="mb-6 p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-300 rounded-2xl text-xs font-semibold flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
+              <span>{errorMsg}</span>
+            </div>
+            {(!orderId || activeItems.length === 0) && (
+              <button
+                type="button"
+                onClick={handleResetTableToVacant}
+                disabled={isProcessing}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-extrabold text-xs rounded-xl transition cursor-pointer shadow-xs shrink-0"
+              >
+                {isProcessing ? 'กำลังเคลียร์...' : 'เคลียร์สถานะโต๊ะเป็นว่าง (Reset Table)'}
+              </button>
+            )}
           </div>
         )}
 

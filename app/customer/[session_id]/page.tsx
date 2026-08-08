@@ -346,6 +346,21 @@ export default function CustomerOrderPortal() {
     if (!tableId) return;
     try {
       setIsUpdatingStatus(true);
+
+      // Check if order is still active
+      const { data: activeOrder } = await supabase
+        .from('orders')
+        .select('id')
+        .eq('table_id', tableId)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (!activeOrder) {
+        setIsCheckoutCompleted(true);
+        setShowCheckBillConfirm(false);
+        return;
+      }
+
       const { error } = await supabase
         .from('tables')
         .update({ status: 'checking_out', updated_at: new Date().toISOString() })
