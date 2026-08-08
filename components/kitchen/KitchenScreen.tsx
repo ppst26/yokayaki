@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { ChefHat, Volume2, VolumeX, RefreshCw } from 'lucide-react';
 import { KitchenOrderCard } from './KitchenOrderCard';
 import { Card } from '@/components/ui/card';
+import { playNewOrderSound, playCheckBillSound } from '@/lib/audioNotifier';
 
 interface OrderItem {
   id: number;
@@ -42,26 +43,7 @@ export const KitchenScreen: React.FC = () => {
 
   const playChime = () => {
     if (!soundEnabled) return;
-    try {
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-      osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); // A5
-
-      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.5);
-    } catch (e) {
-      console.warn('Audio chime failed:', e);
-    }
+    playNewOrderSound();
   };
 
   const fetchPendingItems = async () => {
@@ -151,9 +133,28 @@ export const KitchenScreen: React.FC = () => {
       .channel('realtime:kitchen_items')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'order_items' },
+        { event: 'INSERT', schema: 'public', table: 'order_items' },
+        (payload: any) => {
+          if (soundEnabled && payload.new && payload.new.status === 'pending') {
+            playNewOrderSound();
+          }
+          fetchPendingItems();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'order_items' },
         () => {
           fetchPendingItems();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'tables' },
+        (payload: any) => {
+          if (soundEnabled && payload.new && payload.new.status === 'checking_out' && payload.old?.status !== 'checking_out') {
+            playCheckBillSound();
+          }
         }
       )
       .subscribe();
@@ -162,7 +163,7 @@ export const KitchenScreen: React.FC = () => {
       clearInterval(timer);
       channel.unsubscribe();
     };
-  }, []);
+  }, [soundEnabled]);
 
   const groupMap: Record<number, TableGroup> = {};
   for (const item of items) {

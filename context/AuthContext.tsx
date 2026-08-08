@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { unlockAudio } from '@/lib/audioNotifier';
 
 export interface Employee {
   id: number;
@@ -242,7 +243,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     resetIdleTimer();
 
     const activityEvents: (keyof WindowEventMap)[] = ['mousedown', 'keydown', 'touchstart', 'scroll'];
-    const handleActivity = () => resetIdleTimer();
+    const handleActivity = () => {
+      unlockAudio();
+      resetIdleTimer();
+    };
 
     activityEvents.forEach(evt => window.addEventListener(evt, handleActivity, { passive: true }));
 

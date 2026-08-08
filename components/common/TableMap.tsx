@@ -15,6 +15,7 @@ import { PromoManager } from '@/components/PromoManager';
 import { SalesHistory } from '@/components/SalesHistory';
 import { LoyaltyManager } from '@/components/LoyaltyManager';
 import { EmployeeManager } from '@/components/EmployeeManager';
+import { playNewOrderSound, playCheckBillSound } from '@/lib/audioNotifier';
 import { TableCard } from '@/components/TableCard';
 
 interface Table {
@@ -114,15 +115,27 @@ export const TableMap: React.FC = () => {
     fetchTables();
 
     const channel = supabase
-      .channel('realtime:tables')
+      .channel('realtime:tablemap_audio_notifications')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'tables' },
+        { event: 'UPDATE', schema: 'public', table: 'tables' },
         (payload: any) => {
           if (payload.new) {
+            if (payload.new.status === 'checking_out' && payload.old?.status !== 'checking_out') {
+              playCheckBillSound();
+            }
             setTables(prev =>
               prev.map(t => (t.id === payload.new.id ? (payload.new as Table) : t))
             );
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'order_items' },
+        (payload: any) => {
+          if (payload.new && payload.new.status === 'pending') {
+            playNewOrderSound();
           }
         }
       )
