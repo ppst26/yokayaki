@@ -83,27 +83,27 @@ export const OwnerDashboard: React.FC = () => {
         </div>
 
         {/* ─── Row 1-2, Col 4: Business Spotlight (spans 2 rows) ─── */}
-        <div className="lg:row-span-2">
+        <div className="lg:row-span-2 h-full flex flex-col">
           <BusinessSpotlight startDate={startDate} endDate={endDate} refreshKey={refreshKey} />
         </div>
 
         {/* ─── Row 2, Cols 1-2: Sales Chart ─── */}
-        <div className="lg:col-span-2 min-h-[320px]">
+        <div className="lg:col-span-2 min-h-[320px] h-full flex flex-col">
           <SalesChart startDate={startDate} endDate={endDate} refreshKey={refreshKey} />
         </div>
 
         {/* ─── Row 2, Col 3: Business KPIs ─── */}
-        <div>
+        <div className="h-full flex flex-col">
           <BusinessKPIs startDate={startDate} endDate={endDate} refreshKey={refreshKey} />
         </div>
 
         {/* ─── Row 3, Cols 1-2: Promo Activity Stream ─── */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 h-full flex flex-col">
           <PromoActivityStream startDate={startDate} endDate={endDate} refreshKey={refreshKey} />
         </div>
 
         {/* ─── Row 3, Cols 3-4: Top 8 Dishes ─── */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 h-full flex flex-col">
           <TopDishes startDate={startDate} endDate={endDate} refreshKey={refreshKey} />
         </div>
       </div>

@@ -120,9 +120,9 @@ export const BusinessSpotlight: React.FC<BusinessSpotlightProps> = ({ startDate,
   const promptpayPercent = totalMoney > 0 ? 100 - cashPercent : 0;
 
   return (
-    <div className="space-y-4">
+    <div className="h-full flex flex-col justify-between gap-3 sm:gap-4">
       {/* Payment Method Breakdown */}
-      <Card className="p-5 space-y-4">
+      <Card className="p-5 space-y-4 flex-1 flex flex-col justify-between">
         <div className="flex items-center gap-2">
           <CreditCard className="w-4 h-4 text-blue-500" />
           <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
@@ -220,7 +220,7 @@ export const BusinessSpotlight: React.FC<BusinessSpotlightProps> = ({ startDate,
       </Card>
 
       {/* Ingredient Cost Card */}
-      <Card className="p-5 space-y-3">
+      <Card className="p-5 space-y-3 flex-1 flex flex-col justify-between">
         <div className="flex items-center gap-2">
           <ShoppingCart className="w-4 h-4 text-rose-500" />
           <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">

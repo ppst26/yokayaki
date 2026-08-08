@@ -94,9 +94,9 @@ export const BusinessKPIs: React.FC<BusinessKPIsProps> = ({ startDate, endDate, 
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="h-full flex flex-col justify-between gap-3 sm:gap-4">
       {kpis.map(kpi => (
-        <Card key={kpi.label} className="p-4 flex items-center justify-between">
+        <Card key={kpi.label} className="p-4 flex-1 flex items-center justify-between">
           <div className="space-y-0.5">
             <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block">
               {kpi.label}
