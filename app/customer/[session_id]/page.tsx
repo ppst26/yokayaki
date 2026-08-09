@@ -191,13 +191,11 @@ export default function CustomerOrderPortal() {
       if (sessionError) throw sessionError;
       
       if (!sessionData || sessionData.status !== 'active') {
-        setIsCheckoutCompleted(true);
         setSessionValid(false);
         return;
       }
 
       if (sessionData.expired_at && new Date(sessionData.expired_at) < new Date()) {
-        setIsCheckoutCompleted(true);
         setSessionValid(false);
         return;
       }
