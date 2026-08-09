@@ -212,16 +212,6 @@ export default function CustomerOrderPortal() {
 
       if (tableData) {
         const currentStatus = tableData.status as 'vacant' | 'occupied' | 'checking_out';
-        // If table is already vacant on initial load, the session is stale
-        // → show "QR expired" instead of "checkout completed"
-        // Don't set tableStatus to 'vacant' here — the render condition
-        // (isCheckoutCompleted || tableStatus === 'vacant') would show the
-        // wrong screen. Keep tableStatus at default 'occupied' so the render
-        // falls through to the sessionValid === false check.
-        if (currentStatus === 'vacant') {
-          setSessionValid(false);
-          return;
-        }
         setTableStatus(currentStatus);
       }
 
@@ -467,7 +457,8 @@ export default function CustomerOrderPortal() {
   }
 
   // Render Thank You / Checkout Completed Screen (Light Theme)
-  if (isCheckoutCompleted || tableStatus === 'vacant') {
+  // Only shown when checkout happens via realtime while customer is actively using the page
+  if (isCheckoutCompleted) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center font-sans animate-fade-in">
         <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-xl max-w-sm w-full flex flex-col items-center space-y-4 relative overflow-hidden">
