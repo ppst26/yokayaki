@@ -288,13 +288,13 @@ export const EmployeeManager: React.FC = () => {
 
       {/* Header & Add Employee Button */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-neutral-100 tracking-tight flex items-center gap-2">
-            <Users className="w-6 h-6 text-red-600 dark:text-red-400" />
-            จัดการพนักงาน (Employee Management)
+        <div className="w-[50%]">
+          <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-neutral-100 tracking-tight flex items-center gap-2">
+            <Users className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />
+            <span>จัดการพนักงาน</span>
           </h1>
           <p className="text-caption mt-0.5">
-            จัดการข้อมูลพนักงาน กำหนดตำแหน่ง และรหัส PIN เข้าใช้งานระบบ
+            จัดการข้อมูลพนักงาน กำหนดตำแหน่ง
           </p>
         </div>
 

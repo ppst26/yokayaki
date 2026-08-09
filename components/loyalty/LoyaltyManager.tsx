@@ -302,13 +302,13 @@ export const LoyaltyManager: React.FC = () => {
     <div className="w-full text-slate-800 dark:text-neutral-100 font-sans space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-neutral-100 tracking-tight flex items-center gap-2">
-            <Users className="w-6 h-6 text-red-600 dark:text-red-400" />
-            ระบบสมาชิก CRM (Loyalty CRM)
+        <div className="w-[50%]">
+          <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-neutral-100 tracking-tight flex items-center gap-2">
+            <Users className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />
+            <span>สมาชิก CRM</span>
           </h1>
           <p className="text-caption mt-0.5">
-            จัดการข้อมูลสมาชิก ค้นหาเบอร์โทร ประวัติการสะสมแต้ม และตรวจสอบสิทธิ์
+            จัดการข้อมูลสมาชิก ค้นหาเบอร์โทร 
           </p>
         </div>
       </div>

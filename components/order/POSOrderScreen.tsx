@@ -310,8 +310,8 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
-            <div>
-              <h1 className="text-xl font-black text-slate-900 dark:text-neutral-100 tracking-tight">
+            <div className="w-[50%]">
+              <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-neutral-100 tracking-tight">
                 สั่งอาหาร
               </h1>
               <p className="text-xs text-slate-500 dark:text-neutral-400 font-semibold">

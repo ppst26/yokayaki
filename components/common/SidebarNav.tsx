@@ -247,7 +247,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                 >
                   <div className="flex items-center gap-3">
                     <ChefHat className="w-4.5 h-4.5" />
-                    <span>หน้าจอครัว (KDS)</span>
+                    <span>หน้าจอครัว</span>
                   </div>
                   {pendingTablesCount > 0 && (
                     <span
@@ -523,7 +523,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
             >
               <div className="flex items-center gap-3">
                 <ChefHat className="w-4.5 h-4.5" />
-                <span>หน้าจอครัว (KDS)</span>
+                <span>หน้าจอครัว</span>
               </div>
               {pendingTablesCount > 0 && (
                 <span

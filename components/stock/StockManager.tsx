@@ -9,13 +9,13 @@ export const StockManager: React.FC = () => {
     <div className="w-full text-zinc-800 dark:text-zinc-100 font-sans space-y-6">
       {/* Page Title & Subtitle */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-h1 text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-            <Boxes className="w-6 h-6 text-red-600 dark:text-red-400" />
-            จัดการต้นทุนวัตถุดิบ & สต็อก
+        <div className="w-[50%]">
+          <h1 className="text-base md:text-lg font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+            <Boxes className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />
+            <span>จัดการสต็อก</span>
           </h1>
           <p className="text-caption mt-0.5">
-            บันทึกการจัดซื้อวัตถุดิบทำเมนู (แซลมอน, เบียร์สด ฯลฯ) พร้อมสรุปยอดต้นทุนและตัวกรองรายงานตามช่วงเวลา
+            บันทึกการจัดซื้อวัตถุดิบทำเมนู 
           </p>
         </div>
       </div>

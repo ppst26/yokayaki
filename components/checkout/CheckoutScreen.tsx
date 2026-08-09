@@ -541,10 +541,10 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div>
-            <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-neutral-100 tracking-tight flex items-center gap-2">
-              <Receipt className="w-6 h-6 text-red-600 dark:text-red-400" />
-              ชำระเงิน / เช็คบิล
+          <div className="w-[50%]">
+            <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-neutral-100 tracking-tight flex items-center gap-2">
+              <Receipt className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />
+              <span>ชำระเงิน</span>
             </h1>
             <p className="text-xs text-slate-500 dark:text-neutral-400 font-semibold mt-0.5">
               ประจำ <span className="text-red-600 dark:text-red-400 font-bold">โต๊ะ {tableId}</span> • ออเดอร์ #{orderId}

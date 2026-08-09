@@ -322,12 +322,12 @@ export const SalesHistory: React.FC = () => {
     <div className="w-full text-slate-800 dark:text-neutral-100 font-sans space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-lg md:text-xl font-black text-slate-900 dark:text-neutral-100 tracking-tight">
-            ประวัติการขายประจำวัน (Sales & Audit History)
+        <div className="w-[50%]">
+          <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-neutral-100 tracking-tight">
+            ประวัติการขาย
           </h1>
           <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
-            ตรวจสอบรายการที่เช็คบิลแล้ว และประวัติการ Void ยกเลิกออเดอร์ ({auditRange === 'today' ? 'ในวันนี้' : 'ของเมื่อวาน'})
+            ตรวจสอบรายการที่เช็คบิลแล้ว  ({auditRange === 'today' ? 'ในวันนี้' : 'ของเมื่อวาน'})
           </p>
         </div>
 

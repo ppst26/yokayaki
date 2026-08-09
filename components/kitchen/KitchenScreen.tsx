@@ -202,13 +202,13 @@ export const KitchenScreen: React.FC = () => {
     <div className="w-full text-slate-800 dark:text-neutral-100 font-sans space-y-6">
       {/* KDS Header */}
       <div className="flex items-start sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-h1 text-slate-900 dark:text-neutral-100 flex items-center gap-2">
+        <div className="w-[50%]">
+          <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-neutral-100 flex items-center gap-2">
             <ChefHat className="w-5 h-5 sm:w-6 sm:h-6 text-red-600 dark:text-red-400 shrink-0" />
-            <span>หน้าจอห้องครัว (KDS)</span>
+            <span>ห้องครัว</span>
           </h1>
           <p className="text-caption mt-0.5">
-            รายการอาหารที่ต้องจัดทำตามลำดับออเดอร์
+            รายการออเดอร์ทีต้องทำเสริ์ฟ
           </p>
         </div>
 

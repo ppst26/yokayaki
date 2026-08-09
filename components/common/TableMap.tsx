@@ -231,12 +231,12 @@ export const TableMap: React.FC = () => {
         {activeTab === 'floor' && (
           <div className="w-full space-y-6">
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <h1 className="text-h1 text-slate-900 dark:text-neutral-100">
-                  ผังโต๊ะอาหาร (Table Map)
+              <div className="w-[50%]">
+                <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-neutral-100">
+                  ผังโต๊ะ
                 </h1>
                 <p className="text-caption mt-0.5">
-                  เลือกโต๊ะเพื่อเปิดออเดอร์ หรือเช็คบิลชำระเงิน
+                  เลือกโต๊ะเพื่อเปิดออเดอร์ 
                 </p>
               </div>
 
