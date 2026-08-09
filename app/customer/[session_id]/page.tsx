@@ -542,8 +542,8 @@ export default function CustomerOrderPortal() {
           </div>
           <div>
             <h1 className="font-black text-base leading-tight tracking-tight text-slate-900">Yokayaki</h1>
-            <p className="text-slate-500 text-[11px] font-bold">
-              ประจำ <span className="text-red-600 font-extrabold">โต๊ะ {tableId}</span>
+            <p className="text-slate-500 text-xs md:text-sm font-bold whitespace-nowrap mt-0.5">
+              ประจำ <span className="text-red-600 font-black text-sm md:text-base">โต๊ะ {tableId}</span>
             </p>
           </div>
         </div>
@@ -702,7 +702,7 @@ export default function CustomerOrderPortal() {
                     <div 
                       key={item.id} 
                       className={`p-3 rounded-2xl border flex flex-col justify-between gap-2.5 transition-all shadow-xs ${
-                        isSoldOut ? 'bg-slate-100 border-slate-200 opacity-60' : 'bg-white border-slate-200 hover:border-slate-300'
+                        isSoldOut ? 'bg-rose-50/80 border-2 border-rose-200 opacity-95' : 'bg-white border-slate-200 hover:border-slate-300'
                       }`}
                     >
                       <div className="flex flex-col gap-2">

@@ -310,12 +310,12 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
-            <div className="w-[50%]">
-              <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-neutral-100 tracking-tight">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg md:text-xl font-extrabold text-slate-900 dark:text-neutral-100 tracking-tight whitespace-nowrap">
                 สั่งอาหาร
               </h1>
-              <p className="text-xs text-slate-500 dark:text-neutral-400 font-semibold">
-                ประจำ <span className="text-red-600 dark:text-red-400 font-bold">โต๊ะ {tableId}</span>
+              <p className="text-sm md:text-base text-slate-500 dark:text-neutral-400 font-semibold whitespace-nowrap mt-0.5">
+                ประจำ <span className="text-base md:text-lg text-red-600 dark:text-red-400 font-black">โต๊ะ {tableId}</span>
               </p>
             </div>
           </div>
