@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import {
   Plus, X, ChevronDown, ChevronUp, ShoppingCart,
-  Calendar, User, Trash2, PackagePlus, Receipt, Search, Filter, RefreshCw
+  Calendar, User, Trash2, PackagePlus, Receipt, Search, Filter, RefreshCw, Pencil
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -95,6 +95,9 @@ export const IngredientPurchaseManager: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [editingOrder, setEditingOrder] = useState<PurchaseOrder | null>(null);
+  const [deletingOrder, setDeletingOrder] = useState<PurchaseOrder | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Form state
   const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().slice(0, 10));
@@ -311,11 +314,85 @@ export const IngredientPurchaseManager: React.FC = () => {
     setNote('');
     setIngredients([{ name: '', unit: 'กก.', quantity: '', pricePerUnit: '' }]);
     setFormError(null);
+    setEditingOrder(null);
   };
 
   const openModal = () => {
     resetForm();
     setShowModal(true);
+  };
+
+  // ── Edit purchase order handler ──────────────────────────────────────────
+
+  const handleEditOrder = async (order: PurchaseOrder) => {
+    setFormError(null);
+    let items = expandedItems[order.id];
+    if (!items) {
+      const { data, error } = await supabase
+        .from('item_ingredients')
+        .select('id, purchase_order_id, name, quantity, unit, cost, purchase_date, buyer_name')
+        .eq('purchase_order_id', order.id)
+        .order('id', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching order items for edit:', error);
+        return;
+      }
+      items = (data || []) as IngredientItem[];
+      setExpandedItems(prev => ({ ...prev, [order.id]: items }));
+    }
+
+    setEditingOrder(order);
+    setPurchaseDate(order.purchase_date);
+    setBuyerName(order.buyer_name);
+    setNote(order.note || '');
+
+    if (items && items.length > 0) {
+      setIngredients(
+        items.map(item => ({
+          name: item.name,
+          unit: item.unit || 'กก.',
+          quantity: item.quantity.toString(),
+          pricePerUnit: item.quantity > 0 ? (item.cost / item.quantity).toString() : '0',
+        }))
+      );
+    } else {
+      setIngredients([{ name: '', unit: 'กก.', quantity: '', pricePerUnit: '' }]);
+    }
+
+    setShowModal(true);
+  };
+
+  // ── Delete purchase order handler ────────────────────────────────────────
+
+  const handleDeleteOrder = async (orderId: number) => {
+    try {
+      setIsDeleting(true);
+      const { error: itemErr } = await supabase
+        .from('item_ingredients')
+        .delete()
+        .eq('purchase_order_id', orderId);
+
+      if (itemErr) throw itemErr;
+
+      const { error: poErr } = await supabase
+        .from('purchase_orders')
+        .delete()
+        .eq('id', orderId);
+
+      if (poErr) throw poErr;
+
+      setDeletingOrder(null);
+      if (expandedId === orderId) {
+        setExpandedId(null);
+      }
+      await fetchOrders();
+    } catch (err: any) {
+      console.error('handleDeleteOrder error:', err);
+      alert('เกิดข้อผิดพลาดในการลบรายการ: ' + (err.message || 'ลองใหม่อีกครั้ง'));
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   // ── Save purchase order ────────────────────────────────────────────────────
@@ -331,46 +408,93 @@ export const IngredientPurchaseManager: React.FC = () => {
     try {
       setIsSaving(true);
 
-      // 1. Create purchase_order header
-      const { data: poData, error: poErr } = await supabase
-        .from('purchase_orders')
-        .insert([{
+      if (editingOrder) {
+        // ── EDIT MODE ────────────────────────────────────────────────
+        // 1. Update purchase_orders header
+        const { error: poErr } = await supabase
+          .from('purchase_orders')
+          .update({
+            purchase_date: purchaseDate,
+            buyer_name: buyerName.trim(),
+            total_cost: totalCost,
+            note: note.trim() || null,
+          })
+          .eq('id', editingOrder.id);
+
+        if (poErr) throw poErr;
+
+        // 2. Delete old ingredient rows for this PO
+        const { error: delErr } = await supabase
+          .from('item_ingredients')
+          .delete()
+          .eq('purchase_order_id', editingOrder.id);
+
+        if (delErr) throw delErr;
+
+        // 3. Re-insert updated ingredient rows
+        const ingredientRows = validRows.map(row => ({
+          purchase_order_id: editingOrder.id,
+          name: row.name.trim(),
+          quantity: parseFloat(row.quantity),
+          unit: row.unit,
+          cost: calcRowTotal(row),
           purchase_date: purchaseDate,
           buyer_name: buyerName.trim(),
-          total_cost: totalCost,
-          note: note.trim() || null,
-        }])
-        .select('id')
-        .single();
+        }));
 
-      if (poErr) throw poErr;
-      const purchaseOrderId = poData.id;
+        const { error: ingErr } = await supabase
+          .from('item_ingredients')
+          .insert(ingredientRows);
 
-      // 2. Insert ingredient rows linked to this PO
-      const ingredientRows = validRows.map(row => ({
-        purchase_order_id: purchaseOrderId,
-        name: row.name.trim(),
-        quantity: parseFloat(row.quantity),
-        unit: row.unit,
-        cost: calcRowTotal(row),
-        purchase_date: purchaseDate,
-        buyer_name: buyerName.trim(),
-      }));
+        if (ingErr) throw ingErr;
 
-      const { error: ingErr } = await supabase
-        .from('item_ingredients')
-        .insert(ingredientRows);
+        const updatedPoId = editingOrder.id;
+        setShowModal(false);
+        setEditingOrder(null);
+        await fetchOrders();
+        await fetchOrderItems(updatedPoId);
+      } else {
+        // ── CREATE MODE ──────────────────────────────────────────────
+        // 1. Create purchase_order header
+        const { data: poData, error: poErr } = await supabase
+          .from('purchase_orders')
+          .insert([{
+            purchase_date: purchaseDate,
+            buyer_name: buyerName.trim(),
+            total_cost: totalCost,
+            note: note.trim() || null,
+          }])
+          .select('id')
+          .single();
 
-      if (ingErr) throw ingErr;
+        if (poErr) throw poErr;
+        const purchaseOrderId = poData.id;
 
-      setShowModal(false);
-      await fetchOrders();
-      // Clear cached items for the new order so it reloads on expand
-      setExpandedItems(prev => {
-        const copy = { ...prev };
-        delete copy[purchaseOrderId];
-        return copy;
-      });
+        // 2. Insert ingredient rows linked to this PO
+        const ingredientRows = validRows.map(row => ({
+          purchase_order_id: purchaseOrderId,
+          name: row.name.trim(),
+          quantity: parseFloat(row.quantity),
+          unit: row.unit,
+          cost: calcRowTotal(row),
+          purchase_date: purchaseDate,
+          buyer_name: buyerName.trim(),
+        }));
+
+        const { error: ingErr } = await supabase
+          .from('item_ingredients')
+          .insert(ingredientRows);
+
+        if (ingErr) throw ingErr;
+
+        setShowModal(false);
+        await fetchOrders();
+        setExpandedItems(prev => {
+          const copy = { ...prev };
+          delete copy[purchaseOrderId];
+          return copy;
+        });
+      }
     } catch (err: any) {
       console.error('handleSave error:', err);
       setFormError('บันทึกไม่สำเร็จ: ' + (err.message || 'ลองใหม่อีกครั้ง'));
@@ -549,9 +673,35 @@ export const IngredientPurchaseManager: React.FC = () => {
                     </div>
                   ) : (
                     <>
-                      <p className="text-card-label mb-3">
-                        รายการวัตถุดิบ
-                      </p>
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="text-card-label">
+                          รายการวัตถุดิบ
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditOrder(order);
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 dark:text-amber-300 dark:bg-amber-950/50 dark:hover:bg-amber-900/60 rounded-xl transition active:scale-95 cursor-pointer"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                            <span>แก้ไข</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeletingOrder(order);
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 dark:text-rose-300 dark:bg-rose-950/50 dark:hover:bg-rose-900/60 rounded-xl transition active:scale-95 cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>ลบ</span>
+                          </button>
+                        </div>
+                      </div>
                       <Table>
                         <TableHeader>
                           <TableRow>
@@ -606,8 +756,17 @@ export const IngredientPurchaseManager: React.FC = () => {
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 dark:border-zinc-800/80">
               <h3 className="text-base font-black text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-                <PackagePlus className="w-5 h-5 text-red-600 dark:text-red-400" />
-                เพิ่มรายการสั่งซื้อวัตถุดิบ
+                {editingOrder ? (
+                  <>
+                    <Pencil className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                    แก้ไขรายการสั่งซื้อ PO-{String(editingOrder.id).padStart(4, '0')}
+                  </>
+                ) : (
+                  <>
+                    <PackagePlus className="w-5 h-5 text-red-600 dark:text-red-400" />
+                    เพิ่มรายการสั่งซื้อวัตถุดิบ
+                  </>
+                )}
               </h3>
               <button
                 onClick={() => setShowModal(false)}
@@ -670,15 +829,15 @@ export const IngredientPurchaseManager: React.FC = () => {
                   </button>
                 </div>
 
-                {/* Column headers */}
-                <div className="grid grid-cols-[1fr_80px_100px_90px_32px] gap-2 mb-1.5 px-1">
+                {/* Column headers (Hidden on mobile < 640px) */}
+                <div className="hidden sm:grid grid-cols-[1fr_80px_100px_90px_32px] gap-2 mb-1.5 px-1">
                   {['ชื่อวัตถุดิบ', 'จำนวน', 'หน่วย', 'ราคา/หน่วย', ''].map(h => (
                     <span key={h} className="text-xs font-extrabold text-zinc-400 dark:text-zinc-500 uppercase tracking-wide">{h}</span>
                   ))}
                 </div>
 
                 {/* Rows */}
-                <div className="space-y-2">
+                <div className="space-y-3 sm:space-y-2">
                   {ingredients.map((row, idx) => {
                     const nameOptions = row.name && !availableIngredients.includes(row.name)
                       ? [row.name, ...availableIngredients]
@@ -688,66 +847,101 @@ export const IngredientPurchaseManager: React.FC = () => {
                       : availableUnits;
 
                     return (
-                      <div key={idx} className="grid grid-cols-[1fr_80px_100px_90px_32px] gap-2 items-center relative">
-                        {/* Name Dropdown with CustomSelect (Searchable) */}
-                        <CustomSelect
-                          value={row.name}
-                          onChange={val => updateRow(idx, 'name', val)}
-                          options={nameOptions}
-                          placeholder="-- เลือกวัตถุดิบ --"
-                          addNewLabel="+ เพิ่มชื่อวัตถุดิบใหม่..."
-                          searchable={true}
-                          onAddNew={() => {
-                            setCustomModalState({ type: 'ingredient', rowIndex: idx });
-                            setCustomValueInput('');
-                          }}
-                        />
+                      <div
+                        key={idx}
+                        className="bg-zinc-50 dark:bg-zinc-800/40 sm:bg-transparent p-3 sm:p-0 rounded-xl sm:rounded-none border border-zinc-200/60 dark:border-zinc-800 sm:border-none space-y-2 sm:space-y-0 sm:grid sm:grid-cols-[1fr_80px_100px_90px_32px] sm:gap-2 sm:items-center relative"
+                      >
+                        {/* Mobile Line 1: Name + Trash */}
+                        <div className="flex items-center gap-2 sm:contents">
+                          <div className="flex-1 min-w-0">
+                            <CustomSelect
+                              value={row.name}
+                              onChange={val => updateRow(idx, 'name', val)}
+                              options={nameOptions}
+                              placeholder="-- เลือกวัตถุดิบ --"
+                              addNewLabel="+ เพิ่มชื่อวัตถุดิบใหม่..."
+                              searchable={true}
+                              onAddNew={() => {
+                                setCustomModalState({ type: 'ingredient', rowIndex: idx });
+                                setCustomValueInput('');
+                              }}
+                            />
+                          </div>
 
-                        {/* Quantity */}
-                        <input
-                          type="number"
-                          min={0}
-                          step="0.01"
-                          placeholder="0"
-                          value={row.quantity}
-                          onChange={e => updateRow(idx, 'quantity', e.target.value)}
-                          className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500/50 text-center border-none"
-                        />
+                          {/* Mobile Delete Button */}
+                          <button
+                            type="button"
+                            onClick={() => removeIngredientRow(idx)}
+                            disabled={ingredients.length === 1}
+                            className="p-1.5 text-zinc-400 hover:text-rose-500 dark:hover:text-rose-400 disabled:opacity-30 transition cursor-pointer rounded-lg flex items-center justify-center shrink-0 sm:hidden"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
 
-                        {/* Unit Dropdown with CustomSelect (No Search) */}
-                        <CustomSelect
-                          value={row.unit}
-                          onChange={val => updateRow(idx, 'unit', val)}
-                          options={unitOptions}
-                          placeholder="หน่วย"
-                          addNewLabel="+ เพิ่มหน่วยใหม่..."
-                          searchable={false}
-                          onAddNew={() => {
-                            setCustomModalState({ type: 'unit', rowIndex: idx });
-                            setCustomValueInput('');
-                          }}
-                        />
+                        {/* Mobile Line 2: Quantity, Unit, Price/unit (Grid 3 cols on mobile, contents on desktop) */}
+                        <div className="grid grid-cols-3 gap-2 sm:contents">
+                          {/* Quantity */}
+                          <div>
+                            <span className="block text-[10px] font-extrabold text-zinc-400 dark:text-zinc-500 mb-1 sm:hidden">
+                              จำนวน
+                            </span>
+                            <input
+                              type="number"
+                              min={0}
+                              step="0.01"
+                              placeholder="0"
+                              value={row.quantity}
+                              onChange={e => updateRow(idx, 'quantity', e.target.value)}
+                              className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500/50 text-center border-none"
+                            />
+                          </div>
 
-                        {/* Price per unit */}
-                        <input
-                          type="number"
-                          min={0}
-                          step="0.01"
-                          placeholder="0"
-                          value={row.pricePerUnit}
-                          onChange={e => updateRow(idx, 'pricePerUnit', e.target.value)}
-                          className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500/50 text-right border-none"
-                        />
+                          {/* Unit */}
+                          <div>
+                            <span className="block text-[10px] font-extrabold text-zinc-400 dark:text-zinc-500 mb-1 sm:hidden">
+                              หน่วย
+                            </span>
+                            <CustomSelect
+                              value={row.unit}
+                              onChange={val => updateRow(idx, 'unit', val)}
+                              options={unitOptions}
+                              placeholder="หน่วย"
+                              addNewLabel="+ เพิ่มหน่วยใหม่..."
+                              searchable={false}
+                              onAddNew={() => {
+                                setCustomModalState({ type: 'unit', rowIndex: idx });
+                                setCustomValueInput('');
+                              }}
+                            />
+                          </div>
 
-                        {/* Remove */}
-                        <button
-                          type="button"
-                          onClick={() => removeIngredientRow(idx)}
-                          disabled={ingredients.length === 1}
-                          className="p-1 text-zinc-400 hover:text-rose-500 dark:hover:text-rose-400 disabled:opacity-30 transition cursor-pointer rounded-lg flex items-center justify-center"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                          {/* Price per unit */}
+                          <div>
+                            <span className="block text-[10px] font-extrabold text-zinc-400 dark:text-zinc-500 mb-1 sm:hidden">
+                              ราคา/หน่วย
+                            </span>
+                            <input
+                              type="number"
+                              min={0}
+                              step="0.01"
+                              placeholder="0"
+                              value={row.pricePerUnit}
+                              onChange={e => updateRow(idx, 'pricePerUnit', e.target.value)}
+                              className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500/50 text-right border-none"
+                            />
+                          </div>
+
+                          {/* Desktop Delete button */}
+                          <button
+                            type="button"
+                            onClick={() => removeIngredientRow(idx)}
+                            disabled={ingredients.length === 1}
+                            className="hidden sm:flex p-1 text-zinc-400 hover:text-rose-500 dark:hover:text-rose-400 disabled:opacity-30 transition cursor-pointer rounded-lg items-center justify-center"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     );
                   })}
@@ -804,10 +998,61 @@ export const IngredientPurchaseManager: React.FC = () => {
                 disabled={isSaving}
                 className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-xl text-sm font-bold border-none shadow-none transition cursor-pointer flex items-center justify-center gap-2"
               >
-                {isSaving
-                  ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  : <><PackagePlus className="w-4 h-4" /> บันทึกรายการสั่งซื้อ</>
-                }
+                {isSaving ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : editingOrder ? (
+                  <><Pencil className="w-4 h-4" /> บันทึกการแก้ไข</>
+                ) : (
+                  <><PackagePlus className="w-4 h-4" /> บันทึกรายการสั่งซื้อ</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete PO Confirmation Modal ────────────────────────────────────── */}
+      {deletingOrder && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-md p-6 shadow-2xl border-none space-y-4">
+            <div className="flex items-center gap-3 text-rose-600 dark:text-rose-400">
+              <div className="p-2.5 bg-rose-100 dark:bg-rose-950/60 rounded-xl shrink-0">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="text-base font-black text-zinc-900 dark:text-zinc-100">
+                  ยืนยันการลบใบสั่งซื้อ PO-{String(deletingOrder.id).padStart(4, '0')}?
+                </h4>
+                <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mt-0.5">
+                  สั่งซื้อวันที่ {formatDate(deletingOrder.purchase_date)} โดย {deletingOrder.buyer_name}
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs text-zinc-600 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-800/60 p-3 rounded-xl">
+              ⚠️ การลบใบสั่งซื้อนี้จะลบรายการวัตถุดิบทั้งหมดที่ผูกกับ PO-{String(deletingOrder.id).padStart(4, '0')} ออกจากระบบอย่างถาวร
+            </p>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeletingOrder(null)}
+                disabled={isDeleting}
+                className="flex-1 py-2.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-xl text-xs font-bold transition cursor-pointer"
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDeleteOrder(deletingOrder.id)}
+                disabled={isDeleting}
+                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition cursor-pointer flex items-center justify-center gap-2"
+              >
+                {isDeleting ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <><Trash2 className="w-4 h-4" /> ยืนยันการลบ</>
+                )}
               </button>
             </div>
           </div>
