@@ -90,7 +90,7 @@ export const CartPanel: React.FC<CartPanelProps> = ({
     if (isFullScreen) {
       return 'fixed inset-0 z-50 w-full h-full max-h-screen rounded-none bg-white dark:bg-neutral-900 shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ease-out';
     }
-    return 'fixed bottom-0 left-0 right-0 z-40 lg:static lg:w-[380px] shrink-0 bg-white dark:bg-neutral-900 border-t lg:border-t-0 lg:border-l border-slate-200/90 dark:border-neutral-800 rounded-t-3xl lg:rounded-none lg:h-full shadow-2xl lg:shadow-none flex flex-col max-h-[85vh] lg:max-h-none overflow-hidden transition-all duration-300';
+    return 'fixed bottom-0 left-0 right-0 z-40 lg:static lg:w-[380px] shrink-0 bg-white dark:bg-neutral-900 border-t lg:border-t-0 lg:border-l border-slate-200/90 dark:border-neutral-800 rounded-t-3xl lg:rounded-none lg:h-full shadow-2xl lg:shadow-none flex flex-col lg:max-h-none overflow-hidden transition-all duration-300';
   };
 
   return (
@@ -156,7 +156,7 @@ export const CartPanel: React.FC<CartPanelProps> = ({
       <div
         className={`${
           mobileCartExpanded || isFullScreen ? 'flex' : 'hidden lg:flex'
-        } flex-col flex-1 p-4 sm:p-5 overflow-y-auto no-scrollbar space-y-5`}
+        } flex-col flex-1 p-4 sm:p-5 overflow-y-auto no-scrollbar space-y-5 ${mobileCartExpanded && !isFullScreen ? 'max-h-[65vh]' : ''}`}
       >
         {/* Active Cart */}
         <div>
@@ -298,11 +298,9 @@ export const CartPanel: React.FC<CartPanelProps> = ({
         )}
       </div>
 
-      {/* Sticky Footer: Submit Order Button */}
+      {/* Sticky Footer: Submit Order Button — แสดงเสมอบน mobile, ซ่อนเฉพาะ lg ขึ้นไปตาม expanded */}
       <div
-        className={`${
-          mobileCartExpanded || isFullScreen ? 'block' : 'hidden lg:block'
-        } p-4 bg-white dark:bg-neutral-900 border-t border-slate-200 dark:border-neutral-800 shrink-0`}
+        className="p-4 bg-white dark:bg-neutral-900 border-t border-slate-200 dark:border-neutral-800 shrink-0 lg:block"
       >
         <button
           onClick={submitOrder}

@@ -123,6 +123,23 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
   const fetchActiveOrder = async () => {
     try {
       setIsLoadingOrder(true);
+
+      // ตรวจสอบสถานะโต๊ะก่อน — ถ้า vacant ไม่โหลด active order (ป้องกัน data inconsistency)
+      const { data: tableData, error: tableError } = await supabase
+        .from('tables')
+        .select('status')
+        .eq('id', tableId)
+        .single();
+
+      if (tableError) throw tableError;
+
+      if (tableData?.status === 'vacant') {
+        setActiveOrderId(null);
+        setOrderedItems([]);
+        setIsLoadingOrder(false);
+        return;
+      }
+
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .select('id')
@@ -299,7 +316,7 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
   return (
     <div className="w-full h-full text-slate-800 dark:text-neutral-100 font-sans flex flex-col lg:flex-row overflow-hidden">
       {/* LEFT AREA: Menu Grid & Category Tabs */}
-      <div className="flex-1 overflow-y-auto no-scrollbar p-4 md:p-6 pb-48 lg:pb-6">
+      <div className="flex-1 overflow-y-auto no-scrollbar p-4 md:p-6 pb-36 lg:pb-6">
         {/* Header */}
         <header className="flex items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
