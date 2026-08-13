@@ -180,30 +180,6 @@ export const TableMap: React.FC = () => {
     );
   }
 
-  const handleResetTableDirectly = async (tid: number) => {
-    try {
-      const { error } = await supabase
-        .from('tables')
-        .update({ status: 'vacant', updated_at: new Date().toISOString() })
-        .eq('id', tid);
-
-      if (error) throw error;
-
-      await supabase
-        .from('qr_sessions')
-        .update({ status: 'expired' })
-        .eq('table_id', tid)
-        .eq('status', 'active');
-
-      setActionSelectorTable(null);
-      fetchTables();
-      alert(`เคลียร์ โต๊ะ ${tid} เป็นโต๊ะว่างเรียบร้อยแล้ว`);
-    } catch (err: any) {
-      console.error('Error resetting table:', err);
-      alert('เกิดข้อผิดพลาดในการเคลียร์โต๊ะ');
-    }
-  };
-
   const handleTableClick = (table: Table) => {
     if (table.status === 'occupied' || table.status === 'checking_out') {
       setActionSelectorTable(table.id);
@@ -327,17 +303,6 @@ export const TableMap: React.FC = () => {
                 </span>
               </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  const tid = actionSelectorTable;
-                  if (tid !== null) handleResetTableDirectly(tid);
-                }}
-                className="w-full py-2.5 bg-slate-100 dark:bg-neutral-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-600 hover:text-rose-600 dark:text-neutral-300 dark:hover:text-rose-400 rounded-xl font-bold text-xs transition flex items-center justify-center gap-1.5 border border-slate-200 dark:border-neutral-700 cursor-pointer"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span>เคลียร์สถานะโต๊ะเป็นว่าง (Reset Table)</span>
-              </button>
             </div>
           </div>
         </div>

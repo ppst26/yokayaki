@@ -15,6 +15,7 @@ interface OrderItem {
     id: number;
     name: string;
     category?: string;
+    unit?: string;
   };
 }
 
@@ -187,7 +188,7 @@ export const KitchenOrderCard: React.FC<KitchenOrderCardProps> = ({
                       {item.menu_items?.name}
                     </span>
                     <span className="text-xs font-black text-slate-700 dark:text-neutral-300 ml-1">
-                      x{item.quantity} จาน
+                      x{item.quantity} {item.menu_items?.unit || 'จาน'}
                     </span>
                   </div>
                   {item.notes && (

@@ -120,24 +120,25 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
     }
   };
 
-  const fetchActiveOrder = async () => {
+  const fetchActiveOrder = async (skipVacantCheck = false) => {
     try {
       setIsLoadingOrder(true);
 
-      // ตรวจสอบสถานะโต๊ะก่อน — ถ้า vacant ไม่โหลด active order (ป้องกัน data inconsistency)
-      const { data: tableData, error: tableError } = await supabase
-        .from('tables')
-        .select('status')
-        .eq('id', tableId)
-        .single();
+      // ตรวจสอบสถานะโต๊ะเฉพาะตอน mount ครั้งแรก (skipVacantCheck=false)
+      // หลัง submitOrder ให้ skip เพราะ RPC เพิ่ง set table เป็น occupied
+      if (!skipVacantCheck) {
+        const { data: tableData } = await supabase
+          .from('tables')
+          .select('status')
+          .eq('id', tableId)
+          .single();
 
-      if (tableError) throw tableError;
-
-      if (tableData?.status === 'vacant') {
-        setActiveOrderId(null);
-        setOrderedItems([]);
-        setIsLoadingOrder(false);
-        return;
+        if (tableData?.status === 'vacant') {
+          setActiveOrderId(null);
+          setOrderedItems([]);
+          setIsLoadingOrder(false);
+          return;
+        }
       }
 
       const { data: orderData, error: orderError } = await supabase
@@ -181,7 +182,7 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
         'postgres_changes',
         { event: '*', schema: 'public', table: 'order_items' },
         () => {
-          fetchActiveOrder();
+          fetchActiveOrder(true); // realtime: skip vacant check เพราะสถานะโต๊ะอัปเดตแยก
         }
       )
       .subscribe();
@@ -263,7 +264,7 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
       }
 
       setCart([]);
-      await fetchActiveOrder();
+      await fetchActiveOrder(true); // skip vacant check — RPC เพิ่ง set table เป็น occupied แล้ว
       await fetchMenu();
     } catch (err: any) {
       console.error('Error submitting order:', err);
@@ -297,7 +298,7 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
 
       if (success) {
         setVoidTarget(null);
-        await fetchActiveOrder();
+        await fetchActiveOrder(true); // skip vacant check — โต๊ะยังใช้งานอยู่
         await fetchMenu();
       } else {
         setErrorMsg('ไม่สามารถ Void รายการได้');

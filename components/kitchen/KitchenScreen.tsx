@@ -21,6 +21,7 @@ interface OrderItem {
     id: number;
     name: string;
     category?: string;
+    unit?: string;
   };
   orders?: {
     table_id: number;
@@ -62,7 +63,7 @@ export const KitchenScreen: React.FC = () => {
           status,
           created_at,
           notes,
-          menu_items (id, name, category),
+          menu_items (id, name, category, unit),
           orders!inner (table_id, status)
         `)
         .eq('status', 'pending')
