@@ -274,7 +274,6 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
         p_void_quantity: voidQuantity,
         p_reason: finalReason,
         p_employee_name: employee?.name || 'Staff',
-        p_restore_stock: true,
       });
 
       if (error) throw error;

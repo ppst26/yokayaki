@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/context/AuthContext';
 import { ChefHat, Volume2, VolumeX, RefreshCw } from 'lucide-react';
 import { KitchenOrderCard } from './KitchenOrderCard';
 import { Card } from '@/components/ui/card';
@@ -35,6 +36,7 @@ interface TableGroup {
 }
 
 export const KitchenScreen: React.FC = () => {
+  const { employee } = useAuth();
   const [items, setItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -102,6 +104,26 @@ export const KitchenScreen: React.FC = () => {
     } catch (err) {
       console.error('Error marking item as served:', err);
       fetchPendingItems();
+    }
+  };
+
+  const voidOrderItem = async (itemId: number, reason: string, quantity: number): Promise<boolean> => {
+    try {
+      const { data: success, error } = await supabase.rpc('void_order_item', {
+        p_order_item_id: itemId,
+        p_void_quantity: quantity,
+        p_reason: reason,
+        p_employee_name: employee?.name || 'Kitchen',
+      });
+      if (error) throw error;
+      if (success) {
+        fetchPendingItems();
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error('Error voiding item from kitchen:', err);
+      return false;
     }
   };
 
@@ -262,6 +284,7 @@ export const KitchenScreen: React.FC = () => {
               getWaitTimeMinutes={getWaitTimeMinutes}
               markItemAsServed={markItemAsServed}
               markAllTableItemsAsServed={markAllTableItemsAsServed}
+              voidOrderItem={voidOrderItem}
             />
           ))}
         </div>

@@ -25,6 +25,7 @@ import { MenuItemModal } from './MenuItemModal';
 interface MenuItem {
   id: number;
   name: string;
+  unit: string;
   price: number;
   stock: number;
   is_stock_tracked: boolean;
@@ -38,6 +39,7 @@ const CATEGORIES = ['ย่าง', 'เส้น', 'ซาซิมิ', 'ข�
 
 const EMPTY_FORM: Omit<MenuItem, 'id'> = {
   name: '',
+  unit: 'จาน',
   price: 0,
   stock: 20,
   is_stock_tracked: true,
@@ -124,6 +126,7 @@ export const MenuManager: React.FC = () => {
     setEditingItem(item);
     setFormData({
       name: item.name,
+      unit: item.unit || 'จาน',
       price: item.price,
       stock: item.stock,
       is_stock_tracked: item.is_stock_tracked,
@@ -143,6 +146,7 @@ export const MenuManager: React.FC = () => {
       setIsSaving(true);
       const payload = {
         name: formData.name.trim(),
+        unit: formData.unit.trim() || 'จาน',
         price: formData.price,
         stock: formData.stock,
         is_stock_tracked: formData.is_stock_tracked,
@@ -314,7 +318,12 @@ export const MenuManager: React.FC = () => {
                       </div>
                     )}
                   </TableCell>
-                  <TableCell className="font-extrabold text-zinc-900 dark:text-zinc-100 text-table-cell">{item.name}</TableCell>
+                  <TableCell className="font-extrabold text-zinc-900 dark:text-zinc-100 text-table-cell">
+                    <span>{item.name}</span>
+                    {item.unit && (
+                      <span className="ml-1.5 text-[10px] font-semibold text-zinc-400 dark:text-zinc-500">/ {item.unit}</span>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <span className="bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2.5 py-1 rounded-lg text-badge">
                       {item.category || 'ทั่วไป'}
