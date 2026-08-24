@@ -5,7 +5,7 @@
 > ที่มาของรายการงาน: [`PosRestuarantSass.md`](PosRestuarantSass.md) (§4 Gap Analysis + §5 Roadmap)
 > ประวัติฟีเจอร์ที่ทำไปแล้ว: [`ROADMAP.md`](ROADMAP.md) · สเปกรายฟีเจอร์: `docs/superpowers/specs/`
 
-**Last Updated:** 2026-08-24 · **Milestone ปัจจุบัน:** `M0 Security Hardening` (🟡 กำลังทำ)
+**Last Updated:** 2026-08-25 · **Milestone ปัจจุบัน:** `M0 Security Hardening` (🟡 กำลังทำ — คิวถัดไป: A4)
 
 ---
 
@@ -91,13 +91,13 @@
 | ID | งาน | ยาก | สถานะ | หลักฐาน / หางที่เหลือ |
 |---|---|:--:|:--:|---|
 | A1 | anon key = full DB credential | `XL` | 🟢 | `20260824_security_hardening.sql` เขียน RLS ใหม่ + REVOKE/GRANT · anon ไม่เหลือ policy และ grant · หน้าลูกค้าไม่ถือ credential แล้ว |
-| A2 | PIN hash ถอดได้ในไม่กี่วินาที | `M` | ⚠️ | bcrypt + `verify_pin()` (service_role เท่านั้น) + `pin_attempts` แล้ว · **เหลือ:** client key จาก `x-forwarded-for` ปลอมได้ (`lib/session.ts:51`) → bypass lockout · ทางเดิน SHA-256 fallback ยังเปิดใน `verify_pin` ข้อ 3.2 |
+| A2 | PIN hash ถอดได้ในไม่กี่วินาที | `M` | 🟢 | bcrypt + `verify_pin()` (service_role เท่านั้น) + `pin_attempts` · `20260825_pin_lockout_hardening.sql` ตัดทางเดิน SHA-256 + `DROP COLUMN employees.pin_hash` + เพดานรวมทั้งระบบ 20 ครั้ง/5 นาที · `clientKeyFrom()` เลิกเชื่อ `x-forwarded-for` ตัวซ้ายสุด |
 | A3 | Privilege escalation ผ่าน `add_employee` | `S` | 🟢 | DROP RPC เดิม 3 ตัว → `admin_*` ที่ให้เฉพาะ `service_role` + step-up PIN ที่ `/api/employees/[id]` |
 | A4 | ลูกค้ากำหนดราคาเองได้ | `S` | ⚠️ | `/api/customer/[session_id]/order` อ่านราคาจาก `menu_items` เองแล้ว · **เหลือ:** RPC ยังรับ `p_unit_price` และเส้นทาง staff ยังส่งราคาจาก client → ต้องลบพารามิเตอร์ทิ้งทั้ง 2 RPC |
 | A5 | ยอดขายคือสิ่งที่เบราว์เซอร์บอก | `M` | ⬜ | `complete_checkout` ยังรับ subtotal / discount / net / points / cash / promptpay จาก client · ไม่ตรวจสิทธิ์โปรโมชั่น · แต้มติดลบได้ |
 | A6 | Checkout ไม่มี idempotency | `S` | ⬜ | ต้องมี `SELECT ... FOR UPDATE` บน order + `UNIQUE(payments.order_id)` + idempotency key จาก client |
 | A7.1 | Seed PIN อยู่ใน git | `S` | 🟢 | migration ล้าง hash ของ seed PIN ที่รู้จัก · ตั้ง PIN จริงด้วย `scripts/set-pin.mjs` |
-| A7.2 | ไม่มี `DROP FUNCTION` → overload เก่ายังเรียกได้ | `S` | ⚠️ | drop เฉพาะกลุ่ม employee RPC (A3) · **เหลือ:** overload เก่าของ `complete_checkout` / `place_order_item` |
+| A7.2 | ไม่มี `DROP FUNCTION` → overload เก่ายังเรียกได้ | `S` | ⚠️ | `20260824` §5 drop overload เก่าไปแล้ว 5 ตัว (`place_order_item` 4 args · `customer_place_order_item` 4 args · `void_order_item` 3 args · `complete_checkout` 8 และ 9 args) · **เหลือ:** ต้อง drop รุ่นปัจจุบันตอนเปลี่ยน signature ใน A4 / A5 |
 | A7.3 | หน้าลูกค้าเขียน `tables` ตรงจาก anon | `S` | 🟢 | ย้ายไป `/api/customer/[session_id]/check-bill` ที่ตรวจ session ก่อนทุกครั้ง |
 | A7.4 | เปิดบิลซ้ำต่อโต๊ะได้ (ล็อกผิดตาราง) | `S` | ⬜ | ต้องมี `CREATE UNIQUE INDEX uniq_active_order_per_table ON orders(table_id) WHERE status='active'` |
 | A7.5 | `void_order_item` ตัดสินคืนสต็อกด้วยข้อความไทย | `S` | ⬜ | เปลี่ยนเป็นรหัสเหตุผล (enum) แทนการ match string |
@@ -107,7 +107,9 @@
 | A7.9 | Realtime broadcast ไม่มี filter | `M` | ⚠️ | หน้าลูกค้าเลิก subscribe แล้ว (เปลี่ยนเป็น polling) · **เหลือ:** ฝั่ง POS ยัง subscribe แบบไม่ filter |
 | A7.10 | `test-rpc.mjs` ยิง production | `S` | 🟢 | ลบไฟล์แล้ว (commit `ecb665c`) |
 
-**ปิดแล้ว 6 · เหลือ 10** — เกณฑ์ผ่าน M0: ทุกแถวเป็น 🟢 และ `node scripts/verify-lockdown.mjs` ขึ้น "ปิดแล้ว" ครบทุกข้อ
+**ปิดแล้ว 7 · เหลือ 9** · **คิวถัดไป A4** — ลบ `p_unit_price` ออกจาก 2 RPC แล้วทำ A7.4 (unique active order) กับหาง A7.2 ในไมเกรชันเดียวกัน
+
+เกณฑ์ผ่าน M0: ทุกแถวเป็น 🟢 และ `node scripts/verify-lockdown.mjs` ขึ้น "ปิดแล้ว" ครบทุกข้อ
 
 ## M1 — 🛡️ Server Tier `🟡 กำลังทำ`
 

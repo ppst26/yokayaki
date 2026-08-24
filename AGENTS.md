@@ -90,7 +90,8 @@ yokayaki/
 │   ├── 20260720_promotion_menu_item.sql   # menu_item_id FK on promotions
 │   ├── 20260720_payment_promotions.sql  # payment_promotions + updated checkout RPC
 │   ├── 20260721_loyalty_crm.sql         # points_logs table + payments.phone_number + RPC
-│   └── 20260824_security_hardening.sql  # 🔴 A1/A2/A3 — RLS ใหม่ทั้งหมด + REVOKE/GRANT + bcrypt PIN
+│   ├── 20260824_security_hardening.sql  # 🔴 A1/A2/A3 — RLS ใหม่ทั้งหมด + REVOKE/GRANT + bcrypt PIN
+│   └── 20260825_pin_lockout_hardening.sql # 🔴 A2 (หาง) — ตัด SHA-256 + DROP pin_hash + เพดานล็อกอินรวม
 │
 ├── scripts/
 │   ├── set-pin.mjs                   # ตั้ง PIN พนักงานผ่าน service role (ใช้ตอน deploy)
@@ -137,7 +138,9 @@ yokayaki/
 เปิดแอป → PinPad.tsx (กรอก PIN 6 หลัก)
   → POST /api/auth/login (PIN เป็น plaintext ผ่าน HTTPS — ไม่ hash ฝั่ง client แล้ว)
   → RPC verify_pin() เทียบด้วย bcrypt ใน DB · hash ไม่เคยออกจากฐานข้อมูล
-  → นับความพยายามที่ผิดฝั่ง server (pin_attempts) ผิด 5 ครั้ง = ล็อก 3 นาที
+  → นับความพยายามที่ผิดฝั่ง server (pin_attempts) 2 ชั้น
+     ต่อ IP: ผิด 5 ครั้งใน 15 นาที = ล็อก 3 นาที
+     รวมทั้งระบบ: ผิด 20 ครั้งใน 5 นาที = ล็อก 1 นาที (กันคนสุ่ม x-forwarded-for หนี lockout)
   → สำเร็จ → server เซ็น JWT (claim emp_role) → cookie httpOnly + token เข้า memory
   → AuthContext เก็บ session (role: owner/staff)
   → TableMap.tsx แสดงแท็บตาม role
@@ -212,6 +215,11 @@ KitchenScreen (Realtime subscription)
 
 **ยังเปิดอยู่ (ยังไม่ได้แก้):** A4 บางส่วน · A5 `complete_checkout` ยังเชื่อยอดเงินจาก client · A6 ไม่มี idempotency
 → ความเสี่ยงเหลือเป็น *insider* (ต้องมี PIN พนักงานก่อน) ไม่ใช่ *anonymous* อีกต่อไป
+
+สถานะรายข้อและคิวงานถัดไป: [`MODULES_MILESTONES.md`](MODULES_MILESTONES.md)
+
+> ⚠️ `20260825_pin_lockout_hardening.sql` จะ **หยุดพร้อม error** ถ้ายังมีพนักงานที่ `pin_bcrypt IS NULL`
+> ต้องตั้ง PIN ให้ครบก่อนด้วย `node scripts/set-pin.mjs --list` แล้ว `node scripts/set-pin.mjs <id> <pin>`
 
 ---
 
