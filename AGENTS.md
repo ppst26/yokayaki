@@ -93,10 +93,12 @@ yokayaki/
 │   ├── 20260824_security_hardening.sql  # 🔴 A1/A2/A3 — RLS ใหม่ทั้งหมด + REVOKE/GRANT + bcrypt PIN
 │   ├── 20260825_pin_lockout_hardening.sql # 🔴 A2 (หาง) — ตัด SHA-256 + DROP pin_hash + เพดานล็อกอินรวม
 │   ├── 20260826_order_price_server_side.sql # 🔴 A4 — ลบ p_unit_price ราคามาจาก menu_items ฝั่ง DB
-│   └── 20260827_checkout_server_side.sql # 🔴 A5/A6 — ยอดบิลคำนวณใน DB + UNIQUE(payments.order_id)
+│   ├── 20260827_checkout_server_side.sql # 🔴 A5/A6 — ยอดบิลคำนวณใน DB + UNIQUE(payments.order_id)
+│   └── 20260828_audit_and_integrity.sql # 🔴 A7.4-A7.7 — unique active order · void ด้วยรหัส · audit จาก JWT · FK RESTRICT
 │
 ├── supabase/tests/
-│   └── security.sql                  # ชุดทดสอบ A1–A6 (รันใน transaction แล้ว ROLLBACK — รันซ้ำได้)
+│   ├── security.sql                  # ชุดทดสอบ A1–A6 (รันใน transaction แล้ว ROLLBACK — รันซ้ำได้)
+│   └── a7_audit.sql                  # ชุดทดสอบ A7.4-A7.7 + สิทธิ์ของ authenticated
 │
 ├── docker-compose.yml                # Postgres สำหรับทดสอบ migration ในเครื่อง (พอร์ต 54329)
 ├── docker/postgres/init/
@@ -221,22 +223,23 @@ KitchenScreen (Realtime subscription)
 
 1. **ห้ามเขียน policy ที่ให้สิทธิ์ `anon`** — ทุก policy ต้องเป็น `TO authenticated` และเรียก `public.is_staff()` หรือ `public.is_owner()`
 2. **สร้าง RPC ใหม่ต้อง `REVOKE EXECUTE ... FROM PUBLIC, anon` เสมอ** — PostgreSQL grant ให้ PUBLIC เป็น default และ `SECURITY DEFINER` bypass RLS ⇒ ลืมข้อนี้ = เปิดช่องเท่าเดิมกับก่อนแก้ A1
+   ⚠️ **ไม่มีตาข่ายรอง** — `ALTER DEFAULT PRIVILEGES ... REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC` ใน `20260824` พิสูจน์แล้วว่า**ไม่มีผลจริง** (ไม่มีแถวใน `pg_default_acl`, ฟังก์ชันใหม่ยังได้ PUBLIC EXECUTE) · ตัวที่จับได้คือ `pnpm db:test`
 3. **ห้าม import `@/lib/supabase` ในหน้าลูกค้า** และห้ามให้ `lib/staffToken.ts` import supabase — ไม่งั้น anon key จะกลับไปอยู่ใน chunk ที่หน้าลูกค้าโหลด
 4. **ห้าม import `supabaseAdmin` / `authToken` / `session` จาก Client Component** — มี `server-only` กันไว้ build จะพังทันที
-5. **ตัวตนผู้ทำรายการต้องมาจาก JWT ฝั่ง server เท่านั้น** ไม่ใช่จาก body ที่ client ส่งมา
+5. **ตัวตนผู้ทำรายการต้องมาจาก JWT ฝั่ง server เท่านั้น** ไม่ใช่จาก body ที่ client ส่งมา — ใช้ `public.jwt_emp_id()` / `public.jwt_emp_name()` ใน DB หรือ `requireStaff()` ใน route handler
+6. **สร้างตารางใหม่ต้อง `REVOKE ALL ... FROM anon, authenticated` แล้วค่อย GRANT เท่าที่ต้องใช้** — Supabase ตั้ง default privileges ให้ `GRANT ALL` กับทุกตารางใหม่ · `TRUNCATE` ไม่ถูก RLS คุม
 
 พิสูจน์ว่ายังปิดอยู่:
 
 | คำสั่ง | ทดสอบอะไร | ต้องมีอะไร |
 |---|---|---|
-| `pnpm db:up` แล้ว `pnpm db:test` | รัน migration ทั้งชุดบน Postgres เปล่าใน docker แล้วยิง 13 assertion ครอบ A1–A6 (สิทธิ์ anon · lockout PIN · ราคาจาก DB · ยอดบิล · แต้ม · ปิดบิลซ้ำ) | Docker |
+| `pnpm db:up` แล้ว `pnpm db:test` | รัน migration ทั้งชุดบน Postgres เปล่าใน docker แล้วยิง 19 assertion ครอบ A1–A7 (สิทธิ์ anon/authenticated · lockout PIN · ราคาจาก DB · ยอดบิล · แต้ม · ปิดบิลซ้ำ · void ด้วยรหัส · audit จาก JWT · FK RESTRICT) | Docker |
 | `node scripts/verify-lockdown.mjs` | ยิง anon key จริงใส่ Supabase production — ทุกข้อต้องขึ้น "ปิดแล้ว" | `.env.local` |
 
 > ⚠️ ทุกครั้งที่แก้ migration หรือ RPC **ต้องรัน `pnpm db:reset && pnpm db:test`** ก่อนขึ้น production
 > (`db:reset` = ล้าง DB แล้วรัน migration ใหม่ทั้งชุดจากศูนย์ — จับทั้งบั๊ก SQL และปัญหาลำดับไฟล์)
 
-**ยังเปิดอยู่ (ยังไม่ได้แก้):** A7.4 (ยังไม่มี unique index กันบิลซ้ำต่อโต๊ะ) · A7.5 (void ตัดสินคืนสต็อกด้วยข้อความไทย) · A7.6 (audit trail ยังเชื่อชื่อจาก client) · A7.7 (ลบโต๊ะ = ลบประวัติการเงิน) · A7.8/A7.9 บางส่วน
-→ ความเสี่ยงเหลือเป็น *insider* (ต้องมี PIN พนักงานก่อน) ไม่ใช่ *anonymous* อีกต่อไป
+**สถานะ:** A1–A7 ปิดครบทุกข้อในโค้ดแล้ว (ยืนยันด้วย `pnpm db:test` 19 assertion) — เหลือขั้นตอน deploy migration จริงแล้วรัน `verify-lockdown.mjs`
 
 สถานะรายข้อและคิวงานถัดไป: [`MODULES_MILESTONES.md`](MODULES_MILESTONES.md)
 
@@ -263,7 +266,7 @@ KitchenScreen (Realtime subscription)
 | `stock_logs` | ประวัติปรับสต็อกด้วยมือ | → `menu_items.id` |
 | `item_ingredients` | ประวัติจัดซื้อวัตถุดิบ | — |
 | `points_logs` | ประวัติการปรับแต้มสมาชิกด้วยมือ (Audit Log) | → `loyalty_members.phone_number` |
-| `pin_attempts` | ตัวนับความพยายามล็อกอินฝั่ง server (lockout) | — |
+| `pin_attempts` | ตัวนับความพยายามล็อกอินฝั่ง server (lockout) — ต่อ IP + เพดานรวมทั้งระบบ | — |
 
 ---
 
@@ -272,7 +275,7 @@ KitchenScreen (Realtime subscription)
 | ฟังก์ชัน | Parameters | คำอธิบาย | Security |
 |----------|-----------|----------|----------|
 | `place_order_item` | `(p_table_id, p_menu_item_id, p_quantity, p_notes)` | พนักงานสั่ง — **ราคาอ่านจาก menu_items ใน DB** + atomic stock | DEFINER · `authenticated` |
-| `void_order_item` | ดูใน migration `20260707_void_order_item.sql` | ยกเลิกรายการ + เลือกคืน/ไม่คืนสต็อก + void_logs | DEFINER |
+| `void_order_item` | `(p_order_item_id, p_reason_code, p_reason_note, p_void_quantity)` | ยกเลิกรายการ — คืนสต็อกตาม**รหัส**เหตุผล (`lib/voidReasons.ts`) · ผู้ทำรายการมาจาก JWT | DEFINER · `authenticated` |
 | `customer_place_order_item` | `(p_session_id, p_menu_item_id, p_quantity, p_notes)` | ลูกค้าสั่งผ่าน QR + ตรวจ session — **ราคาอ่านจาก menu_items** | DEFINER · `service_role` |
 | `complete_checkout` | `(p_order_id, p_cash_received, p_coupon_code, p_phone_number, p_points_redeem)` | ปิดบิล — **คำนวณ subtotal/ส่วนลด/แต้ม/ยอดสุทธิเองใน DB** แล้วคืนค่าที่บันทึกจริงกลับไปให้ใบเสร็จ · ล็อก order + กันปิดซ้ำ | DEFINER · `authenticated` |
 | `verify_pin` | `(p_pin, p_client_key)` | ตรวจ PIN ด้วย bcrypt + lockout — **`service_role` เท่านั้น** | DEFINER |

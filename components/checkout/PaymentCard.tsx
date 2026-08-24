@@ -11,6 +11,8 @@ interface PaymentCardProps {
   netAmount: number;
   pendingItemsCount: number;
   setShowQrModal: (val: boolean) => void;
+  /** ตั้งค่า NEXT_PUBLIC_PROMPTPAY_ID ไว้ถูกต้องหรือยัง (A7.8) */
+  promptPayReady: boolean;
   processPayment: () => void;
   isProcessing: boolean;
 }
@@ -24,6 +26,7 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({
   netAmount,
   pendingItemsCount,
   setShowQrModal,
+  promptPayReady,
   processPayment,
   isProcessing,
 }) => {
@@ -100,7 +103,20 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({
       {/* Action Buttons */}
       <div className="space-y-2.5 pt-1 border-t border-slate-100 dark:border-neutral-800">
         {/* Generate PromptPay QR */}
-        {cashNum < netAmount && netAmount > 0 && (
+        {cashNum < netAmount && netAmount > 0 && !promptPayReady && (
+          <div className="w-full py-3 px-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-amber-800 dark:text-amber-300 text-xs font-bold flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>
+              ยังไม่ได้ตั้งค่าพร้อมเพย์ของร้าน — รับได้เฉพาะเงินสด
+              <br />
+              <span className="font-semibold opacity-80">
+                ตั้งค่า NEXT_PUBLIC_PROMPTPAY_ID (เบอร์ 10 หลัก หรือเลขประจำตัวผู้เสียภาษี 13 หลัก) แล้ว deploy ใหม่
+              </span>
+            </span>
+          </div>
+        )}
+
+        {cashNum < netAmount && netAmount > 0 && promptPayReady && (
           <button
             onClick={() => setShowQrModal(true)}
             disabled={pendingItemsCount > 0}

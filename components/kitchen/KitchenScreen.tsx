@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/context/AuthContext';
 import { ChefHat, Volume2, VolumeX, RefreshCw } from 'lucide-react';
 import { KitchenOrderCard } from './KitchenOrderCard';
 import { Card } from '@/components/ui/card';
@@ -37,7 +36,6 @@ interface TableGroup {
 }
 
 export const KitchenScreen: React.FC = () => {
-  const { employee } = useAuth();
   const [items, setItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -108,13 +106,19 @@ export const KitchenScreen: React.FC = () => {
     }
   };
 
-  const voidOrderItem = async (itemId: number, reason: string, quantity: number): Promise<boolean> => {
+  const voidOrderItem = async (
+    itemId: number,
+    reasonCode: string,
+    note: string | null,
+    quantity: number
+  ): Promise<boolean> => {
     try {
+      // ส่งรหัสเหตุผล ไม่ใช่ข้อความไทย (A7.5) · ชื่อผู้ทำรายการมาจาก JWT (A7.6)
       const { data: success, error } = await supabase.rpc('void_order_item', {
         p_order_item_id: itemId,
         p_void_quantity: quantity,
-        p_reason: reason,
-        p_employee_name: employee?.name || 'Kitchen',
+        p_reason_code: reasonCode,
+        p_reason_note: note,
       });
       if (error) throw error;
       if (success) {

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { VOID_REASON_OTHER } from '@/lib/voidReasons';
 import { ArrowLeft, QrCode } from 'lucide-react';
 import { MenuGrid } from './MenuGrid';
 import { CartPanel } from './CartPanel';
@@ -175,22 +176,38 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
   useEffect(() => {
     fetchMenu();
     fetchActiveOrder();
+  }, [tableId]);
 
+  // Realtime แบบ scope เฉพาะโต๊ะนี้ (A7.9)
+  // เดิม subscribe order_items ทั้งตาราง = เครื่อง POS ทุกเครื่องตื่นทุกครั้งที่โต๊ะไหนก็ตามมีความเคลื่อนไหว
+  // orders กรองด้วย table_id ได้ตรงๆ ส่วน order_items ต้องรอให้รู้ order id ก่อน
+  useEffect(() => {
     const channel = supabase
-      .channel(`realtime:pos_order_items_${tableId}`)
+      .channel(`realtime:pos_${tableId}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'order_items' },
+        { event: '*', schema: 'public', table: 'orders', filter: `table_id=eq.${tableId}` },
         () => {
-          fetchActiveOrder(true); // realtime: skip vacant check เพราะสถานะโต๊ะอัปเดตแยก
+          fetchActiveOrder(true); // skip vacant check เพราะสถานะโต๊ะอัปเดตแยก
         }
-      )
-      .subscribe();
+      );
+
+    if (activeOrderId) {
+      channel.on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'order_items', filter: `order_id=eq.${activeOrderId}` },
+        () => {
+          fetchActiveOrder(true);
+        }
+      );
+    }
+
+    channel.subscribe();
 
     return () => {
       channel.unsubscribe();
     };
-  }, [tableId]);
+  }, [tableId, activeOrderId]);
 
   const categories = ['ทั้งหมด', ...Array.from(new Set(menuItems.map(m => m.category || 'ทั่วไป')))];
 
@@ -276,9 +293,14 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
 
   const executeVoid = async () => {
     if (!voidTarget || !activeOrderId) return;
-    const finalReason = voidReason === 'อื่นๆ (ระบุ)' ? customReason.trim() : voidReason;
+    // ส่ง "รหัสเหตุผล" ไม่ใช่ข้อความไทย — DB เป็นคนตัดสินว่าคืนสต็อกไหม (A7.5)
+    const note = customReason.trim();
 
-    if (!finalReason) {
+    if (!voidReason) {
+      alert('กรุณาเลือกเหตุผลในการ Void');
+      return;
+    }
+    if (voidReason === VOID_REASON_OTHER && !note) {
       alert('กรุณาระบุเหตุผลในการ Void');
       return;
     }
@@ -290,8 +312,9 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
       const { data: success, error } = await supabase.rpc('void_order_item', {
         p_order_item_id: voidTarget.id,
         p_void_quantity: voidQuantity,
-        p_reason: finalReason,
-        p_employee_name: employee?.name || 'Staff',
+        p_reason_code: voidReason,
+        p_reason_note: note || null,
+        // ไม่ส่งชื่อพนักงานแล้ว — void_order_item อ่านจาก JWT เอง (A7.6)
       });
 
       if (error) throw error;

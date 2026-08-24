@@ -5,7 +5,7 @@
 > ที่มาของรายการงาน: [`PosRestuarantSass.md`](PosRestuarantSass.md) (§4 Gap Analysis + §5 Roadmap)
 > ประวัติฟีเจอร์ที่ทำไปแล้ว: [`ROADMAP.md`](ROADMAP.md) · สเปกรายฟีเจอร์: `docs/superpowers/specs/`
 
-**Last Updated:** 2026-08-26 · **Milestone ปัจจุบัน:** `M0 Security Hardening` (🟡 กำลังทำ — คิวถัดไป: A7.4 / A7.5 / A7.6 / A7.7)
+**Last Updated:** 2026-08-27 · **Milestone ปัจจุบัน:** `M0 Security Hardening` (🟢 ปิดครบทุกข้อแล้ว — รอ deploy + verify บน production)
 
 ---
 
@@ -49,7 +49,7 @@
 
 | ID | โมดูล | ขอบเขต | สถานะ | Milestone เจ้าของ |
 |---|---|---|:--:|:--:|
-| `F-SEC` | Security & RLS | policy ทุกตาราง · grant/revoke · PIN · rate limit | 🟡 | M0 |
+| `F-SEC` | Security & RLS | policy ทุกตาราง · grant/revoke · PIN · rate limit | 🟢 | M0 |
 | `F-API` | Server Tier | `app/api/*` · service-role · zod · transaction เดียวต่อออเดอร์ | 🟡 | M1 |
 | `F-DATA` | Data Integrity & Scale | index · atomic · timezone · migration hygiene · aggregation | ⬜ | M2 / M8 |
 | `F-TEST` | Testing & CI | unit · integration (RPC/RLS) · E2E · GitHub Actions | 🟡 | M3 |
@@ -68,7 +68,7 @@
 
 | # | Milestone | โมดูลหลัก | เกณฑ์ผ่าน (Exit Criteria) | ประมาณการ | สถานะ |
 |:--:|---|---|---|:--:|:--:|
-| **M0** | 🔴 Security Hardening | `F-SEC` `P-PAY` | A1–A7 ปิดครบ · `verify-lockdown.mjs` ผ่านทุกข้อ · ไม่มี mutation ใดที่เชื่อตัวเลขจาก client | 3–4 สัปดาห์ | 🟡 |
+| **M0** | 🔴 Security Hardening | `F-SEC` `P-PAY` | A1–A7 ปิดครบ · `verify-lockdown.mjs` ผ่านทุกข้อ · ไม่มี mutation ใดที่เชื่อตัวเลขจาก client | 3–4 สัปดาห์ | 🟢 รอ deploy |
 | **M1** | 🛡️ Server Tier | `F-API` | ทุก mutation ผ่าน route handler · zod ทุก payload · rate limit ฝั่ง server · 1 ออเดอร์ = 1 transaction | 3–4 สัปดาห์ | 🟡 |
 | **M2** | 🔧 Data Integrity & Bug Sweep | `F-DATA` + product modules | L1–L18 ปิดครบ · index H1 ครบ · `supabase db reset` บน DB เปล่าผ่าน · timezone ถูกทุกหน้า | 2–3 สัปดาห์ | ⬜ |
 | **M3** | 🧪 Testing Foundation | `F-TEST` | E2E สั่ง→ครัว→เช็คบิลผ่านใน CI · integration test ครอบทุก RPC + RLS · CI บล็อก PR ที่ fail | 2–3 สัปดาห์ | ⬜ |
@@ -99,15 +99,18 @@
 | A7.1 | Seed PIN อยู่ใน git | `S` | 🟢 | migration ล้าง hash ของ seed PIN ที่รู้จัก · ตั้ง PIN จริงด้วย `scripts/set-pin.mjs` |
 | A7.2 | ไม่มี `DROP FUNCTION` → overload เก่ายังเรียกได้ | `S` | 🟢 | `20260824` §5 drop ไป 5 ตัว · `20260826` drop รุ่นที่รับ `p_unit_price` · `20260827` drop `complete_checkout` 11 args · ไม่เหลือ overload เก่าที่เรียกได้แล้ว |
 | A7.3 | หน้าลูกค้าเขียน `tables` ตรงจาก anon | `S` | 🟢 | ย้ายไป `/api/customer/[session_id]/check-bill` ที่ตรวจ session ก่อนทุกครั้ง |
-| A7.4 | เปิดบิลซ้ำต่อโต๊ะได้ (ล็อกผิดตาราง) | `S` | ⚠️ | `20260826` เปลี่ยนไปล็อกแถว `tables` ก่อนหาบิล active → คำสั่งพร้อมกันบนโต๊ะเดียวเข้าคิวแล้ว · **เหลือ:** `CREATE UNIQUE INDEX uniq_active_order_per_table ON orders(table_id) WHERE status='active'` ซึ่งต้องเคลียร์บิล active ที่ซ้ำอยู่เดิมก่อน |
-| A7.5 | `void_order_item` ตัดสินคืนสต็อกด้วยข้อความไทย | `S` | ⬜ | เปลี่ยนเป็นรหัสเหตุผล (enum) แทนการ match string |
-| A7.6 | audit trail ปลอมได้ (`employee_name` จาก client) | `M` | ⬜ | ต้องดึงตัวตนจาก JWT ฝั่ง server |
-| A7.7 | `orders.table_id` เป็น `ON DELETE CASCADE` | `S` | ⬜ | ลบโต๊ะ = ลบประวัติการเงินทั้งโต๊ะ → เปลี่ยนเป็น `RESTRICT` |
-| A7.8 | env ไม่ตั้งแล้ว fallback เงียบๆ | `S` | ⚠️ | มี `.env.example` แล้ว และ `lib/supabaseAdmin.ts` โยน error เมื่อไม่มีค่า · **เหลือ:** `NEXT_PUBLIC_PROMPTPAY_ID` ยัง fallback `'0899999999'` |
-| A7.9 | Realtime broadcast ไม่มี filter | `M` | ⚠️ | หน้าลูกค้าเลิก subscribe แล้ว (เปลี่ยนเป็น polling) · **เหลือ:** ฝั่ง POS ยัง subscribe แบบไม่ filter |
+| A7.4 | เปิดบิลซ้ำต่อโต๊ะได้ (ล็อกผิดตาราง) | `S` | 🟢 | `20260826` ล็อกแถว `tables` ก่อนหาบิล active + `20260828` เพิ่ม `uniq_active_order_per_table` (partial unique index) · migration หยุดพร้อมรายชื่อโต๊ะถ้ามีบิลซ้ำค้างอยู่ · เทสต์ยืนยันว่า INSERT บิลที่สองถูกปฏิเสธ |
+| A7.5 | `void_order_item` ตัดสินคืนสต็อกด้วยข้อความไทย | `S` | 🟢 | `20260828` รับ `p_reason_code` แทนข้อความ · รหัสที่ไม่รู้จักถูกปฏิเสธ (ไม่เดาแล้วทำต่อ) · `lib/voidReasons.ts` เป็นรายการเดียวที่ POS กับครัวใช้ร่วมกัน (ปิด L15 ไปด้วย) · คงพฤติกรรมเดิม: มีเฉพาะ `wrong_key` ที่คืนสต็อก |
+| A7.6 | audit trail ปลอมได้ (`employee_name` จาก client) | `M` | 🟢 | `jwt_emp_id()` / `jwt_emp_name()` อ่าน claim จาก JWT · `void_logs` เพิ่ม `employee_id` + `reason_code` และเลิกรับชื่อจาก payload · `purchase_orders` เพิ่ม `created_by_emp_id/name` ที่ trigger ประทับจาก JWT (ยังแก้ `buyer_name` ซึ่งเป็นข้อมูลธุรกิจได้ตามจริง) |
+| A7.7 | `orders.table_id` เป็น `ON DELETE CASCADE` | `S` | 🟢 | `20260828` เปลี่ยน `orders.table_id` และ `payments.order_id` เป็น `RESTRICT` · เทสต์ยืนยันว่าลบโต๊ะที่มีประวัติไม่ได้และ `payments` ไม่หาย |
+| A7.8 | env ไม่ตั้งแล้ว fallback เงียบๆ | `S` | 🟢 | `lib/supabase.ts` / `lib/supabaseAdmin.ts` โยน error เมื่อไม่มีค่า · `CheckoutScreen` เลิก fallback `'0899999999'` — ถ้าไม่ได้ตั้ง PromptPay จะซ่อนปุ่ม QR แล้วขึ้นคำเตือนว่ารับได้เฉพาะเงินสด แทนที่จะให้ลูกค้าโอนเข้าเบอร์คนอื่น |
+| A7.9 | Realtime broadcast ไม่มี filter | `M` | 🟢 | หน้าลูกค้าไม่ subscribe แล้ว · POS กรอง `orders` ด้วย `table_id` และ `order_items` ด้วย `order_id` · Checkout ฟังเฉพาะบิลใบที่กำลังปิด · ที่เหลือ (ครัว / ผังโต๊ะ / badge) เป็น store-wide **โดยเจตนา** เพราะต้องเห็นทั้งร้าน และมี RLS + JWT พนักงานคุมอยู่ |
 | A7.10 | `test-rpc.mjs` ยิง production | `S` | 🟢 | ลบไฟล์แล้ว (commit `ecb665c`) |
 
-**ปิดแล้ว 11 · เหลือ 5** (A7.4 ⚠️ · A7.5 · A7.6 · A7.7 · A7.8 ⚠️ · A7.9 ⚠️) · **คิวถัดไป A7.7** (FK CASCADE ลบประวัติการเงิน — `S` และอันตรายที่สุดในกลุ่มที่เหลือ) แล้วต่อ A7.5 / A7.6
+**ปิดครบ 16 / 16** — เกณฑ์ผ่าน M0 ที่เหลือคือ deploy จริงแล้วรัน `node scripts/verify-lockdown.mjs` ให้ขึ้น "ปิดแล้ว" ทุกข้อ
+
+> เจอเพิ่มระหว่างทำ (ปิดแล้วในไฟล์เดียวกัน): `authenticated` ได้ `GRANT ALL` บนทุกตารางจาก default privileges ของ Supabase → **TRUNCATE payments ได้** เพราะ RLS ไม่คุม TRUNCATE
+> และ `ALTER DEFAULT PRIVILEGES ... REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC` ใน `20260824` **ไม่มีผลจริง** (พิสูจน์บน PG17) ⇒ ทุก RPC ใหม่ต้อง `REVOKE` เองเสมอ ไม่มีตาข่ายรอง
 
 เกณฑ์ผ่าน M0: ทุกแถวเป็น 🟢 และ `node scripts/verify-lockdown.mjs` ขึ้น "ปิดแล้ว" ครบทุกข้อ
 
@@ -137,7 +140,7 @@
 | L3 | PromoManager ขาด 3 ช่อง | `P-PROMO` | L12 | totalMembers ไม่สนใจช่วงวัน | `P-DASH` |
 | L4 | MenuItemModal แก้ stock ไม่ได้ | `P-MENU` | L13 | timezone UTC vs local | `P-DASH` |
 | L5 | staff เห็น SalesHistory | `P-FLOOR` | L14 | LAN IP hardcode ใน next.config | config |
-| L6 | แก้ PO ไม่ atomic | `P-STOCK` | L15 | void reason ไม่ตรงกัน POS/ครัว | `P-KDS` |
+| L6 | แก้ PO ไม่ atomic | `P-STOCK` | ~~L15~~ | 🟢 ใช้ `lib/voidReasons.ts` ร่วมกันแล้ว | `P-KDS` |
 | L7 | ปรับแต้มไม่ atomic | `P-CRM` | L16 | `price_per_unit` ไม่ถูกบันทึก | `P-STOCK` |
 | L8 | ส่งออเดอร์เป็น loop | `P-POS` | L17 | `discount_applied` dead column | migration |
 | L9 | cart merge ไม่ดูโน้ต | `P-POS` | L18 | `tables.updated_at` ไม่อัปเดต | migration |

@@ -166,17 +166,25 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
   // ตัวเลขนี้ใช้แสดงผลอย่างเดียว ของจริงคำนวณใน complete_checkout
   const pointsEarned = Math.floor(netAmount / 10);
 
-  const promptPayId = process.env.NEXT_PUBLIC_PROMPTPAY_ID || '0899999999';
+  // เดิม fallback เป็น '0899999999' เงียบๆ = ลูกค้าโอนเงินเข้าเบอร์ของคนอื่นโดยไม่มีใครรู้ (A7.8)
+  // ตอนนี้ถ้าไม่ได้ตั้งค่า จะปิดช่องทาง PromptPay ไปเลยและบอกให้ไปตั้งค่า
+  const promptPayId = (process.env.NEXT_PUBLIC_PROMPTPAY_ID || '').replace(/[^0-9]/g, '');
+  const promptPayReady = promptPayId.length === 10 || promptPayId.length === 13;
 
   useEffect(() => {
     fetchOrderData();
     fetchPromotions();
+  }, [tableId]);
+
+  // ฟังเฉพาะรายการของบิลใบนี้ ไม่ใช่ order_items ทั้งร้าน (A7.9)
+  useEffect(() => {
+    if (!orderId) return;
 
     const channel = supabase
-      .channel(`realtime:checkout_order_items_${tableId}`)
+      .channel(`realtime:checkout_order_${orderId}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'order_items' },
+        { event: '*', schema: 'public', table: 'order_items', filter: `order_id=eq.${orderId}` },
         () => {
           fetchOrderData();
         }
@@ -186,7 +194,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
     return () => {
       channel.unsubscribe();
     };
-  }, [tableId]);
+  }, [orderId]);
 
   useEffect(() => {
     if (subtotal > 0 && allPromos.length > 0) {
@@ -645,6 +653,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
               netAmount={netAmount}
               pendingItemsCount={pendingItemsCount}
               setShowQrModal={setShowQrModal}
+              promptPayReady={promptPayReady}
               processPayment={processPayment}
               isProcessing={isProcessing}
             />
@@ -734,7 +743,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
       )}
 
       <PromptPayQRModal
-        showQrModal={showQrModal}
+        showQrModal={showQrModal && promptPayReady}
         setShowQrModal={setShowQrModal}
         transferAmount={transferAmount}
         promptPayId={promptPayId}
