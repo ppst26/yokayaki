@@ -61,6 +61,30 @@ interface AppliedPromo {
   freeItems?: FreeItemDetail[];
 }
 
+// ผลลัพธ์ที่ complete_checkout คำนวณและบันทึกจริง (A5)
+// ใบเสร็จต้องพิมพ์จากค่าชุดนี้ ไม่ใช่จากที่หน้าจอคิดไว้
+interface CheckoutResult {
+  status: 'ok' | 'already_completed' | 'not_found';
+  payment_id: number | null;
+  subtotal: number;
+  promo_discount: number;
+  points_redeemed: number;
+  discount_amount: number;
+  net_amount: number;
+  points_earned: number;
+  cash_amount: number;
+  promptpay_amount: number;
+  change_amount: number;
+  payment_method: string | null;
+  applied_promos: {
+    promotion_id: number;
+    promotion_name: string;
+    promotion_type: Promotion['type'];
+    discount_value: number;
+    free_items: FreeItemDetail[] | null;
+  }[] | null;
+}
+
 // PromptPay EMVCo Payload Generator Helper
 function generatePromptPayQR(targetId: string, amount: number): string {
   let target = targetId.replace(/[^0-9]/g, '');
@@ -118,6 +142,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
   const [showQrModal, setShowQrModal] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [checkoutResult, setCheckoutResult] = useState<CheckoutResult | null>(null);
 
   // Promotions
   const [allPromos, setAllPromos] = useState<Promotion[]>([]);
@@ -137,7 +162,9 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
   const cashNum = parseFloat(cashReceived) || 0;
   const transferAmount = Math.max(0, netAmount - cashNum);
   const changeAmount = cashNum > netAmount ? cashNum - netAmount : 0;
-  const pointsEarned = Math.floor(netAmount / 25);
+  // 1 แต้ม = 10 บาท (ยืนยันแล้ว — ปิดข้อขัดแย้ง L1 ที่โค้ดเดิมใช้ /25 แต่เอกสารบอก /10)
+  // ตัวเลขนี้ใช้แสดงผลอย่างเดียว ของจริงคำนวณใน complete_checkout
+  const pointsEarned = Math.floor(netAmount / 10);
 
   const promptPayId = process.env.NEXT_PUBLIC_PROMPTPAY_ID || '0899999999';
 
@@ -423,48 +450,50 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
       return;
     }
 
-    let calculatedMethod: 'cash' | 'promptpay' | 'mixed' = 'cash';
-    if (cashNum >= netAmount) {
-      calculatedMethod = 'cash';
-    } else if (cashNum === 0) {
-      calculatedMethod = 'promptpay';
-    } else {
-      calculatedMethod = 'mixed';
-    }
-
     try {
       setIsProcessing(true);
       setErrorMsg(null);
 
-      const appliedPromoPayload = appliedPromos.map(ap => ({
-        promotion_id: ap.promo.id,
-        promotion_name: ap.promo.name,
-        promotion_type: ap.promo.type,
-        discount_value: ap.discountValue,
-        free_items: ap.freeItems || null,
-      }));
-
-      const { data: success, error } = await supabase.rpc('complete_checkout', {
+      // ส่งแค่ "เจตนา" — ยอดเงิน ส่วนลด และแต้ม คำนวณใน DB ทั้งหมด (A5)
+      // วิธีชำระ/ยอดแยกเงินสด-โอน ก็มาจาก DB เช่นกัน จึงไม่ส่งไปแล้ว
+      const { data, error } = await supabase.rpc('complete_checkout', {
         p_order_id: orderId,
-        p_payment_method: calculatedMethod,
-        p_subtotal: subtotal,
-        p_discount_amount: discount,
-        p_net_amount: netAmount,
-        p_points_earned: pointsEarned,
-        p_points_redeemed: pointsToRedeem,
+        p_cash_received: cashNum,
+        p_coupon_code: couponApplied?.coupon_code || null,
         p_phone_number: member?.phone_number || null,
-        p_applied_promos: appliedPromoPayload,
-        p_cash_amount: cashNum >= netAmount ? netAmount : cashNum,
-        p_promptpay_amount: transferAmount,
+        p_points_redeem: pointsToRedeem,
       });
 
       if (error) throw error;
 
-      if (success) {
-        setShowReceipt(true);
-      } else {
-        setErrorMsg('ไม่สามารถบันทึกการชำระเงินได้');
+      const result = (Array.isArray(data) ? data[0] : data) as CheckoutResult | undefined;
+
+      if (!result || result.status === 'not_found') {
+        setErrorMsg('ไม่พบออเดอร์นี้ในระบบ — กรุณารีเฟรชแล้วลองใหม่');
+        return;
       }
+
+      setCheckoutResult(result);
+
+      // บิลนี้ถูกปิดไปแล้ว (ดับเบิลคลิก / เน็ตช้าแล้ว retry) — แสดงใบเดิม ไม่เก็บเงินซ้ำ (A6)
+      if (result.status === 'already_completed') {
+        alert('บิลนี้ถูกปิดไปแล้ว ระบบแสดงใบเสร็จของรายการเดิม ไม่ได้บันทึกซ้ำ');
+        setShowReceipt(true);
+        return;
+      }
+
+      // ยอดที่ DB คำนวณได้ไม่ตรงกับที่หน้าจอแสดง = เก็บเงินไปผิดจำนวน ต้องบอกทันที
+      if (Math.abs(Number(result.net_amount) - netAmount) > 0.01) {
+        alert(
+          'ยอดที่ระบบบันทึกจริงคือ ' +
+            Number(result.net_amount).toLocaleString() +
+            ' บาท (หน้าจอแสดง ' +
+            netAmount.toLocaleString() +
+            ' บาท) — ใบเสร็จจะพิมพ์ตามยอดที่บันทึกจริง กรุณาตรวจสอบเงินที่รับมา'
+        );
+      }
+
+      setShowReceipt(true);
     } catch (err: any) {
       console.error('Payment error:', err);
       setErrorMsg('เกิดข้อผิดพลาดในการชำระเงิน: ' + (err.message || ''));
@@ -474,6 +503,24 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
   };
 
   if (showReceipt) {
+    // ใบเสร็จพิมพ์จากตัวเลขที่ DB บันทึกจริงเสมอ (A5) — ค่าที่หน้าจอคิดไว้เป็นแค่ fallback
+    const r = checkoutResult;
+    const receiptPromos: AppliedPromo[] = r
+      ? (r.applied_promos ?? []).map(ap => ({
+          promo:
+            allPromos.find(x => x.id === ap.promotion_id) ??
+            ({
+              id: ap.promotion_id,
+              name: ap.promotion_name,
+              type: ap.promotion_type,
+              min_order_amount: 0,
+              is_active: true,
+            } as Promotion),
+          discountValue: Number(ap.discount_value),
+          freeItems: ap.free_items ?? undefined,
+        }))
+      : appliedPromos;
+
     return (
       <ReceiptPrintView
         orderId={orderId}
@@ -481,16 +528,16 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
         now={new Date()}
         employeeName={employee?.name}
         activeItems={activeItems}
-        subtotal={subtotal}
-        appliedPromos={appliedPromos}
-        loyaltyDiscount={loyaltyDiscount}
-        netAmount={netAmount}
-        cashNum={cashNum}
-        transferAmount={transferAmount}
-        changeAmount={changeAmount}
+        subtotal={r ? Number(r.subtotal) : subtotal}
+        appliedPromos={receiptPromos}
+        loyaltyDiscount={r ? r.points_redeemed : loyaltyDiscount}
+        netAmount={r ? Number(r.net_amount) : netAmount}
+        cashNum={r ? Number(r.cash_amount) : cashNum}
+        transferAmount={r ? Number(r.promptpay_amount) : transferAmount}
+        changeAmount={r ? Number(r.change_amount) : changeAmount}
         member={member}
-        pointsToRedeem={pointsToRedeem}
-        pointsEarned={pointsEarned}
+        pointsToRedeem={r ? r.points_redeemed : pointsToRedeem}
+        pointsEarned={r ? r.points_earned : pointsEarned}
         onBack={onBack}
       />
     );

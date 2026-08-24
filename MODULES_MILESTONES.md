@@ -5,7 +5,7 @@
 > ที่มาของรายการงาน: [`PosRestuarantSass.md`](PosRestuarantSass.md) (§4 Gap Analysis + §5 Roadmap)
 > ประวัติฟีเจอร์ที่ทำไปแล้ว: [`ROADMAP.md`](ROADMAP.md) · สเปกรายฟีเจอร์: `docs/superpowers/specs/`
 
-**Last Updated:** 2026-08-25 · **Milestone ปัจจุบัน:** `M0 Security Hardening` (🟡 กำลังทำ — คิวถัดไป: A5 + A6)
+**Last Updated:** 2026-08-26 · **Milestone ปัจจุบัน:** `M0 Security Hardening` (🟡 กำลังทำ — คิวถัดไป: A7.4 / A7.5 / A7.6 / A7.7)
 
 ---
 
@@ -35,7 +35,7 @@
 | `P-POS` | POS Order (Staff) | `components/POSOrderScreen.tsx` | 🟢 | L8 ส่งออเดอร์เป็น loop ไม่ atomic · L9 cart merge ไม่ดูโน้ต | M2 |
 | `P-QR` | Customer QR Portal | `app/customer/[session_id]/page.tsx` · `app/api/customer/*` | 🟢 | ไฟล์ยาว 1,235 บรรทัด ควรแตก · polling 5 วิ แทน realtime | M2 / M7 |
 | `P-KDS` | Kitchen Display | `components/KitchenScreen.tsx` | 🟢 | L10 ปุ่มปิดเสียงทำ channel re-subscribe · L15 void reason ไม่ตรงกับ POS | M2 |
-| `P-PAY` | Checkout & Payment | `components/checkout/CheckoutScreen.tsx` | ⚠️ | **A5 ยอดเงินมาจาก client** · **A6 ไม่มี idempotency** · L1 แต้ม /25 vs /10 | M0 |
+| `P-PAY` | Checkout & Payment | `components/checkout/CheckoutScreen.tsx` | 🟢 | ปิด A5 / A6 / L1 แล้ว · เหลือหนี้เชิงโครงสร้าง: เครื่องคิดโปรยังมี 2 ชุด (SQL ของจริง + JS สำหรับแสดงผล) ต้องแก้คู่กันเสมอ | M2 |
 | `P-MENU` | Menu Manager | `components/MenuManager.tsx` · `MenuItemModal.tsx` | ⚠️ | L2 Happy Hour ครึ่งใบ · L4 แก้ stock / is_stock_tracked / is_happy_hour ไม่ได้ | M2 |
 | `P-STOCK` | Purchase Orders / Stock | `components/IngredientPurchaseManager.tsx` | ⚠️ | L6 แก้ PO = ลบ+insert ไม่ atomic · L16 `price_per_unit` ไม่เคยบันทึก | M2 |
 | `P-PROMO` | Promo Manager | `components/PromoManager.tsx` | ⚠️ | L3 ไม่มีช่อง image_url / start_date / end_date ทั้งที่ DB ใช้จริง | M2 |
@@ -94,10 +94,10 @@
 | A2 | PIN hash ถอดได้ในไม่กี่วินาที | `M` | 🟢 | bcrypt + `verify_pin()` (service_role เท่านั้น) + `pin_attempts` · `20260825_pin_lockout_hardening.sql` ตัดทางเดิน SHA-256 + `DROP COLUMN employees.pin_hash` + เพดานรวมทั้งระบบ 20 ครั้ง/5 นาที · `clientKeyFrom()` เลิกเชื่อ `x-forwarded-for` ตัวซ้ายสุด |
 | A3 | Privilege escalation ผ่าน `add_employee` | `S` | 🟢 | DROP RPC เดิม 3 ตัว → `admin_*` ที่ให้เฉพาะ `service_role` + step-up PIN ที่ `/api/employees/[id]` |
 | A4 | ลูกค้ากำหนดราคาเองได้ | `S` | 🟢 | `20260826_order_price_server_side.sql` ลบ `p_unit_price` ออกจาก `place_order_item` และ `customer_place_order_item` · ราคาอ่านจาก `menu_items.price` ใน DB · กัน `quantity <= 0` · แก้ผู้เรียกทั้ง 2 ที่ (POSOrderScreen + customer order route) · **Happy Hour ยังคิดจาก `price` ตามเดิม — เป็นเรื่องราคาขาย ไปตัดสินที่ L2** |
-| A5 | ยอดขายคือสิ่งที่เบราว์เซอร์บอก | `M` | ⬜ | `complete_checkout` ยังรับ subtotal / discount / net / points / cash / promptpay จาก client · ไม่ตรวจสิทธิ์โปรโมชั่น · แต้มติดลบได้ |
-| A6 | Checkout ไม่มี idempotency | `S` | ⬜ | ต้องมี `SELECT ... FOR UPDATE` บน order + `UNIQUE(payments.order_id)` + idempotency key จาก client |
+| A5 | ยอดขายคือสิ่งที่เบราว์เซอร์บอก | `M` | 🟢 | `20260827_checkout_server_side.sql` — `complete_checkout` รับแค่ `p_cash_received` / `p_coupon_code` / `p_phone_number` / `p_points_redeem` · subtotal จาก `order_items` · โปรโมชั่นอ่านเงื่อนไข (`is_active`/วันที่/`min_order_amount`/ช่วงเวลา/เมนู) จากตารางเอง · แต้ม redeem clamp ด้วย `LEAST(ที่ขอ, แต้มที่มี, ยอดหลังหักโปร)` + `CHECK (points >= 0)` · ใบเสร็จพิมพ์จากค่าที่ DB คืนกลับมา · อัตราแต้ม `net / 10` (ปิด L1) |
+| A6 | Checkout ไม่มี idempotency | `S` | 🟢 | ไฟล์เดียวกัน — `SELECT ... FOR UPDATE` บน order + เช็ค `status <> 'active'` แล้วคืนใบเดิม (`already_completed`) ไม่แตะแต้มซ้ำ + `UNIQUE INDEX uniq_payment_per_order` |
 | A7.1 | Seed PIN อยู่ใน git | `S` | 🟢 | migration ล้าง hash ของ seed PIN ที่รู้จัก · ตั้ง PIN จริงด้วย `scripts/set-pin.mjs` |
-| A7.2 | ไม่มี `DROP FUNCTION` → overload เก่ายังเรียกได้ | `S` | ⚠️ | `20260824` §5 drop ไป 5 ตัว · `20260826` drop รุ่นที่รับ `p_unit_price` ของ RPC สั่งอาหารทั้งคู่ · **เหลือ:** `complete_checkout` 11 args ต้อง drop ตอนทำ A5 |
+| A7.2 | ไม่มี `DROP FUNCTION` → overload เก่ายังเรียกได้ | `S` | 🟢 | `20260824` §5 drop ไป 5 ตัว · `20260826` drop รุ่นที่รับ `p_unit_price` · `20260827` drop `complete_checkout` 11 args · ไม่เหลือ overload เก่าที่เรียกได้แล้ว |
 | A7.3 | หน้าลูกค้าเขียน `tables` ตรงจาก anon | `S` | 🟢 | ย้ายไป `/api/customer/[session_id]/check-bill` ที่ตรวจ session ก่อนทุกครั้ง |
 | A7.4 | เปิดบิลซ้ำต่อโต๊ะได้ (ล็อกผิดตาราง) | `S` | ⚠️ | `20260826` เปลี่ยนไปล็อกแถว `tables` ก่อนหาบิล active → คำสั่งพร้อมกันบนโต๊ะเดียวเข้าคิวแล้ว · **เหลือ:** `CREATE UNIQUE INDEX uniq_active_order_per_table ON orders(table_id) WHERE status='active'` ซึ่งต้องเคลียร์บิล active ที่ซ้ำอยู่เดิมก่อน |
 | A7.5 | `void_order_item` ตัดสินคืนสต็อกด้วยข้อความไทย | `S` | ⬜ | เปลี่ยนเป็นรหัสเหตุผล (enum) แทนการ match string |
@@ -107,7 +107,7 @@
 | A7.9 | Realtime broadcast ไม่มี filter | `M` | ⚠️ | หน้าลูกค้าเลิก subscribe แล้ว (เปลี่ยนเป็น polling) · **เหลือ:** ฝั่ง POS ยัง subscribe แบบไม่ filter |
 | A7.10 | `test-rpc.mjs` ยิง production | `S` | 🟢 | ลบไฟล์แล้ว (commit `ecb665c`) |
 
-**ปิดแล้ว 8 · เหลือ 8** · **คิวถัดไป A5 + A6** — ทำคู่กันในไมเกรชันเดียว (คำนวณยอดจาก `order_items` ใน DB + `UNIQUE(payments.order_id)` + `FOR UPDATE` บน order) แล้วปิดหาง A7.2 ไปพร้อมกัน
+**ปิดแล้ว 11 · เหลือ 5** (A7.4 ⚠️ · A7.5 · A7.6 · A7.7 · A7.8 ⚠️ · A7.9 ⚠️) · **คิวถัดไป A7.7** (FK CASCADE ลบประวัติการเงิน — `S` และอันตรายที่สุดในกลุ่มที่เหลือ) แล้วต่อ A7.5 / A7.6
 
 เกณฑ์ผ่าน M0: ทุกแถวเป็น 🟢 และ `node scripts/verify-lockdown.mjs` ขึ้น "ปิดแล้ว" ครบทุกข้อ
 
@@ -116,9 +116,9 @@
 | ID | งาน | สถานะ | หมายเหตุ |
 |---|---|:--:|---|
 | D1 | Route handlers + service-role client | 🟢 | `app/api/auth/*` · `app/api/customer/*` · `app/api/employees/*` |
-| D2 | ย้ายการคำนวณราคา/ยอดเงินทั้งหมดเข้า server | ⚠️ | ราคาต่อหน่วยเสร็จแล้วทั้ง 2 เส้นทาง (A4) · ฝั่ง checkout ยังไม่ทำ (= A5) |
+| D2 | ย้ายการคำนวณราคา/ยอดเงินทั้งหมดเข้า server | 🟢 | ราคาต่อหน่วย (A4) + ยอดบิล/ส่วนลด/แต้ม (A5) คำนวณใน DB ครบแล้ว |
 | D3 | ส่งออเดอร์เป็น transaction เดียว | ⬜ | ตอนนี้ยัง loop RPC ทีละรายการ (= L8) |
-| D4 | Idempotency key ตอน checkout | ⬜ | = A6 |
+| D4 | Idempotency key ตอน checkout | 🟢 | ใช้ `UNIQUE(payments.order_id)` + `FOR UPDATE` เป็นตัวกันซ้ำแทน key จาก client (= A6) — หนึ่งออเดอร์มีได้ใบเดียวเป็น invariant ที่แข็งกว่า |
 | D5 | Input validation ด้วย zod ทุก endpoint | ⬜ | ตอนนี้ validate ด้วยมือใน route |
 | D6 | Rate limiting ฝั่ง server ที่ปลอม header ไม่ได้ | ⬜ | ต่อยอดจากหางของ A2 |
 | D7 | Audit log ผูกกับ identity จาก JWT | ⬜ | = A7.6 |
@@ -132,7 +132,7 @@
 
 | ID | สรุป | โมดูล | ID | สรุป | โมดูล |
 |---|---|---|---|---|---|
-| L1 | แต้ม /25 ในโค้ด vs /10 ในเอกสาร | `P-PAY` | L10 | ปุ่มปิดเสียงครัวทำ re-subscribe | `P-KDS` |
+| ~~L1~~ | 🟢 ตัดสินแล้ว: `net / 10` (ทำใน A5) | `P-PAY` | L10 | ปุ่มปิดเสียงครัวทำ re-subscribe | `P-KDS` |
 | L2 | Happy Hour ครึ่งใบ | `P-MENU` | L11 | preset 3/6 เดือนไม่ render | `P-DASH` |
 | L3 | PromoManager ขาด 3 ช่อง | `P-PROMO` | L12 | totalMembers ไม่สนใจช่วงวัน | `P-DASH` |
 | L4 | MenuItemModal แก้ stock ไม่ได้ | `P-MENU` | L13 | timezone UTC vs local | `P-DASH` |

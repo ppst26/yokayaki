@@ -92,7 +92,8 @@ yokayaki/
 │   ├── 20260721_loyalty_crm.sql         # points_logs table + payments.phone_number + RPC
 │   ├── 20260824_security_hardening.sql  # 🔴 A1/A2/A3 — RLS ใหม่ทั้งหมด + REVOKE/GRANT + bcrypt PIN
 │   ├── 20260825_pin_lockout_hardening.sql # 🔴 A2 (หาง) — ตัด SHA-256 + DROP pin_hash + เพดานล็อกอินรวม
-│   └── 20260826_order_price_server_side.sql # 🔴 A4 — ลบ p_unit_price ราคามาจาก menu_items ฝั่ง DB
+│   ├── 20260826_order_price_server_side.sql # 🔴 A4 — ลบ p_unit_price ราคามาจาก menu_items ฝั่ง DB
+│   └── 20260827_checkout_server_side.sql # 🔴 A5/A6 — ยอดบิลคำนวณใน DB + UNIQUE(payments.order_id)
 │
 ├── scripts/
 │   ├── set-pin.mjs                   # ตั้ง PIN พนักงานผ่าน service role (ใช้ตอน deploy)
@@ -178,8 +179,11 @@ TableMap (กดโต๊ะ occupied → "ชำระเงิน") → Checko
   → ค้นหาสมาชิก (เบอร์โทร 10 หลัก) + ใช้แต้ม
   → ใช้โปรโมชั่น (%, fixed, buy_x_get_y)
   → เลือกวิธีชำระ: เงินสด / PromptPay QR / ผสม
-  → RPC: complete_checkout (ปิดบิล + บันทึก payment + อัปเดตแต้ม + เคลียร์โต๊ะ + expire QR sessions)
-  → พิมพ์ใบเสร็จ (window.print(), Thermal 80mm)
+  → RPC: complete_checkout — ส่งไปแค่ เงินสดที่รับมา / รหัสคูปอง / เบอร์สมาชิก / แต้มที่ขอใช้
+     DB คำนวณ subtotal จาก order_items · ตรวจเงื่อนไขโปรจากตาราง promotions เอง
+     · clamp แต้มที่ใช้ · แต้มที่ได้ = net / 10 · ปิดบิล + เคลียร์โต๊ะ + expire QR
+     · ล็อก order ด้วย FOR UPDATE และ UNIQUE(payments.order_id) กันปิดซ้ำ
+  → พิมพ์ใบเสร็จจากตัวเลขที่ RPC คืนกลับมา ไม่ใช่ที่หน้าจอคิด (window.print(), Thermal 80mm)
 ```
 
 ### 5. Kitchen Display Flow
@@ -214,7 +218,7 @@ KitchenScreen (Realtime subscription)
 
 พิสูจน์ว่ายังปิดอยู่: `node scripts/verify-lockdown.mjs` (ทุกข้อต้องขึ้น "ปิดแล้ว")
 
-**ยังเปิดอยู่ (ยังไม่ได้แก้):** A5 `complete_checkout` ยังเชื่อยอดเงินจาก client · A6 ไม่มี idempotency
+**ยังเปิดอยู่ (ยังไม่ได้แก้):** A7.4 (ยังไม่มี unique index กันบิลซ้ำต่อโต๊ะ) · A7.5 (void ตัดสินคืนสต็อกด้วยข้อความไทย) · A7.6 (audit trail ยังเชื่อชื่อจาก client) · A7.7 (ลบโต๊ะ = ลบประวัติการเงิน) · A7.8/A7.9 บางส่วน
 → ความเสี่ยงเหลือเป็น *insider* (ต้องมี PIN พนักงานก่อน) ไม่ใช่ *anonymous* อีกต่อไป
 
 สถานะรายข้อและคิวงานถัดไป: [`MODULES_MILESTONES.md`](MODULES_MILESTONES.md)
@@ -253,7 +257,7 @@ KitchenScreen (Realtime subscription)
 | `place_order_item` | `(p_table_id, p_menu_item_id, p_quantity, p_notes)` | พนักงานสั่ง — **ราคาอ่านจาก menu_items ใน DB** + atomic stock | DEFINER · `authenticated` |
 | `void_order_item` | ดูใน migration `20260707_void_order_item.sql` | ยกเลิกรายการ + เลือกคืน/ไม่คืนสต็อก + void_logs | DEFINER |
 | `customer_place_order_item` | `(p_session_id, p_menu_item_id, p_quantity, p_notes)` | ลูกค้าสั่งผ่าน QR + ตรวจ session — **ราคาอ่านจาก menu_items** | DEFINER · `service_role` |
-| `complete_checkout` | `(p_order_id, p_payment_method, p_subtotal, p_discount_amount, p_net_amount, p_points_earned, p_points_redeemed, p_phone_number, p_applied_promos, p_cash_amount, p_promptpay_amount)` | ปิดบิล + payment + แต้ม + เคลียร์โต๊ะ + expire QR + บันทึกโปรโมชั่น | DEFINER · `authenticated` |
+| `complete_checkout` | `(p_order_id, p_cash_received, p_coupon_code, p_phone_number, p_points_redeem)` | ปิดบิล — **คำนวณ subtotal/ส่วนลด/แต้ม/ยอดสุทธิเองใน DB** แล้วคืนค่าที่บันทึกจริงกลับไปให้ใบเสร็จ · ล็อก order + กันปิดซ้ำ | DEFINER · `authenticated` |
 | `verify_pin` | `(p_pin, p_client_key)` | ตรวจ PIN ด้วย bcrypt + lockout — **`service_role` เท่านั้น** | DEFINER |
 | `admin_list_employees` | `()` | รายชื่อพนักงาน (ไม่มี hash) — **`service_role` เท่านั้น** | DEFINER |
 | `admin_add_employee` | `(p_name, p_pin, p_role)` | เพิ่มพนักงาน + hash bcrypt ใน DB — **`service_role` เท่านั้น** | DEFINER |
