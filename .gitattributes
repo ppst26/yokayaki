@@ -1,0 +1,6 @@
+# ไฟล์ที่ถูก mount เข้า container ต้องเป็น LF เสมอ
+# ถ้าโดนแปลงเป็น CRLF ตอน checkout บน Windows shebang จะกลายเป็น "#!/bin/sh\r" แล้ว container ไม่ขึ้น
+*.sh   text eol=lf
+*.sql  text eol=lf
+*.mjs  text eol=lf
+docker-compose.yml text eol=lf
