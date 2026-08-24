@@ -5,7 +5,7 @@
 > ที่มาของรายการงาน: [`PosRestuarantSass.md`](PosRestuarantSass.md) (§4 Gap Analysis + §5 Roadmap)
 > ประวัติฟีเจอร์ที่ทำไปแล้ว: [`ROADMAP.md`](ROADMAP.md) · สเปกรายฟีเจอร์: `docs/superpowers/specs/`
 
-**Last Updated:** 2026-08-25 · **Milestone ปัจจุบัน:** `M0 Security Hardening` (🟡 กำลังทำ — คิวถัดไป: A4)
+**Last Updated:** 2026-08-25 · **Milestone ปัจจุบัน:** `M0 Security Hardening` (🟡 กำลังทำ — คิวถัดไป: A5 + A6)
 
 ---
 
@@ -93,13 +93,13 @@
 | A1 | anon key = full DB credential | `XL` | 🟢 | `20260824_security_hardening.sql` เขียน RLS ใหม่ + REVOKE/GRANT · anon ไม่เหลือ policy และ grant · หน้าลูกค้าไม่ถือ credential แล้ว |
 | A2 | PIN hash ถอดได้ในไม่กี่วินาที | `M` | 🟢 | bcrypt + `verify_pin()` (service_role เท่านั้น) + `pin_attempts` · `20260825_pin_lockout_hardening.sql` ตัดทางเดิน SHA-256 + `DROP COLUMN employees.pin_hash` + เพดานรวมทั้งระบบ 20 ครั้ง/5 นาที · `clientKeyFrom()` เลิกเชื่อ `x-forwarded-for` ตัวซ้ายสุด |
 | A3 | Privilege escalation ผ่าน `add_employee` | `S` | 🟢 | DROP RPC เดิม 3 ตัว → `admin_*` ที่ให้เฉพาะ `service_role` + step-up PIN ที่ `/api/employees/[id]` |
-| A4 | ลูกค้ากำหนดราคาเองได้ | `S` | ⚠️ | `/api/customer/[session_id]/order` อ่านราคาจาก `menu_items` เองแล้ว · **เหลือ:** RPC ยังรับ `p_unit_price` และเส้นทาง staff ยังส่งราคาจาก client → ต้องลบพารามิเตอร์ทิ้งทั้ง 2 RPC |
+| A4 | ลูกค้ากำหนดราคาเองได้ | `S` | 🟢 | `20260826_order_price_server_side.sql` ลบ `p_unit_price` ออกจาก `place_order_item` และ `customer_place_order_item` · ราคาอ่านจาก `menu_items.price` ใน DB · กัน `quantity <= 0` · แก้ผู้เรียกทั้ง 2 ที่ (POSOrderScreen + customer order route) · **Happy Hour ยังคิดจาก `price` ตามเดิม — เป็นเรื่องราคาขาย ไปตัดสินที่ L2** |
 | A5 | ยอดขายคือสิ่งที่เบราว์เซอร์บอก | `M` | ⬜ | `complete_checkout` ยังรับ subtotal / discount / net / points / cash / promptpay จาก client · ไม่ตรวจสิทธิ์โปรโมชั่น · แต้มติดลบได้ |
 | A6 | Checkout ไม่มี idempotency | `S` | ⬜ | ต้องมี `SELECT ... FOR UPDATE` บน order + `UNIQUE(payments.order_id)` + idempotency key จาก client |
 | A7.1 | Seed PIN อยู่ใน git | `S` | 🟢 | migration ล้าง hash ของ seed PIN ที่รู้จัก · ตั้ง PIN จริงด้วย `scripts/set-pin.mjs` |
-| A7.2 | ไม่มี `DROP FUNCTION` → overload เก่ายังเรียกได้ | `S` | ⚠️ | `20260824` §5 drop overload เก่าไปแล้ว 5 ตัว (`place_order_item` 4 args · `customer_place_order_item` 4 args · `void_order_item` 3 args · `complete_checkout` 8 และ 9 args) · **เหลือ:** ต้อง drop รุ่นปัจจุบันตอนเปลี่ยน signature ใน A4 / A5 |
+| A7.2 | ไม่มี `DROP FUNCTION` → overload เก่ายังเรียกได้ | `S` | ⚠️ | `20260824` §5 drop ไป 5 ตัว · `20260826` drop รุ่นที่รับ `p_unit_price` ของ RPC สั่งอาหารทั้งคู่ · **เหลือ:** `complete_checkout` 11 args ต้อง drop ตอนทำ A5 |
 | A7.3 | หน้าลูกค้าเขียน `tables` ตรงจาก anon | `S` | 🟢 | ย้ายไป `/api/customer/[session_id]/check-bill` ที่ตรวจ session ก่อนทุกครั้ง |
-| A7.4 | เปิดบิลซ้ำต่อโต๊ะได้ (ล็อกผิดตาราง) | `S` | ⬜ | ต้องมี `CREATE UNIQUE INDEX uniq_active_order_per_table ON orders(table_id) WHERE status='active'` |
+| A7.4 | เปิดบิลซ้ำต่อโต๊ะได้ (ล็อกผิดตาราง) | `S` | ⚠️ | `20260826` เปลี่ยนไปล็อกแถว `tables` ก่อนหาบิล active → คำสั่งพร้อมกันบนโต๊ะเดียวเข้าคิวแล้ว · **เหลือ:** `CREATE UNIQUE INDEX uniq_active_order_per_table ON orders(table_id) WHERE status='active'` ซึ่งต้องเคลียร์บิล active ที่ซ้ำอยู่เดิมก่อน |
 | A7.5 | `void_order_item` ตัดสินคืนสต็อกด้วยข้อความไทย | `S` | ⬜ | เปลี่ยนเป็นรหัสเหตุผล (enum) แทนการ match string |
 | A7.6 | audit trail ปลอมได้ (`employee_name` จาก client) | `M` | ⬜ | ต้องดึงตัวตนจาก JWT ฝั่ง server |
 | A7.7 | `orders.table_id` เป็น `ON DELETE CASCADE` | `S` | ⬜ | ลบโต๊ะ = ลบประวัติการเงินทั้งโต๊ะ → เปลี่ยนเป็น `RESTRICT` |
@@ -107,7 +107,7 @@
 | A7.9 | Realtime broadcast ไม่มี filter | `M` | ⚠️ | หน้าลูกค้าเลิก subscribe แล้ว (เปลี่ยนเป็น polling) · **เหลือ:** ฝั่ง POS ยัง subscribe แบบไม่ filter |
 | A7.10 | `test-rpc.mjs` ยิง production | `S` | 🟢 | ลบไฟล์แล้ว (commit `ecb665c`) |
 
-**ปิดแล้ว 7 · เหลือ 9** · **คิวถัดไป A4** — ลบ `p_unit_price` ออกจาก 2 RPC แล้วทำ A7.4 (unique active order) กับหาง A7.2 ในไมเกรชันเดียวกัน
+**ปิดแล้ว 8 · เหลือ 8** · **คิวถัดไป A5 + A6** — ทำคู่กันในไมเกรชันเดียว (คำนวณยอดจาก `order_items` ใน DB + `UNIQUE(payments.order_id)` + `FOR UPDATE` บน order) แล้วปิดหาง A7.2 ไปพร้อมกัน
 
 เกณฑ์ผ่าน M0: ทุกแถวเป็น 🟢 และ `node scripts/verify-lockdown.mjs` ขึ้น "ปิดแล้ว" ครบทุกข้อ
 
@@ -116,7 +116,7 @@
 | ID | งาน | สถานะ | หมายเหตุ |
 |---|---|:--:|---|
 | D1 | Route handlers + service-role client | 🟢 | `app/api/auth/*` · `app/api/customer/*` · `app/api/employees/*` |
-| D2 | ย้ายการคำนวณราคา/ยอดเงินทั้งหมดเข้า server | ⚠️ | ฝั่งลูกค้าเสร็จ · ฝั่ง checkout ยังไม่ทำ (= A5) |
+| D2 | ย้ายการคำนวณราคา/ยอดเงินทั้งหมดเข้า server | ⚠️ | ราคาต่อหน่วยเสร็จแล้วทั้ง 2 เส้นทาง (A4) · ฝั่ง checkout ยังไม่ทำ (= A5) |
 | D3 | ส่งออเดอร์เป็น transaction เดียว | ⬜ | ตอนนี้ยัง loop RPC ทีละรายการ (= L8) |
 | D4 | Idempotency key ตอน checkout | ⬜ | = A6 |
 | D5 | Input validation ด้วย zod ทุก endpoint | ⬜ | ตอนนี้ validate ด้วยมือใน route |

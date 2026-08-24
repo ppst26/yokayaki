@@ -91,7 +91,8 @@ yokayaki/
 │   ├── 20260720_payment_promotions.sql  # payment_promotions + updated checkout RPC
 │   ├── 20260721_loyalty_crm.sql         # points_logs table + payments.phone_number + RPC
 │   ├── 20260824_security_hardening.sql  # 🔴 A1/A2/A3 — RLS ใหม่ทั้งหมด + REVOKE/GRANT + bcrypt PIN
-│   └── 20260825_pin_lockout_hardening.sql # 🔴 A2 (หาง) — ตัด SHA-256 + DROP pin_hash + เพดานล็อกอินรวม
+│   ├── 20260825_pin_lockout_hardening.sql # 🔴 A2 (หาง) — ตัด SHA-256 + DROP pin_hash + เพดานล็อกอินรวม
+│   └── 20260826_order_price_server_side.sql # 🔴 A4 — ลบ p_unit_price ราคามาจาก menu_items ฝั่ง DB
 │
 ├── scripts/
 │   ├── set-pin.mjs                   # ตั้ง PIN พนักงานผ่าน service role (ใช้ตอน deploy)
@@ -213,7 +214,7 @@ KitchenScreen (Realtime subscription)
 
 พิสูจน์ว่ายังปิดอยู่: `node scripts/verify-lockdown.mjs` (ทุกข้อต้องขึ้น "ปิดแล้ว")
 
-**ยังเปิดอยู่ (ยังไม่ได้แก้):** A4 บางส่วน · A5 `complete_checkout` ยังเชื่อยอดเงินจาก client · A6 ไม่มี idempotency
+**ยังเปิดอยู่ (ยังไม่ได้แก้):** A5 `complete_checkout` ยังเชื่อยอดเงินจาก client · A6 ไม่มี idempotency
 → ความเสี่ยงเหลือเป็น *insider* (ต้องมี PIN พนักงานก่อน) ไม่ใช่ *anonymous* อีกต่อไป
 
 สถานะรายข้อและคิวงานถัดไป: [`MODULES_MILESTONES.md`](MODULES_MILESTONES.md)
@@ -249,9 +250,9 @@ KitchenScreen (Realtime subscription)
 
 | ฟังก์ชัน | Parameters | คำอธิบาย | Security |
 |----------|-----------|----------|----------|
-| `place_order_item` | `(p_table_id, p_menu_item_id, p_quantity, p_unit_price)` | พนักงานสั่ง + atomic stock deduction + รองรับ is_stock_tracked | DEFINER |
+| `place_order_item` | `(p_table_id, p_menu_item_id, p_quantity, p_notes)` | พนักงานสั่ง — **ราคาอ่านจาก menu_items ใน DB** + atomic stock | DEFINER · `authenticated` |
 | `void_order_item` | ดูใน migration `20260707_void_order_item.sql` | ยกเลิกรายการ + เลือกคืน/ไม่คืนสต็อก + void_logs | DEFINER |
-| `customer_place_order_item` | `(p_session_id, p_menu_item_id, p_quantity, p_unit_price)` | ลูกค้าสั่งผ่าน QR + ตรวจ session + atomic stock | DEFINER |
+| `customer_place_order_item` | `(p_session_id, p_menu_item_id, p_quantity, p_notes)` | ลูกค้าสั่งผ่าน QR + ตรวจ session — **ราคาอ่านจาก menu_items** | DEFINER · `service_role` |
 | `complete_checkout` | `(p_order_id, p_payment_method, p_subtotal, p_discount_amount, p_net_amount, p_points_earned, p_points_redeemed, p_phone_number, p_applied_promos, p_cash_amount, p_promptpay_amount)` | ปิดบิล + payment + แต้ม + เคลียร์โต๊ะ + expire QR + บันทึกโปรโมชั่น | DEFINER · `authenticated` |
 | `verify_pin` | `(p_pin, p_client_key)` | ตรวจ PIN ด้วย bcrypt + lockout — **`service_role` เท่านั้น** | DEFINER |
 | `admin_list_employees` | `()` | รายชื่อพนักงาน (ไม่มี hash) — **`service_role` เท่านั้น** | DEFINER |

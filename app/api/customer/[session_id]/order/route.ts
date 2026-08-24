@@ -49,18 +49,17 @@ export async function POST(request: Request, ctx: RouteContext<'/api/customer/[s
       return Response.json({ error: 'รายการสั่งอาหารไม่ถูกต้อง' }, { status: 400 });
     }
 
-    // ราคาอ้างอิงจากฐานข้อมูล ไม่ใช่จากสิ่งที่เบราว์เซอร์ส่งมา
+    // ราคาไม่ผ่านมือใครทั้งสิ้น — RPC อ่าน menu_items.price เองใน DB (A4)
+    // ดึงชื่อมาไว้เพื่อรายงานว่ารายการไหนล้มเหลวเท่านั้น
     const { data: menuRows, error: menuError } = await supabaseAdmin
       .from('menu_items')
-      .select('id, name, price')
+      .select('id, name')
       .in('id', items.map(i => i.menuItemId));
 
     if (menuError) throw menuError;
 
-    const priceById = new Map<number, number>();
     const nameById = new Map<number, string>();
     for (const row of menuRows ?? []) {
-      priceById.set(row.id, Number(row.price));
       nameById.set(row.id, row.name);
     }
 
@@ -68,17 +67,10 @@ export async function POST(request: Request, ctx: RouteContext<'/api/customer/[s
     let placed = 0;
 
     for (const item of items) {
-      const unitPrice = priceById.get(item.menuItemId);
-      if (unitPrice === undefined) {
-        failed.push(`เมนู #${item.menuItemId}`);
-        continue;
-      }
-
       const { data: success, error } = await supabaseAdmin.rpc('customer_place_order_item', {
         p_session_id: sessionId,
         p_menu_item_id: item.menuItemId,
         p_quantity: item.quantity,
-        p_unit_price: unitPrice,
         p_notes: item.notes,
       });
 

@@ -249,11 +249,11 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
       setErrorMsg(null);
 
       for (const item of cart) {
+        // ไม่ส่งราคาไปแล้ว — RPC อ่าน menu_items.price เองฝั่ง DB (A4)
         const { data: success, error } = await supabase.rpc('place_order_item', {
           p_table_id: tableId,
           p_menu_item_id: item.id,
           p_quantity: item.quantity,
-          p_unit_price: item.price,
           p_notes: item.notes || null,
         });
 

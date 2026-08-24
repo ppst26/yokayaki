@@ -59,7 +59,13 @@ const checks = [
   { name: 'สั่งอาหารแทนลูกค้า (customer_place_order_item)', method: 'POST',
     path: '/rest/v1/rpc/customer_place_order_item',
     body: { p_session_id: '00000000-0000-0000-0000-000000000000',
-            p_menu_item_id: 1, p_quantity: 1, p_unit_price: 0 } },
+            p_menu_item_id: 1, p_quantity: 1 } },
+  { name: 'สั่งอาหารแทนพนักงาน (place_order_item)', method: 'POST',
+    path: '/rest/v1/rpc/place_order_item',
+    body: { p_table_id: 1, p_menu_item_id: 1, p_quantity: 1 } },
+  { name: 'สั่งอาหารราคา 0 บาทผ่าน overload เก่าที่รับ p_unit_price', method: 'POST',
+    path: '/rest/v1/rpc/place_order_item',
+    body: { p_table_id: 1, p_menu_item_id: 1, p_quantity: 1, p_unit_price: 0 } },
 ];
 
 let failures = 0;
