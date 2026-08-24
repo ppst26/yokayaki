@@ -95,8 +95,17 @@ yokayaki/
 │   ├── 20260826_order_price_server_side.sql # 🔴 A4 — ลบ p_unit_price ราคามาจาก menu_items ฝั่ง DB
 │   └── 20260827_checkout_server_side.sql # 🔴 A5/A6 — ยอดบิลคำนวณใน DB + UNIQUE(payments.order_id)
 │
+├── supabase/tests/
+│   └── security.sql                  # ชุดทดสอบ A1–A6 (รันใน transaction แล้ว ROLLBACK — รันซ้ำได้)
+│
+├── docker-compose.yml                # Postgres สำหรับทดสอบ migration ในเครื่อง (พอร์ต 54329)
+├── docker/postgres/init/
+│   ├── 00-bootstrap.sql              #   สร้าง role anon/authenticated/service_role + pgcrypto ให้เหมือน Supabase
+│   └── 10-apply-migrations.sh        #   รัน migration ตามลำดับที่ถูกต้อง (มี 3 ไฟล์ที่ชื่อเรียงผิด)
+│
 ├── scripts/
 │   ├── set-pin.mjs                   # ตั้ง PIN พนักงานผ่าน service role (ใช้ตอน deploy)
+│   ├── db-test.mjs                   # รัน supabase/tests/*.sql ใส่ DB ใน docker
 │   └── verify-lockdown.mjs           # ยิง anon key ใส่ DB เพื่อพิสูจน์ว่าปิดครบ
 │
 ├── agent/rules/                      # Agent behavior rules
@@ -216,7 +225,15 @@ KitchenScreen (Realtime subscription)
 4. **ห้าม import `supabaseAdmin` / `authToken` / `session` จาก Client Component** — มี `server-only` กันไว้ build จะพังทันที
 5. **ตัวตนผู้ทำรายการต้องมาจาก JWT ฝั่ง server เท่านั้น** ไม่ใช่จาก body ที่ client ส่งมา
 
-พิสูจน์ว่ายังปิดอยู่: `node scripts/verify-lockdown.mjs` (ทุกข้อต้องขึ้น "ปิดแล้ว")
+พิสูจน์ว่ายังปิดอยู่:
+
+| คำสั่ง | ทดสอบอะไร | ต้องมีอะไร |
+|---|---|---|
+| `pnpm db:up` แล้ว `pnpm db:test` | รัน migration ทั้งชุดบน Postgres เปล่าใน docker แล้วยิง 13 assertion ครอบ A1–A6 (สิทธิ์ anon · lockout PIN · ราคาจาก DB · ยอดบิล · แต้ม · ปิดบิลซ้ำ) | Docker |
+| `node scripts/verify-lockdown.mjs` | ยิง anon key จริงใส่ Supabase production — ทุกข้อต้องขึ้น "ปิดแล้ว" | `.env.local` |
+
+> ⚠️ ทุกครั้งที่แก้ migration หรือ RPC **ต้องรัน `pnpm db:reset && pnpm db:test`** ก่อนขึ้น production
+> (`db:reset` = ล้าง DB แล้วรัน migration ใหม่ทั้งชุดจากศูนย์ — จับทั้งบั๊ก SQL และปัญหาลำดับไฟล์)
 
 **ยังเปิดอยู่ (ยังไม่ได้แก้):** A7.4 (ยังไม่มี unique index กันบิลซ้ำต่อโต๊ะ) · A7.5 (void ตัดสินคืนสต็อกด้วยข้อความไทย) · A7.6 (audit trail ยังเชื่อชื่อจาก client) · A7.7 (ลบโต๊ะ = ลบประวัติการเงิน) · A7.8/A7.9 บางส่วน
 → ความเสี่ยงเหลือเป็น *insider* (ต้องมี PIN พนักงานก่อน) ไม่ใช่ *anonymous* อีกต่อไป

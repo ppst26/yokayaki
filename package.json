@@ -6,7 +6,13 @@
     "dev": "next dev -H 0.0.0.0",
     "build": "next build",
     "start": "next start -H 0.0.0.0",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down -v",
+    "db:reset": "docker compose down -v && docker compose up -d --wait",
+    "db:logs": "docker compose logs db",
+    "db:psql": "docker compose exec db psql -U postgres -d yokayaki_test",
+    "db:test": "node scripts/db-test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

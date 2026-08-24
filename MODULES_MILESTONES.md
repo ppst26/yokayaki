@@ -52,7 +52,7 @@
 | `F-SEC` | Security & RLS | policy ทุกตาราง · grant/revoke · PIN · rate limit | 🟡 | M0 |
 | `F-API` | Server Tier | `app/api/*` · service-role · zod · transaction เดียวต่อออเดอร์ | 🟡 | M1 |
 | `F-DATA` | Data Integrity & Scale | index · atomic · timezone · migration hygiene · aggregation | ⬜ | M2 / M8 |
-| `F-TEST` | Testing & CI | unit · integration (RPC/RLS) · E2E · GitHub Actions | ⬜ | M3 |
+| `F-TEST` | Testing & CI | unit · integration (RPC/RLS) · E2E · GitHub Actions | 🟡 | M3 |
 | `F-TENANT` | Multi-Tenancy | organizations / branches / memberships / org_settings | ⬜ | M4 |
 | `F-AUTHZ` | Auth & Permission Matrix | Supabase Auth · JWT claim · role 5 ระดับ | ⬜ | M5 |
 | `F-BILL` | Billing & Subscription | plans / subscriptions / usage / gateway / trial | ⬜ | M6 |
@@ -144,7 +144,7 @@
 
 **Migration hygiene — ⬜**
 
-- [ ] `20260720_payment_promotions.sql` เรียงก่อน `20260720_promotions.sql` → `supabase db reset` บน DB เปล่าพัง
+- [ ] **มี 3 ไฟล์ ไม่ใช่ 1** ที่เรียงมาก่อน `20260720_promotions.sql` ทั้งที่ต้องใช้ตารางที่ไฟล์นั้นสร้าง — `20260720_payment_promotions.sql` · `20260720_promotion_happy_hour.sql` · `20260720_promotion_menu_item.sql` (พิสูจน์แล้วด้วย `pnpm db:reset` — ตอนนี้ `docker/postgres/init/10-apply-migrations.sh` เลื่อนลำดับให้ชั่วคราว ทางแก้จริงคือเปลี่ยนชื่อไฟล์)
 - [ ] ทำทุก migration idempotent (`IF NOT EXISTS` / guard บน `CREATE POLICY`)
 - [ ] เอา `EXCEPTION WHEN OTHERS THEN NULL` ออกจาก `20260730_enable_realtime.sql`
 - [ ] ตั้ง `REPLICA IDENTITY FULL` เพื่อให้ realtime DELETE/UPDATE ส่งค่าเดิมมาด้วย
@@ -152,7 +152,8 @@
 ## M3 — 🧪 Testing Foundation `⬜`
 
 - [ ] unit: คำนวณโปรโมชั่น · แต้ม · EMVCo payload + CRC
-- [ ] integration: ทุก RPC + ทุก RLS policy (ต้องมีเคส "anon ทำไม่ได้" ทุกตาราง)
+- [x] โครง integration test: `docker-compose.yml` + `supabase/tests/security.sql` (13 assertion ครอบ A1–A6) → `pnpm db:up && pnpm db:test`
+- [ ] integration: ขยายให้ครบ **ทุก** RPC + ทุก RLS policy (ตอนนี้ครอบเฉพาะเส้นทางที่ M0 แตะ)
 - [ ] E2E (Playwright): สั่ง → ครัว → เช็คบิล · ลูกค้าสแกน QR สั่งเอง
 - [ ] CI: lint + typecheck + test + migration check ทุก PR
 - [ ] `supabase gen types typescript` แทน type ที่เขียนมือ
