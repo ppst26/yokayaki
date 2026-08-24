@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
+import { setStaffToken } from '@/lib/staffToken';
 import { unlockAudio } from '@/lib/audioNotifier';
 
 export interface Employee {
@@ -16,114 +16,58 @@ interface AuthContextType {
   isLoading: boolean;
   loginWithPin: (pin: string) => Promise<boolean>;
   logout: () => void;
-  failedAttempts: number;
   remainingLockoutSeconds: number;
   isLockedOut: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Pure JS SHA-256 (works in non-secure HTTP contexts like local network IPs)
-export async function hashPin(pin: string): Promise<string> {
-  // Try Web Crypto API first (available on localhost / HTTPS)
-  if (typeof crypto !== 'undefined' && crypto.subtle) {
-    const msgBuffer = new TextEncoder().encode(pin);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  }
-  // Fallback: pure JS SHA-256 for HTTP on local network
-  return sha256(pin);
-}
+const IDLE_TIMEOUT_MS = 5 * 60 * 1000; // 5 นาที auto-lock
 
-function sha256(str: string): string {
-  const utf8 = new TextEncoder().encode(str);
-  const h = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
-  const k = [
-    0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
-    0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
-    0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
-    0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
-    0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
-    0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
-    0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
-    0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
-  ];
-  const rr = (n: number, x: number) => (x >>> n) | (x << (32 - n));
-  const len = utf8.length;
-  const bitLen = len * 8;
-  const padded: number[] = Array.from(utf8);
-  padded.push(0x80);
-  while ((padded.length % 64) !== 56) padded.push(0);
-  for (let i = 56; i >= 0; i -= 8) padded.push((bitLen >>> i) & 0xff);
-  const hl = [...h];
-  for (let i = 0; i < padded.length; i += 64) {
-    const w = new Array(64);
-    for (let t = 0; t < 16; t++) w[t] = (padded[i+t*4]<<24)|(padded[i+t*4+1]<<16)|(padded[i+t*4+2]<<8)|padded[i+t*4+3];
-    for (let t = 16; t < 64; t++) {
-      const s0 = rr(7,w[t-15]) ^ rr(18,w[t-15]) ^ (w[t-15]>>>3);
-      const s1 = rr(17,w[t-2]) ^ rr(19,w[t-2]) ^ (w[t-2]>>>10);
-      w[t] = (w[t-16] + s0 + w[t-7] + s1) | 0;
-    }
-    let [a,b,c,d,e,f,g,hh] = hl;
-    for (let t = 0; t < 64; t++) {
-      const S1 = rr(6,e) ^ rr(11,e) ^ rr(25,e);
-      const ch = (e & f) ^ (~e & g);
-      const temp1 = (hh + S1 + ch + k[t] + w[t]) | 0;
-      const S0 = rr(2,a) ^ rr(13,a) ^ rr(22,a);
-      const maj = (a & b) ^ (a & c) ^ (b & c);
-      const temp2 = (S0 + maj) | 0;
-      hh=g; g=f; f=e; e=(d+temp1)|0; d=c; c=b; b=a; a=(temp1+temp2)|0;
-    }
-    hl[0]=(hl[0]+a)|0; hl[1]=(hl[1]+b)|0; hl[2]=(hl[2]+c)|0; hl[3]=(hl[3]+d)|0;
-    hl[4]=(hl[4]+e)|0; hl[5]=(hl[5]+f)|0; hl[6]=(hl[6]+g)|0; hl[7]=(hl[7]+hh)|0;
-  }
-  return hl.map(v => (v >>> 0).toString(16).padStart(8, '0')).join('');
-}
-
-const MAX_ATTEMPTS = 3;
-const LOCKOUT_DURATION_MS = 3 * 60 * 1000; // 3 minutes
-const IDLE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes auto-lock
+// =============================================================
+// การยืนยันตัวตนทั้งหมดเกิดที่ /api/auth/* ฝั่ง server
+//
+// เดิม: browser คำนวณ SHA-256 ของ PIN แล้ว query .eq('pin_hash', hash) ตรงไปที่ DB
+//       → ตาราง employees ต้องเปิด SELECT ให้ anon และกลายเป็น PIN oracle ยิงเดาได้ (A2)
+// ตอนนี้: PIN ถูกส่งไป server ผ่าน HTTPS แล้ว verify ใน DB ด้วย bcrypt
+//         hash ไม่เคยออกจากฐานข้อมูล และ employees ไม่มี SELECT policy อีกต่อไป
+// =============================================================
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [failedAttempts, setFailedAttempts] = useState<number>(0);
   const [lockoutUntil, setLockoutUntil] = useState<number | null>(null);
   const [remainingLockoutSeconds, setRemainingLockoutSeconds] = useState<number>(0);
 
-  // Restore session & lockout from localStorage on mount
+  // กู้ session จาก cookie httpOnly (JS อ่าน cookie เองไม่ได้ ต้องถาม server)
   useEffect(() => {
-    const saved = localStorage.getItem('yokayaki_employee');
-    if (saved) {
+    let cancelled = false;
+
+    (async () => {
       try {
-        setEmployee(JSON.parse(saved));
-      } catch (e) {
-        localStorage.removeItem('yokayaki_employee');
+        const res = await fetch('/api/auth/session', { cache: 'no-store' });
+        const data = await res.json();
+
+        if (cancelled) return;
+
+        if (data?.employee && data?.token) {
+          setStaffToken(data.token);
+          setEmployee(data.employee as Employee);
+        }
+      } catch (err) {
+        console.error('Error restoring session:', err);
+      } finally {
+        if (!cancelled) setIsLoading(false);
       }
-    }
+    })();
 
-    const savedAttempts = localStorage.getItem('yokayaki_pin_failed_attempts');
-    if (savedAttempts) {
-      setFailedAttempts(parseInt(savedAttempts, 10) || 0);
-    }
-
-    const savedLockout = localStorage.getItem('yokayaki_pin_lockout_until');
-    if (savedLockout) {
-      const lockTime = parseInt(savedLockout, 10);
-      if (!isNaN(lockTime) && lockTime > Date.now()) {
-        setLockoutUntil(lockTime);
-      } else {
-        localStorage.removeItem('yokayaki_pin_lockout_until');
-        localStorage.removeItem('yokayaki_pin_failed_attempts');
-      }
-    }
-
-    setIsLoading(false);
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  // Lockout countdown timer
+  // นับถอยหลังช่วงล็อก (ตัวเลขต้นทางมาจาก server — ลบ localStorage ไม่ช่วยปลดล็อก)
   useEffect(() => {
     if (!lockoutUntil) {
       setRemainingLockoutSeconds(0);
@@ -131,15 +75,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const updateRemaining = () => {
-      const now = Date.now();
-      const diffSeconds = Math.ceil((lockoutUntil - now) / 1000);
+      const diffSeconds = Math.ceil((lockoutUntil - Date.now()) / 1000);
       if (diffSeconds <= 0) {
         setLockoutUntil(null);
-        setFailedAttempts(0);
         setRemainingLockoutSeconds(0);
         setError(null);
-        localStorage.removeItem('yokayaki_pin_lockout_until');
-        localStorage.removeItem('yokayaki_pin_failed_attempts');
       } else {
         setRemainingLockoutSeconds(diffSeconds);
       }
@@ -161,68 +101,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setError(null);
       setIsLoading(true);
-      const hashed = await hashPin(pin);
 
-      const { data, error: dbError } = await supabase
-        .from('employees')
-        .select('id, name, role')
-        .eq('pin_hash', hashed)
-        .limit(1);
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin }),
+      });
+      const data = await res.json();
 
-      if (dbError) {
-        throw dbError;
-      }
-
-      if (data && data.length > 0) {
-        const loggedInEmployee: Employee = {
-          id: data[0].id,
-          name: data[0].name,
-          role: data[0].role as 'owner' | 'staff'
-        };
-        setEmployee(loggedInEmployee);
-        localStorage.setItem('yokayaki_employee', JSON.stringify(loggedInEmployee));
-        
-        // Reset failed attempts on success
-        setFailedAttempts(0);
+      if (res.ok && data?.employee && data?.token) {
+        setStaffToken(data.token);
+        setEmployee(data.employee as Employee);
         setLockoutUntil(null);
-        localStorage.removeItem('yokayaki_pin_failed_attempts');
-        localStorage.removeItem('yokayaki_pin_lockout_until');
-
-        setIsLoading(false);
         return true;
       }
 
-      // Increment failed attempt counter
-      const newAttempts = failedAttempts + 1;
-      setFailedAttempts(newAttempts);
-      localStorage.setItem('yokayaki_pin_failed_attempts', newAttempts.toString());
-
-      if (newAttempts >= MAX_ATTEMPTS) {
-        const until = Date.now() + LOCKOUT_DURATION_MS;
-        setLockoutUntil(until);
-        localStorage.setItem('yokayaki_pin_lockout_until', until.toString());
-        setError('ระบุรหัส PIN ไม่ถูกต้องเกิน 3 ครั้ง ระบบถูกล็อค 3 นาที');
-      } else {
-        const remaining = MAX_ATTEMPTS - newAttempts;
-        setError(`รหัส PIN ไม่ถูกต้อง (เหลืออีก ${remaining} ครั้ง)`);
+      if (res.status === 429 && typeof data?.lockedSeconds === 'number') {
+        setLockoutUntil(Date.now() + data.lockedSeconds * 1000);
       }
 
-      setIsLoading(false);
+      setError(data?.error ?? 'รหัส PIN ไม่ถูกต้อง');
       return false;
     } catch (err) {
       console.error('Error logging in:', err);
-      setError('เกิดข้อผิดพลาดในการเชื่อมต่อระบบฐานข้อมูล');
-      setIsLoading(false);
+      setError('เกิดข้อผิดพลาดในการเชื่อมต่อระบบ');
       return false;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const logout = useCallback(() => {
     setEmployee(null);
-    localStorage.removeItem('yokayaki_employee');
+    setStaffToken(null);
+    void fetch('/api/auth/logout', { method: 'POST' }).catch(err =>
+      console.error('Error logging out:', err)
+    );
   }, []);
 
-  // Auto-lock: logout after 5 minutes of inactivity
+  // Auto-lock: ออกจากระบบเมื่อไม่มีการใช้งาน 5 นาที
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const resetIdleTimer = useCallback(() => {
@@ -234,12 +151,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     if (!employee) {
-      // Not logged in — clear timer
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
       return;
     }
 
-    // Start idle timer
     resetIdleTimer();
 
     const activityEvents: (keyof WindowEventMap)[] = ['mousedown', 'keydown', 'touchstart', 'scroll'];
@@ -257,13 +172,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [employee, resetIdleTimer]);
 
   return (
-    <AuthContext.Provider value={{ 
-      employee, 
-      error, 
-      isLoading, 
-      loginWithPin, 
+    <AuthContext.Provider value={{
+      employee,
+      error,
+      isLoading,
+      loginWithPin,
       logout,
-      failedAttempts,
       remainingLockoutSeconds,
       isLockedOut
     }}>

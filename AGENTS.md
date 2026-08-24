@@ -36,13 +36,20 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ```
 yokayaki/
-├── app/                              # Next.js App Router (Pages)
+├── app/                              # Next.js App Router
 │   ├── layout.tsx                    #   Root Layout + AuthProvider wrapper
 │   ├── page.tsx                      #   Landing: PinPad → TableMap switcher
 │   ├── globals.css                   #   Global styles (Tailwind import)
-│   └── customer/
-│       └── [session_id]/
-│           └── page.tsx              #   Customer QR Order Portal (Mobile-First)
+│   ├── customer/
+│   │   └── [session_id]/
+│   │       └── page.tsx              #   Customer QR Portal (ไม่มี supabase client — เรียก /api/customer/* เท่านั้น)
+│   └── api/                          #   ⭐ Server tier (trust boundary) — ถือ service-role key
+│       ├── auth/login|logout|session #     PIN → verify_pin → เซ็น JWT → cookie httpOnly
+│       ├── employees/[id]            #     CRUD พนักงาน (owner only, step-up PIN)
+│       └── customer/[session_id]/
+│           ├── state                 #     ข้อมูลทั้งหมดของหน้าลูกค้า (แทน realtime 5 ช่อง)
+│           ├── order                 #     สั่งอาหาร (ราคามาจาก DB ไม่ใช่จาก client)
+│           └── check-bill            #     เรียก/ยกเลิกเช็คบิล
 │
 ├── components/                       # UI Components (ทั้งหมดเป็น Client Components)
 │   ├── PinPad.tsx                    #   PIN 6-digit authentication keypad
@@ -61,7 +68,12 @@ yokayaki/
 │   └── AuthContext.tsx               # PIN Auth + RBAC (owner/staff) + Session Storage
 │
 ├── lib/
-│   └── supabase.ts                   # Supabase Client Singleton (anon key)
+│   ├── supabase.ts                   # Browser client (anon key + JWT พนักงานผ่าน accessToken)
+│   ├── staffToken.ts                 # ที่เก็บ JWT ใน memory — ห้าม import supabase (กัน key รั่วเข้า bundle ลูกค้า)
+│   ├── supabaseAdmin.ts              # ⚠️ server-only — service-role key, bypass RLS
+│   ├── authToken.ts                  # ⚠️ server-only — เซ็น/ตรวจ JWT ด้วย SUPABASE_JWT_SECRET
+│   ├── session.ts                    # ⚠️ server-only — requireStaff() / requireOwner()
+│   └── customerSession.ts            # ⚠️ server-only — ตรวจ QR session ก่อนทุก request ฝั่งลูกค้า
 │
 ├── supabase/migrations/              # SQL Migrations (ต้อง run ตามลำดับวันที่)
 │   ├── 20260705_init_schema.sql      #   9 Tables + Seeds + place_order_item RPC + RLS
@@ -77,13 +89,19 @@ yokayaki/
 │   ├── 20260720_promotion_happy_hour.sql  # start_time/end_time columns
 │   ├── 20260720_promotion_menu_item.sql   # menu_item_id FK on promotions
 │   ├── 20260720_payment_promotions.sql  # payment_promotions + updated checkout RPC
-│   └── 20260721_loyalty_crm.sql         # points_logs table + payments.phone_number + RPC
+│   ├── 20260721_loyalty_crm.sql         # points_logs table + payments.phone_number + RPC
+│   └── 20260824_security_hardening.sql  # 🔴 A1/A2/A3 — RLS ใหม่ทั้งหมด + REVOKE/GRANT + bcrypt PIN
+│
+├── scripts/
+│   ├── set-pin.mjs                   # ตั้ง PIN พนักงานผ่าน service role (ใช้ตอน deploy)
+│   └── verify-lockdown.mjs           # ยิง anon key ใส่ DB เพื่อพิสูจน์ว่าปิดครบ
 │
 ├── agent/rules/                      # Agent behavior rules
 │   ├── main.md                       #   Personality, Architecture, Feature Rules
 │   └── setting.md                    #   Communication, Naming, Commit conventions
 │
-├── .env.local                        # Supabase URL, Anon Key, PromptPay ID
+├── .env.local                        # ⚠️ ต้องมี SUPABASE_SERVICE_ROLE_KEY + SUPABASE_JWT_SECRET ด้วย (ดู .env.example)
+├── .env.example                      # รายการตัวแปรที่ต้องตั้ง (ไม่มีค่าจริง)
 ├── next.config.ts                    # allowedDevOrigins for LAN testing
 ├── tsconfig.json                     # TypeScript config (strict, @/* alias)
 ├── ROADMAP.md                        # Development roadmap & phase tracking
@@ -117,8 +135,11 @@ yokayaki/
 ### 1. Authentication Flow
 ```
 เปิดแอป → PinPad.tsx (กรอก PIN 6 หลัก)
-  → SHA-256 hash → เทียบกับ employees.pin_hash
-  → สำเร็จ → AuthContext เก็บ session (role: owner/staff)
+  → POST /api/auth/login (PIN เป็น plaintext ผ่าน HTTPS — ไม่ hash ฝั่ง client แล้ว)
+  → RPC verify_pin() เทียบด้วย bcrypt ใน DB · hash ไม่เคยออกจากฐานข้อมูล
+  → นับความพยายามที่ผิดฝั่ง server (pin_attempts) ผิด 5 ครั้ง = ล็อก 3 นาที
+  → สำเร็จ → server เซ็น JWT (claim emp_role) → cookie httpOnly + token เข้า memory
+  → AuthContext เก็บ session (role: owner/staff)
   → TableMap.tsx แสดงแท็บตาม role
      Staff: ผังโต๊ะ + ครัว
      Owner: ผังโต๊ะ + ครัว + สต็อก + เมนู + โปรโมชั่น + ประวัติ + Dashboard
@@ -139,9 +160,11 @@ TableMap (เลือกโต๊ะว่าง) → POSOrderScreen
 ```
 Staff กดปุ่ม "สร้าง QR ลูกค้า" → สร้าง qr_sessions (UUID, 2 ชม.)
   → ลูกค้าสแกน QR ด้วยมือถือ
-  → /customer/[session_id] (Mobile-First UI)
-  → เลือกเมนู + โน้ต → RPC: customer_place_order_item
-  → ตรวจสอบ session validity ก่อนทุกครั้ง
+  → /customer/[session_id] (Mobile-First UI, ไม่มี credential ใดๆ ใน bundle)
+  → GET /api/customer/[session_id]/state ทุก 5 วิ (แทน realtime 5 ช่องเดิม)
+  → เลือกเมนู + โน้ต → POST /api/customer/[session_id]/order
+     (client ส่งแค่ menuItemId/quantity/notes — ราคามาจาก menu_items ฝั่ง server)
+  → ทุก endpoint ตรวจ session validity + scope ให้เหลือเฉพาะโต๊ะของ session นั้น
 ```
 
 ### 4. Checkout Flow
@@ -166,6 +189,32 @@ KitchenScreen (Realtime subscription)
 
 ---
 
+## 🔐 Security Model (หลัง migration `20260824_security_hardening`)
+
+ระบบแบ่งเป็น **3 เขตความเชื่อถือ** — แก้โค้ดตรงไหนก็ตาม ห้ามทำให้เส้นแบ่งนี้พร่า:
+
+| เขต | ถือ credential อะไร | ทำอะไรได้ |
+|---|---|---|
+| **Server tier** (`app/api/*`) | `SUPABASE_SERVICE_ROLE_KEY` | ทุกอย่าง — bypass RLS |
+| **เครื่อง POS** | JWT อายุ 8 ชม. (claim `emp_role`) | อ่านตารางปฏิบัติการ + realtime · เขียนตามที่ policy อนุญาต |
+| **หน้าลูกค้า QR** | **ไม่มีเลย** | ผ่าน `/api/customer/[session_id]/*` เท่านั้น |
+| **`anon` role** | anon key ใน bundle | **ไม่มี policy และไม่มี grant สักตัว = ทำอะไรไม่ได้** |
+
+**กฎที่ห้ามละเมิด:**
+
+1. **ห้ามเขียน policy ที่ให้สิทธิ์ `anon`** — ทุก policy ต้องเป็น `TO authenticated` และเรียก `public.is_staff()` หรือ `public.is_owner()`
+2. **สร้าง RPC ใหม่ต้อง `REVOKE EXECUTE ... FROM PUBLIC, anon` เสมอ** — PostgreSQL grant ให้ PUBLIC เป็น default และ `SECURITY DEFINER` bypass RLS ⇒ ลืมข้อนี้ = เปิดช่องเท่าเดิมกับก่อนแก้ A1
+3. **ห้าม import `@/lib/supabase` ในหน้าลูกค้า** และห้ามให้ `lib/staffToken.ts` import supabase — ไม่งั้น anon key จะกลับไปอยู่ใน chunk ที่หน้าลูกค้าโหลด
+4. **ห้าม import `supabaseAdmin` / `authToken` / `session` จาก Client Component** — มี `server-only` กันไว้ build จะพังทันที
+5. **ตัวตนผู้ทำรายการต้องมาจาก JWT ฝั่ง server เท่านั้น** ไม่ใช่จาก body ที่ client ส่งมา
+
+พิสูจน์ว่ายังปิดอยู่: `node scripts/verify-lockdown.mjs` (ทุกข้อต้องขึ้น "ปิดแล้ว")
+
+**ยังเปิดอยู่ (ยังไม่ได้แก้):** A4 บางส่วน · A5 `complete_checkout` ยังเชื่อยอดเงินจาก client · A6 ไม่มี idempotency
+→ ความเสี่ยงเหลือเป็น *insider* (ต้องมี PIN พนักงานก่อน) ไม่ใช่ *anonymous* อีกต่อไป
+
+---
+
 ## 🗄️ Database Schema (12 ตาราง)
 
 | ตาราง | คำอธิบาย | FK / ความสัมพันธ์ |
@@ -184,6 +233,7 @@ KitchenScreen (Realtime subscription)
 | `stock_logs` | ประวัติปรับสต็อกด้วยมือ | → `menu_items.id` |
 | `item_ingredients` | ประวัติจัดซื้อวัตถุดิบ | — |
 | `points_logs` | ประวัติการปรับแต้มสมาชิกด้วยมือ (Audit Log) | → `loyalty_members.phone_number` |
+| `pin_attempts` | ตัวนับความพยายามล็อกอินฝั่ง server (lockout) | — |
 
 ---
 
@@ -194,6 +244,13 @@ KitchenScreen (Realtime subscription)
 | `place_order_item` | `(p_table_id, p_menu_item_id, p_quantity, p_unit_price)` | พนักงานสั่ง + atomic stock deduction + รองรับ is_stock_tracked | DEFINER |
 | `void_order_item` | ดูใน migration `20260707_void_order_item.sql` | ยกเลิกรายการ + เลือกคืน/ไม่คืนสต็อก + void_logs | DEFINER |
 | `customer_place_order_item` | `(p_session_id, p_menu_item_id, p_quantity, p_unit_price)` | ลูกค้าสั่งผ่าน QR + ตรวจ session + atomic stock | DEFINER |
-| `complete_checkout` | `(p_order_id, p_payment_method, p_subtotal, p_discount_amount, p_net_amount, p_points_earned, p_points_redeemed, p_phone_number, p_applied_promos)` | ปิดบิล + payment + แต้ม + เคลียร์โต๊ะ + expire QR + บันทึกโปรโมชั่น | DEFINER |
+| `complete_checkout` | `(p_order_id, p_payment_method, p_subtotal, p_discount_amount, p_net_amount, p_points_earned, p_points_redeemed, p_phone_number, p_applied_promos, p_cash_amount, p_promptpay_amount)` | ปิดบิล + payment + แต้ม + เคลียร์โต๊ะ + expire QR + บันทึกโปรโมชั่น | DEFINER · `authenticated` |
+| `verify_pin` | `(p_pin, p_client_key)` | ตรวจ PIN ด้วย bcrypt + lockout — **`service_role` เท่านั้น** | DEFINER |
+| `admin_list_employees` | `()` | รายชื่อพนักงาน (ไม่มี hash) — **`service_role` เท่านั้น** | DEFINER |
+| `admin_add_employee` | `(p_name, p_pin, p_role)` | เพิ่มพนักงาน + hash bcrypt ใน DB — **`service_role` เท่านั้น** | DEFINER |
+| `admin_update_employee` | `(p_employee_id, p_name, p_pin, p_role)` | แก้ไข + กันลดสิทธิ์ owner คนสุดท้าย — **`service_role` เท่านั้น** | DEFINER |
+| `admin_delete_employee` | `(p_employee_id, p_actor_id)` | ลบ + กันลบตัวเอง/owner คนสุดท้าย — **`service_role` เท่านั้น** | DEFINER |
+
+> ❌ `add_employee` / `update_employee` / `delete_employee` เดิม **ถูก DROP ทิ้งแล้ว** (A3 — เป็น SECURITY DEFINER ที่ไม่มี authorization check)
 
 > ⚠️ **ทุก RPC เป็น `SECURITY DEFINER`** — แก้ไขด้วยความระมัดระวัง เพราะทำงานด้วยสิทธิ์ของเจ้าของฟังก์ชัน ไม่ใช่สิทธิ์ของผู้เรียก

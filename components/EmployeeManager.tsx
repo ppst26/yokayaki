@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { hashPin } from '@/context/AuthContext';
-import { supabase } from '@/lib/supabase';
 import {
   Plus, Pencil, KeyRound, ArrowLeftRight,
   Trash2, X, CheckCircle, AlertTriangle, Shield, User, Users,
@@ -60,13 +58,11 @@ export const EmployeeManager: React.FC = () => {
   const fetchEmployees = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('employees')
-        .select('id, name, role, created_at')
-        .order('id', { ascending: true });
-
-      if (error) throw error;
-      if (data) setEmployees(data as Employee[]);
+      // ตาราง employees ไม่มี SELECT policy อีกต่อไป (A2) — รายชื่อมาทาง server tier ทางเดียว
+      const res = await fetch('/api/employees', { cache: 'no-store' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error ?? 'ไม่สามารถดึงข้อมูลพนักงานได้');
+      setEmployees((data.employees ?? []) as Employee[]);
     } catch (err) {
       console.error('Error fetching employees:', err);
       showMessage('ไม่สามารถดึงข้อมูลพนักงานได้', 'error');
@@ -77,16 +73,8 @@ export const EmployeeManager: React.FC = () => {
 
   useEffect(() => {
     fetchEmployees();
-
-    // Realtime subscription
-    const channel = supabase
-      .channel('realtime:employees-manager')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'employees' }, () => {
-        fetchEmployees();
-      })
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
+    // ไม่มี realtime subscription บน employees แล้ว — ตารางนี้ client อ่านตรงไม่ได้
+    // ทุกการเปลี่ยนแปลงมาจากหน้านี้เอง จึง refetch หลังทำรายการสำเร็จก็พอ
   }, []);
 
   // ========== Helpers ==========
@@ -136,17 +124,17 @@ export const EmployeeManager: React.FC = () => {
 
     try {
       setIsSaving(true);
-      const pinHash = await hashPin(addPin);
-      const { data, error } = await supabase.rpc('add_employee', {
-        p_name: addName.trim(),
-        p_pin_hash: pinHash,
-        p_role: addRole,
+      // PIN ถูกส่งเป็น plaintext ผ่าน HTTPS แล้ว hash ด้วย bcrypt ใน DB
+      // (เดิม client คำนวณ SHA-256 เองแล้วส่ง hash ไปให้ RPC ที่ไม่เช็คสิทธิ์อะไรเลย — A3)
+      const res = await fetch('/api/employees', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: addName.trim(), pin: addPin, role: addRole }),
       });
+      const data = await res.json();
 
-      if (error) throw error;
-
-      if (data === -1) {
-        showMessage('PIN นี้ถูกใช้แล้ว กรุณาใช้ PIN อื่น', 'error');
+      if (!res.ok) {
+        showMessage(data?.error ?? 'เกิดข้อผิดพลาดในการเพิ่มพนักงาน', 'error');
         return;
       }
 
@@ -182,39 +170,23 @@ export const EmployeeManager: React.FC = () => {
     try {
       setIsSaving(true);
 
-      if ((isRoleChanged || isPinEntered) && confirmPin.length === 6) {
-        const ownerPinHash = await hashPin(confirmPin);
-        const { data: ownerCheck } = await supabase
-          .from('employees')
-          .select('id, role')
-          .eq('pin_hash', ownerPinHash)
-          .limit(1);
-
-        if (!ownerCheck || ownerCheck.length === 0 || ownerCheck[0].role !== 'owner') {
-          showMessage('PIN ไม่ถูกต้อง หรือไม่ใช่ PIN ของ Owner', 'error');
-          setIsSaving(false);
-          return;
-        }
-      }
-
-      let pinHash: string | null = null;
-      if (isPinEntered) {
-        pinHash = await hashPin(editPin);
-      }
-
-      const { error } = await supabase.rpc('update_employee', {
-        p_employee_id: targetEmployee.id,
-        p_name: editName.trim() !== targetEmployee.name ? editName.trim() : null,
-        p_role: isRoleChanged ? editRole : null,
-        p_pin_hash: pinHash,
+      // การยืนยัน PIN ของ Owner ทำที่ server (/api/employees/[id]) ผ่าน verify_pin
+      // เดิมทำโดย query .eq('pin_hash', ...) จากเบราว์เซอร์ = PIN oracle ตัวที่สอง (A2)
+      const res = await fetch(`/api/employees/${targetEmployee.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: editName.trim() !== targetEmployee.name ? editName.trim() : null,
+          role: isRoleChanged ? editRole : null,
+          pin: isPinEntered ? editPin : null,
+          confirmPin: (isRoleChanged || isPinEntered) ? confirmPin : undefined,
+        }),
       });
+      const data = await res.json();
 
-      if (error) {
-        if (error.message?.includes('PIN already exists')) {
-          showMessage('PIN นี้ถูกใช้แล้ว กรุณาใช้ PIN อื่น', 'error');
-          return;
-        }
-        throw error;
+      if (!res.ok) {
+        showMessage(data?.error ?? 'เกิดข้อผิดพลาดในการแก้ไขข้อมูลพนักงาน', 'error');
+        return;
       }
 
       showMessage(`อัปเดตข้อมูลพนักงาน "${editName.trim()}" สำเร็จ`, 'success');
@@ -235,21 +207,16 @@ export const EmployeeManager: React.FC = () => {
 
     try {
       setIsSaving(true);
-      const ownerPinHash = await hashPin(confirmPin);
-      const { data, error } = await supabase.rpc('delete_employee', {
-        p_employee_id: targetEmployee.id,
-        p_requester_pin_hash: ownerPinHash,
+      const res = await fetch(`/api/employees/${targetEmployee.id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmPin }),
       });
+      const data = await res.json();
 
-      if (error) throw error;
-
-      if (data === 'self_delete') {
-        showMessage('ไม่สามารถลบตัวเองได้', 'error');
-      } else if (data === 'not_owner') {
-        showMessage('PIN ไม่ถูกต้อง หรือไม่ใช่ PIN ของ Owner', 'error');
-      } else if (data === 'not_found') {
-        showMessage('ไม่พบพนักงานที่ต้องการลบ', 'error');
-      } else if (data === 'ok') {
+      if (!res.ok) {
+        showMessage(data?.error ?? 'เกิดข้อผิดพลาดในการลบพนักงาน', 'error');
+      } else {
         showMessage(`ลบพนักงาน "${targetEmployee.name}" สำเร็จ`, 'success');
         resetModal();
         fetchEmployees();

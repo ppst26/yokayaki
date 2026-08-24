@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ยกเว้นไฟล์ตัวอย่าง (ไม่มีค่าจริง)
+!.env.example
