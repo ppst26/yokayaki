@@ -1,25 +1,27 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { errorResponse } from '@/lib/session';
 import { requireCustomerSession } from '@/lib/customerSession';
-
-// =============================================================
-// GET /api/customer/[session_id]/state
-//
-// จุดเดียวที่หน้าลูกค้าดึงข้อมูล — แทน realtime subscription 5 ช่องเดิม
-// ที่เปิดให้ anon อ่าน tables/orders/order_items/menu_items/qr_sessions ทั้งร้าน
-//
-// เมนูส่งไปเฉพาะฟิลด์ที่หน้าลูกค้าใช้จริง (ไม่ส่ง `select('*')` ซึ่งรวมต้นทุน/สต็อกดิบ)
-// =============================================================
+import { enforceRateLimit } from '@/lib/rateLimit';
+import { parseValue } from '@/lib/api/parse';
+import { sessionIdSchema } from '@/lib/api/schemas';
 
 export async function GET(_request: Request, ctx: RouteContext<'/api/customer/[session_id]/state'>) {
   try {
-    const { session_id: sessionId } = await ctx.params;
+    const { session_id: rawSessionId } = await ctx.params;
+    const sessionId = parseValue(rawSessionId, sessionIdSchema);
+    if (sessionId instanceof Response) return sessionId;
+
+    const limited = enforceRateLimit({
+      key: `customer-state:${sessionId}`,
+      max: 120,
+      windowMs: 60 * 1000,
+    });
+    if (limited) return limited;
 
     let tableId: number;
     try {
       ({ tableId } = await requireCustomerSession(sessionId));
-    } catch (err) {
-      // เซสชันจบแล้ว = จบการสั่ง ไม่ใช่ error ที่ต้องขึ้นหน้าจอแดง
+    } catch {
       return Response.json({ sessionActive: false });
     }
 
@@ -27,7 +29,7 @@ export async function GET(_request: Request, ctx: RouteContext<'/api/customer/[s
       supabaseAdmin.from('tables').select('status').eq('id', tableId).maybeSingle(),
       supabaseAdmin
         .from('menu_items')
-        .select('id, name, price, stock, category, image_url')
+        .select('id, name, price, stock, category, image_url, is_happy_hour, happy_hour_price')
         .order('id', { ascending: true }),
       supabaseAdmin
         .from('promotions')

@@ -5,7 +5,7 @@
 > ที่มาของรายการงาน: [`PosRestuarantSass.md`](PosRestuarantSass.md) (§4 Gap Analysis + §5 Roadmap)
 > ประวัติฟีเจอร์ที่ทำไปแล้ว: [`ROADMAP.md`](ROADMAP.md) · สเปกรายฟีเจอร์: `docs/superpowers/specs/`
 
-**Last Updated:** 2026-08-27 · **Milestone ปัจจุบัน:** `M0 Security Hardening` (🟢 ปิดครบทุกข้อแล้ว — รอ deploy + verify บน production)
+**Last Updated:** 2026-08-29 · **Milestone ปัจจุบัน:** `M3 Testing Foundation`
 
 ---
 
@@ -31,17 +31,17 @@
 | ID | โมดูล | ไฟล์หลัก | สถานะ | หนี้ที่ค้างอยู่ | Milestone ที่จะเก็บ |
 |---|---|---|:--:|---|:--:|
 | `P-AUTH` | Auth & RBAC | `context/AuthContext.tsx` · `components/PinPad.tsx` · `app/api/auth/*` | 🟢 | ยังเป็น PIN ชั้นเดียว ไม่มี Supabase Auth · role มีแค่ 2 ระดับ | M5 |
-| `P-FLOOR` | Table Map / App Shell | `components/TableMap.tsx` · `SidebarNav.tsx` | 🟢 | L5 staff เห็น SalesHistory ผิดสเปก · nav markup ซ้ำ 3 ชุด | M2 |
-| `P-POS` | POS Order (Staff) | `components/POSOrderScreen.tsx` | 🟢 | L8 ส่งออเดอร์เป็น loop ไม่ atomic · L9 cart merge ไม่ดูโน้ต | M2 |
+| `P-FLOOR` | Table Map / App Shell | `components/TableMap.tsx` · `SidebarNav.tsx` | 🟢 | — | M2 |
+| `P-POS` | POS Order (Staff) | `components/POSOrderScreen.tsx` | 🟢 | — | M2 |
 | `P-QR` | Customer QR Portal | `app/customer/[session_id]/page.tsx` · `app/api/customer/*` | 🟢 | ไฟล์ยาว 1,235 บรรทัด ควรแตก · polling 5 วิ แทน realtime | M2 / M7 |
-| `P-KDS` | Kitchen Display | `components/KitchenScreen.tsx` | 🟢 | L10 ปุ่มปิดเสียงทำ channel re-subscribe · L15 void reason ไม่ตรงกับ POS | M2 |
+| `P-KDS` | Kitchen Display | `components/KitchenScreen.tsx` | 🟢 | L10 ปิดใน Sprint E | M2 |
 | `P-PAY` | Checkout & Payment | `components/checkout/CheckoutScreen.tsx` | 🟢 | ปิด A5 / A6 / L1 แล้ว · เหลือหนี้เชิงโครงสร้าง: เครื่องคิดโปรยังมี 2 ชุด (SQL ของจริง + JS สำหรับแสดงผล) ต้องแก้คู่กันเสมอ | M2 |
-| `P-MENU` | Menu Manager | `components/MenuManager.tsx` · `MenuItemModal.tsx` | ⚠️ | L2 Happy Hour ครึ่งใบ · L4 แก้ stock / is_stock_tracked / is_happy_hour ไม่ได้ | M2 |
-| `P-STOCK` | Purchase Orders / Stock | `components/IngredientPurchaseManager.tsx` | ⚠️ | L6 แก้ PO = ลบ+insert ไม่ atomic · L16 `price_per_unit` ไม่เคยบันทึก | M2 |
-| `P-PROMO` | Promo Manager | `components/PromoManager.tsx` | ⚠️ | L3 ไม่มีช่อง image_url / start_date / end_date ทั้งที่ DB ใช้จริง | M2 |
+| `P-MENU` | Menu Manager | `components/MenuManager.tsx` · `MenuItemModal.tsx` | 🟢 | L2/L4 ปิดใน Sprint C | M2 |
+| `P-STOCK` | Purchase Orders / Stock | `components/IngredientPurchaseManager.tsx` | 🟢 | L6/L16 ปิดใน Sprint D | M2 |
+| `P-PROMO` | Promo Manager | `components/PromoManager.tsx` | 🟢 | L3 ปิดใน Sprint D | M2 |
 | `P-REPORT` | Sales History | `components/SalesHistory.tsx` | 🟢 | join ด้วยมือ 4 ขั้น · paginate ใน JS | M2 / M8 |
-| `P-CRM` | Loyalty CRM | `components/LoyaltyManager.tsx` | ⚠️ | L7 ปรับแต้มไม่ atomic ไม่มี lock · PK เป็นเบอร์โทร (ปัญหา PDPA) | M2 / M9 |
-| `P-DASH` | Owner Dashboard | `components/dashboard/*` | ⚠️ | L12 totalMembers ไม่สนใจช่วงวันที่ · L13 timezone UTC vs local · ~9 round-trip | M2 / M8 |
+| `P-CRM` | Loyalty CRM | `components/LoyaltyManager.tsx` | 🟢 | L7 ปิดใน Sprint D · PK เป็นเบอร์โทร (ปัญหา PDPA) | M2 / M9 |
+| `P-DASH` | Owner Dashboard | `components/dashboard/*` | 🟢 | L11–L13 ปิดใน Sprint E · ~9 round-trip ยังเหลือ | M2 / M8 |
 | `P-EMP` | Employee Manager | `components/EmployeeManager.tsx` · `app/api/employees/*` | 🟢 | — (ปิด A3 แล้ว) | — |
 | `P-UI` | Design System | `app/globals.css` · shared components | ⚠️ | `alert()` ปนกับ toast · loading state ไม่เป็นมาตรฐาน · dep ที่ติดตั้งแล้วไม่ใช้ | M2 |
 
@@ -50,8 +50,8 @@
 | ID | โมดูล | ขอบเขต | สถานะ | Milestone เจ้าของ |
 |---|---|---|:--:|:--:|
 | `F-SEC` | Security & RLS | policy ทุกตาราง · grant/revoke · PIN · rate limit | 🟢 | M0 |
-| `F-API` | Server Tier | `app/api/*` · service-role · zod · transaction เดียวต่อออเดอร์ | 🟡 | M1 |
-| `F-DATA` | Data Integrity & Scale | index · atomic · timezone · migration hygiene · aggregation | ⬜ | M2 / M8 |
+| `F-API` | Server Tier | `app/api/*` · service-role · zod · transaction เดียวต่อออเดอร์ | 🟢 | operational mutations ผ่าน API แล้ว · owner menu/promo/loyalty/stock ยัง client+RLS |
+| `F-DATA` | Data Integrity & Scale | index · atomic · timezone · migration hygiene · aggregation | 🟢 | migration hygiene ยังไม่ idempotent ทั้งชุด (ไฟล์เก่าก่อน M0) | M2 / M8 |
 | `F-TEST` | Testing & CI | unit · integration (RPC/RLS) · E2E · GitHub Actions | 🟡 | M3 |
 | `F-TENANT` | Multi-Tenancy | organizations / branches / memberships / org_settings | ⬜ | M4 |
 | `F-AUTHZ` | Auth & Permission Matrix | Supabase Auth · JWT claim · role 5 ระดับ | ⬜ | M5 |
@@ -69,8 +69,8 @@
 | # | Milestone | โมดูลหลัก | เกณฑ์ผ่าน (Exit Criteria) | ประมาณการ | สถานะ |
 |:--:|---|---|---|:--:|:--:|
 | **M0** | 🔴 Security Hardening | `F-SEC` `P-PAY` | A1–A7 ปิดครบ · `verify-lockdown.mjs` ผ่านทุกข้อ · ไม่มี mutation ใดที่เชื่อตัวเลขจาก client | 3–4 สัปดาห์ | 🟢 รอ deploy |
-| **M1** | 🛡️ Server Tier | `F-API` | ทุก mutation ผ่าน route handler · zod ทุก payload · rate limit ฝั่ง server · 1 ออเดอร์ = 1 transaction | 3–4 สัปดาห์ | 🟡 |
-| **M2** | 🔧 Data Integrity & Bug Sweep | `F-DATA` + product modules | L1–L18 ปิดครบ · index H1 ครบ · `supabase db reset` บน DB เปล่าผ่าน · timezone ถูกทุกหน้า | 2–3 สัปดาห์ | ⬜ |
+| **M1** | 🛡️ Server Tier | `F-API` | ทุก mutation ผ่าน route handler · zod ทุก payload · rate limit ฝั่ง server · 1 ออเดอร์ = 1 transaction | 3–4 สัปดาห์ | 🟢 operational path ปิดแล้ว · owner CRUD ยัง client |
+| **M2** | 🔧 Data Integrity & Bug Sweep | `F-DATA` + product modules | L1–L18 ปิดครบ · index H1 ครบ · `supabase db reset` บน DB เปล่าผ่าน · timezone ถูกทุกหน้า | 2–3 สัปดาห์ | 🟢 |
 | **M3** | 🧪 Testing Foundation | `F-TEST` | E2E สั่ง→ครัว→เช็คบิลผ่านใน CI · integration test ครอบทุก RPC + RLS · CI บล็อก PR ที่ fail | 2–3 สัปดาห์ | ⬜ |
 | **M4** | 🏢 Multi-Tenancy | `F-TENANT` | 2 org ในฐานเดียวกันมองข้ามกันไม่ได้ (พิสูจน์ด้วย test) · ไม่มี config ร้านค้างใน env/hardcode | 6–10 สัปดาห์ | ⛔ รอ M3 |
 | **M5** | 🔑 Auth & RBAC | `F-AUTHZ` `P-AUTH` | Supabase Auth + JWT claim `org_id`/`role` · role 5 ระดับบังคับที่ DB · revoke session ได้ | 3–5 สัปดาห์ | ⛔ รอ M4 |
@@ -114,43 +114,64 @@
 
 เกณฑ์ผ่าน M0: ทุกแถวเป็น 🟢 และ `node scripts/verify-lockdown.mjs` ขึ้น "ปิดแล้ว" ครบทุกข้อ
 
-## M1 — 🛡️ Server Tier `🟡 กำลังทำ`
+## M1 — 🛡️ Server Tier `🟢 operational path ปิดแล้ว`
 
 | ID | งาน | สถานะ | หมายเหตุ |
 |---|---|:--:|---|
 | D1 | Route handlers + service-role client | 🟢 | `app/api/auth/*` · `app/api/customer/*` · `app/api/employees/*` |
 | D2 | ย้ายการคำนวณราคา/ยอดเงินทั้งหมดเข้า server | 🟢 | ราคาต่อหน่วย (A4) + ยอดบิล/ส่วนลด/แต้ม (A5) คำนวณใน DB ครบแล้ว |
-| D3 | ส่งออเดอร์เป็น transaction เดียว | ⬜ | ตอนนี้ยัง loop RPC ทีละรายการ (= L8) |
+| D3 | ส่งออเดอร์เป็น transaction เดียว | 🟢 | `20260829_order_batch_rpc.sql` · `POST /api/orders` · `place_order_batch` / `customer_place_order_batch` · POS + customer route ใช้ batch แล้ว · ทดสอบ `supabase/tests/order_batch.sql` |
 | D4 | Idempotency key ตอน checkout | 🟢 | ใช้ `UNIQUE(payments.order_id)` + `FOR UPDATE` เป็นตัวกันซ้ำแทน key จาก client (= A6) — หนึ่งออเดอร์มีได้ใบเดียวเป็น invariant ที่แข็งกว่า |
-| D5 | Input validation ด้วย zod ทุก endpoint | ⬜ | ตอนนี้ validate ด้วยมือใน route |
-| D6 | Rate limiting ฝั่ง server ที่ปลอม header ไม่ได้ | ⬜ | ต่อยอดจากหางของ A2 |
-| D7 | Audit log ผูกกับ identity จาก JWT | ⬜ | = A7.6 |
+| D5 | Input validation ด้วย zod ทุก endpoint | 🟢 | `lib/api/schemas.ts` + `lib/api/parse.ts` · ครอบทุก route ใน `app/api/` ที่รับ body/params |
+| D6 | Rate limiting ฝั่ง server ที่ปลอม header ไม่ได้ | 🟢 | `lib/rateLimit.ts` · login · orders · customer order/state/check-bill · owner step-up PIN |
+| D7 | Audit log ผูกกับ identity จาก JWT | 🟢 | ปิดใน A7.6 (`jwt_emp_id/name` + void_logs) — M1 ไม่มี mutation ใหม่ที่รับชื่อจาก client |
 | D8 | Webhook receiver สำหรับ payment gateway | ⬜ | ของจริงไปโผล่ที่ M8 |
 
-## M2 — 🔧 Data Integrity & Bug Sweep `⬜`
+## M2 — 🔧 Data Integrity & Bug Sweep `🟢`
 
-**H1 · Index — ⬜ 0/11 ตัว** (SQL เต็มอยู่ใน `PosRestuarantSass.md` §H1) — ตอนนี้ทั้งสคีมามี index แค่ 2 ตัว hot path ทุกเส้นเป็น sequential scan
+**H1 · Index — 🟢 11/11** — `20260830_performance_indexes.sql` (+ `uniq_payment_per_order` · `uniq_active_order_per_table` จาก M0 · PO indexes จาก `20260808`)
 
-**Bug L1–L18 — ⬜ 0/18**
+**Bug L1–L18 — 🟢 18/18 (Sprint F ปิด L14 · L17)**
 
 | ID | สรุป | โมดูล | ID | สรุป | โมดูล |
 |---|---|---|---|---|---|
-| ~~L1~~ | 🟢 ตัดสินแล้ว: `net / 10` (ทำใน A5) | `P-PAY` | L10 | ปุ่มปิดเสียงครัวทำ re-subscribe | `P-KDS` |
-| L2 | Happy Hour ครึ่งใบ | `P-MENU` | L11 | preset 3/6 เดือนไม่ render | `P-DASH` |
-| L3 | PromoManager ขาด 3 ช่อง | `P-PROMO` | L12 | totalMembers ไม่สนใจช่วงวัน | `P-DASH` |
-| L4 | MenuItemModal แก้ stock ไม่ได้ | `P-MENU` | L13 | timezone UTC vs local | `P-DASH` |
-| L5 | staff เห็น SalesHistory | `P-FLOOR` | L14 | LAN IP hardcode ใน next.config | config |
-| L6 | แก้ PO ไม่ atomic | `P-STOCK` | ~~L15~~ | 🟢 ใช้ `lib/voidReasons.ts` ร่วมกันแล้ว | `P-KDS` |
-| L7 | ปรับแต้มไม่ atomic | `P-CRM` | L16 | `price_per_unit` ไม่ถูกบันทึก | `P-STOCK` |
-| L8 | ส่งออเดอร์เป็น loop | `P-POS` | L17 | `discount_applied` dead column | migration |
-| L9 | cart merge ไม่ดูโน้ต | `P-POS` | L18 | `tables.updated_at` ไม่อัปเดต | migration |
+| ~~L1~~ | 🟢 ตัดสินแล้ว: `net / 10` (ทำใน A5) | `P-PAY` | ~~L10~~ | 🟢 ปิดเสียงไม่ re-subscribe channel | `P-KDS` |
+| ~~L2~~ | 🟢 `menu_item_sale_price` + RPC สั่งอาหาร (17:00–19:00) | `P-MENU` | ~~L11~~ | 🟢 preset 3/6 เดือนใน DateFilterBar | `P-DASH` |
+| ~~L3~~ | 🟢 PromoManager มี image_url + วันที่ | `P-PROMO` | ~~L12~~ | 🟢 สมาชิกใหม่ตามช่วงวันที่ | `P-DASH` |
+| ~~L4~~ | 🟢 MenuItemModal แก้ stock / HH ได้แล้ว | `P-MENU` | ~~L13~~ | 🟢 `lib/storeDateRange` Asia/Bangkok | `P-DASH` |
+| ~~L5~~ | 🟢 staff ไม่เห็น SalesHistory | `P-FLOOR` | ~~L14~~ | 🟢 `ALLOWED_DEV_ORIGINS` ใน env | config |
+| ~~L6~~ | 🟢 `upsert_purchase_order` atomic | `P-STOCK` | ~~L15~~ | 🟢 ใช้ `lib/voidReasons.ts` ร่วมกันแล้ว | `P-KDS` |
+| ~~L7~~ | 🟢 `adjust_loyalty_points` + lock | `P-CRM` | ~~L16~~ | 🟢 `price_per_unit` ใน DB + RPC | `P-STOCK` |
+| ~~L8~~ | 🟢 `place_order_batch` ใน D3 | `P-POS` | ~~L17~~ | 🟢 DROP `discount_applied` | migration |
+| ~~L9~~ | 🟢 cart merge ดู id + notes | `P-POS` | ~~L18~~ | 🟢 trigger `tables_status_updated_at` | migration |
 
-**Migration hygiene — ⬜**
+**Sprint F (Config + schema cleanup) — 🟢**
+- [x] L14 — `next.config.ts` อ่าน `ALLOWED_DEV_ORIGINS` จาก env (ไม่ hardcode LAN IP)
+- [x] L17 — `20260833_sprint_f_drop_discount_applied.sql` · ลบ UI อ้างอิงใน SalesHistory/BillDetailModal
+- [x] L5 — `SidebarNav` + `TableMap` ซ่อน SalesHistory จาก staff
+- [x] L10 — `KitchenScreen` ใช้ `soundEnabledRef` ไม่ re-subscribe realtime
+- [x] L11 — `DateFilterBar` แสดง preset 3/6 เดือน
+- [x] L12 — `BusinessKPIs` นับสมาชิกใหม่ในช่วงวันที่
+- [x] L13 — `lib/storeDateRange.ts` ใช้ทุก dashboard query
 
-- [ ] **มี 3 ไฟล์ ไม่ใช่ 1** ที่เรียงมาก่อน `20260720_promotions.sql` ทั้งที่ต้องใช้ตารางที่ไฟล์นั้นสร้าง — `20260720_payment_promotions.sql` · `20260720_promotion_happy_hour.sql` · `20260720_promotion_menu_item.sql` (พิสูจน์แล้วด้วย `pnpm db:reset` — ตอนนี้ `docker/postgres/init/10-apply-migrations.sh` เลื่อนลำดับให้ชั่วคราว ทางแก้จริงคือเปลี่ยนชื่อไฟล์)
-- [ ] ทำทุก migration idempotent (`IF NOT EXISTS` / guard บน `CREATE POLICY`)
-- [ ] เอา `EXCEPTION WHEN OTHERS THEN NULL` ออกจาก `20260730_enable_realtime.sql`
-- [ ] ตั้ง `REPLICA IDENTITY FULL` เพื่อให้ realtime DELETE/UPDATE ส่งค่าเดิมมาด้วย
+**Sprint D (Promo + Stock + CRM) — 🟢**
+- [x] L3 — `PromoManager` ช่อง `image_url` · `start_date` · `end_date`
+- [x] L6 — `upsert_purchase_order` แก้ PO ใน transaction เดียว
+- [x] L7 — `adjust_loyalty_points` ล็อกแถว + audit จาก JWT
+- [x] L16 — คอลัมน์ `price_per_unit` + บันทึกจาก RPC
+
+**Sprint C (POS + เมนู) — 🟢**
+- [x] L2 — `20260831_sprint_c_pos_menu.sql` · `lib/menuPrice.ts` · RPC ใช้ `menu_item_sale_price`
+- [x] L4 — `MenuItemModal` มี stock / `is_stock_tracked` / Happy Hour
+- [x] L9 — `POSOrderScreen` merge cart ด้วย id + notes
+- [x] L18 — trigger อัปเดต `tables.updated_at` เมื่อ `status` เปลี่ยน
+
+**Migration hygiene — ⚠️ Sprint A ปิดส่วนหลักแล้ว**
+
+- [x] **เรียงชื่อไฟล์ promotion** — `20260720_promotions_happy_hour` · `promotions_menu_item` · `promotions_payment_promotions` เรียงหลัง `20260720_promotions.sql` · ลบ shim ใน `10-apply-migrations.sh`
+- [ ] ทำทุก migration idempotent (`IF NOT EXISTS` / guard บน `CREATE POLICY`) — ยังไม่ครบทั้งชุด (ไฟล์เก่าก่อน M0)
+- [x] เอา `EXCEPTION WHEN OTHERS THEN NULL` ออกจาก `20260730_enable_realtime.sql` — ใช้เช็ค `pg_publication_tables` แทน
+- [x] ตั้ง `REPLICA IDENTITY FULL` บน tables/orders/order_items/menu_items/qr_sessions
 
 ## M3 — 🧪 Testing Foundation `⬜`
 

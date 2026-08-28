@@ -2,11 +2,11 @@
 
 import React from 'react';
 import { UtensilsCrossed, Plus } from 'lucide-react';
+import { isHappyHourNow, menuItemSalePrice, type MenuPriceFields } from '@/lib/menuPrice';
 
-interface MenuItem {
+interface MenuItem extends MenuPriceFields {
   id: number;
   name: string;
-  price: number;
   stock: number;
   category: string;
   image_url?: string | null;
@@ -60,6 +60,12 @@ export const MenuGrid: React.FC<MenuGridProps> = ({
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredMenuItems.map(item => {
             const isOutOfStock = item.stock <= 0;
+            const salePrice = menuItemSalePrice(item);
+            const onHappyHour =
+              item.is_happy_hour &&
+              item.happy_hour_price != null &&
+              salePrice === item.happy_hour_price &&
+              isHappyHourNow();
             return (
               <button
                 key={item.id}
@@ -108,11 +114,27 @@ export const MenuGrid: React.FC<MenuGridProps> = ({
                 </div>
 
                 <div className="flex items-center justify-between pt-2 border-t border-zinc-100 dark:border-zinc-800/80 w-full">
-                  <span className={`text-price text-h3 ${
-                    isOutOfStock ? 'text-zinc-400 dark:text-zinc-500 line-through font-semibold' : 'text-red-600 dark:text-red-400'
-                  }`}>
-                    {item.price.toLocaleString()} ฿
-                  </span>
+                  <div className="flex flex-col items-start gap-0.5">
+                    {onHappyHour && (
+                      <span className="text-micro text-amber-600 dark:text-amber-400 font-bold">
+                        HH
+                      </span>
+                    )}
+                    <span
+                      className={`text-price text-h3 ${
+                        isOutOfStock
+                          ? 'text-zinc-400 dark:text-zinc-500 line-through font-semibold'
+                          : 'text-red-600 dark:text-red-400'
+                      }`}
+                    >
+                      {salePrice.toLocaleString()} ฿
+                    </span>
+                    {onHappyHour && (
+                      <span className="text-micro text-zinc-400 line-through">
+                        {item.price.toLocaleString()} ฿
+                      </span>
+                    )}
+                  </div>
                   {isOutOfStock ? (
                     <span className="text-micro text-rose-700 dark:text-rose-300 bg-rose-100 dark:bg-rose-950/60 px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-800 font-extrabold">
                       สินค้าหมด

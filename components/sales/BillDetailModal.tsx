@@ -37,7 +37,6 @@ interface OrderItemDetail {
   id: number;
   quantity: number;
   unit_price: number;
-  discount_applied: number;
   notes: string | null;
   menu_items: { name: string } | null;
 }
@@ -141,11 +140,6 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
                       {item.notes && (
                         <div className="mt-1 text-xs text-red-600 dark:text-red-400 font-semibold">
                           📝 {item.notes}
-                        </div>
-                      )}
-                      {item.discount_applied > 0 && (
-                        <div className="mt-1 text-xs text-rose-600 dark:text-rose-400 font-semibold">
-                          ส่วนลดรายการ: -{item.discount_applied.toLocaleString()} ฿
                         </div>
                       )}
                     </div>

@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import {
   Users,
@@ -56,8 +55,6 @@ interface PointsLog {
 }
 
 export const LoyaltyManager: React.FC = () => {
-  const { employee } = useAuth();
-
   const [members, setMembers] = useState<LoyaltyMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -219,30 +216,20 @@ export const LoyaltyManager: React.FC = () => {
     }
 
     const finalAdjustment = pointsDirection === 'add' ? amount : -amount;
-    const newPoints = Math.max(0, selectedMember.points + finalAdjustment);
 
     try {
       setIsAdjusting(true);
 
-      const { error: updateError } = await supabase
-        .from('loyalty_members')
-        .update({ points: newPoints })
-        .eq('phone_number', selectedMember.phone_number);
+      const { data, error } = await supabase.rpc('adjust_loyalty_points', {
+        p_phone_number: selectedMember.phone_number,
+        p_adjustment: finalAdjustment,
+        p_reason: pointsReason.trim(),
+      });
 
-      if (updateError) throw updateError;
+      if (error) throw error;
 
-      const { error: logError } = await supabase.from('points_logs').insert([
-        {
-          phone_number: selectedMember.phone_number,
-          adjustment: finalAdjustment,
-          reason: pointsReason.trim(),
-          adjusted_by: employee?.name || 'Staff',
-        },
-      ]);
-
-      if (logError) console.error('Error writing points log:', logError);
-
-      const updated = { ...selectedMember, points: newPoints };
+      const result = data as { points: number; adjustment: number };
+      const updated = { ...selectedMember, points: result.points };
       setSelectedMember(updated);
       setMembers(prev =>
         prev.map(m => (m.phone_number === selectedMember.phone_number ? updated : m))
@@ -252,7 +239,10 @@ export const LoyaltyManager: React.FC = () => {
       setPointsAdjustment('');
       setPointsReason('');
       fetchMemberDetails(selectedMember.phone_number);
-      setMessage({ text: `ปรับแต้มเรียบร้อยแล้ว (${finalAdjustment > 0 ? '+' : ''}${finalAdjustment} แต้ม)`, type: 'success' });
+      setMessage({
+        text: `ปรับแต้มเรียบร้อยแล้ว (${result.adjustment > 0 ? '+' : ''}${result.adjustment} แต้ม)`,
+        type: 'success',
+      });
     } catch (err: any) {
       alert('ไม่สามารถปรับแต้มได้: ' + (err.message || ''));
     } finally {

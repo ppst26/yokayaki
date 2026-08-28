@@ -417,30 +417,30 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
 
     try {
       setIsSubmittingMember(true);
-      const { data: existingMember } = await supabase
-        .from('loyalty_members')
-        .select('*')
-        .eq('phone_number', cleanPhone)
-        .maybeSingle();
+      const res = await fetch('/api/loyalty/members', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phoneNumber: cleanPhone,
+          name: cleanName,
+        }),
+      });
+      const data = await res.json();
 
-      if (existingMember) {
-        setMember(existingMember as LoyaltyMember);
+      if (!res.ok) {
+        throw new Error(data?.error ?? 'ไม่สามารถสมัครสมาชิกได้');
+      }
+
+      if (data.alreadyExists) {
+        setMember(data.member as LoyaltyMember);
         setPhoneInput(cleanPhone);
         setShowAddMemberModal(false);
-        alert(`เบอร์โทรศัพท์นี้เป็นสมาชิกอยู่แล้ว ระบบได้เลือกสมาชิกคุณ (${existingMember.name}) ให้เรียบร้อยครับ`);
+        alert(`เบอร์โทรศัพท์นี้เป็นสมาชิกอยู่แล้ว ระบบได้เลือกสมาชิกคุณ (${data.member.name}) ให้เรียบร้อยครับ`);
         return;
       }
 
-      const { data: created, error } = await supabase
-        .from('loyalty_members')
-        .insert([{ phone_number: cleanPhone, name: cleanName, points: 0 }])
-        .select('*')
-        .single();
-
-      if (error) throw error;
-
-      if (created) {
-        setMember(created as LoyaltyMember);
+      if (data.member) {
+        setMember(data.member as LoyaltyMember);
         setPhoneInput(cleanPhone);
         setShowAddMemberModal(false);
       }
@@ -463,18 +463,24 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
       setErrorMsg(null);
 
       // ส่งแค่ "เจตนา" — ยอดเงิน ส่วนลด และแต้ม คำนวณใน DB ทั้งหมด (A5)
-      // วิธีชำระ/ยอดแยกเงินสด-โอน ก็มาจาก DB เช่นกัน จึงไม่ส่งไปแล้ว
-      const { data, error } = await supabase.rpc('complete_checkout', {
-        p_order_id: orderId,
-        p_cash_received: cashNum,
-        p_coupon_code: couponApplied?.coupon_code || null,
-        p_phone_number: member?.phone_number || null,
-        p_points_redeem: pointsToRedeem,
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId,
+          cashReceived: cashNum,
+          couponCode: couponApplied?.coupon_code || null,
+          phoneNumber: member?.phone_number || null,
+          pointsRedeem: pointsToRedeem,
+        }),
       });
+      const payload = await res.json();
 
-      if (error) throw error;
+      if (!res.ok) {
+        throw new Error(payload?.error ?? 'เกิดข้อผิดพลาดในการชำระเงิน');
+      }
 
-      const result = (Array.isArray(data) ? data[0] : data) as CheckoutResult | undefined;
+      const result = payload?.result as CheckoutResult | undefined;
 
       if (!result || result.status === 'not_found') {
         setErrorMsg('ไม่พบออเดอร์นี้ในระบบ — กรุณารีเฟรชแล้วลองใหม่');

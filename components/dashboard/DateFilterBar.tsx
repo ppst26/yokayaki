@@ -19,6 +19,8 @@ const PRESETS: { value: DatePreset; label: string }[] = [
   { value: 'yesterday', label: 'เมื่อวาน' },
   { value: 'this_week', label: 'สัปดาห์นี้' },
   { value: 'this_month', label: 'เดือนนี้' },
+  { value: '3_months', label: '3 เดือน' },
+  { value: '6_months', label: '6 เดือน' },
   { value: 'custom', label: 'กำหนดเอง' },
 ];
 

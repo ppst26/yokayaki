@@ -1,15 +1,9 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { errorResponse } from '@/lib/session';
 import { requireCustomerSession } from '@/lib/customerSession';
-
-// =============================================================
-// POST   /api/customer/[session_id]/check-bill  → เรียกเช็คบิล
-// DELETE /api/customer/[session_id]/check-bill  → ยกเลิกการเรียกเช็คบิล
-//
-// แก้ A7.3: เดิมหน้าลูกค้า UPDATE ตาราง tables ตรงๆ ด้วย anon key
-//           = ใครก็พลิกสถานะโต๊ะไหนก็ได้ทั้งร้าน
-// ตอนนี้เขียนได้เฉพาะโต๊ะที่ผูกกับ session และเฉพาะเมื่อโต๊ะนั้นมีบิลเปิดอยู่จริง
-// =============================================================
+import { enforceRateLimit } from '@/lib/rateLimit';
+import { parseValue } from '@/lib/api/parse';
+import { sessionIdSchema } from '@/lib/api/schemas';
 
 async function setTableStatus(
   sessionId: string,
@@ -26,7 +20,6 @@ async function setTableStatus(
 
   if (orderError) throw orderError;
   if (!activeOrder) {
-    // บิลถูกปิดไปแล้วระหว่างนั้น — ไม่ใช่ error
     return Response.json({ tableStatus: null, orderActive: false });
   }
 
@@ -40,19 +33,36 @@ async function setTableStatus(
   return Response.json({ tableStatus: next, orderActive: true });
 }
 
-export async function POST(_request: Request, ctx: RouteContext<'/api/customer/[session_id]/check-bill'>) {
+async function handleCheckBill(
+  request: Request,
+  ctx: RouteContext<'/api/customer/[session_id]/check-bill'>,
+  next: 'checking_out' | 'occupied'
+) {
+  const { session_id: rawSessionId } = await ctx.params;
+  const sessionId = parseValue(rawSessionId, sessionIdSchema);
+  if (sessionId instanceof Response) return sessionId;
+
+  const limited = enforceRateLimit({
+    key: `customer-check-bill:${sessionId}`,
+    max: 15,
+    windowMs: 60 * 1000,
+  });
+  if (limited) return limited;
+
+  return await setTableStatus(sessionId, next);
+}
+
+export async function POST(request: Request, ctx: RouteContext<'/api/customer/[session_id]/check-bill'>) {
   try {
-    const { session_id: sessionId } = await ctx.params;
-    return await setTableStatus(sessionId, 'checking_out');
+    return await handleCheckBill(request, ctx, 'checking_out');
   } catch (err) {
     return errorResponse(err);
   }
 }
 
-export async function DELETE(_request: Request, ctx: RouteContext<'/api/customer/[session_id]/check-bill'>) {
+export async function DELETE(request: Request, ctx: RouteContext<'/api/customer/[session_id]/check-bill'>) {
   try {
-    const { session_id: sessionId } = await ctx.params;
-    return await setTableStatus(sessionId, 'occupied');
+    return await handleCheckBill(request, ctx, 'occupied');
   } catch (err) {
     return errorResponse(err);
   }

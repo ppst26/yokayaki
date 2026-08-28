@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { storeTimestampRange } from '@/lib/storeDateRange';
 import { Users, Receipt, ShoppingBag } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 
@@ -25,13 +26,14 @@ export const BusinessKPIs: React.FC<BusinessKPIsProps> = ({ startDate, endDate, 
     const fetch = async () => {
       setLoading(true);
       try {
-        const startISO = startDate.toISOString();
-        const endISO = endDate.toISOString();
+        const { startISO, endISO } = storeTimestampRange(startDate, endDate);
 
-        // Total Loyalty Members
+        // สมาชิกที่สมัครในช่วงวันที่ (L12)
         const { count: memberCount } = await supabase
           .from('loyalty_members')
-          .select('*', { count: 'exact', head: true });
+          .select('*', { count: 'exact', head: true })
+          .gte('created_at', startISO)
+          .lte('created_at', endISO);
 
         // Total Bills in date range
         const { data: payments } = await supabase
@@ -68,7 +70,7 @@ export const BusinessKPIs: React.FC<BusinessKPIsProps> = ({ startDate, endDate, 
 
   const kpis = [
     {
-      label: 'ลูกค้าสมาชิก',
+      label: 'สมาชิกใหม่',
       value: data.totalMembers,
       unit: 'คน',
       icon: Users,

@@ -2,6 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import {
+  formatStoreDate,
+  storeDateFromTimestamp,
+  storeHourFromTimestamp,
+  storeTimestampRange,
+} from '@/lib/storeDateRange';
 import { BarChart3 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import {
@@ -48,8 +54,7 @@ export const SalesChart: React.FC<SalesChartProps> = ({ startDate, endDate, refr
     const fetchSalesData = async () => {
       setLoading(true);
       try {
-        const startISO = startDate.toISOString();
-        const endISO = endDate.toISOString();
+        const { startISO, endISO } = storeTimestampRange(startDate, endDate);
 
         const { data: payments, error } = await supabase
           .from('payments')
@@ -77,8 +82,7 @@ export const SalesChart: React.FC<SalesChartProps> = ({ startDate, endDate, refr
           }));
 
           paymentsList.forEach((p: any) => {
-            const d = new Date(p.created_at);
-            const h = d.getHours();
+            const h = storeHourFromTimestamp(p.created_at);
             const hourKey = `hour_${h}`;
             let slot = generatedBars.find(s => s.key === hourKey);
             if (!slot) {
@@ -104,7 +108,7 @@ export const SalesChart: React.FC<SalesChartProps> = ({ startDate, endDate, refr
           cur.setHours(0, 0, 0, 0);
 
           for (let i = 0; i < 7; i++) {
-            const dateKey = cur.toISOString().split('T')[0];
+            const dateKey = formatStoreDate(cur);
             const dayName = dayNames[cur.getDay()];
             tempMap[dateKey] = {
               key: dateKey,
@@ -117,7 +121,7 @@ export const SalesChart: React.FC<SalesChartProps> = ({ startDate, endDate, refr
           }
 
           paymentsList.forEach((p: any) => {
-            const dateKey = p.created_at.split('T')[0];
+            const dateKey = storeDateFromTimestamp(p.created_at);
             if (tempMap[dateKey]) {
               tempMap[dateKey].revenue += parseFloat(p.net_amount || 0);
               tempMap[dateKey].billCount++;
@@ -134,7 +138,7 @@ export const SalesChart: React.FC<SalesChartProps> = ({ startDate, endDate, refr
           const endBoundary = new Date(endDate);
 
           while (cur <= endBoundary) {
-            const dateKey = cur.toISOString().split('T')[0];
+            const dateKey = formatStoreDate(cur);
             tempMap[dateKey] = {
               key: dateKey,
               label: `${cur.getDate()}/${cur.getMonth() + 1}`,
@@ -145,7 +149,7 @@ export const SalesChart: React.FC<SalesChartProps> = ({ startDate, endDate, refr
           }
 
           paymentsList.forEach((p: any) => {
-            const dateKey = p.created_at.split('T')[0];
+            const dateKey = storeDateFromTimestamp(p.created_at);
             if (tempMap[dateKey]) {
               tempMap[dateKey].revenue += parseFloat(p.net_amount || 0);
               tempMap[dateKey].billCount++;

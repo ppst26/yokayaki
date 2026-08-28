@@ -86,9 +86,9 @@ yokayaki/
 │   ├── 20260720_special_notes.sql       # notes column in order_items + RPC updates
 │   ├── 20260720_ingredient_cost.sql     # item_ingredients table (purchase records)
 │   ├── 20260720_promotions.sql          # promotions table (%, fixed, buy_x_get_y)
-│   ├── 20260720_promotion_happy_hour.sql  # start_time/end_time columns
-│   ├── 20260720_promotion_menu_item.sql   # menu_item_id FK on promotions
-│   ├── 20260720_payment_promotions.sql  # payment_promotions + updated checkout RPC
+│   ├── 20260720_promotions_happy_hour.sql  # start_time/end_time columns
+│   ├── 20260720_promotions_menu_item.sql   # menu_item_id FK on promotions
+│   ├── 20260720_promotions_payment_promotions.sql  # payment_promotions + updated checkout RPC
 │   ├── 20260721_loyalty_crm.sql         # points_logs table + payments.phone_number + RPC
 │   ├── 20260824_security_hardening.sql  # 🔴 A1/A2/A3 — RLS ใหม่ทั้งหมด + REVOKE/GRANT + bcrypt PIN
 │   ├── 20260825_pin_lockout_hardening.sql # 🔴 A2 (หาง) — ตัด SHA-256 + DROP pin_hash + เพดานล็อกอินรวม
@@ -116,7 +116,7 @@ yokayaki/
 │
 ├── .env.local                        # ⚠️ ต้องมี SUPABASE_SERVICE_ROLE_KEY + SUPABASE_JWT_SECRET ด้วย (ดู .env.example)
 ├── .env.example                      # รายการตัวแปรที่ต้องตั้ง (ไม่มีค่าจริง)
-├── next.config.ts                    # allowedDevOrigins for LAN testing
+├── next.config.ts                    # ALLOWED_DEV_ORIGINS for LAN testing + security headers
 ├── tsconfig.json                     # TypeScript config (strict, @/* alias)
 ├── ROADMAP.md                        # Development roadmap & phase tracking
 └── package.json                      # Dependencies & scripts
@@ -132,7 +132,7 @@ yokayaki/
 - **Schema หลัก:** [`supabase/migrations/20260705_init_schema.sql`](supabase/migrations/20260705_init_schema.sql) — ตาราง 9 ตารางตั้งต้น + RPC + RLS + Seed data
 - **Stock system:** [`supabase/migrations/20260718_stock_and_reports.sql`](supabase/migrations/20260718_stock_and_reports.sql) — `is_stock_tracked` flag + updated RPCs
 - **Promotions:** [`supabase/migrations/20260720_promotions.sql`](supabase/migrations/20260720_promotions.sql) — ตาราง promotions
-- **Checkout RPC (ล่าสุด):** [`supabase/migrations/20260720_payment_promotions.sql`](supabase/migrations/20260720_payment_promotions.sql) — `complete_checkout` RPC ฉบับล่าสุด
+- **Checkout RPC (ล่าสุด):** [`supabase/migrations/20260827_checkout_server_side.sql`](supabase/migrations/20260827_checkout_server_side.sql) — `complete_checkout` RPC ฉบับล่าสุด
 
 ### Authentication & Authorization
 - **Auth Context:** [`context/AuthContext.tsx`](context/AuthContext.tsx) — PIN validation, SHA-256 hash, RBAC (owner/staff), session storage

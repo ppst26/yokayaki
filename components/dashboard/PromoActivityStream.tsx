@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { storeTimestampRange } from '@/lib/storeDateRange';
 import { BadgePercent, Sparkles } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 
@@ -33,8 +34,7 @@ export const PromoActivityStream: React.FC<PromoActivityStreamProps> = ({ startD
     const fetch = async () => {
       setLoading(true);
       try {
-        const startISO = startDate.toISOString();
-        const endISO = endDate.toISOString();
+        const { startISO, endISO } = storeTimestampRange(startDate, endDate);
 
         // Total discount amount
         const { data: discountData } = await supabase

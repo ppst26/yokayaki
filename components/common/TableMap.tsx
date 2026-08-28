@@ -147,6 +147,10 @@ export const TableMap: React.FC = () => {
   }, [selectedTableId]);
 
   const handleTabChange = (tab: NavTab) => {
+    if (tab === 'history' && employee?.role !== 'owner') {
+      setActiveTab('floor');
+      return;
+    }
     setActiveTab(tab);
     setSelectedTableId(null);
     setCheckoutTableId(null);
@@ -196,7 +200,7 @@ export const TableMap: React.FC = () => {
 
       <main className="flex-1 overflow-y-auto no-scrollbar p-4 md:p-8 pb-24 md:pb-8">
         {activeTab === 'kitchen' && <KitchenScreen />}
-        {activeTab === 'history' && <SalesHistory />}
+        {activeTab === 'history' && isOwner && <SalesHistory />}
         {activeTab === 'menu' && isOwner && <MenuManager />}
         {activeTab === 'stock' && isOwner && <StockManager />}
         {activeTab === 'promo' && isOwner && <PromoManager />}

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { storeTimestampRange } from '@/lib/storeDateRange';
 import { Award } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 
@@ -25,8 +26,7 @@ export const TopDishes: React.FC<TopDishesProps> = ({ startDate, endDate, refres
     const fetch = async () => {
       setLoading(true);
       try {
-        const startISO = startDate.toISOString();
-        const endISO = endDate.toISOString();
+        const { startISO, endISO } = storeTimestampRange(startDate, endDate);
 
         const { data: items } = await supabase
           .from('order_items')

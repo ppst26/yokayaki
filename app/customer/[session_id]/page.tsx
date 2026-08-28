@@ -20,6 +20,7 @@ import {
   ChevronRight,
   BellRing
 } from 'lucide-react';
+import { menuItemSalePrice } from '@/lib/menuPrice';
 
 interface OrderedItem {
   id: number;
@@ -37,6 +38,8 @@ interface MenuItem {
   stock: number;
   category: string;
   image_url?: string | null;
+  is_happy_hour?: boolean;
+  happy_hour_price?: number | null;
 }
 
 interface CartItem extends MenuItem {
@@ -165,6 +168,7 @@ export default function CustomerOrderPortal() {
 
 
   const addToCart = (item: MenuItem, notes?: string) => {
+    const salePrice = menuItemSalePrice(item);
     setCart(prev => {
       const itemNotes = notes || '';
       const existing = prev.find(i => i.id === item.id && (i.notes || '') === itemNotes);
@@ -176,7 +180,7 @@ export default function CustomerOrderPortal() {
       }
       if (totalQtyInCart >= item.stock) return prev;
       if (item.stock === 0) return prev;
-      return [...prev, { ...item, quantity: 1, notes: itemNotes }];
+      return [...prev, { ...item, price: salePrice, quantity: 1, notes: itemNotes }];
     });
   };
 

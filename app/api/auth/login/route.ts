@@ -1,25 +1,28 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { signStaffToken, SESSION_COOKIE, SESSION_TTL_SECONDS, type EmployeeRole } from '@/lib/authToken';
 import { clientKeyFrom, errorResponse } from '@/lib/session';
+import { enforceRateLimit } from '@/lib/rateLimit';
+import { parseJsonBody } from '@/lib/api/parse';
+import { loginBodySchema } from '@/lib/api/schemas';
 
 // =============================================================
 // POST /api/auth/login   { pin: "123456" }
-//
-// จุดเดียวในระบบที่ PIN ถูกตรวจสอบ — และตรวจใน DB ผ่าน verify_pin()
-// hash ไม่เคยออกจากฐานข้อมูล (แก้ A2: เดิม client query .eq('pin_hash', ...) ตรงๆ = PIN oracle)
 // =============================================================
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json().catch(() => null);
-    const pin = body?.pin;
+    const limited = enforceRateLimit({
+      key: `login:${clientKeyFrom(request)}`,
+      max: 30,
+      windowMs: 60 * 1000,
+    });
+    if (limited) return limited;
 
-    if (typeof pin !== 'string' || !/^\d{6}$/.test(pin)) {
-      return Response.json({ error: 'รหัส PIN ต้องเป็นตัวเลข 6 หลัก' }, { status: 400 });
-    }
+    const body = await parseJsonBody(request, loginBodySchema);
+    if (body instanceof Response) return body;
 
     const { data, error } = await supabaseAdmin.rpc('verify_pin', {
-      p_pin: pin,
+      p_pin: body.pin,
       p_client_key: clientKeyFrom(request),
     });
 
@@ -27,7 +30,6 @@ export async function POST(request: Request) {
 
     const row = Array.isArray(data) ? data[0] : data;
 
-    // ถูกล็อกจากการกรอกผิดหลายครั้ง (นับฝั่ง server — ลบ localStorage ไม่ช่วย)
     if (row?.locked_seconds > 0) {
       return Response.json(
         { error: 'ระบบถูกล็อคชั่วคราว กรุณารอจนครบกำหนดเวลา', lockedSeconds: row.locked_seconds },
@@ -51,8 +53,6 @@ export async function POST(request: Request) {
       empRole: employee.role,
     });
 
-    // token อยู่ใน body เพื่อให้ supabase-js ฝั่ง browser ใช้อ่านข้อมูล + realtime
-    // ส่วน cookie httpOnly คือสิ่งที่ยืนยันตัวตนกับ server tier (JS แตะไม่ได้)
     const response = Response.json({ employee, token });
 
     response.headers.append(

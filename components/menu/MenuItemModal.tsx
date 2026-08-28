@@ -198,6 +198,78 @@ export const MenuItemModal: React.FC<MenuItemModalProps> = ({
             </div>
           </div>
 
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-slate-500 dark:text-neutral-400 mb-1">
+                จำนวนสต็อก
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={formData.stock}
+                onChange={e => setFormData({ ...formData, stock: Number(e.target.value) })}
+                className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none"
+              />
+            </div>
+
+            <div className="flex items-end pb-1">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={formData.is_stock_tracked}
+                  onChange={e =>
+                    setFormData({ ...formData, is_stock_tracked: e.target.checked })
+                  }
+                  className="w-4 h-4 rounded border-slate-300 text-red-600 focus:ring-red-500"
+                />
+                <span className="text-slate-700 dark:text-neutral-200">
+                  ติดตามสต็อก (หักอัตโนมัติเมื่อสั่ง)
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50/50 dark:bg-amber-950/20 p-4 space-y-3">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={formData.is_happy_hour}
+                onChange={e =>
+                  setFormData({
+                    ...formData,
+                    is_happy_hour: e.target.checked,
+                    happy_hour_price: e.target.checked ? formData.happy_hour_price : null,
+                  })
+                }
+                className="w-4 h-4 rounded border-slate-300 text-red-600 focus:ring-red-500"
+              />
+              <span className="text-slate-800 dark:text-neutral-100 font-bold">
+                เปิดราคา Happy Hour (17:00–19:00)
+              </span>
+            </label>
+
+            {formData.is_happy_hour && (
+              <div>
+                <label className="block text-slate-500 dark:text-neutral-400 mb-1">
+                  ราคา Happy Hour (บาท)
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  required
+                  value={formData.happy_hour_price ?? ''}
+                  onChange={e =>
+                    setFormData({
+                      ...formData,
+                      happy_hour_price: e.target.value === '' ? null : Number(e.target.value),
+                    })
+                  }
+                  className="w-full bg-white dark:bg-neutral-800 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none"
+                />
+              </div>
+            )}
+          </div>
+
           <div>
             <label className="block text-slate-500 dark:text-neutral-400 mb-1">
               URL รูปภาพเมนูอาหาร (Optional)

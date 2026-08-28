@@ -10,11 +10,11 @@ import { CartPanel } from './CartPanel';
 import { SpecialNoteModal } from './SpecialNoteModal';
 import { VoidItemModal } from './VoidItemModal';
 import { CustomerQRModal } from './CustomerQRModal';
+import { menuItemSalePrice, type MenuPriceFields } from '@/lib/menuPrice';
 
-interface MenuItem {
+interface MenuItem extends MenuPriceFields {
   id: number;
   name: string;
-  price: number;
   stock: number;
   category: string;
   image_url?: string | null;
@@ -217,12 +217,17 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
       : menuItems.filter(m => (m.category || 'ทั่วไป') === selectedCategory);
 
   const addToCart = (item: MenuItem) => {
+    const salePrice = menuItemSalePrice(item);
     setCart(prev => {
-      const existing = prev.find(i => i.id === item.id);
+      const existing = prev.find(i => i.id === item.id && !(i.notes || ''));
       if (existing) {
-        return prev.map(i => (i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i));
+        return prev.map(i =>
+          i.id === item.id && !(i.notes || '')
+            ? { ...i, quantity: i.quantity + 1 }
+            : i,
+        );
       }
-      return [...prev, { ...item, quantity: 1 }];
+      return [...prev, { ...item, price: salePrice, quantity: 1 }];
     });
     setMobileCartExpanded(true);
   };
@@ -250,10 +255,29 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
 
   const saveNotes = () => {
     if (!noteEditTarget) return;
+    const newNotes = noteEditTarget.notes;
     setCart(prev => {
-      const newCart = [...prev];
-      newCart[noteEditTarget.index] = { ...newCart[noteEditTarget.index], notes: noteEditTarget.notes };
-      return newCart;
+      const target = prev[noteEditTarget.index];
+      if (!target) return prev;
+
+      const otherIndex = prev.findIndex(
+        (item, i) =>
+          i !== noteEditTarget.index &&
+          item.id === target.id &&
+          (item.notes || '') === newNotes,
+      );
+
+      if (otherIndex !== -1) {
+        return prev
+          .map((item, i) =>
+            i === otherIndex ? { ...item, quantity: item.quantity + target.quantity } : item,
+          )
+          .filter((_, i) => i !== noteEditTarget.index);
+      }
+
+      return prev.map((item, i) =>
+        i === noteEditTarget.index ? { ...item, notes: newNotes } : item,
+      );
     });
     setNoteEditTarget(null);
   };
@@ -265,19 +289,23 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
       setIsSubmitting(true);
       setErrorMsg(null);
 
-      for (const item of cart) {
-        // ไม่ส่งราคาไปแล้ว — RPC อ่าน menu_items.price เองฝั่ง DB (A4)
-        const { data: success, error } = await supabase.rpc('place_order_item', {
-          p_table_id: tableId,
-          p_menu_item_id: item.id,
-          p_quantity: item.quantity,
-          p_notes: item.notes || null,
-        });
+      // M1/D3 — ส่งตะกร้าทั้งก้อนใน transaction เดียวผ่าน server tier
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tableId,
+          items: cart.map(item => ({
+            menuItemId: item.id,
+            quantity: item.quantity,
+            notes: item.notes || null,
+          })),
+        }),
+      });
+      const data = await res.json();
 
-        if (error) throw error;
-        if (!success) {
-          throw new Error(`วัตถุดิบ/สินค้า "${item.name}" หมด หรือไม่เพียงพอ`);
-        }
+      if (!res.ok) {
+        throw new Error(data?.error ?? 'ไม่สามารถสั่งอาหารได้');
       }
 
       setCart([]);
@@ -309,23 +337,25 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
       setIsVoiding(true);
       setErrorMsg(null);
 
-      const { data: success, error } = await supabase.rpc('void_order_item', {
-        p_order_item_id: voidTarget.id,
-        p_void_quantity: voidQuantity,
-        p_reason_code: voidReason,
-        p_reason_note: note || null,
-        // ไม่ส่งชื่อพนักงานแล้ว — void_order_item อ่านจาก JWT เอง (A7.6)
+      const res = await fetch('/api/orders/void', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderItemId: voidTarget.id,
+          voidQuantity: voidQuantity,
+          reasonCode: voidReason,
+          reasonNote: note || null,
+        }),
       });
+      const data = await res.json();
 
-      if (error) throw error;
-
-      if (success) {
-        setVoidTarget(null);
-        await fetchActiveOrder(true); // skip vacant check — โต๊ะยังใช้งานอยู่
-        await fetchMenu();
-      } else {
-        setErrorMsg('ไม่สามารถ Void รายการได้');
+      if (!res.ok) {
+        throw new Error(data?.error ?? 'ไม่สามารถ Void รายการได้');
       }
+
+      setVoidTarget(null);
+      await fetchActiveOrder(true);
+      await fetchMenu();
     } catch (err: any) {
       console.error('Error voiding item:', err);
       setErrorMsg('เกิดข้อผิดพลาดในการ Void: ' + (err.message || ''));

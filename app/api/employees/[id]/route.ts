@@ -1,7 +1,14 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { requireOwner, errorResponse, clientKeyFrom, HttpError } from '@/lib/session';
+import { enforceRateLimit } from '@/lib/rateLimit';
+import { parseJsonBody, parseValue } from '@/lib/api/parse';
+import {
+  employeeDeleteBodySchema,
+  employeeIdParamSchema,
+  employeeUpdateBodySchema,
+  pinSchema,
+} from '@/lib/api/schemas';
 
-// ข้อความตอบกลับของ RPC → ข้อความไทยที่ผู้ใช้อ่านรู้เรื่อง
 const RESULT_MESSAGES: Record<string, string> = {
   not_found: 'ไม่พบพนักงานที่ต้องการ',
   pin_taken: 'PIN นี้ถูกใช้แล้ว กรุณาใช้ PIN อื่น',
@@ -9,21 +16,14 @@ const RESULT_MESSAGES: Record<string, string> = {
   self_delete: 'ไม่สามารถลบบัญชีของตัวเองได้',
 };
 
-function parseId(raw: string): number | null {
-  const id = Number(raw);
-  return Number.isInteger(id) && id > 0 ? id : null;
-}
-
-/**
- * Step-up authentication — ยืนยัน PIN ของ Owner อีกครั้งก่อนทำรายการที่อันตราย
- * (เปลี่ยนตำแหน่ง / เปลี่ยน PIN / ลบพนักงาน) เหมือน UX เดิม
- *
- * ต่างจากเดิมตรงที่ไม่มีการส่ง pin_hash ข้ามเน็ต และไม่มีการ query .eq('pin_hash', ...)
- * ซึ่งเป็น PIN oracle ตัวที่สองของระบบ
- */
-async function assertOwnerConfirmPin(request: Request, pin: unknown): Promise<void> {
-  if (typeof pin !== 'string' || !/^\d{6}$/.test(pin)) {
-    throw new HttpError(400, 'กรุณากรอก PIN 6 หลักเพื่อยืนยันการทำรายการ');
+async function assertOwnerConfirmPin(request: Request, pin: string): Promise<void> {
+  const limited = enforceRateLimit({
+    key: `owner-confirm:${clientKeyFrom(request)}`,
+    max: 15,
+    windowMs: 60 * 1000,
+  });
+  if (limited) {
+    throw new HttpError(429, 'ยืนยัน PIN ผิดหลายครั้ง กรุณารอก่อน');
   }
 
   const { data, error } = await supabaseAdmin.rpc('verify_pin', {
@@ -47,21 +47,22 @@ export async function PATCH(request: Request, ctx: RouteContext<'/api/employees/
     await requireOwner();
 
     const { id: rawId } = await ctx.params;
-    const id = parseId(rawId);
-    if (id === null) return Response.json({ error: 'รหัสพนักงานไม่ถูกต้อง' }, { status: 400 });
+    const id = parseValue(rawId, employeeIdParamSchema);
+    if (id instanceof Response) return id;
 
-    const body = await request.json().catch(() => null);
-    const name = typeof body?.name === 'string' && body.name.trim() ? body.name.trim() : null;
-    const role = body?.role === 'owner' || body?.role === 'staff' ? body.role : null;
-    const pin = typeof body?.pin === 'string' && body.pin ? body.pin : null;
+    const body = await parseJsonBody(request, employeeUpdateBodySchema);
+    if (body instanceof Response) return body;
 
-    if (pin !== null && !/^\d{6}$/.test(pin)) {
-      return Response.json({ error: 'PIN ต้องเป็นตัวเลข 6 หลัก' }, { status: 400 });
-    }
+    const name = body.name ?? null;
+    const role = body.role ?? null;
+    const pin = body.pin ?? null;
 
-    // เปลี่ยนตำแหน่งหรือเปลี่ยน PIN = ต้องยืนยันตัวตนซ้ำ
     if (role !== null || pin !== null) {
-      await assertOwnerConfirmPin(request, body?.confirmPin);
+      const confirm = parseValue(body.confirmPin, pinSchema);
+      if (confirm instanceof Response) {
+        return Response.json({ error: 'กรุณากรอก PIN 6 หลักเพื่อยืนยันการทำรายการ' }, { status: 400 });
+      }
+      await assertOwnerConfirmPin(request, confirm);
     }
 
     const { data, error } = await supabaseAdmin.rpc('admin_update_employee', {
@@ -87,15 +88,16 @@ export async function PATCH(request: Request, ctx: RouteContext<'/api/employees/
 
 export async function DELETE(request: Request, ctx: RouteContext<'/api/employees/[id]'>) {
   try {
-    // ตัวตนผู้สั่งลบมาจาก JWT — client ปลอมไม่ได้ (เดิมส่ง pin_hash ของ owner มาใน body)
     const actor = await requireOwner();
 
     const { id: rawId } = await ctx.params;
-    const id = parseId(rawId);
-    if (id === null) return Response.json({ error: 'รหัสพนักงานไม่ถูกต้อง' }, { status: 400 });
+    const id = parseValue(rawId, employeeIdParamSchema);
+    if (id instanceof Response) return id;
 
-    const body = await request.json().catch(() => null);
-    await assertOwnerConfirmPin(request, body?.confirmPin);
+    const body = await parseJsonBody(request, employeeDeleteBodySchema);
+    if (body instanceof Response) return body;
+
+    await assertOwnerConfirmPin(request, body.confirmPin);
 
     const { data, error } = await supabaseAdmin.rpc('admin_delete_employee', {
       p_employee_id: id,

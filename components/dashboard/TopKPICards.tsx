@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { storeTimestampRange } from '@/lib/storeDateRange';
 import { DollarSign, TrendingUp } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 
@@ -33,8 +34,7 @@ export const TopKPICards: React.FC<TopKPICardsProps> = ({ startDate, endDate, re
     const fetch = async () => {
       setLoading(true);
       try {
-        const startISO = startDate.toISOString();
-        const endISO = endDate.toISOString();
+        const { startISO, endISO, startDateStr, endDateStr } = storeTimestampRange(startDate, endDate);
 
         // 1. Fetch Revenue & Discounts from payments
         const { data: payments } = await supabase
@@ -58,9 +58,6 @@ export const TopKPICards: React.FC<TopKPICardsProps> = ({ startDate, endDate, re
         });
 
         // 2. Fetch Ingredient Costs from item_ingredients
-        const startDateStr = startDate.toISOString().slice(0, 10);
-        const endDateStr = endDate.toISOString().slice(0, 10);
-
         const { data: ingredients } = await supabase
           .from('item_ingredients')
           .select('cost')

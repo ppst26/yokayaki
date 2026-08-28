@@ -262,17 +262,19 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   )}
                 </button>
 
-                <button
-                  onClick={() => handleTabClick('history')}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
-                    activeTab === 'history'
-                      ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
-                      : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
-                  }`}
-                >
-                  <History className="w-4.5 h-4.5" />
-                  <span>ประวัติการขาย</span>
-                </button>
+                {isOwner && (
+                  <button
+                    onClick={() => handleTabClick('history')}
+                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
+                      activeTab === 'history'
+                        ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
+                        : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
+                    }`}
+                  >
+                    <History className="w-4.5 h-4.5" />
+                    <span>ประวัติการขาย</span>
+                  </button>
+                )}
 
                 {isOwner && (
                   <>
@@ -445,20 +447,22 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
           <span className="text-xs mt-0.5 leading-none font-bold">หน้าครัว</span>
         </button>
 
-        {/* 3. ประวัติการขาย */}
-        <button
-          onClick={() => onSelectTab('history')}
-          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all duration-200 cursor-pointer ${
-            activeTab === 'history'
-              ? 'text-red-600 dark:text-red-400 font-extrabold scale-105'
-              : 'text-zinc-500 dark:text-zinc-400 font-bold hover:text-zinc-800 dark:hover:text-zinc-200'
-          }`}
-        >
-          <div className={`p-1.5 rounded-xl transition-all ${activeTab === 'history' ? 'bg-red-600 text-white shadow-md shadow-red-600/30' : ''}`}>
-            <History className="w-5 h-5 stroke-[2.2]" />
-          </div>
-          <span className="text-xs mt-0.5 leading-none font-bold">ออเดอร์</span>
-        </button>
+        {/* 3. ประวัติการขาย (owner เท่านั้น) */}
+        {isOwner && (
+          <button
+            onClick={() => onSelectTab('history')}
+            className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all duration-200 cursor-pointer ${
+              activeTab === 'history'
+                ? 'text-red-600 dark:text-red-400 font-extrabold scale-105'
+                : 'text-zinc-500 dark:text-zinc-400 font-bold hover:text-zinc-800 dark:hover:text-zinc-200'
+            }`}
+          >
+            <div className={`p-1.5 rounded-xl transition-all ${activeTab === 'history' ? 'bg-red-600 text-white shadow-md shadow-red-600/30' : ''}`}>
+              <History className="w-5 h-5 stroke-[2.2]" />
+            </div>
+            <span className="text-xs mt-0.5 leading-none font-bold">ออเดอร์</span>
+          </button>
+        )}
 
         {/* 4. เมนูเพิ่มเติม (Open Drawer) */}
         <button
@@ -538,17 +542,19 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
               )}
             </button>
 
-            <button
-              onClick={() => onSelectTab('history')}
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
-                activeTab === 'history'
-                  ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
-                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
-              }`}
-            >
-              <History className="w-4.5 h-4.5" />
-              <span>ออเดอร์ประจำวัน</span>
-            </button>
+            {isOwner && (
+              <button
+                onClick={() => onSelectTab('history')}
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
+                  activeTab === 'history'
+                    ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
+                }`}
+              >
+                <History className="w-4.5 h-4.5" />
+                <span>ออเดอร์ประจำวัน</span>
+              </button>
+            )}
 
             {isOwner && (
               <>
