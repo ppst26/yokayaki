@@ -52,7 +52,7 @@
 | `F-SEC` | Security & RLS | policy ทุกตาราง · grant/revoke · PIN · rate limit | 🟢 | M0 |
 | `F-API` | Server Tier | `app/api/*` · service-role · zod · transaction เดียวต่อออเดอร์ | 🟢 | operational mutations ผ่าน API แล้ว · owner menu/promo/loyalty/stock ยัง client+RLS |
 | `F-DATA` | Data Integrity & Scale | index · atomic · timezone · migration hygiene · aggregation | 🟢 | migration hygiene ยังไม่ idempotent ทั้งชุด (ไฟล์เก่าก่อน M0) | M2 / M8 |
-| `F-TEST` | Testing & CI | unit · integration (RPC/RLS) · E2E · GitHub Actions | 🟡 | M3 |
+| `F-TEST` | Testing & CI | unit · integration (RPC/RLS) · E2E · GitHub Actions | 🟡 | CI + smoke E2E แล้ว · ยังไม่ครอบ flow เต็ม | M3 |
 | `F-TENANT` | Multi-Tenancy | organizations / branches / memberships / org_settings | ⬜ | M4 |
 | `F-AUTHZ` | Auth & Permission Matrix | Supabase Auth · JWT claim · role 5 ระดับ | ⬜ | M5 |
 | `F-BILL` | Billing & Subscription | plans / subscriptions / usage / gateway / trial | ⬜ | M6 |
@@ -173,13 +173,13 @@
 - [x] เอา `EXCEPTION WHEN OTHERS THEN NULL` ออกจาก `20260730_enable_realtime.sql` — ใช้เช็ค `pg_publication_tables` แทน
 - [x] ตั้ง `REPLICA IDENTITY FULL` บน tables/orders/order_items/menu_items/qr_sessions
 
-## M3 — 🧪 Testing Foundation `⬜`
+## M3 — 🧪 Testing Foundation `🟡`
 
 - [ ] unit: คำนวณโปรโมชั่น · แต้ม · EMVCo payload + CRC
-- [x] โครง integration test: `docker-compose.yml` + `supabase/tests/security.sql` (13 assertion ครอบ A1–A6) → `pnpm db:up && pnpm db:test`
-- [ ] integration: ขยายให้ครบ **ทุก** RPC + ทุก RLS policy (ตอนนี้ครอบเฉพาะเส้นทางที่ M0 แตะ)
-- [ ] E2E (Playwright): สั่ง → ครัว → เช็คบิล · ลูกค้าสแกน QR สั่งเอง
-- [ ] CI: lint + typecheck + test + migration check ทุก PR
+- [x] โครง integration test: `docker-compose.yml` + `supabase/tests/*.sql` → `pnpm db:up && pnpm db:test`
+- [x] CI: `.github/workflows/ci.yml` — lint · build · `db:test` · Playwright smoke
+- [ ] integration: ขยายให้ครบ **ทุก** RPC + ทุก RLS policy
+- [x] E2E scaffold: Playwright `e2e/smoke.spec.ts` (PIN pad) — ยังไม่ครอบสั่ง→ครัว→เช็คบิล
 - [ ] `supabase gen types typescript` แทน type ที่เขียนมือ
 
 ## M4–M9 `⛔ รอ milestone ก่อนหน้า`

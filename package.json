@@ -7,6 +7,9 @@
     "build": "next build",
     "start": "next start -H 0.0.0.0",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "playwright test",
+    "deploy:production": "node scripts/deploy-production.mjs",
     "db:up": "docker compose up -d --wait",
     "db:down": "docker compose down -v",
     "db:reset": "docker compose down -v && docker compose up -d --wait",
@@ -33,6 +36,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "1.51.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
