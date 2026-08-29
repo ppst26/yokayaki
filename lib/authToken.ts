@@ -52,7 +52,8 @@ async function loadSigningMaterial(): Promise<SigningMaterial> {
       );
     }
     const alg = jwk.alg ?? 'ES256';
-    const key = await importJWK(jwk, alg);
+    // Supabase import ต้อง key_ops >= 2 (sign+verify) แต่ Node เซ็นได้แค่ ['sign']
+    const key = await importJWK({ ...jwk, key_ops: ['sign'] }, alg);
     if (!key) {
       throw new Error('[authToken] อ่าน SUPABASE_JWT_SIGNING_JWK ไม่สำเร็จ');
     }

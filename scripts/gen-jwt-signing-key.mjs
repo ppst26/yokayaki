@@ -21,7 +21,7 @@ Object.assign(privateJwk, {
   kid,
   alg: 'ES256',
   use: 'sig',
-  key_ops: ['sign'],
+  key_ops: ['sign', 'verify'],
   ext: true,
 });
 Object.assign(publicJwk, {

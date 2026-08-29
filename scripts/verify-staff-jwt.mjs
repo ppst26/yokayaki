@@ -8,6 +8,17 @@ requireEnv(env, ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY']);
 
 const url = env.NEXT_PUBLIC_SUPABASE_URL.replace(/\/$/, '');
 
+async function fetchJwksKids() {
+  try {
+    const res = await fetch(`${url}/auth/v1/.well-known/jwks.json`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data.keys ?? []).map((k) => k.kid).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
 function readJwkRaw() {
   const jwkFile = env.SUPABASE_JWT_SIGNING_JWK_FILE?.trim();
   if (jwkFile) return readFileSync(jwkFile, 'utf8').trim();
@@ -21,7 +32,7 @@ async function signTestToken() {
   if (jwkRaw) {
     const jwk = JSON.parse(jwkRaw);
     const alg = jwk.alg ?? 'ES256';
-    const key = await importJWK(jwk, alg);
+    const key = await importJWK({ ...jwk, key_ops: ['sign'] }, alg);
     const header = { alg, typ: 'JWT' };
     if (jwk.kid) header.kid = jwk.kid;
     return new SignJWT({
@@ -61,6 +72,14 @@ async function signTestToken() {
 const token = await signTestToken();
 const tokenHeader = JSON.parse(Buffer.from(token.split('.')[0], 'base64url').toString());
 console.log('JWT header:', tokenHeader);
+
+const jwksKids = await fetchJwksKids();
+console.log('JWKS kids บน Supabase:', jwksKids.join(', ') || '(ว่าง)');
+if (tokenHeader.kid && !jwksKids.includes(tokenHeader.kid)) {
+  console.log('\n⚠ kid', tokenHeader.kid, 'ยังไม่อยู่ใน JWKS — ต้อง import PUBLIC key ก่อน');
+  console.log('  รัน: node scripts/export-public-jwk.mjs');
+  console.log('  แล้ว Dashboard → Project Settings → API → JWT Signing Keys → Import key');
+}
 
 const res = await fetch(`${url}/rest/v1/tables?select=id&limit=1`, {
   headers: {
