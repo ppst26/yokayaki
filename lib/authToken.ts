@@ -1,6 +1,6 @@
 import 'server-only';
 import { readFileSync } from 'node:fs';
-import { SignJWT, jwtVerify, importJWK, type KeyLike } from 'jose';
+import { SignJWT, jwtVerify, importJWK } from 'jose';
 
 // =============================================================
 // JWT ของพนักงาน — สำหรับ PostgREST / Realtime (role authenticated)
@@ -21,9 +21,11 @@ export interface StaffClaims {
   empRole: EmployeeRole;
 }
 
+type JoseKey = Awaited<ReturnType<typeof importJWK>>;
+
 interface SigningMaterial {
-  signKey: KeyLike;
-  verifyKey: KeyLike;
+  signKey: JoseKey;
+  verifyKey: JoseKey;
   alg: string;
   kid?: string;
 }
