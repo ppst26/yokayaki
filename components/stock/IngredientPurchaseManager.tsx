@@ -37,6 +37,7 @@ interface IngredientItem {
 }
 
 interface NewIngredientRow {
+  id?: number;
   name: string;
   unit: string;
   quantity: string;
@@ -263,7 +264,7 @@ export const IngredientPurchaseManager: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('item_ingredients')
-        .select('id, purchase_order_id, name, quantity, unit, cost, purchase_date, buyer_name')
+        .select('id, purchase_order_id, name, quantity, unit, cost, price_per_unit, purchase_date, buyer_name')
         .eq('purchase_order_id', orderId)
         .order('id', { ascending: true });
 
@@ -330,7 +331,7 @@ export const IngredientPurchaseManager: React.FC = () => {
     if (!items) {
       const { data, error } = await supabase
         .from('item_ingredients')
-        .select('id, purchase_order_id, name, quantity, unit, cost, purchase_date, buyer_name')
+        .select('id, purchase_order_id, name, quantity, unit, cost, price_per_unit, purchase_date, buyer_name')
         .eq('purchase_order_id', order.id)
         .order('id', { ascending: true });
 
@@ -350,10 +351,16 @@ export const IngredientPurchaseManager: React.FC = () => {
     if (items && items.length > 0) {
       setIngredients(
         items.map(item => ({
+          id: item.id,
           name: item.name,
           unit: item.unit || 'กก.',
           quantity: item.quantity.toString(),
-          pricePerUnit: item.quantity > 0 ? (item.cost / item.quantity).toString() : '0',
+          pricePerUnit:
+            item.price_per_unit != null
+              ? String(item.price_per_unit)
+              : item.quantity > 0
+                ? (item.cost / item.quantity).toString()
+                : '0',
         }))
       );
     } else {
@@ -408,92 +415,32 @@ export const IngredientPurchaseManager: React.FC = () => {
     try {
       setIsSaving(true);
 
-      if (editingOrder) {
-        // ── EDIT MODE ────────────────────────────────────────────────
-        // 1. Update purchase_orders header
-        const { error: poErr } = await supabase
-          .from('purchase_orders')
-          .update({
-            purchase_date: purchaseDate,
-            buyer_name: buyerName.trim(),
-            total_cost: totalCost,
-            note: note.trim() || null,
-          })
-          .eq('id', editingOrder.id);
+      const itemsPayload = validRows.map(row => ({
+        ...(row.id != null ? { id: row.id } : {}),
+        name: row.name.trim(),
+        quantity: parseFloat(row.quantity),
+        unit: row.unit,
+        price_per_unit: parseFloat(row.pricePerUnit),
+      }));
 
-        if (poErr) throw poErr;
+      const { data, error } = await supabase.rpc('upsert_purchase_order', {
+        p_order_id: editingOrder?.id ?? null,
+        p_purchase_date: purchaseDate,
+        p_buyer_name: buyerName.trim(),
+        p_note: note.trim() || null,
+        p_items: itemsPayload,
+      });
 
-        // 2. Delete old ingredient rows for this PO
-        const { error: delErr } = await supabase
-          .from('item_ingredients')
-          .delete()
-          .eq('purchase_order_id', editingOrder.id);
+      if (error) throw error;
 
-        if (delErr) throw delErr;
+      const purchaseOrderId = editingOrder?.id ?? (data as { order_id: number }).order_id;
 
-        // 3. Re-insert updated ingredient rows
-        const ingredientRows = validRows.map(row => ({
-          purchase_order_id: editingOrder.id,
-          name: row.name.trim(),
-          quantity: parseFloat(row.quantity),
-          unit: row.unit,
-          cost: calcRowTotal(row),
-          purchase_date: purchaseDate,
-          buyer_name: buyerName.trim(),
-        }));
-
-        const { error: ingErr } = await supabase
-          .from('item_ingredients')
-          .insert(ingredientRows);
-
-        if (ingErr) throw ingErr;
-
-        const updatedPoId = editingOrder.id;
-        setShowModal(false);
-        setEditingOrder(null);
-        await fetchOrders();
-        await fetchOrderItems(updatedPoId);
-      } else {
-        // ── CREATE MODE ──────────────────────────────────────────────
-        // 1. Create purchase_order header
-        const { data: poData, error: poErr } = await supabase
-          .from('purchase_orders')
-          .insert([{
-            purchase_date: purchaseDate,
-            buyer_name: buyerName.trim(),
-            total_cost: totalCost,
-            note: note.trim() || null,
-          }])
-          .select('id')
-          .single();
-
-        if (poErr) throw poErr;
-        const purchaseOrderId = poData.id;
-
-        // 2. Insert ingredient rows linked to this PO
-        const ingredientRows = validRows.map(row => ({
-          purchase_order_id: purchaseOrderId,
-          name: row.name.trim(),
-          quantity: parseFloat(row.quantity),
-          unit: row.unit,
-          cost: calcRowTotal(row),
-          purchase_date: purchaseDate,
-          buyer_name: buyerName.trim(),
-        }));
-
-        const { error: ingErr } = await supabase
-          .from('item_ingredients')
-          .insert(ingredientRows);
-
-        if (ingErr) throw ingErr;
-
-        setShowModal(false);
-        await fetchOrders();
-        setExpandedItems(prev => {
-          const copy = { ...prev };
-          delete copy[purchaseOrderId];
-          return copy;
-        });
+      setShowModal(false);
+      setEditingOrder(null);
+      await fetchOrders();
+      if (purchaseOrderId) {
+        await fetchOrderItems(purchaseOrderId);
+        setExpandedId(purchaseOrderId);
       }
     } catch (err: any) {
       console.error('handleSave error:', err);

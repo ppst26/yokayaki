@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import { 
   ShoppingBag, 
   Plus, 
@@ -21,6 +20,7 @@ import {
   ChevronRight,
   BellRing
 } from 'lucide-react';
+import { menuItemSalePrice } from '@/lib/menuPrice';
 
 interface OrderedItem {
   id: number;
@@ -38,6 +38,8 @@ interface MenuItem {
   stock: number;
   category: string;
   image_url?: string | null;
+  is_happy_hour?: boolean;
+  happy_hour_price?: number | null;
 }
 
 interface CartItem extends MenuItem {
@@ -59,6 +61,9 @@ interface Promotion {
 }
 
 type CustomerTab = 'home' | 'order' | 'ordered' | 'promotions';
+
+/** ถี่พอให้ลูกค้ารู้สึกว่าอัปเดตทันที แต่เบากว่าการเปิด realtime channel ให้ทุกโต๊ะทั้งร้าน */
+const POLL_INTERVAL_MS = 5000;
 
 export default function CustomerOrderPortal() {
   const params = useParams();
@@ -83,199 +88,87 @@ export default function CustomerOrderPortal() {
   const [showCheckBillConfirm, setShowCheckBillConfirm] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
-  useEffect(() => {
-    if (sessionId) {
-      verifySessionAndFetchData();
-    }
-  }, [sessionId]);
+  // =============================================================
+  // ข้อมูลทั้งหมดของหน้านี้มาจาก /api/customer/[session_id]/state ทางเดียว
+  //
+  // เดิมหน้านี้ถือ anon key แล้ว query 5 ตารางตรงๆ พร้อมเปิด realtime 5 ช่อง
+  // = ลูกค้าที่สแกน QR ได้สิทธิ์ระดับเดียวกับเครื่อง POS ทั้งร้าน (A1)
+  //
+  // ตอนนี้หน้าลูกค้าไม่มี credential ใดๆ อยู่ใน bundle เลย
+  // session UUID ใน URL คือสิทธิ์ทั้งหมดที่มี และ server เป็นคน scope ให้เหลือ
+  // เฉพาะโต๊ะของเซสชันนี้ · realtime ถูกแทนด้วยการ poll ทุก 5 วินาที
+  // =============================================================
 
-  // Realtime subscriptions for table status, qr_session status, orders status, order items, and menu changes
-  useEffect(() => {
-    if (!tableId) return;
+  const isFirstLoadRef = useRef(true);
+  const prevTableStatusRef = useRef<string | null>(null);
 
-    // 1. Listen to table status changes (e.g. checking_out, occupied, vacant)
-    const tableChannel = supabase
-      .channel(`realtime:customer_table_${tableId}`)
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'tables', filter: `id=eq.${tableId}` },
-        (payload) => {
-          if (payload.new && payload.new.status) {
-            const newStatus = payload.new.status as 'vacant' | 'occupied' | 'checking_out';
-            setTableStatus(newStatus);
-            if (newStatus === 'vacant') {
-              setIsCheckoutCompleted(true);
-            }
-          }
-        }
-      )
-      .subscribe();
+  const refresh = useCallback(async () => {
+    if (!sessionId) return;
 
-    // 2. Listen to qr_sessions status changes (e.g. expired)
-    const sessionChannel = supabase
-      .channel(`realtime:customer_session_${sessionId}`)
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'qr_sessions', filter: `id=eq.${sessionId}` },
-        (payload) => {
-          if (payload.new && payload.new.status === 'expired') {
-            setIsCheckoutCompleted(true);
-          }
-        }
-      )
-      .subscribe();
-
-    // 3. Listen to orders status changes (e.g. completed)
-    const ordersChannel = supabase
-      .channel(`realtime:customer_orders_${tableId}`)
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'orders', filter: `table_id=eq.${tableId}` },
-        (payload) => {
-          if (payload.new && payload.new.status === 'completed') {
-            setIsCheckoutCompleted(true);
-          }
-        }
-      )
-      .subscribe();
-
-    // 4. Listen to order_items changes (e.g. kitchen marks item as served or voided)
-    const orderItemsChannel = supabase
-      .channel(`realtime:customer_order_items_${tableId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'order_items' },
-        () => {
-          fetchOrderedItems(tableId);
-        }
-      )
-      .subscribe();
-
-    // 5. Listen to menu_items changes (e.g. stock or price update)
-    const menuChannel = supabase
-      .channel(`realtime:customer_menu_items`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'menu_items' },
-        async () => {
-          const { data: menuData } = await supabase
-            .from('menu_items')
-            .select('*')
-            .order('id', { ascending: true });
-          if (menuData) setMenuItems(menuData as MenuItem[]);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      tableChannel.unsubscribe();
-      sessionChannel.unsubscribe();
-      ordersChannel.unsubscribe();
-      orderItemsChannel.unsubscribe();
-      menuChannel.unsubscribe();
-    };
-  }, [tableId, sessionId]);
-
-  const verifySessionAndFetchData = async () => {
     try {
-      setIsLoading(true);
+      const res = await fetch(`/api/customer/${sessionId}/state`, { cache: 'no-store' });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data?.error ?? 'โหลดข้อมูลไม่สำเร็จ');
+
+      if (!data.sessionActive) {
+        // เปิดครั้งแรกแล้วเซสชันใช้ไม่ได้ = QR ผิดหรือหมดอายุ
+        // เคยใช้ได้แล้วเพิ่งหยุด = พนักงานปิดบิลไปแล้ว
+        if (isFirstLoadRef.current) setSessionValid(false);
+        else setIsCheckoutCompleted(true);
+        return;
+      }
+
       setErrorMsg(null);
-
-      // 1. Verify session
-      const { data: sessionData, error: sessionError } = await supabase
-        .from('qr_sessions')
-        .select('table_id, status, expired_at')
-        .eq('id', sessionId)
-        .maybeSingle();
-
-      if (sessionError) throw sessionError;
-      
-      if (!sessionData || sessionData.status !== 'active') {
-        setSessionValid(false);
-        return;
-      }
-
-      if (sessionData.expired_at && new Date(sessionData.expired_at) < new Date()) {
-        setSessionValid(false);
-        return;
-      }
-
-      setTableId(sessionData.table_id);
       setSessionValid(true);
+      setTableId(data.tableId);
+      setMenuItems((data.menuItems ?? []) as MenuItem[]);
+      setPromotions((data.promotions ?? []) as Promotion[]);
+      setOrderedItems((data.orderedItems ?? []) as OrderedItem[]);
 
-      // Fetch table status
-      const { data: tableData } = await supabase
-        .from('tables')
-        .select('status')
-        .eq('id', sessionData.table_id)
-        .maybeSingle();
+      const nextStatus = data.tableStatus as 'vacant' | 'occupied' | 'checking_out';
+      setTableStatus(nextStatus);
 
-      if (tableData) {
-        const currentStatus = tableData.status as 'vacant' | 'occupied' | 'checking_out';
-        setTableStatus(currentStatus);
+      // โต๊ะเปลี่ยนเป็นว่าง = ปิดบิลเรียบร้อย (เดิมจับจาก realtime UPDATE event)
+      if (!isFirstLoadRef.current && prevTableStatusRef.current !== 'vacant' && nextStatus === 'vacant') {
+        setIsCheckoutCompleted(true);
       }
-
-      // 2. Fetch Menu
-      const { data: menuData, error: menuError } = await supabase
-        .from('menu_items')
-        .select('*')
-        .order('id', { ascending: true });
-
-      if (menuError) throw menuError;
-      if (menuData) setMenuItems(menuData as MenuItem[]);
-
-      // 3. Fetch Active Promotions
-      fetchPromotions();
-
-      // 4. Fetch ordered items for this table
-      await fetchOrderedItems(sessionData.table_id);
+      prevTableStatusRef.current = nextStatus;
     } catch (err) {
       console.error('Error loading portal:', err);
       setErrorMsg('เกิดข้อผิดพลาดในการโหลดระบบสั่งอาหาร');
     } finally {
+      isFirstLoadRef.current = false;
       setIsLoading(false);
     }
-  };
+  }, [sessionId]);
 
-  const fetchPromotions = async () => {
-    try {
-      const { data } = await supabase
-        .from('promotions')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-      if (data) setPromotions(data as Promotion[]);
-    } catch (err) {
-      console.error('Error fetching promotions:', err);
-    }
-  };
+  // ชื่อเดิมที่ JSX ยังเรียกอยู่ — ตอนนี้ทั้งคู่หมายถึง "ดึงสถานะรอบใหม่"
+  const verifySessionAndFetchData = refresh;
+  const fetchOrderedItems = useCallback(async (_tableId?: number) => { await refresh(); }, [refresh]);
 
-  const fetchOrderedItems = async (tId: number) => {
-    try {
-      const { data: orderData } = await supabase
-        .from('orders')
-        .select('id')
-        .eq('table_id', tId)
-        .eq('status', 'active')
-        .maybeSingle();
+  useEffect(() => {
+    if (!sessionId) return;
+    // จบงานแล้วก็ไม่ต้อง poll ต่อ
+    if (isCheckoutCompleted || sessionValid === false) return;
 
-      if (orderData) {
-        const { data: items } = await supabase
-          .from('order_items')
-          .select('id, quantity, unit_price, status, notes, menu_items(name)')
-          .eq('order_id', orderData.id)
-          .order('id', { ascending: true });
+    refresh();
 
-        if (items) setOrderedItems(items as unknown as OrderedItem[]);
-      } else {
-        setOrderedItems([]);
-      }
-    } catch (err) {
-      console.error('Error fetching ordered items:', err);
-    }
-  };
+    const timer = setInterval(refresh, POLL_INTERVAL_MS);
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') refresh();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [sessionId, refresh, isCheckoutCompleted, sessionValid]);
+
 
   const addToCart = (item: MenuItem, notes?: string) => {
+    const salePrice = menuItemSalePrice(item);
     setCart(prev => {
       const itemNotes = notes || '';
       const existing = prev.find(i => i.id === item.id && (i.notes || '') === itemNotes);
@@ -287,7 +180,7 @@ export default function CustomerOrderPortal() {
       }
       if (totalQtyInCart >= item.stock) return prev;
       if (item.stock === 0) return prev;
-      return [...prev, { ...item, quantity: 1, notes: itemNotes }];
+      return [...prev, { ...item, price: salePrice, quantity: 1, notes: itemNotes }];
     });
   };
 
@@ -342,26 +235,19 @@ export default function CustomerOrderPortal() {
     try {
       setIsUpdatingStatus(true);
 
-      // Check if order is still active
-      const { data: activeOrder } = await supabase
-        .from('orders')
-        .select('id')
-        .eq('table_id', tableId)
-        .eq('status', 'active')
-        .maybeSingle();
+      // แก้ A7.3: เดิมหน้านี้ UPDATE ตาราง tables ตรงๆ ด้วย anon key
+      // = ใครมี URL ก็พลิกสถานะโต๊ะไหนก็ได้ทั้งร้าน
+      const res = await fetch(`/api/customer/${sessionId}/check-bill`, { method: 'POST' });
+      const data = await res.json();
 
-      if (!activeOrder) {
+      if (!res.ok) throw new Error(data?.error ?? 'เรียกเช็คบิลไม่สำเร็จ');
+
+      if (!data.orderActive) {
         setIsCheckoutCompleted(true);
         setShowCheckBillConfirm(false);
         return;
       }
 
-      const { error } = await supabase
-        .from('tables')
-        .update({ status: 'checking_out', updated_at: new Date().toISOString() })
-        .eq('id', tableId);
-
-      if (error) throw error;
       setTableStatus('checking_out');
       setShowCheckBillConfirm(false);
     } catch (err) {
@@ -376,12 +262,11 @@ export default function CustomerOrderPortal() {
     if (!tableId) return;
     try {
       setIsUpdatingStatus(true);
-      const { error } = await supabase
-        .from('tables')
-        .update({ status: 'occupied', updated_at: new Date().toISOString() })
-        .eq('id', tableId);
-
-      if (error) throw error;
+      const res = await fetch(`/api/customer/${sessionId}/check-bill`, { method: 'DELETE' });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? 'ยกเลิกการเรียกเช็คบิลไม่สำเร็จ');
+      }
       setTableStatus('occupied');
     } catch (err) {
       console.error('Error cancelling check bill:', err);
@@ -396,33 +281,30 @@ export default function CustomerOrderPortal() {
     try {
       setIsSubmitting(true);
       setErrorMsg(null);
-      let allSuccess = true;
-      let failCount = 0;
 
-      for (const item of cart) {
-        const { data: success, error: rpcError } = await supabase.rpc('customer_place_order_item', {
-          p_session_id: sessionId,
-          p_menu_item_id: item.id,
-          p_quantity: item.quantity,
-          p_unit_price: item.price,
-          p_notes: item.notes || null
-        });
+      // ส่งตะกร้าไปทีเดียว และ "ไม่ส่งราคา" — ราคามาจาก menu_items ฝั่ง server เท่านั้น
+      // (เดิม loop ยิง RPC จากเบราว์เซอร์พร้อมส่ง p_unit_price ที่ลูกค้าแก้ได้)
+      const res = await fetch(`/api/customer/${sessionId}/order`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: cart.map(item => ({
+            menuItemId: item.id,
+            quantity: item.quantity,
+            notes: item.notes || null,
+          })),
+        }),
+      });
+      const data = await res.json();
 
-        if (rpcError || !success) {
-          allSuccess = false;
-          failCount++;
-          console.error(`Failed to place order for item ${item.name}`, rpcError);
-        }
-      }
-
-      if (allSuccess) {
+      if (res.ok) {
         setCart([]);
-        if (tableId) await fetchOrderedItems(tableId);
+        await refresh();
         setActiveTab('ordered');
         alert('ส่งรายการสั่งซื้อเข้าครัวสำเร็จ!');
       } else {
-        setErrorMsg(`ออเดอร์ล้มเหลวจำนวน ${failCount} รายการ อาจเป็นเพราะสต็อกหมดหรือเซสชันหมดอายุ`);
-        verifySessionAndFetchData();
+        setErrorMsg(data?.error ?? 'ไม่สามารถส่งออเดอร์ได้');
+        await refresh();
       }
     } catch (err: any) {
       console.error('Error confirming order:', err);

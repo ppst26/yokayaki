@@ -39,6 +39,7 @@ interface Promotion {
   menu_item_id?: number;
   coupon_code?: string;
   is_active: boolean;
+  image_url?: string | null;
   created_at: string;
 }
 
@@ -78,6 +79,7 @@ export const PromoManager: React.FC = () => {
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [couponCode, setCouponCode] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
 
   const showMsg = (text: string, t: 'success' | 'error') => {
     setMessage({ text, type: t });
@@ -130,6 +132,7 @@ export const PromoManager: React.FC = () => {
     setStartTime('');
     setEndTime('');
     setCouponCode('');
+    setImageUrl('');
     setShowModal(true);
   };
 
@@ -160,6 +163,7 @@ export const PromoManager: React.FC = () => {
     setStartTime(p.start_time || '');
     setEndTime(p.end_time || '');
     setCouponCode(p.coupon_code || '');
+    setImageUrl(p.image_url || '');
     setShowModal(true);
   };
 
@@ -193,6 +197,7 @@ export const PromoManager: React.FC = () => {
         end_time: isHappyHour ? (endTime || null) : null,
         menu_item_id: menuItemId ? Number(menuItemId) : null,
         coupon_code: promoCategory === 'coupon' && couponCode.trim() ? couponCode.trim().toUpperCase() : null,
+        image_url: imageUrl.trim() || null,
         is_active: editingPromo ? editingPromo.is_active : true,
       };
 
@@ -525,6 +530,45 @@ export const PromoManager: React.FC = () => {
                       ? 'เช่น โค้ดลด 50 บาทประจำเดือน'
                       : 'เช่น ซื้อยากิโทริ 2 แถม 1'
                   }
+                />
+              </div>
+
+              {/* ช่วงวันที่ + รูปภาพ (L3) */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-600 dark:text-neutral-300 mb-1 font-bold">
+                    วันเริ่มโปร
+                  </label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={e => setStartDate(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2 text-xs font-semibold text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-600 dark:text-neutral-300 mb-1 font-bold">
+                    วันสิ้นสุดโปร
+                  </label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={e => setEndDate(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2 text-xs font-semibold text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-600 dark:text-neutral-300 mb-1 font-bold">
+                  URL รูปภาพโปรโมชั่น (Optional)
+                </label>
+                <input
+                  type="url"
+                  value={imageUrl}
+                  onChange={e => setImageUrl(e.target.value)}
+                  placeholder="https://images.unsplash.com/..."
+                  className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none"
                 />
               </div>
 

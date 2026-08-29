@@ -42,7 +42,6 @@ interface OrderItemDetail {
   id: number;
   quantity: number;
   unit_price: number;
-  discount_applied: number;
   notes: string | null;
   menu_items: { name: string } | null;
 }
@@ -251,7 +250,7 @@ export const SalesHistory: React.FC = () => {
 
       const { data, error } = await supabase
         .from('order_items')
-        .select('id, quantity, unit_price, discount_applied, notes, menu_items(name)')
+        .select('id, quantity, unit_price, notes, menu_items(name)')
         .eq('order_id', order.id)
         .neq('status', 'voided')
         .order('id', { ascending: true });

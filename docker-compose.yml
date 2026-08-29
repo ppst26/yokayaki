@@ -1,0 +1,41 @@
+# =============================================================
+# Postgres สำหรับทดสอบ migration ในเครื่อง — ไม่ใช่ production
+#
+#   pnpm db:up      สร้าง DB + รัน migration ทั้งชุดตามลำดับที่ถูกต้อง
+#   pnpm db:test    รันชุดทดสอบความปลอดภัย A2–A6
+#   pnpm db:reset   ล้างทิ้งแล้วสร้างใหม่จากศูนย์ (ใช้ตรวจว่า migration ชุดนี้ยังรันจาก DB เปล่าได้)
+#   pnpm db:psql    เปิด psql เข้าไปดูเอง
+#   pnpm db:down    ลบ container + ข้อมูลทิ้ง
+#
+# ตั้งใจให้ "เหมือน Supabase เท่าที่จำเป็น": มี role anon / authenticated / service_role
+# มี pgcrypto ใน schema extensions และมี publication supabase_realtime
+# แต่ไม่มี PostgREST/GoTrue — ทดสอบได้เฉพาะชั้น DB (ซึ่งคือชั้นที่ A1–A6 อยู่)
+# =============================================================
+
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: yokayaki-test-db
+    # logical = แบบเดียวกับ Supabase เพื่อให้ publication ของ realtime ใช้งานได้จริง
+    command: ["postgres", "-c", "wal_level=logical"]
+    environment:
+      POSTGRES_USER: postgres
+      # รหัสผ่านของ DB ทดสอบในเครื่อง ไม่ใช่ความลับ — ห้ามใช้ค่านี้ที่อื่น
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: yokayaki_test
+      # Supabase รันเป็น UTC — ตั้งให้ตรงกัน เพื่อให้บั๊ก timezone โผล่ตอนทดสอบ ไม่ใช่ตอนขึ้นจริง
+      TZ: UTC
+      PGTZ: UTC
+    ports:
+      # ใช้ 54329 เพื่อไม่ชนกับ Postgres ในเครื่อง (5432) และ Supabase CLI (54322)
+      - "54329:5432"
+    volumes:
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+      - ./supabase/migrations:/migrations:ro
+      - ./supabase/tests:/tests:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d yokayaki_test"]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+      start_period: 10s

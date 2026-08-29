@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/context/AuthContext';
 import { ChefHat, Volume2, VolumeX, RefreshCw } from 'lucide-react';
 import { KitchenOrderCard } from './KitchenOrderCard';
 import { Card } from '@/components/ui/card';
@@ -37,17 +36,13 @@ interface TableGroup {
 }
 
 export const KitchenScreen: React.FC = () => {
-  const { employee } = useAuth();
   const [items, setItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const soundEnabledRef = useRef(soundEnabled);
+  soundEnabledRef.current = soundEnabled;
   const [now, setNow] = useState<Date>(new Date());
   const prevItemsCountRef = useRef<number>(0);
-
-  const playChime = () => {
-    if (!soundEnabled) return;
-    playNewOrderSound();
-  };
 
   const fetchPendingItems = async () => {
     try {
@@ -74,14 +69,6 @@ export const KitchenScreen: React.FC = () => {
 
       if (data) {
         const fetchedItems = data as unknown as OrderItem[];
-
-        if (
-          prevItemsCountRef.current > 0 &&
-          fetchedItems.length > prevItemsCountRef.current
-        ) {
-          playChime();
-        }
-
         prevItemsCountRef.current = fetchedItems.length;
         setItems(fetchedItems);
       }
@@ -96,32 +83,36 @@ export const KitchenScreen: React.FC = () => {
     try {
       setItems(prev => prev.filter(i => i.id !== itemId));
 
-      const { error } = await supabase
-        .from('order_items')
-        .update({ status: 'served' })
-        .eq('id', itemId);
-
-      if (error) throw error;
+      const res = await fetch(`/api/kitchen/items/${itemId}`, { method: 'PATCH' });
+      if (!res.ok) throw new Error('serve failed');
     } catch (err) {
       console.error('Error marking item as served:', err);
       fetchPendingItems();
     }
   };
 
-  const voidOrderItem = async (itemId: number, reason: string, quantity: number): Promise<boolean> => {
+  const voidOrderItem = async (
+    itemId: number,
+    reasonCode: string,
+    note: string | null,
+    quantity: number
+  ): Promise<boolean> => {
     try {
-      const { data: success, error } = await supabase.rpc('void_order_item', {
-        p_order_item_id: itemId,
-        p_void_quantity: quantity,
-        p_reason: reason,
-        p_employee_name: employee?.name || 'Kitchen',
+      const res = await fetch('/api/orders/void', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderItemId: itemId,
+          voidQuantity: quantity,
+          reasonCode,
+          reasonNote: note,
+        }),
       });
-      if (error) throw error;
-      if (success) {
-        fetchPendingItems();
-        return true;
-      }
-      return false;
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error);
+
+      fetchPendingItems();
+      return true;
     } catch (err) {
       console.error('Error voiding item from kitchen:', err);
       return false;
@@ -133,12 +124,12 @@ export const KitchenScreen: React.FC = () => {
     try {
       setItems(prev => prev.filter(i => !itemIds.includes(i.id)));
 
-      const { error } = await supabase
-        .from('order_items')
-        .update({ status: 'served' })
-        .in('id', itemIds);
-
-      if (error) throw error;
+      const res = await fetch('/api/kitchen/serve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemIds }),
+      });
+      if (!res.ok) throw new Error('batch serve failed');
     } catch (err) {
       console.error('Error serving all table items:', err);
       fetchPendingItems();
@@ -158,7 +149,7 @@ export const KitchenScreen: React.FC = () => {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'order_items' },
         (payload: any) => {
-          if (soundEnabled && payload.new && payload.new.status === 'pending') {
+          if (soundEnabledRef.current && payload.new && payload.new.status === 'pending') {
             playNewOrderSound();
           }
           fetchPendingItems();
@@ -175,7 +166,12 @@ export const KitchenScreen: React.FC = () => {
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'tables' },
         (payload: any) => {
-          if (soundEnabled && payload.new && payload.new.status === 'checking_out' && payload.old?.status !== 'checking_out') {
+          if (
+            soundEnabledRef.current &&
+            payload.new &&
+            payload.new.status === 'checking_out' &&
+            payload.old?.status !== 'checking_out'
+          ) {
             playCheckBillSound();
           }
         }
@@ -186,7 +182,7 @@ export const KitchenScreen: React.FC = () => {
       clearInterval(timer);
       channel.unsubscribe();
     };
-  }, [soundEnabled]);
+  }, []);
 
   const groupMap: Record<number, TableGroup> = {};
   for (const item of items) {

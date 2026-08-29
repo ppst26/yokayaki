@@ -1,7 +1,16 @@
 import type { NextConfig } from "next";
 
+/** Comma-separated hostnames/IPs for LAN dev (QR testing from phone). Set in .env.local */
+function allowedDevOriginsFromEnv(): string[] {
+  const raw = process.env.ALLOWED_DEV_ORIGINS?.trim();
+  if (!raw) return [];
+  return raw.split(",").map((s) => s.trim()).filter(Boolean);
+}
+
+const allowedDevOrigins = allowedDevOriginsFromEnv();
+
 const nextConfig: NextConfig = {
-  allowedDevOrigins: ['192.168.1.144', '192.168.1.104', '192.168.1.102'],
+  ...(allowedDevOrigins.length > 0 && { allowedDevOrigins }),
   async headers() {
     return [
       {

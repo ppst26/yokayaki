@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Clock, CheckCircle, Trash2, X, Loader2, ChevronDown } from 'lucide-react';
+import { VOID_REASONS, VOID_REASON_OTHER } from '@/lib/voidReasons';
 import { Card } from '@/components/ui/card';
 
 interface OrderItem {
@@ -31,28 +32,30 @@ interface KitchenOrderCardProps {
   getWaitTimeMinutes: (createdAtStr: string) => number;
   markItemAsServed: (itemId: number) => void;
   markAllTableItemsAsServed: (items: OrderItem[]) => void;
-  voidOrderItem: (itemId: number, reason: string, quantity: number) => Promise<boolean>;
+  voidOrderItem: (itemId: number, reasonCode: string, note: string | null, quantity: number) => Promise<boolean>;
 }
 
-const VOID_REASONS = ['คีย์ผิด', 'ลูกค้าเปลี่ยนใจ', 'วัตถุดิบหมด', 'อื่นๆ (ระบุ)'];
+// รายการเหตุผลใช้ร่วมกับหน้า POS แล้ว — เดิมสองหน้าจอมีคนละชุด (L15)
 
 /** Inline void dialog ที่แสดงใต้รายการ */
 const VoidDialog: React.FC<{
   item: OrderItem;
-  onConfirm: (reason: string, qty: number) => Promise<void>;
+  onConfirm: (reasonCode: string, note: string | null, qty: number) => Promise<void>;
   onCancel: () => void;
 }> = ({ item, onConfirm, onCancel }) => {
-  const [reason, setReason] = useState('คีย์ผิด');
+  const [reasonCode, setReasonCode] = useState(VOID_REASONS[0].code);
   const [customReason, setCustomReason] = useState('');
   const [qty, setQty] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  const finalReason = reason === 'อื่นๆ (ระบุ)' ? customReason.trim() : reason;
+  const note = customReason.trim();
+  // "อื่นๆ" ต้องระบุเหตุผล — ที่เหลือกดได้เลย
+  const canSubmit = reasonCode !== VOID_REASON_OTHER || note.length > 0;
 
   const handleSubmit = async () => {
-    if (!finalReason) return;
+    if (!canSubmit) return;
     setLoading(true);
-    await onConfirm(finalReason, qty);
+    await onConfirm(reasonCode, note || null, qty);
     setLoading(false);
   };
 
@@ -90,20 +93,21 @@ const VoidDialog: React.FC<{
         <div className="grid grid-cols-2 gap-1">
           {VOID_REASONS.map(r => (
             <button
-              key={r}
+              key={r.code}
               type="button"
-              onClick={() => setReason(r)}
+              onClick={() => setReasonCode(r.code)}
               className={`px-2 py-1.5 rounded-lg text-[10px] font-bold transition cursor-pointer border ${
-                reason === r
+                reasonCode === r.code
                   ? 'bg-rose-600 text-white border-rose-600'
                   : 'bg-white dark:bg-neutral-800 text-slate-600 dark:text-neutral-300 border-slate-200 dark:border-neutral-700 hover:border-rose-300 dark:hover:border-rose-700'
               }`}
             >
-              {r}
+              {r.label}
+              {r.restoresStock ? ' ↩' : ''}
             </button>
           ))}
         </div>
-        {reason === 'อื่นๆ (ระบุ)' && (
+        {reasonCode === VOID_REASON_OTHER && (
           <input
             type="text"
             autoFocus
@@ -127,7 +131,7 @@ const VoidDialog: React.FC<{
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={loading || !finalReason}
+          disabled={loading || !canSubmit}
           className="flex-1 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-bold transition cursor-pointer flex items-center justify-center gap-1"
         >
           {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
@@ -227,8 +231,8 @@ export const KitchenOrderCard: React.FC<KitchenOrderCardProps> = ({
               {openVoidId === item.id && (
                 <VoidDialog
                   item={item}
-                  onConfirm={async (reason, qty) => {
-                    const ok = await voidOrderItem(item.id, reason, qty);
+                  onConfirm={async (reasonCode, note, qty) => {
+                    const ok = await voidOrderItem(item.id, reasonCode, note, qty);
                     if (ok) setOpenVoidId(null);
                   }}
                   onCancel={() => setOpenVoidId(null)}

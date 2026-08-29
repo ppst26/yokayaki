@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { X, ShieldAlert } from 'lucide-react';
+import { VOID_REASONS, VOID_REASON_OTHER } from '@/lib/voidReasons';
 
 interface OrderedItem {
   id: number;
@@ -40,14 +41,6 @@ export const VoidItemModal: React.FC<VoidItemModalProps> = ({
   isVoiding,
 }) => {
   if (!voidTarget) return null;
-
-  const reasonsList = [
-    'ลูกค้าเปลี่ยนใจ',
-    'ทำอาหารผิดพลาด',
-    'รอนานเกินไป',
-    'วัตถุดิบหมดกลางคัน',
-    'อื่นๆ (ระบุ)',
-  ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs">
@@ -101,23 +94,28 @@ export const VoidItemModal: React.FC<VoidItemModalProps> = ({
             เหตุผลในการยกเลิก:
           </label>
           <div className="space-y-1.5">
-            {reasonsList.map(r => (
+            {VOID_REASONS.map(r => (
               <label
-                key={r}
+                key={r.code}
                 className="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-neutral-300 cursor-pointer"
               >
                 <input
                   type="radio"
                   name="voidReason"
-                  checked={voidReason === r}
-                  onChange={() => setVoidReason(r)}
+                  checked={voidReason === r.code}
+                  onChange={() => setVoidReason(r.code)}
                   className="accent-rose-600"
                 />
-                <span>{r}</span>
+                <span>{r.label}</span>
+                {r.restoresStock && (
+                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                    (คืนสต็อก)
+                  </span>
+                )}
               </label>
             ))}
           </div>
-          {voidReason === 'อื่นๆ (ระบุ)' && (
+          {voidReason === VOID_REASON_OTHER && (
             <input
               type="text"
               placeholder="ระบุเหตุผล..."
