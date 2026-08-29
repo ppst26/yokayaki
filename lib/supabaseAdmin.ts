@@ -1,5 +1,5 @@
 import 'server-only';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 // =============================================================
 // Supabase client ฝั่ง server เท่านั้น — ถือ service-role key ซึ่ง bypass RLS
@@ -8,18 +8,33 @@ import { createClient } from '@supabase/supabase-js';
 //    `server-only` จะทำให้ build พังทันทีถ้าเผลอ import ผิดฝั่ง
 // =============================================================
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+let client: SupabaseClient | null = null;
 
-// ตั้งใจให้ throw ตอน import — ห้าม fallback เงียบๆ แบบเดิม (A7.8)
-// ระบบที่บูตขึ้นมาโดยต่อ DB ไม่ได้ อันตรายกว่าระบบที่บูตไม่ขึ้น
-if (!url) {
-  throw new Error('[supabaseAdmin] ไม่พบ NEXT_PUBLIC_SUPABASE_URL');
-}
-if (!serviceRoleKey) {
-  throw new Error('[supabaseAdmin] ไม่พบ SUPABASE_SERVICE_ROLE_KEY (ต้องไม่ขึ้นต้นด้วย NEXT_PUBLIC_)');
+// สร้าง client ครั้งแรกที่มีการใช้งานจริง ไม่ใช่ตอน import
+// build ของ Next.js ประเมิน module นี้ตอน collect page data ซึ่งยังไม่มี secret ให้ใช้
+// แต่ยังห้าม fallback เงียบๆ (A7.8) — request แรกที่ env ไม่ครบต้องพังทันที
+function getClient(): SupabaseClient {
+  if (client) return client;
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url) {
+    throw new Error('[supabaseAdmin] ไม่พบ NEXT_PUBLIC_SUPABASE_URL');
+  }
+  if (!serviceRoleKey) {
+    throw new Error('[supabaseAdmin] ไม่พบ SUPABASE_SERVICE_ROLE_KEY (ต้องไม่ขึ้นต้นด้วย NEXT_PUBLIC_)');
+  }
+
+  client = createClient(url, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  return client;
 }
 
-export const supabaseAdmin = createClient(url, serviceRoleKey, {
-  auth: { persistSession: false, autoRefreshToken: false },
+export const supabaseAdmin = new Proxy({} as SupabaseClient, {
+  get(_target, prop) {
+    const instance = getClient();
+    const value = Reflect.get(instance, prop, instance);
+    return typeof value === 'function' ? value.bind(instance) : value;
+  },
 });
