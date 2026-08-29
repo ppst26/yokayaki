@@ -59,7 +59,7 @@ export const EmployeeManager: React.FC = () => {
     try {
       setLoading(true);
       // ตาราง employees ไม่มี SELECT policy อีกต่อไป (A2) — รายชื่อมาทาง server tier ทางเดียว
-      const res = await fetch('/api/employees', { cache: 'no-store' });
+      const res = await fetch('/api/employees', { cache: 'no-store', credentials: 'same-origin' });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error ?? 'ไม่สามารถดึงข้อมูลพนักงานได้');
       setEmployees((data.employees ?? []) as Employee[]);
@@ -72,10 +72,9 @@ export const EmployeeManager: React.FC = () => {
   };
 
   useEffect(() => {
+    if (!currentUser || currentUser.role !== 'owner') return;
     fetchEmployees();
-    // ไม่มี realtime subscription บน employees แล้ว — ตารางนี้ client อ่านตรงไม่ได้
-    // ทุกการเปลี่ยนแปลงมาจากหน้านี้เอง จึง refetch หลังทำรายการสำเร็จก็พอ
-  }, []);
+  }, [currentUser?.id]);
 
   // ========== Helpers ==========
 

@@ -22,7 +22,8 @@ export interface StaffClaims {
 }
 
 interface SigningMaterial {
-  key: KeyLike;
+  signKey: KeyLike;
+  verifyKey: KeyLike;
   alg: string;
   kid?: string;
 }
@@ -36,43 +37,53 @@ async function loadSigningMaterial(): Promise<SigningMaterial> {
     jwkRaw = readFileSync(jwkFile, 'utf8').trim();
   }
   if (jwkRaw) {
-    // รวม whitespace กรณี paste แตกบรรทัดใน .env
     jwkRaw = jwkRaw.replace(/\s+/g, '');
-    let jwk: JsonWebKey & { alg?: string; kid?: string };
+    let jwk: JsonWebKey & { alg?: string; kid?: string; d?: string };
     try {
-      jwk = JSON.parse(jwkRaw) as JsonWebKey & { alg?: string; kid?: string };
+      jwk = JSON.parse(jwkRaw) as JsonWebKey & { alg?: string; kid?: string; d?: string };
     } catch {
       throw new Error(
-        '[authToken] SUPABASE_JWT_SIGNING_JWK ไม่ใช่ JSON ที่ถูกต้อง — รัน `node scripts/gen-jwt-signing-key.mjs` แล้วคัดลอกบรรทัด SUPABASE_JWT_SIGNING_JWK=... ทั้งบรรทัด'
+        '[authToken] SUPABASE_JWT_SIGNING_JWK ไม่ใช่ JSON ที่ถูกต้อง — รัน `node scripts/gen-jwt-signing-key.mjs`'
       );
     }
     if (!jwk.d || jwk.kty !== 'EC' || !jwk.x || !jwk.y) {
       throw new Error(
-        '[authToken] SUPABASE_JWT_SIGNING_JWK ต้องเป็น private ES256 JWK (kty, kid, d, x, y) — ไม่ใช่ kid จาก Dashboard อย่างเดียว'
+        '[authToken] SUPABASE_JWT_SIGNING_JWK ต้องเป็น private ES256 JWK (kty, kid, d, x, y)'
       );
     }
+    if (!jwk.kid) {
+      throw new Error('[authToken] SUPABASE_JWT_SIGNING_JWK ต้องมี kid');
+    }
+
     const alg = jwk.alg ?? 'ES256';
-    // Supabase import ต้อง key_ops >= 2 (sign+verify) แต่ Node เซ็นได้แค่ ['sign']
-    const key = await importJWK({ ...jwk, key_ops: ['sign'] }, alg);
-    if (!key) {
+    // เซ็น: private + key_ops sign · ตรวจ: public + key_ops verify (Node ไม่ verify ด้วย private)
+    const signKey = await importJWK({ ...jwk, key_ops: ['sign'] }, alg);
+    const verifyKey = await importJWK(
+      {
+        kty: jwk.kty,
+        crv: jwk.crv,
+        x: jwk.x,
+        y: jwk.y,
+        alg,
+        kid: jwk.kid,
+        key_ops: ['verify'],
+      },
+      alg,
+    );
+    if (!signKey || !verifyKey) {
       throw new Error('[authToken] อ่าน SUPABASE_JWT_SIGNING_JWK ไม่สำเร็จ');
     }
-    if (!jwk.kid) {
-      throw new Error('[authToken] SUPABASE_JWT_SIGNING_JWK ต้องมี kid (ตรงกับตอน import ใน Dashboard)');
-    }
-    return { key, alg, kid: jwk.kid };
+    return { signKey, verifyKey, alg, kid: jwk.kid };
   }
 
   const secretRaw = process.env.SUPABASE_JWT_SECRET;
   if (!secretRaw) {
     throw new Error(
-      '[authToken] ต้องตั้ง SUPABASE_JWT_SIGNING_JWK (ES256 — โปรเจกต์ใหม่) หรือ SUPABASE_JWT_SECRET (legacy HS256)'
+      '[authToken] ต้องตั้ง SUPABASE_JWT_SIGNING_JWK (ES256) หรือ SUPABASE_JWT_SECRET (legacy HS256)'
     );
   }
-  return {
-    key: new TextEncoder().encode(secretRaw),
-    alg: 'HS256',
-  };
+  const secret = new TextEncoder().encode(secretRaw);
+  return { signKey: secret, verifyKey: secret, alg: 'HS256' };
 }
 
 function getSigningMaterial(): Promise<SigningMaterial> {
@@ -82,13 +93,12 @@ function getSigningMaterial(): Promise<SigningMaterial> {
   return signingMaterialPromise;
 }
 
-/** แปลง employee id เป็น UUID คงที่สำหรับ claim sub */
 function employeeUuid(id: number): string {
   return `00000000-0000-4000-8000-${String(id).padStart(12, '0')}`;
 }
 
 export async function signStaffToken(claims: StaffClaims): Promise<string> {
-  const { key, alg, kid } = await getSigningMaterial();
+  const { signKey, alg, kid } = await getSigningMaterial();
 
   const header: { alg: string; typ: string; kid?: string } = { alg, typ: 'JWT' };
   if (kid) header.kid = kid;
@@ -105,13 +115,13 @@ export async function signStaffToken(claims: StaffClaims): Promise<string> {
     .setIssuer('yokayaki-pos')
     .setIssuedAt()
     .setExpirationTime(`${SESSION_TTL_SECONDS}s`)
-    .sign(key);
+    .sign(signKey);
 }
 
 export async function verifyStaffToken(token: string): Promise<StaffClaims | null> {
   try {
-    const { key } = await getSigningMaterial();
-    const { payload } = await jwtVerify(token, key, {
+    const { verifyKey } = await getSigningMaterial();
+    const { payload } = await jwtVerify(token, verifyKey, {
       audience: 'authenticated',
       issuer: 'yokayaki-pos',
     });
