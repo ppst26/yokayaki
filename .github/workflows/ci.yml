@@ -16,9 +16,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # เวอร์ชัน pnpm อ่านจาก packageManager ใน package.json — ระบุซ้ำที่นี่ action จะ error
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10.11.0
 
       - uses: actions/setup-node@v4
         with:
@@ -44,9 +43,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # เวอร์ชัน pnpm อ่านจาก packageManager ใน package.json — ระบุซ้ำที่นี่ action จะ error
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10.11.0
 
       - uses: actions/setup-node@v4
         with:
@@ -68,9 +66,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # เวอร์ชัน pnpm อ่านจาก packageManager ใน package.json — ระบุซ้ำที่นี่ action จะ error
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10.11.0
 
       - uses: actions/setup-node@v4
         with:
