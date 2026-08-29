@@ -97,7 +97,7 @@ function generatePromptPayQR(targetId: string, amount: number): string {
   const amtStr = amount.toFixed(2);
   const field54 = `54${amtStr.length.toString().padStart(2, '0')}${amtStr}`;
 
-  let raw = `000201010212${field29}5303764${field54}5802TH5908YOKAYAKI6304`;
+  const raw = `000201010212${field29}5303764${field54}5802TH5908YOKAYAKI6304`;
 
   function crc16Hex(str: string): string {
     let crc = 0xffff;
