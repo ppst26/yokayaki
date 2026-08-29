@@ -1,4 +1,5 @@
 // ทดสอบว่า staff JWT ที่แอปเซ็นถูก PostgREST ยอมรับ
+import { readFileSync } from 'node:fs';
 import { loadEnv, requireEnv } from './_env.mjs';
 import { importJWK, SignJWT } from 'jose';
 
@@ -7,13 +8,21 @@ requireEnv(env, ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY']);
 
 const url = env.NEXT_PUBLIC_SUPABASE_URL.replace(/\/$/, '');
 
-async function signTestToken(): Promise<string> {
-  const jwkRaw = env.SUPABASE_JWT_SIGNING_JWK?.trim();
+function readJwkRaw() {
+  const jwkFile = env.SUPABASE_JWT_SIGNING_JWK_FILE?.trim();
+  if (jwkFile) return readFileSync(jwkFile, 'utf8').trim();
+  const inline = env.SUPABASE_JWT_SIGNING_JWK?.trim();
+  if (inline) return inline.replace(/\s+/g, '');
+  return null;
+}
+
+async function signTestToken() {
+  const jwkRaw = readJwkRaw();
   if (jwkRaw) {
     const jwk = JSON.parse(jwkRaw);
     const alg = jwk.alg ?? 'ES256';
     const key = await importJWK(jwk, alg);
-    const header: { alg: string; typ: string; kid?: string } = { alg, typ: 'JWT' };
+    const header = { alg, typ: 'JWT' };
     if (jwk.kid) header.kid = jwk.kid;
     return new SignJWT({
       role: 'authenticated',
@@ -50,8 +59,8 @@ async function signTestToken(): Promise<string> {
 }
 
 const token = await signTestToken();
-const header = JSON.parse(Buffer.from(token.split('.')[0], 'base64url').toString());
-console.log('JWT header:', header);
+const tokenHeader = JSON.parse(Buffer.from(token.split('.')[0], 'base64url').toString());
+console.log('JWT header:', tokenHeader);
 
 const res = await fetch(`${url}/rest/v1/tables?select=id&limit=1`, {
   headers: {
@@ -65,5 +74,5 @@ console.log(`PostgREST: ${res.status}`, body.slice(0, 200));
 if (res.ok) {
   console.log('\n✓ staff JWT ใช้งานได้ — ล็อกอินใหม่ในแอปแล้วทดสอบ');
 } else {
-  console.log('\n✗ ยังไม่ผ่าน — รัน node scripts/gen-jwt-signing-key.mjs แล้ว import public key ใน Dashboard');
+  console.log('\n✗ ยังไม่ผ่าน — ตรวจว่า import PUBLIC JWK ใน Dashboard แล้ว (kid ต้องตรง)');
 }

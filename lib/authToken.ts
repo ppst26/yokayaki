@@ -1,4 +1,5 @@
 import 'server-only';
+import { readFileSync } from 'node:fs';
 import { SignJWT, jwtVerify, importJWK, type KeyLike } from 'jose';
 
 // =============================================================
@@ -29,9 +30,27 @@ interface SigningMaterial {
 let signingMaterialPromise: Promise<SigningMaterial> | null = null;
 
 async function loadSigningMaterial(): Promise<SigningMaterial> {
-  const jwkRaw = process.env.SUPABASE_JWT_SIGNING_JWK?.trim();
+  const jwkFile = process.env.SUPABASE_JWT_SIGNING_JWK_FILE?.trim();
+  let jwkRaw = process.env.SUPABASE_JWT_SIGNING_JWK?.trim();
+  if (jwkFile) {
+    jwkRaw = readFileSync(jwkFile, 'utf8').trim();
+  }
   if (jwkRaw) {
-    const jwk = JSON.parse(jwkRaw) as JsonWebKey & { alg?: string; kid?: string };
+    // รวม whitespace กรณี paste แตกบรรทัดใน .env
+    jwkRaw = jwkRaw.replace(/\s+/g, '');
+    let jwk: JsonWebKey & { alg?: string; kid?: string };
+    try {
+      jwk = JSON.parse(jwkRaw) as JsonWebKey & { alg?: string; kid?: string };
+    } catch {
+      throw new Error(
+        '[authToken] SUPABASE_JWT_SIGNING_JWK ไม่ใช่ JSON ที่ถูกต้อง — รัน `node scripts/gen-jwt-signing-key.mjs` แล้วคัดลอกบรรทัด SUPABASE_JWT_SIGNING_JWK=... ทั้งบรรทัด'
+      );
+    }
+    if (!jwk.d || jwk.kty !== 'EC' || !jwk.x || !jwk.y) {
+      throw new Error(
+        '[authToken] SUPABASE_JWT_SIGNING_JWK ต้องเป็น private ES256 JWK (kty, kid, d, x, y) — ไม่ใช่ kid จาก Dashboard อย่างเดียว'
+      );
+    }
     const alg = jwk.alg ?? 'ES256';
     const key = await importJWK(jwk, alg);
     if (!key) {

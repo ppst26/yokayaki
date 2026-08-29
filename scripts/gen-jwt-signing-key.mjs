@@ -9,6 +9,7 @@
 // 3. รีสตาร์ท dev server แล้วล็อกอินใหม่
 import { generateKeyPair, exportJWK } from 'jose';
 import { randomUUID } from 'node:crypto';
+import { writeFileSync } from 'node:fs';
 
 const kid = randomUUID();
 const { privateKey, publicKey } = await generateKeyPair('ES256', { extractable: true });
@@ -35,7 +36,11 @@ console.log('=== PUBLIC JWK (import ใน Supabase Dashboard → JWT Signing Ke
 console.log(JSON.stringify(publicJwk, null, 2));
 
 console.log('\n=== PRIVATE JWK → ใส่ใน .env.local (ห้าม commit) ===\n');
-console.log(`SUPABASE_JWT_SIGNING_JWK=${JSON.stringify(privateJwk)}`);
+const privateLine = `SUPABASE_JWT_SIGNING_JWK=${JSON.stringify(privateJwk)}`;
+console.log(privateLine);
+writeFileSync('jwt-signing-key.private.json', JSON.stringify(privateJwk), 'utf8');
+console.log('\nบันทึกไฟล์ jwt-signing-key.private.json แล้ว');
+console.log('หรือใช้: SUPABASE_JWT_SIGNING_JWK_FILE=jwt-signing-key.private.json');
 
 console.log('\nหมายเหตุ: หลัง import public key จะอยู่ใน JWKS (standby) — PostgREST ยอมรับทันที');
 console.log('kid ต้องตรงกัน:', kid);
