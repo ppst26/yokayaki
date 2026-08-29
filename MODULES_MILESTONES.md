@@ -68,10 +68,10 @@
 
 | # | Milestone | โมดูลหลัก | เกณฑ์ผ่าน (Exit Criteria) | ประมาณการ | สถานะ |
 |:--:|---|---|---|:--:|:--:|
-| **M0** | 🔴 Security Hardening | `F-SEC` `P-PAY` | A1–A7 ปิดครบ · `verify-lockdown.mjs` ผ่านทุกข้อ · ไม่มี mutation ใดที่เชื่อตัวเลขจาก client | 3–4 สัปดาห์ | 🟢 รอ deploy |
+| **M0** | 🔴 Security Hardening | `F-SEC` `P-PAY` | A1–A7 ปิดครบ · `verify-lockdown.mjs` ผ่านทุกข้อ · ไม่มี mutation ใดที่เชื่อตัวเลขจาก client | 3–4 สัปดาห์ | 🟢 |
 | **M1** | 🛡️ Server Tier | `F-API` | ทุก mutation ผ่าน route handler · zod ทุก payload · rate limit ฝั่ง server · 1 ออเดอร์ = 1 transaction | 3–4 สัปดาห์ | 🟢 operational path ปิดแล้ว · owner CRUD ยัง client |
 | **M2** | 🔧 Data Integrity & Bug Sweep | `F-DATA` + product modules | L1–L18 ปิดครบ · index H1 ครบ · `supabase db reset` บน DB เปล่าผ่าน · timezone ถูกทุกหน้า | 2–3 สัปดาห์ | 🟢 |
-| **M3** | 🧪 Testing Foundation | `F-TEST` | E2E สั่ง→ครัว→เช็คบิลผ่านใน CI · integration test ครอบทุก RPC + RLS · CI บล็อก PR ที่ fail | 2–3 สัปดาห์ | ⬜ |
+| **M3** | 🧪 Testing Foundation | `F-TEST` | E2E สั่ง→ครัว→เช็คบิลผ่านใน CI · integration test ครอบทุก RPC + RLS · CI บล็อก PR ที่ fail | 2–3 สัปดาห์ | 🟡 |
 | **M4** | 🏢 Multi-Tenancy | `F-TENANT` | 2 org ในฐานเดียวกันมองข้ามกันไม่ได้ (พิสูจน์ด้วย test) · ไม่มี config ร้านค้างใน env/hardcode | 6–10 สัปดาห์ | ⛔ รอ M3 |
 | **M5** | 🔑 Auth & RBAC | `F-AUTHZ` `P-AUTH` | Supabase Auth + JWT claim `org_id`/`role` · role 5 ระดับบังคับที่ DB · revoke session ได้ | 3–5 สัปดาห์ | ⛔ รอ M4 |
 | **M6** | 💰 Billing | `F-BILL` | สมัครเอง→ทดลอง→จ่ายเงิน→ตัดรอบ ครบวง · feature gating ตาม plan · dunning ทำงาน | 4–6 สัปดาห์ | ⛔ รอ M5 |
@@ -107,7 +107,7 @@
 | A7.9 | Realtime broadcast ไม่มี filter | `M` | 🟢 | หน้าลูกค้าไม่ subscribe แล้ว · POS กรอง `orders` ด้วย `table_id` และ `order_items` ด้วย `order_id` · Checkout ฟังเฉพาะบิลใบที่กำลังปิด · ที่เหลือ (ครัว / ผังโต๊ะ / badge) เป็น store-wide **โดยเจตนา** เพราะต้องเห็นทั้งร้าน และมี RLS + JWT พนักงานคุมอยู่ |
 | A7.10 | `test-rpc.mjs` ยิง production | `S` | 🟢 | ลบไฟล์แล้ว (commit `ecb665c`) |
 
-**ปิดครบ 16 / 16** — เกณฑ์ผ่าน M0 ที่เหลือคือ deploy จริงแล้วรัน `node scripts/verify-lockdown.mjs` ให้ขึ้น "ปิดแล้ว" ทุกข้อ
+**ปิดครบ 16 / 16** — `node scripts/verify-lockdown.mjs` ผ่านทุกข้อบน production (2026-08-29)
 
 > เจอเพิ่มระหว่างทำ (ปิดแล้วในไฟล์เดียวกัน): `authenticated` ได้ `GRANT ALL` บนทุกตารางจาก default privileges ของ Supabase → **TRUNCATE payments ได้** เพราะ RLS ไม่คุม TRUNCATE
 > และ `ALTER DEFAULT PRIVILEGES ... REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC` ใน `20260824` **ไม่มีผลจริง** (พิสูจน์บน PG17) ⇒ ทุก RPC ใหม่ต้อง `REVOKE` เองเสมอ ไม่มีตาข่ายรอง
@@ -179,7 +179,8 @@
 - [x] โครง integration test: `docker-compose.yml` + `supabase/tests/*.sql` → `pnpm db:up && pnpm db:test`
 - [x] CI: `.github/workflows/ci.yml` — lint · build · `db:test` · Playwright smoke
 - [ ] integration: ขยายให้ครบ **ทุก** RPC + ทุก RLS policy
-- [x] E2E scaffold: Playwright `e2e/smoke.spec.ts` (PIN pad) — ยังไม่ครอบสั่ง→ครัว→เช็คบิล
+- [x] E2E scaffold: Playwright `e2e/smoke.spec.ts` (PIN pad)
+- [x] E2E full flow: `e2e/full-flow.spec.ts` (สั่ง→ครัว→เช็คบิล) · รันเมื่อมี Supabase env จริง · CI ต้องตั้ง GitHub secrets
 - [ ] `supabase gen types typescript` แทน type ที่เขียนมือ
 
 ## M4–M9 `⛔ รอ milestone ก่อนหน้า`

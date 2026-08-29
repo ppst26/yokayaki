@@ -9,6 +9,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test",
+    "test:e2e:full": "playwright test e2e/full-flow.spec.ts",
     "deploy:production": "node scripts/deploy-production.mjs",
     "db:up": "docker compose up -d --wait",
     "db:down": "docker compose down -v",

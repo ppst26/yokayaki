@@ -83,15 +83,18 @@ jobs:
       - name: Build for E2E
         run: pnpm build
         env:
-          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
-          SUPABASE_SERVICE_ROLE_KEY: placeholder-service-role
-          SUPABASE_JWT_SECRET: placeholder-jwt-secret-min-32-chars-long
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-service-role' }}
+          SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET || 'placeholder-jwt-secret-min-32-chars-long' }}
+          SUPABASE_JWT_SIGNING_JWK: ${{ secrets.SUPABASE_JWT_SIGNING_JWK }}
 
-      - name: E2E smoke
+      - name: E2E (smoke + full flow when Supabase secrets set)
         run: pnpm test:e2e
         env:
-          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
-          SUPABASE_SERVICE_ROLE_KEY: placeholder-service-role
-          SUPABASE_JWT_SECRET: placeholder-jwt-secret-min-32-chars-long
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-service-role' }}
+          SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET || 'placeholder-jwt-secret-min-32-chars-long' }}
+          SUPABASE_JWT_SIGNING_JWK: ${{ secrets.SUPABASE_JWT_SIGNING_JWK }}
+          E2E_STAFF_PIN: ${{ secrets.E2E_STAFF_PIN || '111111' }}
