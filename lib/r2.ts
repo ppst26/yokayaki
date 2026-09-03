@@ -61,17 +61,16 @@ export function mimeToExt(contentType: string): string | null {
   return MIME_TO_EXT[contentType] ?? null;
 }
 
-export function isOurPublicUrl(url: string): boolean {
+export function publicUrlToKey(url: string): string | null {
   const base = getR2PublicBaseUrl();
-  if (url === base) return true;
-  return url.startsWith(`${base}/`);
+  if (!url.startsWith(`${base}/`)) return null;
+  const key = url.slice(base.length + 1);
+  if (!key || key === '/') return null;
+  return key;
 }
 
-export function publicUrlToKey(url: string): string | null {
-  if (!isOurPublicUrl(url)) return null;
-  const base = getR2PublicBaseUrl();
-  if (url === base) return null;
-  return url.slice(base.length + 1);
+export function isOurPublicUrl(url: string): boolean {
+  return publicUrlToKey(url) !== null;
 }
 
 export async function presignPut(params: {

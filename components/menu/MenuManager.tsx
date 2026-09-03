@@ -20,6 +20,7 @@ import { Card } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { CustomSelect } from '@/components/ui/select';
 import { TablePagination } from '@/components/ui/pagination';
+import { deleteOldImage } from '@/lib/deleteOldImage';
 import { MenuItemModal } from './MenuItemModal';
 
 interface MenuItem {
@@ -48,22 +49,6 @@ const EMPTY_FORM: Omit<MenuItem, 'id'> = {
   category: 'ย่าง',
   image_url: null,
 };
-
-async function deleteOldImage(url: string): Promise<void> {
-  try {
-    const res = await fetch('/api/uploads/delete', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url }),
-    });
-    if (!res.ok) {
-      console.error('Failed to delete old image:', url, res.status);
-    }
-  } catch (err) {
-    console.error('Failed to delete old image:', url, err);
-  }
-}
 
 export const MenuManager: React.FC = () => {
   const [items, setItems] = useState<MenuItem[]>([]);

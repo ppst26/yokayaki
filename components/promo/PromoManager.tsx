@@ -17,6 +17,7 @@ import {
 import { Card } from '@/components/ui/card';
 import { CustomSelect } from '@/components/ui/select';
 import { ImageUploadField } from '@/components/ui/ImageUploadField';
+import { deleteOldImage } from '@/lib/deleteOldImage';
 
 interface MenuItem {
   id: number;
@@ -42,22 +43,6 @@ interface Promotion {
   is_active: boolean;
   image_url?: string | null;
   created_at: string;
-}
-
-async function deleteOldImage(url: string): Promise<void> {
-  try {
-    const res = await fetch('/api/uploads/delete', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url }),
-    });
-    if (!res.ok) {
-      console.error('Failed to delete old image:', url, res.status);
-    }
-  } catch (err) {
-    console.error('Failed to delete old image:', url, err);
-  }
 }
 
 const TYPE_LABELS: Record<string, { label: string; desc: string }> = {
