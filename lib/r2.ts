@@ -10,9 +10,10 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 export type R2Folder = 'menu' | 'promo';
 
-export const R2_MAX_UPLOAD_BYTES = 2 * 1024 * 1024;
-
-export const R2_ALLOWED_MIMES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+export {
+  UPLOAD_ALLOWED_MIMES as R2_ALLOWED_MIMES,
+  UPLOAD_MAX_BYTES as R2_MAX_UPLOAD_BYTES,
+} from '@/lib/uploadLimits';
 
 const MIME_TO_EXT: Record<string, string> = {
   'image/jpeg': 'jpg',
