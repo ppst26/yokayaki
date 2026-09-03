@@ -35,7 +35,7 @@ async function setTableStatus(
 
 async function handleCheckBill(
   request: Request,
-  ctx: RouteContext<'/api/customer/[session_id]/check-bill'>,
+  ctx: { params: Promise<{ session_id: string }> },
   next: 'checking_out' | 'occupied'
 ) {
   const { session_id: rawSessionId } = await ctx.params;
@@ -52,7 +52,10 @@ async function handleCheckBill(
   return await setTableStatus(sessionId, next);
 }
 
-export async function POST(request: Request, ctx: RouteContext<'/api/customer/[session_id]/check-bill'>) {
+export async function POST(
+  request: Request,
+  ctx: { params: Promise<{ session_id: string }> }
+) {
   try {
     return await handleCheckBill(request, ctx, 'checking_out');
   } catch (err) {
@@ -60,7 +63,10 @@ export async function POST(request: Request, ctx: RouteContext<'/api/customer/[s
   }
 }
 
-export async function DELETE(request: Request, ctx: RouteContext<'/api/customer/[session_id]/check-bill'>) {
+export async function DELETE(
+  request: Request,
+  ctx: { params: Promise<{ session_id: string }> }
+) {
   try {
     return await handleCheckBill(request, ctx, 'occupied');
   } catch (err) {

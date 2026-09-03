@@ -42,7 +42,10 @@ async function assertOwnerConfirmPin(request: Request, pin: string): Promise<voi
   }
 }
 
-export async function PATCH(request: Request, ctx: RouteContext<'/api/employees/[id]'>) {
+export async function PATCH(
+  request: Request,
+  ctx: { params: Promise<{ id: string }> }
+) {
   try {
     await requireOwner();
 
@@ -86,7 +89,10 @@ export async function PATCH(request: Request, ctx: RouteContext<'/api/employees/
   }
 }
 
-export async function DELETE(request: Request, ctx: RouteContext<'/api/employees/[id]'>) {
+export async function DELETE(
+  request: Request,
+  ctx: { params: Promise<{ id: string }> }
+) {
   try {
     const actor = await requireOwner();
 

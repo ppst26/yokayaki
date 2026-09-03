@@ -1,7 +1,7 @@
 # Design: อัปโหลดรูปเมนู/โปรโมชั่น ขึ้น Cloudflare R2
 
 วันที่: 2026-09-03  
-สถานะ: รอรีวิวจากเจ้าของก่อนลงมือ implement
+สถานะ: implemented on feature/menu-promo-r2-upload
 
 ## ปัญหา
 

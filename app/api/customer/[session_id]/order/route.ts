@@ -14,7 +14,10 @@ import { orderBatchErrorMessage } from '@/lib/orderBatchErrors';
 // POST /api/customer/[session_id]/order
 // =============================================================
 
-export async function POST(request: Request, ctx: RouteContext<'/api/customer/[session_id]/order'>) {
+export async function POST(
+  request: Request,
+  ctx: { params: Promise<{ session_id: string }> }
+) {
   try {
     const { session_id: rawSessionId } = await ctx.params;
     const sessionId = parseValue(rawSessionId, sessionIdSchema);

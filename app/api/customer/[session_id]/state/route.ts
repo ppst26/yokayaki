@@ -5,7 +5,10 @@ import { enforceRateLimit } from '@/lib/rateLimit';
 import { parseValue } from '@/lib/api/parse';
 import { sessionIdSchema } from '@/lib/api/schemas';
 
-export async function GET(_request: Request, ctx: RouteContext<'/api/customer/[session_id]/state'>) {
+export async function GET(
+  _request: Request,
+  ctx: { params: Promise<{ session_id: string }> }
+) {
   try {
     const { session_id: rawSessionId } = await ctx.params;
     const sessionId = parseValue(rawSessionId, sessionIdSchema);
