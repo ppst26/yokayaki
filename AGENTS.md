@@ -96,9 +96,16 @@ yokayaki/
 │   ├── 20260827_checkout_server_side.sql # 🔴 A5/A6 — ยอดบิลคำนวณใน DB + UNIQUE(payments.order_id)
 │   └── 20260828_audit_and_integrity.sql # 🔴 A7.4-A7.7 — unique active order · void ด้วยรหัส · audit จาก JWT · FK RESTRICT
 │
-├── supabase/tests/
-│   ├── security.sql                  # ชุดทดสอบ A1–A6 (รันใน transaction แล้ว ROLLBACK — รันซ้ำได้)
-│   └── a7_audit.sql                  # ชุดทดสอบ A7.4-A7.7 + สิทธิ์ของ authenticated
+├── supabase/tests/                   # ทุกไฟล์รันใน transaction แล้ว ROLLBACK — รันซ้ำได้
+│   ├── security.sql                  # A1–A6 (สิทธิ์ anon · lockout PIN · ราคา · ยอดบิล · ปิดบิลซ้ำ)
+│   ├── a7_audit.sql                  # A7.4-A7.7 + grant ของ authenticated
+│   ├── rls_policies.sql              # RLS ราย policy — สวมสิทธิ์ staff / owner / token ที่ไม่มี emp_role
+│   ├── checkout_promo.sql            # complete_checkout: คูปอง · โปรแต่ละชนิด · แบ่งยอดชำระ · เคลียร์โต๊ะ/QR
+│   ├── customer_session.sql          # เส้นทางลูกค้า QR: session ที่ใช้ไม่ได้ · scope โต๊ะ · payload ผิดรูป
+│   ├── employees_rpc.sql             # admin_* : ใครเรียกได้ · ไม่มี hash หลุด · กัน owner คนสุดท้ายหาย
+│   ├── order_batch.sql               # place_order_batch / customer_place_order_batch + Happy Hour
+│   ├── sprint_d.sql                  # upsert_purchase_order · adjust_loyalty_points
+│   └── sprint_f.sql                  # order_items.discount_applied ถูกลบแล้ว
 │
 ├── docker-compose.yml                # Postgres สำหรับทดสอบ migration ในเครื่อง (พอร์ต 54329)
 ├── docker/postgres/init/
@@ -233,13 +240,13 @@ KitchenScreen (Realtime subscription)
 
 | คำสั่ง | ทดสอบอะไร | ต้องมีอะไร |
 |---|---|---|
-| `pnpm db:up` แล้ว `pnpm db:test` | รัน migration ทั้งชุดบน Postgres เปล่าใน docker แล้วยิง 19 assertion ครอบ A1–A7 (สิทธิ์ anon/authenticated · lockout PIN · ราคาจาก DB · ยอดบิล · แต้ม · ปิดบิลซ้ำ · void ด้วยรหัส · audit จาก JWT · FK RESTRICT) | Docker |
+| `pnpm db:up` แล้ว `pnpm db:test` | รัน migration ทั้งชุดบน Postgres เปล่าใน docker แล้วยิง 50 assertion ครอบ A1–A7 + ทุก RPC + RLS ราย policy (สิทธิ์ anon/authenticated · staff vs owner · lockout PIN · ราคาจาก DB · ยอดบิล/โปร/คูปอง · แต้ม · ปิดบิลซ้ำ · QR session · admin_* · void ด้วยรหัส · audit จาก JWT · FK RESTRICT) | Docker |
 | `node scripts/verify-lockdown.mjs` | ยิง anon key จริงใส่ Supabase production — ทุกข้อต้องขึ้น "ปิดแล้ว" | `.env.local` |
 
 > ⚠️ ทุกครั้งที่แก้ migration หรือ RPC **ต้องรัน `pnpm db:reset && pnpm db:test`** ก่อนขึ้น production
 > (`db:reset` = ล้าง DB แล้วรัน migration ใหม่ทั้งชุดจากศูนย์ — จับทั้งบั๊ก SQL และปัญหาลำดับไฟล์)
 
-**สถานะ:** A1–A7 ปิดครบทุกข้อในโค้ดแล้ว (ยืนยันด้วย `pnpm db:test` 19 assertion) — เหลือขั้นตอน deploy migration จริงแล้วรัน `verify-lockdown.mjs`
+**สถานะ:** A1–A7 ปิดครบทุกข้อในโค้ดแล้ว (ยืนยันด้วย `pnpm db:test` 50 assertion) — เหลือขั้นตอน deploy migration จริงแล้วรัน `verify-lockdown.mjs`
 
 สถานะรายข้อและคิวงานถัดไป: [`MODULES_MILESTONES.md`](MODULES_MILESTONES.md)
 

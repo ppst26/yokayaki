@@ -178,7 +178,12 @@
 - [ ] unit: คำนวณโปรโมชั่น · แต้ม · EMVCo payload + CRC
 - [x] โครง integration test: `docker-compose.yml` + `supabase/tests/*.sql` → `pnpm db:up && pnpm db:test`
 - [x] CI: `.github/workflows/ci.yml` — lint · build · `db:test` · Playwright smoke
-- [ ] integration: ขยายให้ครบ **ทุก** RPC + ทุก RLS policy
+- [x] integration: ขยายให้ครบ **ทุก** RPC + ทุก RLS policy — `pnpm db:reset && pnpm db:test` = 50 assertion ใน 9 ไฟล์
+  - RPC ที่เพิ่มความครอบคลุม: `complete_checkout` (คูปอง · percentage ผูกเมนู · buy_x_get_y · clamp ส่วนลด · แบ่งยอด สด/โอน/ผสม + เงินทอน · void ไม่เข้ายอด · เคลียร์โต๊ะ/QR/รายการค้างครัว · `not_found`) → `supabase/tests/checkout_promo.sql`
+  - `customer_place_order_item` / `customer_place_order_batch` (session ไม่มีจริง/ปิดแล้ว/หมดอายุ · scope โต๊ะของ session · ราคา+สต็อกจาก DB · payload ผิดรูป) → `supabase/tests/customer_session.sql`
+  - `admin_list_employees` / `admin_add_employee` / `admin_update_employee` / `admin_delete_employee` / `pin_taken` (grant เฉพาะ `service_role` · ไม่มี hash หลุด · bcrypt · PIN ซ้ำ · กันลด/ลบ owner คนสุดท้าย · กันลบตัวเอง) → `supabase/tests/employees_rpc.sql`
+  - RLS: บัญชี policy 24 แถวต้องตรงเป๊ะ + สวมสิทธิ์ `authenticated` จริงทั้ง staff / owner / token ที่ไม่มี `emp_role` แล้วไล่เมทริกซ์อ่าน-เขียนทุกตาราง → `supabase/tests/rls_policies.sql`
+  - แก้เทสต์ที่ผูกกับเวลา: A4 ใน `security.sql` เคยเทียบ `menu_items.price` ตรงๆ ทำให้ล้มเองทุกวันช่วง 17:00–19:00 (Happy Hour) — เปลี่ยนไปเทียบ `menu_item_sale_price()`
 - [x] E2E scaffold: Playwright `e2e/smoke.spec.ts` (PIN pad)
 - [x] E2E full flow: `e2e/full-flow.spec.ts` (สั่ง→ครัว→เช็คบิล) · รันเมื่อมี Supabase env จริง · CI ต้องตั้ง GitHub secrets
 - [ ] `supabase gen types typescript` แทน type ที่เขียนมือ

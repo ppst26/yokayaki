@@ -170,7 +170,11 @@ BEGIN
     RAISE EXCEPTION 'A4 ไม่ผ่าน: ยังมี overload ที่รับ p_unit_price อยู่';
   END IF;
 
-  SELECT id, price INTO v_menu_id, v_price FROM menu_items ORDER BY id LIMIT 1;
+  -- ราคาที่คาดหวังคือ "ราคาขาย ณ เวลานี้" ไม่ใช่คอลัมน์ price เฉยๆ
+  -- ไม่งั้นเทสต์จะล้มเองทุกวันช่วง 17:00–19:00 เมื่อเมนูนั้นติด Happy Hour (L2)
+  SELECT id, public.menu_item_sale_price(is_happy_hour, price, happy_hour_price, NOW())
+  INTO v_menu_id, v_price
+  FROM menu_items ORDER BY id LIMIT 1;
   UPDATE menu_items SET stock = 100, is_stock_tracked = TRUE WHERE id = v_menu_id;
 
   v_ok := public.place_order_item(1, v_menu_id, 2, NULL);
@@ -182,7 +186,7 @@ BEGIN
   ORDER BY oi.id DESC LIMIT 1;
 
   IF v_saved IS DISTINCT FROM v_price THEN
-    RAISE EXCEPTION 'A4 ไม่ผ่าน: ราคาที่บันทึก (%) ไม่ตรงกับราคาในเมนู (%)', v_saved, v_price;
+    RAISE EXCEPTION 'A4 ไม่ผ่าน: ราคาที่บันทึก (%) ไม่ตรงกับราคาขายในเมนู (%)', v_saved, v_price;
   END IF;
 
   -- จำนวนติดลบ/ศูนย์ต้องถูกปฏิเสธ
@@ -193,7 +197,7 @@ BEGIN
     RAISE EXCEPTION 'A4 ไม่ผ่าน: สั่งจำนวนติดลบได้';
   END IF;
 
-  RAISE NOTICE 'PASS  A4 · ราคาที่บันทึกมาจาก menu_items (%) และกันจำนวน <= 0 แล้ว', v_price;
+  RAISE NOTICE 'PASS  A4 · ราคาที่บันทึกมาจากราคาขายใน menu_items (%) และกันจำนวน <= 0 แล้ว', v_price;
 END
 $$;
 

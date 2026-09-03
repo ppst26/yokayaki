@@ -12,6 +12,11 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'order_items.discount_applied should be dropped';
   END IF;
+
+  RAISE NOTICE 'PASS  L17 · order_items.discount_applied ถูกลบแล้ว';
 END $$;
 
 ROLLBACK;
+
+\echo ''
+\echo '================ Sprint F ผ่านครบ ================'
