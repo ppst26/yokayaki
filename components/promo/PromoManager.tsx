@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { CustomSelect } from '@/components/ui/select';
+import { ImageUploadField } from '@/components/ui/ImageUploadField';
 
 interface MenuItem {
   id: number;
@@ -43,6 +44,22 @@ interface Promotion {
   created_at: string;
 }
 
+async function deleteOldImage(url: string): Promise<void> {
+  try {
+    const res = await fetch('/api/uploads/delete', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    });
+    if (!res.ok) {
+      console.error('Failed to delete old image:', url, res.status);
+    }
+  } catch (err) {
+    console.error('Failed to delete old image:', url, err);
+  }
+}
+
 const TYPE_LABELS: Record<string, { label: string; desc: string }> = {
   percentage: { label: 'ส่วนลดเปอร์เซ็นต์ (%)', desc: 'ลดเป็น % จากยอดรวมบิล หรือเมนูเจาะจง' },
   fixed: { label: 'คูปองส่วนลด', desc: 'ลดจำนวนเงินคงที่เมื่อมียอดขั้นต่ำ' },
@@ -61,6 +78,7 @@ export const PromoManager: React.FC = () => {
 
   const [deleteTarget, setDeleteTarget] = useState<Promotion | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [previousImageUrl, setPreviousImageUrl] = useState<string | null>(null);
 
   const [promoCategory, setPromoCategory] = useState<'discount' | 'coupon' | 'buy_x_get_y'>('discount');
   const [discountUnit, setDiscountUnit] = useState<'percent' | 'amount'>('percent');
@@ -79,7 +97,7 @@ export const PromoManager: React.FC = () => {
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [couponCode, setCouponCode] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   const showMsg = (text: string, t: 'success' | 'error') => {
     setMessage({ text, type: t });
@@ -132,7 +150,8 @@ export const PromoManager: React.FC = () => {
     setStartTime('');
     setEndTime('');
     setCouponCode('');
-    setImageUrl('');
+    setImageUrl(null);
+    setPreviousImageUrl(null);
     setShowModal(true);
   };
 
@@ -163,7 +182,8 @@ export const PromoManager: React.FC = () => {
     setStartTime(p.start_time || '');
     setEndTime(p.end_time || '');
     setCouponCode(p.coupon_code || '');
-    setImageUrl(p.image_url || '');
+    setImageUrl(p.image_url ?? null);
+    setPreviousImageUrl(p.image_url ?? null);
     setShowModal(true);
   };
 
@@ -197,7 +217,7 @@ export const PromoManager: React.FC = () => {
         end_time: isHappyHour ? (endTime || null) : null,
         menu_item_id: menuItemId ? Number(menuItemId) : null,
         coupon_code: promoCategory === 'coupon' && couponCode.trim() ? couponCode.trim().toUpperCase() : null,
-        image_url: imageUrl.trim() || null,
+        image_url: imageUrl,
         is_active: editingPromo ? editingPromo.is_active : true,
       };
 
@@ -223,6 +243,11 @@ export const PromoManager: React.FC = () => {
         const { error } = await supabase.from('promotions').insert([payload]);
         if (error) throw error;
         showMsg(`สร้างโปรโมชั่น "${name}" เรียบร้อยแล้ว`, 'success');
+      }
+
+      const nextUrl = payload.image_url;
+      if (previousImageUrl && previousImageUrl !== nextUrl) {
+        await deleteOldImage(previousImageUrl);
       }
 
       setShowModal(false);
@@ -255,6 +280,12 @@ export const PromoManager: React.FC = () => {
       setIsDeleting(true);
       const { error } = await supabase.from('promotions').delete().eq('id', deleteTarget.id);
       if (error) throw error;
+
+      const deletedImageUrl = deleteTarget.image_url;
+      if (deletedImageUrl) {
+        await deleteOldImage(deletedImageUrl);
+      }
+
       showMsg(`ลบโปรโมชั่น "${deleteTarget.name}" แล้ว`, 'success');
       setDeleteTarget(null);
       fetchData();
@@ -561,14 +592,12 @@ export const PromoManager: React.FC = () => {
 
               <div>
                 <label className="block text-slate-600 dark:text-neutral-300 mb-1 font-bold">
-                  URL รูปภาพโปรโมชั่น (Optional)
+                  รูปภาพโปรโมชั่น (Optional)
                 </label>
-                <input
-                  type="url"
+                <ImageUploadField
+                  folder="promo"
                   value={imageUrl}
-                  onChange={e => setImageUrl(e.target.value)}
-                  placeholder="https://images.unsplash.com/..."
-                  className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none"
+                  onChange={setImageUrl}
                 />
               </div>
 
