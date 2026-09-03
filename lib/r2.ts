@@ -53,6 +53,9 @@ function getClient(): S3Client {
     region: 'auto',
     endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
     credentials: { accessKeyId, secretAccessKey },
+    // เบราว์เซอร์ PUT ด้วย Content-Type อย่างเดียว — ห้ามให้ SDK ใส่ checksum ใน presign
+    requestChecksumCalculation: 'WHEN_REQUIRED',
+    responseChecksumValidation: 'WHEN_REQUIRED',
   });
   return client;
 }
@@ -83,14 +86,17 @@ export async function presignPut(params: {
   const s3 = getClient();
   const base = getR2PublicBaseUrl();
 
+  // contentLength ตรวจที่ route แล้ว — ไม่ใส่ใน PutObject เพื่อไม่บังคับ Content-Length ใน signature
   const command = new PutObjectCommand({
     Bucket: bucket,
     Key: params.key,
     ContentType: params.contentType,
-    ContentLength: params.contentLength,
   });
 
-  const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 60 });
+  const uploadUrl = await getSignedUrl(s3, command, {
+    expiresIn: 60,
+    signableHeaders: new Set(['content-type']),
+  });
   const publicUrl = `${base}/${params.key}`;
 
   return { uploadUrl, publicUrl, key: params.key };
