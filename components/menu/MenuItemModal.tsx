@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Loader2, ChevronDown } from 'lucide-react';
 import { CustomSelect } from '@/components/ui/select';
+import { ImageUploadField } from '@/components/ui/ImageUploadField';
 
 const UNIT_SUGGESTIONS = ['จาน', 'ชิ้น', 'แก้ว', 'ขวด', 'ถ้วย', 'ชุด', 'อัน', 'กก.', 'ลิตร'];
 
@@ -272,17 +273,14 @@ export const MenuItemModal: React.FC<MenuItemModalProps> = ({
 
           <div>
             <label className="block text-slate-500 dark:text-neutral-400 mb-1">
-              URL รูปภาพเมนูอาหาร (Optional)
+              รูปภาพเมนูอาหาร (ไม่บังคับ)
             </label>
-            <div className="flex gap-2">
-              <input
-                type="url"
-                value={formData.image_url || ''}
-                onChange={e => setFormData({ ...formData, image_url: e.target.value })}
-                placeholder="https://images.unsplash.com/..."
-                className="flex-1 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none"
-              />
-            </div>
+            <ImageUploadField
+              folder="menu"
+              value={formData.image_url ?? null}
+              onChange={url => setFormData({ ...formData, image_url: url })}
+              disabled={isSaving}
+            />
           </div>
 
           <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-neutral-800">

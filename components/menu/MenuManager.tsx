@@ -46,8 +46,24 @@ const EMPTY_FORM: Omit<MenuItem, 'id'> = {
   is_happy_hour: false,
   happy_hour_price: null,
   category: 'ย่าง',
-  image_url: '',
+  image_url: null,
 };
+
+async function deleteOldImage(url: string): Promise<void> {
+  try {
+    const res = await fetch('/api/uploads/delete', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    });
+    if (!res.ok) {
+      console.error('Failed to delete old image:', url, res.status);
+    }
+  } catch (err) {
+    console.error('Failed to delete old image:', url, err);
+  }
+}
 
 export const MenuManager: React.FC = () => {
   const [items, setItems] = useState<MenuItem[]>([]);
@@ -66,6 +82,7 @@ export const MenuManager: React.FC = () => {
 
   const [deleteTarget, setDeleteTarget] = useState<MenuItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [previousImageUrl, setPreviousImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -119,11 +136,13 @@ export const MenuManager: React.FC = () => {
   const openAddModal = () => {
     setEditingItem(null);
     setFormData(EMPTY_FORM);
+    setPreviousImageUrl(null);
     setShowFormModal(true);
   };
 
   const openEditModal = (item: MenuItem) => {
     setEditingItem(item);
+    setPreviousImageUrl(item.image_url ?? null);
     setFormData({
       name: item.name,
       unit: item.unit || 'จาน',
@@ -133,7 +152,7 @@ export const MenuManager: React.FC = () => {
       is_happy_hour: item.is_happy_hour,
       happy_hour_price: item.happy_hour_price,
       category: item.category || 'ย่าง',
-      image_url: item.image_url || '',
+      image_url: item.image_url ?? null,
     });
     setShowFormModal(true);
   };
@@ -169,6 +188,11 @@ export const MenuManager: React.FC = () => {
         showMessage(`เพิ่มเมนูใหม่ "${payload.name}" เรียบร้อยแล้ว`, 'success');
       }
 
+      const nextUrl = payload.image_url;
+      if (previousImageUrl && previousImageUrl !== nextUrl) {
+        await deleteOldImage(previousImageUrl);
+      }
+
       setShowFormModal(false);
       fetchMenuItems();
     } catch (err: any) {
@@ -190,6 +214,12 @@ export const MenuManager: React.FC = () => {
         .eq('id', deleteTarget.id);
 
       if (error) throw error;
+
+      const imageUrl = deleteTarget.image_url;
+      if (imageUrl) {
+        await deleteOldImage(imageUrl);
+      }
+
       showMessage(`ลบเมนู "${deleteTarget.name}" เรียบร้อยแล้ว`, 'success');
       setDeleteTarget(null);
       fetchMenuItems();
