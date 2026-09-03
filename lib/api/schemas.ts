@@ -139,3 +139,15 @@ export function orderLinesToRpcJson(items: OrderLine[]) {
     notes: i.notes,
   }));
 }
+
+export const r2UploadFolderSchema = z.enum(['menu', 'promo']);
+
+export const r2PresignBodySchema = z.object({
+  folder: r2UploadFolderSchema,
+  contentType: z.string().min(1),
+  contentLength: z.number().int().positive(),
+});
+
+export const r2DeleteBodySchema = z.object({
+  url: z.string().min(1),
+});
