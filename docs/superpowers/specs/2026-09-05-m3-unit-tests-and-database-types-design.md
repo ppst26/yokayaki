@@ -1,7 +1,7 @@
 # Design: M3 — Unit tests (แต้ม + PromptPay) + Database types
 
 วันที่: 2026-09-05  
-สถานะ: draft · รอรีวิวก่อนทำ implementation plan  
+สถานะ: implemented  
 Milestone: `M3 Testing Foundation` (ปิดรอบนี้)
 
 ## ปัญหา
