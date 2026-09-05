@@ -1,6 +1,7 @@
 import React from 'react';
 import { Search, UserPlus } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { clampPointsRedeem } from '@/lib/loyaltyPoints';
 
 interface LoyaltyMember {
   phone_number: string;
@@ -20,7 +21,7 @@ interface CRMMemberCardProps {
   registerName: string;
   setRegisterName: (val: string) => void;
   registerMember: () => void;
-  subtotal: number;
+  amountAfterPromo: number;
   onOpenAddMember?: () => void;
 }
 
@@ -36,7 +37,7 @@ export const CRMMemberCard: React.FC<CRMMemberCardProps> = ({
   registerName,
   setRegisterName,
   registerMember,
-  subtotal,
+  amountAfterPromo,
   onOpenAddMember,
 }) => {
   return (
@@ -89,11 +90,11 @@ export const CRMMemberCard: React.FC<CRMMemberCardProps> = ({
             <input
               type="number"
               min={0}
-              max={Math.min(member.points, subtotal)}
+              max={Math.min(member.points, Math.floor(amountAfterPromo))}
               value={pointsToRedeem}
               onChange={e =>
                 setPointsToRedeem(
-                  Math.min(Number(e.target.value) || 0, member.points, subtotal)
+                  clampPointsRedeem(Number(e.target.value) || 0, member.points, amountAfterPromo)
                 )
               }
               className="w-24 bg-slate-50 dark:bg-neutral-800 rounded-lg px-3 py-1 text-sm font-bold text-slate-800 dark:text-neutral-100 focus:outline-none"
