@@ -59,9 +59,11 @@ export async function POST(
       );
     }
 
+    const batch = data as { order_id?: number; placed?: number } | null;
+
     return Response.json({
-      placed: data?.placed ?? body.items.length,
-      orderId: data?.order_id ?? null,
+      placed: batch?.placed ?? body.items.length,
+      orderId: batch?.order_id ?? null,
     });
   } catch (err) {
     return errorResponse(err);

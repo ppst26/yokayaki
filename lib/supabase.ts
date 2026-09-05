@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import type { Database } from '@/lib/database.types';
 import { getStaffToken, onStaffTokenChange } from '@/lib/staffToken';
 
 // =============================================================
@@ -24,7 +25,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   // โหมด third-party auth ของ supabase-js — ใช้ token นี้ทั้ง PostgREST และ Realtime
   accessToken: async () => getStaffToken(),
 });

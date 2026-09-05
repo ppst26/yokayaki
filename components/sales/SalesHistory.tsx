@@ -144,7 +144,11 @@ export const SalesHistory: React.FC = () => {
 
         // Fetch coupon codes from promotions separately
         const promoIds = Array.from(
-          new Set((promos || []).map(pr => pr.promotion_id).filter(Boolean))
+          new Set(
+            (promos || [])
+              .map(pr => pr.promotion_id)
+              .filter((id): id is number => id != null)
+          )
         );
         const promoCodeMap: Record<number, string> = {};
         if (promoIds.length > 0) {
@@ -183,11 +187,11 @@ export const SalesHistory: React.FC = () => {
         return {
           id: order.id,
           table_id: order.table_id,
-          created_at: order.created_at,
+          created_at: order.created_at ?? '',
           payment: payment
             ? {
                 id: payment.id,
-                payment_method: payment.payment_method,
+                payment_method: payment.payment_method as 'cash' | 'promptpay' | 'mixed',
                 subtotal: parseFloat(payment.subtotal as any),
                 discount_amount: parseFloat(payment.discount_amount as any),
                 net_amount: parseFloat(payment.net_amount as any),
@@ -199,7 +203,7 @@ export const SalesHistory: React.FC = () => {
                 member_name: payment.phone_number
                   ? memberMap[payment.phone_number] || memberMap[normalizePhone(payment.phone_number)] || null
                   : null,
-                created_at: payment.created_at,
+                created_at: payment.created_at ?? '',
               }
             : null,
           promos,
