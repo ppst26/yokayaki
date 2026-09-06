@@ -1,7 +1,7 @@
 # Design: M5 — Auth & RBAC (Phased)
 
 วันที่: 2026-09-06  
-สถานะ: approved · รอ implementation plan  
+สถานะ: approved · implementation plan อยู่ที่ `docs/superpowers/plans/2026-09-06-m5-auth-rbac-implementation-plan.md`  
 Milestone: `M5 Auth & RBAC`
 
 ## ปัญหา
