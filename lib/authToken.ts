@@ -150,3 +150,38 @@ export async function verifyStaffToken(token: string): Promise<StaffClaims | nul
     return null;
   }
 }
+
+/** JWT ภายในแอป (org auth cookie ฯลฯ) — ใช้ signing material เดียวกับ staff token */
+export async function signAuxToken(
+  payload: Record<string, unknown>,
+  options: { issuer: string; audience: string; ttlSeconds: number },
+): Promise<string> {
+  const { signKey, alg, kid } = await getSigningMaterial();
+
+  const header: { alg: string; typ: string; kid?: string } = { alg, typ: 'JWT' };
+  if (kid) header.kid = kid;
+
+  return new SignJWT(payload)
+    .setProtectedHeader(header)
+    .setAudience(options.audience)
+    .setIssuer(options.issuer)
+    .setIssuedAt()
+    .setExpirationTime(`${options.ttlSeconds}s`)
+    .sign(signKey);
+}
+
+export async function verifyAuxToken(
+  token: string,
+  options: { issuer: string; audience: string },
+): Promise<Record<string, unknown> | null> {
+  try {
+    const { verifyKey } = await getSigningMaterial();
+    const { payload } = await jwtVerify(token, verifyKey, {
+      audience: options.audience,
+      issuer: options.issuer,
+    });
+    return payload as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}

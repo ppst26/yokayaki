@@ -15,7 +15,11 @@ interface AuthContextType {
   employee: Employee | null;
   error: string | null;
   isLoading: boolean;
+  orgAuthenticated: boolean;
+  orgError: string | null;
+  isOrgLoading: boolean;
   loginWithPin: (pin: string) => Promise<boolean>;
+  loginWithOrg: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   remainingLockoutSeconds: number;
   isLockedOut: boolean;
@@ -38,6 +42,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [orgAuthenticated, setOrgAuthenticated] = useState<boolean>(false);
+  const [orgError, setOrgError] = useState<string | null>(null);
+  const [isOrgLoading, setIsOrgLoading] = useState<boolean>(false);
   const [lockoutUntil, setLockoutUntil] = useState<number | null>(null);
   const [remainingLockoutSeconds, setRemainingLockoutSeconds] = useState<number>(0);
 
@@ -47,14 +54,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     (async () => {
       try {
-        const res = await fetch('/api/auth/session', { cache: 'no-store' });
-        const data = await res.json();
+        const [orgRes, staffRes] = await Promise.all([
+          fetch('/api/auth/org-session', { cache: 'no-store' }),
+          fetch('/api/auth/session', { cache: 'no-store' }),
+        ]);
+        const orgData = await orgRes.json();
+        const staffData = await staffRes.json();
 
         if (cancelled) return;
 
-        if (data?.employee && data?.token) {
-          setStaffToken(data.token);
-          setEmployee(data.employee as Employee);
+        if (orgData?.authenticated) {
+          setOrgAuthenticated(true);
+        }
+
+        if (staffData?.employee && staffData?.token) {
+          setStaffToken(staffData.token);
+          setEmployee(staffData.employee as Employee);
         }
       } catch (err) {
         console.error('Error restoring session:', err);
@@ -92,6 +107,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [lockoutUntil]);
 
   const isLockedOut = Boolean(lockoutUntil && remainingLockoutSeconds > 0);
+
+  const loginWithOrg = async (email: string, password: string): Promise<boolean> => {
+    try {
+      setOrgError(null);
+      setIsOrgLoading(true);
+
+      const res = await fetch('/api/auth/org-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+
+      if (res.ok && data?.ok) {
+        setOrgAuthenticated(true);
+        return true;
+      }
+
+      setOrgError(data?.error ?? 'เข้าสู่ระบบองค์กรไม่สำเร็จ');
+      return false;
+    } catch (err) {
+      console.error('Error logging in org:', err);
+      setOrgError('เกิดข้อผิดพลาดในการเชื่อมต่อระบบ');
+      return false;
+    } finally {
+      setIsOrgLoading(false);
+    }
+  };
 
   const loginWithPin = async (pin: string): Promise<boolean> => {
     if (isLockedOut) {
@@ -177,7 +220,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       employee,
       error,
       isLoading,
+      orgAuthenticated,
+      orgError,
+      isOrgLoading,
       loginWithPin,
+      loginWithOrg,
       logout,
       remainingLockoutSeconds,
       isLockedOut

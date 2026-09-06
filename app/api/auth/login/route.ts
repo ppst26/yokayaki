@@ -1,9 +1,12 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { signStaffToken, SESSION_COOKIE, SESSION_TTL_SECONDS, type EmployeeRole } from '@/lib/authToken';
+import { readOrgAuthCookie } from '@/lib/orgAuthCookie';
 import { clientKeyFrom, errorResponse } from '@/lib/session';
 import { enforceRateLimit } from '@/lib/rateLimit';
 import { parseJsonBody } from '@/lib/api/parse';
 import { loginBodySchema } from '@/lib/api/schemas';
+
+const orgAuthSkip = process.env.M5_ORG_AUTH_SKIP === 'true';
 
 // =============================================================
 // POST /api/auth/login   { pin: "123456" }
@@ -20,6 +23,14 @@ export async function POST(request: Request) {
 
     const body = await parseJsonBody(request, loginBodySchema);
     if (body instanceof Response) return body;
+
+    let orgAuth: Awaited<ReturnType<typeof readOrgAuthCookie>> = null;
+    if (!orgAuthSkip) {
+      orgAuth = await readOrgAuthCookie();
+      if (!orgAuth) {
+        return Response.json({ error: 'กรุณาเข้าสู่ระบบองค์กรก่อน' }, { status: 401 });
+      }
+    }
 
     const { data, error } = await supabaseAdmin.rpc('verify_pin', {
       p_pin: body.pin,
@@ -49,12 +60,21 @@ export async function POST(request: Request) {
 
     const { data: empRow, error: empError } = await supabaseAdmin
       .from('employees')
-      .select('org_id')
+      .select('org_id, auth_user_id')
       .eq('id', row.emp_id)
       .single();
 
     if (empError || !empRow?.org_id) {
       return Response.json({ error: 'ไม่พบข้อมูลองค์กรของพนักงาน' }, { status: 500 });
+    }
+
+    if (!orgAuthSkip && orgAuth) {
+      if (empRow.org_id !== orgAuth.orgId) {
+        return Response.json({ error: 'พนักงานไม่ได้อยู่ในองค์กรที่เข้าสู่ระบบ' }, { status: 403 });
+      }
+      if (empRow.auth_user_id && empRow.auth_user_id !== orgAuth.authUserId) {
+        return Response.json({ error: 'บัญชีพนักงานไม่ตรงกับผู้ใช้ที่เข้าสู่ระบบ' }, { status: 403 });
+      }
     }
 
     const token = await signStaffToken({

@@ -20,6 +20,7 @@ export type Database = {
           created_at: string | null
           pin_bcrypt: string | null
           org_id: string
+          auth_user_id: string | null
         }
         Insert: {
           id?: number
@@ -28,6 +29,7 @@ export type Database = {
           created_at?: string | null
           pin_bcrypt?: string | null
           org_id?: string
+          auth_user_id?: string | null
         }
         Update: {
           id?: number
@@ -36,6 +38,7 @@ export type Database = {
           created_at?: string | null
           pin_bcrypt?: string | null
           org_id?: string
+          auth_user_id?: string | null
         }
         Relationships: []
       }
@@ -102,6 +105,33 @@ export type Database = {
           points?: number
           created_at?: string | null
           org_id?: string
+        }
+        Relationships: []
+      }
+      memberships: {
+        Row: {
+          id: string
+          auth_user_id: string
+          org_id: string
+          employee_id: number | null
+          role: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          auth_user_id: string
+          org_id?: string
+          employee_id?: number | null
+          role: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          auth_user_id?: string
+          org_id?: string
+          employee_id?: number | null
+          role?: string
+          created_at?: string
         }
         Relationships: []
       }

@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { enterPin } from './helpers/pin';
+import { enterOrgLogin } from './helpers/org-login';
 import { goToFloorTab, goToKitchenTab } from './helpers/nav';
 import { isRealSupabaseConfigured, resolveAppEnv } from './helpers/env';
 
@@ -7,6 +8,8 @@ const appEnv = resolveAppEnv();
 const canRun = isRealSupabaseConfigured(appEnv);
 
 const staffPin = process.env.E2E_STAFF_PIN ?? '111111';
+const orgEmail = process.env.E2E_ORG_EMAIL ?? appEnv.E2E_ORG_EMAIL;
+const orgPassword = process.env.E2E_ORG_PASSWORD ?? appEnv.E2E_ORG_PASSWORD;
 
 test.describe('full POS flow', () => {
   test.describe.configure({ mode: 'serial', timeout: 90_000 });
@@ -19,6 +22,11 @@ test.describe('full POS flow', () => {
 
   test('ล็อกอิน → สั่ง → เสิร์ฟครัว → เช็คบิล', async ({ page }) => {
     await page.goto('/');
+
+    if (orgEmail && orgPassword) {
+      await enterOrgLogin(page, orgEmail, orgPassword);
+    }
+
     await enterPin(page, staffPin);
 
     await expect(page.getByRole('heading', { name: 'ผังโต๊ะ' })).toBeVisible({ timeout: 20_000 });

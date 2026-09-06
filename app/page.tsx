@@ -1,10 +1,11 @@
 "use client";
 import { useAuth } from '@/context/AuthContext';
 import { PinPad } from '@/components/PinPad';
+import { OrgLoginForm } from '@/components/OrgLoginForm';
 import { TableMap } from '@/components/TableMap';
 
 export default function Home() {
-  const { employee, isLoading } = useAuth();
+  const { employee, isLoading, orgAuthenticated } = useAuth();
 
   if (isLoading) {
     return (
@@ -13,6 +14,10 @@ export default function Home() {
         <p className="text-stone-400 font-medium text-xs tracking-wider animate-pulse">กำลังโหลดระบบ...</p>
       </div>
     );
+  }
+
+  if (!orgAuthenticated) {
+    return <OrgLoginForm />;
   }
 
   if (!employee) {

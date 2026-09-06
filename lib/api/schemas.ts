@@ -31,6 +31,11 @@ export const loginBodySchema = z.object({
   pin: pinSchema,
 });
 
+export const orgLoginBodySchema = z.object({
+  email: z.string().trim().email('อีเมลไม่ถูกต้อง'),
+  password: z.string().min(1, 'กรุณากรอกรหัสผ่าน'),
+});
+
 const orderLineSchema = z.object({
   menuItemId: z.number().int().positive(),
   quantity: z.number().int().min(1).max(99),

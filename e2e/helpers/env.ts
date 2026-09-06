@@ -39,6 +39,9 @@ export function resolveAppEnv(): Record<string, string> {
     SUPABASE_JWT_SECRET: get('SUPABASE_JWT_SECRET', 'placeholder-jwt-secret-min-32-chars-long'),
     SUPABASE_JWT_SIGNING_JWK: jwtJwk,
     TRUSTED_PROXY_HOPS: get('TRUSTED_PROXY_HOPS', '1'),
+    M5_ORG_AUTH_SKIP: get('M5_ORG_AUTH_SKIP'),
+    E2E_ORG_EMAIL: get('E2E_ORG_EMAIL'),
+    E2E_ORG_PASSWORD: get('E2E_ORG_PASSWORD'),
   };
 }
 
