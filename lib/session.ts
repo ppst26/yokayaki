@@ -1,6 +1,7 @@
 import 'server-only';
 import { cookies } from 'next/headers';
 import { SESSION_COOKIE, verifyStaffToken, type StaffClaims } from '@/lib/authToken';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import type { EmployeeRole } from '@/lib/permissions';
 
 // =============================================================
@@ -14,7 +15,20 @@ export async function getStaffSession(): Promise<StaffClaims | null> {
   const store = await cookies();
   const token = store.get(SESSION_COOKIE)?.value;
   if (!token) return null;
-  return verifyStaffToken(token);
+
+  const claims = await verifyStaffToken(token);
+  if (!claims) return null;
+
+  const { data, error } = await supabaseAdmin
+    .from('staff_sessions')
+    .select('id')
+    .eq('id', claims.sessionId)
+    .is('revoked_at', null)
+    .gt('expires_at', new Date().toISOString())
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return claims;
 }
 
 export class HttpError extends Error {

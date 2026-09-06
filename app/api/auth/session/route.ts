@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
-import { SESSION_COOKIE, verifyStaffToken } from '@/lib/authToken';
+import { SESSION_COOKIE } from '@/lib/authToken';
+import { getStaffSession } from '@/lib/session';
 
 // =============================================================
 // GET /api/auth/session
@@ -16,7 +17,7 @@ export async function GET() {
     return Response.json({ employee: null, token: null });
   }
 
-  const claims = await verifyStaffToken(token);
+  const claims = await getStaffSession();
   if (!claims) {
     return Response.json({ employee: null, token: null });
   }

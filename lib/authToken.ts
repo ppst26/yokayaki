@@ -21,6 +21,7 @@ export interface StaffClaims {
   empName: string;
   empRole: EmployeeRole;
   orgId: string;
+  sessionId: string;
 }
 
 type JoseKey = Awaited<ReturnType<typeof importJWK>>;
@@ -113,6 +114,7 @@ export async function signStaffToken(claims: StaffClaims): Promise<string> {
     emp_name: claims.empName,
     emp_role: claims.empRole,
     org_id: claims.orgId,
+    session_id: claims.sessionId,
   })
     .setProtectedHeader(header)
     .setSubject(employeeUuid(claims.empId))
@@ -135,16 +137,19 @@ export async function verifyStaffToken(token: string): Promise<StaffClaims | nul
     const empRole = payload.emp_role;
     const empName = payload.emp_name;
     const orgId = payload.org_id;
+    const sessionId = payload.session_id;
 
     if (typeof empId !== 'number') return null;
     if (!EMPLOYEE_ROLES.includes(empRole as EmployeeRole)) return null;
     if (typeof orgId !== 'string' || !orgId) return null;
+    if (typeof sessionId !== 'string' || !sessionId) return null;
 
     return {
       empId,
       empName: typeof empName === 'string' ? empName : '',
       empRole: empRole as EmployeeRole,
       orgId,
+      sessionId,
     };
   } catch {
     return null;

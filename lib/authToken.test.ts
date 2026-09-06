@@ -4,6 +4,7 @@ import { signStaffToken, verifyStaffToken } from '@/lib/authToken';
 import { EMPLOYEE_ROLES } from '@/lib/permissions';
 
 const ORG = '00000000-0000-4000-8000-000000000001';
+const SESSION = '00000000-0000-4000-8000-000000000099';
 
 beforeAll(() => {
   if (!process.env.SUPABASE_JWT_SECRET && !process.env.SUPABASE_JWT_SIGNING_JWK) {
@@ -18,9 +19,11 @@ describe('signStaffToken', () => {
       empName: 'ทดสอบ',
       empRole: 'owner',
       orgId: ORG,
+      sessionId: SESSION,
     });
     const claims = await verifyStaffToken(token);
     expect(claims?.orgId).toBe(ORG);
+    expect(claims?.sessionId).toBe(SESSION);
   });
 
   it.each(EMPLOYEE_ROLES)('ยอมรับ role %s', async role => {
@@ -29,6 +32,7 @@ describe('signStaffToken', () => {
       empName: 'ทดสอบ',
       empRole: role,
       orgId: ORG,
+      sessionId: SESSION,
     });
     const claims = await verifyStaffToken(token);
     expect(claims?.empRole).toBe(role);

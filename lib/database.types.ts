@@ -84,6 +84,33 @@ export type Database = {
         }
         Relationships: []
       }
+      login_audit: {
+        Row: {
+          id: number
+          employee_id: number | null
+          org_id: string | null
+          event: string
+          ip_hint: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          employee_id?: number | null
+          org_id?: string | null
+          event: string
+          ip_hint?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          employee_id?: number | null
+          org_id?: string | null
+          event?: string
+          ip_hint?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       loyalty_members: {
         Row: {
           phone_number: string
@@ -543,6 +570,36 @@ export type Database = {
           expired_at?: string | null
           org_id?: string
           table_id?: string
+        }
+        Relationships: []
+      }
+      staff_sessions: {
+        Row: {
+          id: string
+          employee_id: number
+          org_id: string
+          issued_at: string
+          expires_at: string
+          revoked_at: string | null
+          device_hint: string | null
+        }
+        Insert: {
+          id?: string
+          employee_id: number
+          org_id?: string
+          issued_at?: string
+          expires_at: string
+          revoked_at?: string | null
+          device_hint?: string | null
+        }
+        Update: {
+          id?: string
+          employee_id?: number
+          org_id?: string
+          issued_at?: string
+          expires_at?: string
+          revoked_at?: string | null
+          device_hint?: string | null
         }
         Relationships: []
       }

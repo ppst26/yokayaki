@@ -8,14 +8,31 @@ import { loginBodySchema } from '@/lib/api/schemas';
 
 const orgAuthSkip = process.env.M5_ORG_AUTH_SKIP === 'true';
 
+type LoginAuditEvent = 'login_success' | 'login_fail';
+
+async function insertLoginAudit(
+  event: LoginAuditEvent,
+  opts: { employeeId?: number; orgId?: string; ipHint: string },
+): Promise<void> {
+  const { error } = await supabaseAdmin.from('login_audit').insert({
+    employee_id: opts.employeeId ?? null,
+    org_id: opts.orgId ?? null,
+    event,
+    ip_hint: opts.ipHint,
+  });
+  if (error) console.error('[login] login_audit insert failed:', error);
+}
+
 // =============================================================
 // POST /api/auth/login   { pin: "123456" }
 // =============================================================
 
 export async function POST(request: Request) {
   try {
+    const ipHint = clientKeyFrom(request);
+
     const limited = enforceRateLimit({
-      key: `login:${clientKeyFrom(request)}`,
+      key: `login:${ipHint}`,
       max: 30,
       windowMs: 60 * 1000,
     });
@@ -34,7 +51,7 @@ export async function POST(request: Request) {
 
     const { data, error } = await supabaseAdmin.rpc('verify_pin', {
       p_pin: body.pin,
-      p_client_key: clientKeyFrom(request),
+      p_client_key: ipHint,
     });
 
     if (error) throw error;
@@ -49,6 +66,7 @@ export async function POST(request: Request) {
     }
 
     if (!row?.emp_id) {
+      await insertLoginAudit('login_fail', { ipHint });
       return Response.json({ error: 'รหัส PIN ไม่ถูกต้อง' }, { status: 401 });
     }
 
@@ -77,11 +95,37 @@ export async function POST(request: Request) {
       }
     }
 
+    const expiresAt = new Date(Date.now() + SESSION_TTL_SECONDS * 1000).toISOString();
+    const deviceHint = request.headers.get('user-agent')?.slice(0, 512) ?? null;
+
+    const { data: sessionRow, error: sessionError } = await supabaseAdmin
+      .from('staff_sessions')
+      .insert({
+        employee_id: employee.id,
+        org_id: empRow.org_id,
+        expires_at: expiresAt,
+        device_hint: deviceHint,
+      })
+      .select('id')
+      .single();
+
+    if (sessionError || !sessionRow?.id) {
+      console.error('[login] staff_sessions insert failed:', sessionError);
+      return Response.json({ error: 'ไม่สามารถสร้างเซสชันได้' }, { status: 500 });
+    }
+
     const token = await signStaffToken({
       empId: employee.id,
       empName: employee.name,
       empRole: employee.role,
       orgId: empRow.org_id,
+      sessionId: sessionRow.id,
+    });
+
+    await insertLoginAudit('login_success', {
+      employeeId: employee.id,
+      orgId: empRow.org_id,
+      ipHint,
     });
 
     const response = Response.json({ employee, token });

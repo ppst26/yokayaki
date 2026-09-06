@@ -1,17 +1,26 @@
-# SDD Progress Ledger - M5 Auth & RBAC
+# M5 Auth & RBAC — SDD Progress
 
-Plan File: `docs/superpowers/plans/2026-09-06-m5-auth-rbac-implementation-plan.md`
+**Milestone:** M5 Auth & RBAC  
+**Status:** 🟢 Complete (2026-09-06)
 
-Branch: main (in-place)
+| Task | Phase | Description | Status |
+|:--:|:-----:|---|:--:|
+| 1 | 5a | Migration role enum (`staff`→`cashier`) | 🟢 |
+| 2 | 5a | Permission helpers (`can_*()`) | 🟢 |
+| 3 | 5a | RLS role matrix rewrite | 🟢 |
+| 4 | 5a | RPC role guards | 🟢 |
+| 5 | 5a | `lib/permissions.ts` + JWT types | 🟢 |
+| 6 | 5a | UI tab gating | 🟢 |
+| 7 | 5a | `requireManageEmployees()` | 🟢 |
+| 8 | 5a | Integration tests `role_matrix.sql` | 🟢 |
+| 9 | 5a | Types + milestone partial | 🟢 |
+| 10 | 5b | `memberships` migration | 🟢 |
+| 11 | 5b | Supabase Auth org login + PIN gate | 🟢 |
+| 12 | 5c | Session revoke + login audit | 🟢 |
 
-- Task 1: complete (commits 41f2dff..a65bd6a, review clean)
-- Task 2: complete (commit a8031ec)
-- Task 3: complete (commit 32dfd13)
-- Task 4: complete (commit d8a875f)
-- Task 5: complete (feat(auth): M5 five employee roles in JWT and permissions)
-- Task 6: complete (feat(ui): M5 role-based tab gating)
-- Task 7: complete (feat(api): allow manager role for employee CRUD)
-- Task 8: complete (test(db): M5 role matrix and update SQL tests)
-- Task 9: complete (chore: complete M5 phase 5a role matrix)
-- Task 10: complete (feat(db): M5 memberships table for org auth)
-- Task 11: complete (feat(auth): M5 Supabase Auth org login before PIN)
+**Verification (Task 12 / M5 close):**
+
+- `pnpm db:reset && pnpm db:test` — 12 ไฟล์ผ่าน (รวม `staff_sessions.sql`)
+- `pnpm test:unit` — 16 ผ่าน
+- `pnpm typecheck && pnpm build` — exit 0
+- `lib/database.types.ts` — 21 tables (เพิ่ม `staff_sessions`, `login_audit`)
