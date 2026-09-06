@@ -18,7 +18,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    await requireOwner();
+    const owner = await requireOwner();
 
     const body = await parseJsonBody(request, employeeCreateBodySchema);
     if (body instanceof Response) return body;
@@ -27,6 +27,7 @@ export async function POST(request: Request) {
       p_name: body.name,
       p_pin: body.pin,
       p_role: body.role,
+      p_org_id: owner.orgId,
     });
     if (error) throw error;
 

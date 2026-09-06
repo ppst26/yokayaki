@@ -41,7 +41,8 @@ interface LoyaltyMember {
 
 interface ReceiptPrintViewProps {
   orderId: number | null;
-  tableId: number;
+  tableId: string;
+  tableNumber?: number;
   now: Date;
   employeeName?: string;
   activeItems: OrderedItem[];
@@ -61,6 +62,7 @@ interface ReceiptPrintViewProps {
 export const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
   orderId,
   tableId,
+  tableNumber,
   now,
   employeeName,
   activeItems,
@@ -90,7 +92,7 @@ export const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
         <div className="border-t border-dashed border-gray-400 my-2" />
         <div className="text-[11px] space-y-0.5">
           <p>บิลเลขที่: ORD-{orderId}</p>
-          <p>โต๊ะที่: Table {tableId}</p>
+          <p>โต๊ะที่: Table {tableNumber ?? tableId}</p>
           <p>
             วันที่: {now.toLocaleDateString('th-TH')} เวลา:{' '}
             {now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.

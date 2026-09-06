@@ -13,7 +13,8 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 export interface CustomerSession {
   sessionId: string;
-  tableId: number;
+  tableId: string;
+  orgId: string;
 }
 
 export async function requireCustomerSession(sessionId: string): Promise<CustomerSession> {
@@ -23,7 +24,7 @@ export async function requireCustomerSession(sessionId: string): Promise<Custome
 
   const { data, error } = await supabaseAdmin
     .from('qr_sessions')
-    .select('table_id, status, expired_at')
+    .select('table_id, org_id, status, expired_at')
     .eq('id', sessionId)
     .maybeSingle();
 
@@ -35,5 +36,5 @@ export async function requireCustomerSession(sessionId: string): Promise<Custome
     throw new HttpError(410, 'เซสชันนี้หมดอายุแล้ว');
   }
 
-  return { sessionId, tableId: data.table_id };
+  return { sessionId, tableId: data.table_id as string, orgId: data.org_id as string };
 }

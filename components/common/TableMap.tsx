@@ -19,7 +19,8 @@ import { playNewOrderSound, playCheckBillSound } from '@/lib/audioNotifier';
 import { TableCard } from '@/components/TableCard';
 
 interface Table {
-  id: number;
+  id: string;
+  table_number: number;
   status: 'vacant' | 'occupied' | 'checking_out';
   updated_at: string;
 }
@@ -27,9 +28,11 @@ interface Table {
 export const TableMap: React.FC = () => {
   const { employee, logout } = useAuth();
   const [tables, setTables] = useState<Table[]>([]);
-  const [selectedTableId, setSelectedTableId] = useState<number | null>(null);
-  const [checkoutTableId, setCheckoutTableId] = useState<number | null>(null);
-  const [actionSelectorTable, setActionSelectorTable] = useState<number | null>(null);
+  const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
+  const [selectedTableNumber, setSelectedTableNumber] = useState<number | null>(null);
+  const [checkoutTableId, setCheckoutTableId] = useState<string | null>(null);
+  const [checkoutTableNumber, setCheckoutTableNumber] = useState<number | null>(null);
+  const [actionSelectorTable, setActionSelectorTable] = useState<Table | null>(null);
   const [pendingItemCount, setPendingItemCount] = useState<number>(0);
   const [isCheckingPending, setIsCheckingPending] = useState<boolean>(false);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -48,7 +51,7 @@ export const TableMap: React.FC = () => {
         const { data: orderData } = await supabase
           .from('orders')
           .select('id')
-          .eq('table_id', actionSelectorTable)
+          .eq('table_id', actionSelectorTable.id)
           .eq('status', 'active')
           .maybeSingle();
 
@@ -75,7 +78,7 @@ export const TableMap: React.FC = () => {
     checkPendingItems();
 
     const channel = supabase
-      .channel(`realtime:order_items_modal_${actionSelectorTable}`)
+      .channel(`realtime:order_items_modal_${actionSelectorTable.id}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'order_items' },
@@ -98,8 +101,8 @@ export const TableMap: React.FC = () => {
 
       const { data, error } = await supabase
         .from('tables')
-        .select('*')
-        .order('id', { ascending: true });
+        .select('id, table_number, status, updated_at')
+        .order('table_number', { ascending: true });
 
       if (error) throw error;
       if (data) setTables(data as Table[]);
@@ -153,7 +156,9 @@ export const TableMap: React.FC = () => {
     }
     setActiveTab(tab);
     setSelectedTableId(null);
+    setSelectedTableNumber(null);
     setCheckoutTableId(null);
+    setCheckoutTableNumber(null);
   };
 
   if (selectedTableId !== null) {
@@ -163,7 +168,11 @@ export const TableMap: React.FC = () => {
         <main className="flex-1 overflow-hidden">
           <POSOrderScreen
             tableId={selectedTableId}
-            onBack={() => setSelectedTableId(null)}
+            tableNumber={selectedTableNumber ?? undefined}
+            onBack={() => {
+              setSelectedTableId(null);
+              setSelectedTableNumber(null);
+            }}
           />
         </main>
       </div>
@@ -177,7 +186,11 @@ export const TableMap: React.FC = () => {
         <main className="flex-1 overflow-y-auto no-scrollbar p-4 md:p-8">
           <CheckoutScreen
             tableId={checkoutTableId}
-            onBack={() => setCheckoutTableId(null)}
+            tableNumber={checkoutTableNumber ?? undefined}
+            onBack={() => {
+              setCheckoutTableId(null);
+              setCheckoutTableNumber(null);
+            }}
           />
         </main>
       </div>
@@ -186,9 +199,10 @@ export const TableMap: React.FC = () => {
 
   const handleTableClick = (table: Table) => {
     if (table.status === 'occupied' || table.status === 'checking_out') {
-      setActionSelectorTable(table.id);
+      setActionSelectorTable(table);
     } else {
       setSelectedTableId(table.id);
+      setSelectedTableNumber(table.table_number);
     }
   };
 
@@ -255,7 +269,7 @@ export const TableMap: React.FC = () => {
           <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl w-full max-w-sm p-6 shadow-xl space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-h2 text-slate-900 dark:text-neutral-100">
-                จัดการ โต๊ะ {actionSelectorTable}
+                จัดการ โต๊ะ {actionSelectorTable.table_number}
               </h3>
               <button
                 onClick={() => setActionSelectorTable(null)}
@@ -275,9 +289,10 @@ export const TableMap: React.FC = () => {
             <div className="space-y-2.5 pt-2">
               <button
                 onClick={() => {
-                  const tid = actionSelectorTable;
+                  const table = actionSelectorTable;
                   setActionSelectorTable(null);
-                  setSelectedTableId(tid);
+                  setSelectedTableId(table.id);
+                  setSelectedTableNumber(table.table_number);
                 }}
                 className="w-full py-3.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-900 dark:text-neutral-100 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 border border-slate-200 dark:border-neutral-700 cursor-pointer"
               >
@@ -288,9 +303,10 @@ export const TableMap: React.FC = () => {
               <button
                 onClick={() => {
                   if (pendingItemCount > 0) return;
-                  const tid = actionSelectorTable;
+                  const table = actionSelectorTable;
                   setActionSelectorTable(null);
-                  setCheckoutTableId(tid);
+                  setCheckoutTableId(table.id);
+                  setCheckoutTableNumber(table.table_number);
                 }}
                 disabled={pendingItemCount > 0 || isCheckingPending}
                 className={`w-full py-3.5 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 ${

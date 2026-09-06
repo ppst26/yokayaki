@@ -70,7 +70,8 @@ export default function CustomerOrderPortal() {
   const sessionId = params.session_id as string;
 
   const [activeTab, setActiveTab] = useState<CustomerTab>('home');
-  const [tableId, setTableId] = useState<number | null>(null);
+  const [tableId, setTableId] = useState<string | null>(null);
+  const [tableNumber, setTableNumber] = useState<number | null>(null);
   const [sessionValid, setSessionValid] = useState<boolean | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
@@ -122,6 +123,7 @@ export default function CustomerOrderPortal() {
       setErrorMsg(null);
       setSessionValid(true);
       setTableId(data.tableId);
+      setTableNumber(data.tableNumber ?? null);
       setMenuItems((data.menuItems ?? []) as MenuItem[]);
       setPromotions((data.promotions ?? []) as Promotion[]);
       setOrderedItems((data.orderedItems ?? []) as OrderedItem[]);
@@ -145,7 +147,7 @@ export default function CustomerOrderPortal() {
 
   // ชื่อเดิมที่ JSX ยังเรียกอยู่ — ตอนนี้ทั้งคู่หมายถึง "ดึงสถานะรอบใหม่"
   const verifySessionAndFetchData = refresh;
-  const fetchOrderedItems = useCallback(async (_tableId?: number) => { await refresh(); }, [refresh]);
+  const fetchOrderedItems = useCallback(async () => { await refresh(); }, [refresh]);
 
   useEffect(() => {
     if (!sessionId) return;
@@ -359,7 +361,7 @@ export default function CustomerOrderPortal() {
               ขอบคุณที่ใช้บริการ!
             </h1>
             <p className="text-slate-500 text-xs font-semibold">
-              Yokayaki Izakaya • โต๊ะ {tableId || ''}
+              Yokayaki Izakaya • โต๊ะ {tableNumber ?? ''}
             </p>
           </div>
 
@@ -421,7 +423,7 @@ export default function CustomerOrderPortal() {
           <div>
             <h1 className="font-black text-base leading-tight tracking-tight text-slate-900">Yokayaki</h1>
             <p className="text-slate-500 text-xs md:text-sm font-bold whitespace-nowrap mt-0.5">
-              ประจำ <span className="text-red-600 font-black text-sm md:text-base">โต๊ะ {tableId}</span>
+              ประจำ <span className="text-red-600 font-black text-sm md:text-base">โต๊ะ {tableNumber ?? ''}</span>
             </p>
           </div>
         </div>
@@ -455,7 +457,7 @@ export default function CustomerOrderPortal() {
                   <Sparkles className="w-3.5 h-3.5" />
                   ยินดีต้อนรับสู่ Yokayaki
                 </span>
-                <h2 className="text-2xl font-black tracking-tight mb-1">สั่งอาหาร โต๊ะ {tableId}</h2>
+                <h2 className="text-2xl font-black tracking-tight mb-1">สั่งอาหาร โต๊ะ {tableNumber ?? ''}</h2>
                 <p className="text-white/80 text-xs font-medium leading-relaxed">
                   เลือกเมนูที่ชอบและส่งสั่งครัวได้ทันทีจากมือถือของคุณ
                 </p>
@@ -651,10 +653,10 @@ export default function CustomerOrderPortal() {
                   <ClipboardList className="w-5 h-5 text-red-600" />
                   <span>รายการอาหารที่สั่งแล้ว</span>
                 </h2>
-                <p className="text-slate-500 text-xs mt-0.5">ประจำ <span className="font-bold text-red-600">โต๊ะ {tableId}</span></p>
+                <p className="text-slate-500 text-xs mt-0.5">ประจำ <span className="font-bold text-red-600">โต๊ะ {tableNumber ?? ''}</span></p>
               </div>
               <button 
-                onClick={() => tableId && fetchOrderedItems(tableId)} 
+                onClick={() => fetchOrderedItems()} 
                 className="text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-xl border border-red-200 transition cursor-pointer"
               >
                 อัปเดตสถานะ
@@ -758,7 +760,7 @@ export default function CustomerOrderPortal() {
                               <span>⏳ แจ้งเรียกพนักงานเช็คบิลแล้ว</span>
                             </div>
                             <p className="text-slate-500 text-xs font-semibold">
-                              พนักงานกำลังจัดเตรียมใบเสร็จและเดินทางมาที่ <span className="font-extrabold text-rose-600">โต๊ะ {tableId}</span>
+                              พนักงานกำลังจัดเตรียมใบเสร็จและเดินทางมาที่ <span className="font-extrabold text-rose-600">โต๊ะ {tableNumber ?? ''}</span>
                             </p>
                             <button
                               onClick={handleCancelCheckBill}
@@ -797,7 +799,7 @@ export default function CustomerOrderPortal() {
                             <div>
                               <h3 className="text-base font-black text-slate-900">เรียกพนักงานเช็คบิล?</h3>
                               <p className="text-slate-500 text-xs mt-1">
-                                โต๊ะ {tableId} • ยอดรวมทั้งสิ้น <span className="font-extrabold text-red-600">฿{totalAmt.toLocaleString()} บาท</span>
+                                โต๊ะ {tableNumber ?? ''} • ยอดรวมทั้งสิ้น <span className="font-extrabold text-red-600">฿{totalAmt.toLocaleString()} บาท</span>
                               </p>
                             </div>
                             <div className="flex gap-2 pt-2 border-t border-slate-100">

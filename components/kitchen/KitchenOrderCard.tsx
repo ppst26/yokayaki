@@ -21,7 +21,8 @@ interface OrderItem {
 }
 
 interface TableGroup {
-  table_id: number;
+  table_id: string;
+  table_number: number;
   order_id: number;
   oldest_created_at: string;
   items: OrderItem[];
@@ -169,7 +170,7 @@ export const KitchenOrderCard: React.FC<KitchenOrderCardProps> = ({
         {/* Card Header */}
         <div className={`p-4 flex items-center justify-between transition ${cardHeaderStyle}`}>
           <div>
-            <h3 className="text-h2 text-white">โต๊ะ {group.table_id}</h3>
+            <h3 className="text-h2 text-white">โต๊ะ {group.table_number || group.table_id}</h3>
             <span className="text-xs text-white font-extrabold block mt-0.5 opacity-95">
               รวม {group.items.reduce((s, i) => s + i.quantity, 0)} รายการ
             </span>
@@ -250,7 +251,7 @@ export const KitchenOrderCard: React.FC<KitchenOrderCardProps> = ({
           className="w-full py-3 bg-red-600 hover:bg-red-700 text-white text-body font-bold rounded-xl shadow-md shadow-red-600/20 transition active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
         >
           <CheckCircle className="w-4 h-4" />
-          <span>เสิร์ฟทั้งหมดของโต๊ะ {group.table_id}</span>
+          <span>เสิร์ฟทั้งหมดของโต๊ะ {group.table_number || group.table_id}</span>
         </button>
       </div>
     </Card>

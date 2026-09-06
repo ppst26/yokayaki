@@ -50,8 +50,10 @@ export const orderItemsSchema = z
   .min(1, 'รายการสั่งอาหารไม่ถูกต้อง')
   .max(MAX_ORDER_ITEMS, 'รายการสั่งอาหารไม่ถูกต้อง');
 
+export const tableIdSchema = z.string().uuid('รหัสโต๊ะไม่ถูกต้อง');
+
 export const staffOrderBodySchema = z.object({
-  tableId: z.number().int().positive('รหัสโต๊ะไม่ถูกต้อง'),
+  tableId: tableIdSchema,
   items: orderItemsSchema,
 });
 

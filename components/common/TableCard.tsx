@@ -4,7 +4,8 @@ import React from 'react';
 import { ShoppingBag, Receipt, BellRing } from 'lucide-react';
 
 export interface Table {
-  id: number;
+  id: string;
+  table_number: number;
   status: 'vacant' | 'occupied' | 'checking_out';
   updated_at?: string;
 }
@@ -92,7 +93,7 @@ export const TableCard: React.FC<TableCardProps> = ({ table, onClick, className 
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
         <span className={`text-h2 ${isOccupied || isCheckingOut ? 'text-white' : 'text-slate-900 dark:text-neutral-100'}`}>
-          โต๊ะ {table.id}
+          โต๊ะ {table.table_number}
         </span>
         {renderBadge()}
       </div>

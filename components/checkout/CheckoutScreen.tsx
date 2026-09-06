@@ -14,7 +14,8 @@ import { generatePromptPayQR } from '@/lib/promptPay';
 import { pointsEarnedFromNet } from '@/lib/loyaltyPoints';
 
 interface CheckoutScreenProps {
-  tableId: number;
+  tableId: string;
+  tableNumber?: number;
   onBack: () => void;
 }
 
@@ -87,7 +88,7 @@ interface CheckoutResult {
   }[] | null;
 }
 
-export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack }) => {
+export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNumber, onBack }) => {
   const { employee } = useAuth();
 
   // Order Data
@@ -512,6 +513,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
       <ReceiptPrintView
         orderId={orderId}
         tableId={tableId}
+        tableNumber={tableNumber}
         now={new Date()}
         employeeName={employee?.name}
         activeItems={activeItems}
@@ -555,7 +557,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, onBack 
               <span>ชำระเงิน</span>
             </h1>
             <p className="text-xs text-slate-500 dark:text-neutral-400 font-semibold mt-0.5">
-              ประจำ <span className="text-red-600 dark:text-red-400 font-bold">โต๊ะ {tableId}</span> • ออเดอร์ #{orderId}
+              ประจำ <span className="text-red-600 dark:text-red-400 font-bold">โต๊ะ {tableNumber ?? tableId}</span> • ออเดอร์ #{orderId}
             </p>
           </div>
         </header>

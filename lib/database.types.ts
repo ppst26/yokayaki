@@ -27,7 +27,7 @@ export type Database = {
           role: string
           created_at?: string | null
           pin_bcrypt?: string | null
-          org_id: string
+          org_id?: string
         }
         Update: {
           id?: number
@@ -51,6 +51,7 @@ export type Database = {
           created_at: string
           purchase_order_id: number | null
           price_per_unit: number | null
+          org_id: string
         }
         Insert: {
           id?: number
@@ -63,6 +64,7 @@ export type Database = {
           created_at?: string
           purchase_order_id?: number | null
           price_per_unit?: number | null
+          org_id?: string
         }
         Update: {
           id?: number
@@ -75,6 +77,7 @@ export type Database = {
           created_at?: string
           purchase_order_id?: number | null
           price_per_unit?: number | null
+          org_id?: string
         }
         Relationships: []
       }
@@ -84,18 +87,21 @@ export type Database = {
           name: string
           points: number
           created_at: string | null
+          org_id: string
         }
         Insert: {
           phone_number: string
           name: string
           points?: number
           created_at?: string | null
+          org_id?: string
         }
         Update: {
           phone_number?: string
           name?: string
           points?: number
           created_at?: string | null
+          org_id?: string
         }
         Relationships: []
       }
@@ -112,6 +118,7 @@ export type Database = {
           category: string
           image_url: string | null
           unit: string
+          org_id: string
         }
         Insert: {
           id?: number
@@ -125,6 +132,7 @@ export type Database = {
           category?: string
           image_url?: string | null
           unit?: string
+          org_id?: string
         }
         Update: {
           id?: number
@@ -138,27 +146,7 @@ export type Database = {
           category?: string
           image_url?: string | null
           unit?: string
-        }
-        Relationships: []
-      }
-      order_item_modifiers: {
-        Row: {
-          id: number
-          order_item_id: number
-          modifier_name: string
-          extra_price: number
-        }
-        Insert: {
-          id?: number
-          order_item_id: number
-          modifier_name: string
-          extra_price?: number
-        }
-        Update: {
-          id?: number
-          order_item_id?: number
-          modifier_name?: string
-          extra_price?: number
+          org_id?: string
         }
         Relationships: []
       }
@@ -172,6 +160,7 @@ export type Database = {
           status: string
           created_at: string | null
           notes: string | null
+          org_id: string
         }
         Insert: {
           id?: number
@@ -182,6 +171,7 @@ export type Database = {
           status?: string
           created_at?: string | null
           notes?: string | null
+          org_id?: string
         }
         Update: {
           id?: number
@@ -192,30 +182,76 @@ export type Database = {
           status?: string
           created_at?: string | null
           notes?: string | null
+          org_id?: string
         }
         Relationships: []
       }
       orders: {
         Row: {
           id: number
-          table_id: number
           qr_session_id: string | null
           status: string
           created_at: string | null
+          org_id: string
+          table_id: string
         }
         Insert: {
           id?: number
-          table_id: number
           qr_session_id?: string | null
           status?: string
           created_at?: string | null
+          org_id?: string
+          table_id: string
         }
         Update: {
           id?: number
-          table_id?: number
           qr_session_id?: string | null
           status?: string
           created_at?: string | null
+          org_id?: string
+          table_id?: string
+        }
+        Relationships: []
+      }
+      org_settings: {
+        Row: {
+          org_id: string
+          promptpay_id: string | null
+          receipt_merchant_name: string
+          timezone: string
+        }
+        Insert: {
+          org_id?: string
+          promptpay_id?: string | null
+          receipt_merchant_name?: string
+          timezone?: string
+        }
+        Update: {
+          org_id?: string
+          promptpay_id?: string | null
+          receipt_merchant_name?: string
+          timezone?: string
+        }
+        Relationships: []
+      }
+      organizations: {
+        Row: {
+          id: string
+          name: string
+          slug: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          slug?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          slug?: string | null
+          created_at?: string
         }
         Relationships: []
       }
@@ -229,6 +265,7 @@ export type Database = {
           discount_value: number
           free_items: Json | null
           created_at: string | null
+          org_id: string
         }
         Insert: {
           id?: number
@@ -239,6 +276,7 @@ export type Database = {
           discount_value: number
           free_items?: Json | null
           created_at?: string | null
+          org_id?: string
         }
         Update: {
           id?: number
@@ -249,6 +287,7 @@ export type Database = {
           discount_value?: number
           free_items?: Json | null
           created_at?: string | null
+          org_id?: string
         }
         Relationships: []
       }
@@ -266,6 +305,7 @@ export type Database = {
           phone_number: string | null
           cash_amount: number
           promptpay_amount: number
+          org_id: string
         }
         Insert: {
           id?: number
@@ -280,6 +320,7 @@ export type Database = {
           phone_number?: string | null
           cash_amount?: number
           promptpay_amount?: number
+          org_id?: string
         }
         Update: {
           id?: number
@@ -294,6 +335,7 @@ export type Database = {
           phone_number?: string | null
           cash_amount?: number
           promptpay_amount?: number
+          org_id?: string
         }
         Relationships: []
       }
@@ -326,6 +368,7 @@ export type Database = {
           reason: string
           adjusted_by: string
           created_at: string | null
+          org_id: string
         }
         Insert: {
           id?: number
@@ -334,6 +377,7 @@ export type Database = {
           reason: string
           adjusted_by: string
           created_at?: string | null
+          org_id?: string
         }
         Update: {
           id?: number
@@ -342,6 +386,7 @@ export type Database = {
           reason?: string
           adjusted_by?: string
           created_at?: string | null
+          org_id?: string
         }
         Relationships: []
       }
@@ -360,10 +405,11 @@ export type Database = {
           start_date: string | null
           end_date: string | null
           created_at: string | null
-          menu_item_id: number | null
           start_time: string | null
           end_time: string | null
+          menu_item_id: number | null
           image_url: string | null
+          org_id: string
         }
         Insert: {
           id?: number
@@ -379,10 +425,11 @@ export type Database = {
           start_date?: string | null
           end_date?: string | null
           created_at?: string | null
-          menu_item_id?: number | null
           start_time?: string | null
           end_time?: string | null
+          menu_item_id?: number | null
           image_url?: string | null
+          org_id?: string
         }
         Update: {
           id?: number
@@ -398,10 +445,11 @@ export type Database = {
           start_date?: string | null
           end_date?: string | null
           created_at?: string | null
-          menu_item_id?: number | null
           start_time?: string | null
           end_time?: string | null
+          menu_item_id?: number | null
           image_url?: string | null
+          org_id?: string
         }
         Relationships: []
       }
@@ -415,6 +463,7 @@ export type Database = {
           created_at: string
           created_by_emp_id: number | null
           created_by_name: string | null
+          org_id: string
         }
         Insert: {
           id?: number
@@ -425,6 +474,7 @@ export type Database = {
           created_at?: string
           created_by_emp_id?: number | null
           created_by_name?: string | null
+          org_id?: string
         }
         Update: {
           id?: number
@@ -435,30 +485,34 @@ export type Database = {
           created_at?: string
           created_by_emp_id?: number | null
           created_by_name?: string | null
+          org_id?: string
         }
         Relationships: []
       }
       qr_sessions: {
         Row: {
           id: string
-          table_id: number
           status: string
           created_at: string | null
           expired_at: string | null
+          org_id: string
+          table_id: string
         }
         Insert: {
           id?: string
-          table_id: number
           status?: string
           created_at?: string | null
           expired_at?: string | null
+          org_id?: string
+          table_id: string
         }
         Update: {
           id?: string
-          table_id?: number
           status?: string
           created_at?: string | null
           expired_at?: string | null
+          org_id?: string
+          table_id?: string
         }
         Relationships: []
       }
@@ -472,6 +526,7 @@ export type Database = {
           new_stock: number
           change_amount: number
           created_at: string
+          org_id: string
         }
         Insert: {
           id?: number
@@ -482,6 +537,7 @@ export type Database = {
           new_stock: number
           change_amount: number
           created_at?: string
+          org_id?: string
         }
         Update: {
           id?: number
@@ -492,24 +548,31 @@ export type Database = {
           new_stock?: number
           change_amount?: number
           created_at?: string
+          org_id?: string
         }
         Relationships: []
       }
       tables: {
         Row: {
-          id: number
           status: string
           updated_at: string | null
+          org_id: string
+          table_number: number
+          id: string
         }
         Insert: {
-          id?: number
           status?: string
           updated_at?: string | null
+          org_id?: string
+          table_number: number
+          id?: string
         }
         Update: {
-          id?: number
           status?: string
           updated_at?: string | null
+          org_id?: string
+          table_number?: number
+          id?: string
         }
         Relationships: []
       }
@@ -525,6 +588,7 @@ export type Database = {
           created_at: string | null
           employee_id: number | null
           reason_code: string | null
+          org_id: string
         }
         Insert: {
           id?: number
@@ -537,6 +601,7 @@ export type Database = {
           created_at?: string | null
           employee_id?: number | null
           reason_code?: string | null
+          org_id?: string
         }
         Update: {
           id?: number
@@ -549,6 +614,7 @@ export type Database = {
           created_at?: string | null
           employee_id?: number | null
           reason_code?: string | null
+          org_id?: string
         }
         Relationships: []
       }
@@ -570,6 +636,7 @@ export type Database = {
           p_name: string | null
           p_pin: string | null
           p_role: string | null
+          p_org_id: string | null
         }
         Returns: number
       }
@@ -659,6 +726,10 @@ export type Database = {
         Args: {}
         Returns: string
       }
+      jwt_org_id: {
+        Args: {}
+        Returns: string
+      }
       menu_item_sale_price: {
         Args: {
           p_is_happy_hour: boolean | null
@@ -677,14 +748,14 @@ export type Database = {
       }
       place_order_batch: {
         Args: {
-          p_table_id: number | null
+          p_table_id: string | null
           p_items: Json | null
         }
         Returns: Json
       }
       place_order_item: {
         Args: {
-          p_table_id: number | null
+          p_table_id: string | null
           p_menu_item_id: number | null
           p_quantity: number | null
           p_notes: string | null

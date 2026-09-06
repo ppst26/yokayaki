@@ -112,9 +112,10 @@ async function main() {
     process.exit(1);
   }
 
+  const isLocal = connectionString.includes('localhost') || connectionString.includes('127.0.0.1');
   const client = new pg.Client({
     connectionString,
-    ssl: { rejectUnauthorized: false },
+    ssl: isLocal ? false : { rejectUnauthorized: false },
   });
   await client.connect();
 
@@ -188,7 +189,7 @@ async function main() {
         const ts = pgTypeToTs(c.data_type, c.udt_name);
         const nullable = c.is_nullable === 'YES';
         const hasDefault = c.column_default != null;
-        const optional = nullable || hasDefault || c.column_name === 'id';
+        const optional = nullable || hasDefault || c.column_name === 'id' || c.column_name === 'org_id';
         return `          ${c.column_name}${optional ? '?' : ''}: ${ts}${nullable ? ' | null' : ''}`;
       });
 

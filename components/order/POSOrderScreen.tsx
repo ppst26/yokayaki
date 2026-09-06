@@ -37,11 +37,12 @@ interface OrderedItem {
 }
 
 interface POSOrderScreenProps {
-  tableId: number;
+  tableId: string;
+  tableNumber?: number;
   onBack: () => void;
 }
 
-export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack }) => {
+export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, tableNumber, onBack }) => {
   const { employee } = useAuth();
 
   // Data States
@@ -385,7 +386,7 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
                 สั่งอาหาร
               </h1>
               <p className="text-sm md:text-base text-slate-500 dark:text-neutral-400 font-semibold whitespace-nowrap mt-0.5">
-                ประจำ <span className="text-base md:text-lg text-red-600 dark:text-red-400 font-black">โต๊ะ {tableId}</span>
+                ประจำ <span className="text-base md:text-lg text-red-600 dark:text-red-400 font-black">โต๊ะ {tableNumber ?? tableId}</span>
               </p>
             </div>
           </div>
@@ -460,6 +461,7 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, onBack 
         showQrModal={showQrModal}
         setShowQrModal={setShowQrModal}
         tableId={tableId}
+        tableNumber={tableNumber}
         qrSessionId={qrSessionId}
       />
     </div>

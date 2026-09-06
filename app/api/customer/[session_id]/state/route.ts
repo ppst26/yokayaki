@@ -21,22 +21,25 @@ export async function GET(
     });
     if (limited) return limited;
 
-    let tableId: number;
+    let tableId: string;
+    let orgId: string;
     try {
-      ({ tableId } = await requireCustomerSession(sessionId));
+      ({ tableId, orgId } = await requireCustomerSession(sessionId));
     } catch {
       return Response.json({ sessionActive: false });
     }
 
     const [tableRes, menuRes, promoRes, orderRes] = await Promise.all([
-      supabaseAdmin.from('tables').select('status').eq('id', tableId).maybeSingle(),
+      supabaseAdmin.from('tables').select('status, table_number').eq('id', tableId).maybeSingle(),
       supabaseAdmin
         .from('menu_items')
         .select('id, name, price, stock, category, image_url, is_happy_hour, happy_hour_price')
+        .eq('org_id', orgId)
         .order('id', { ascending: true }),
       supabaseAdmin
         .from('promotions')
         .select('id, name, type, discount_percent, discount_amount, min_order_amount, is_active, image_url, start_time, end_time')
+        .eq('org_id', orgId)
         .eq('is_active', true)
         .order('created_at', { ascending: false }),
       supabaseAdmin
@@ -63,6 +66,7 @@ export async function GET(
     return Response.json({
       sessionActive: true,
       tableId,
+      tableNumber: tableRes.data?.table_number ?? null,
       tableStatus: tableRes.data?.status ?? 'occupied',
       orderActive: Boolean(orderRes.data?.id),
       menuItems: menuRes.data ?? [],

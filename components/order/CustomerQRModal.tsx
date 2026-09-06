@@ -7,7 +7,8 @@ import QRCode from 'react-qr-code';
 interface CustomerQRModalProps {
   showQrModal: boolean;
   setShowQrModal: (val: boolean) => void;
-  tableId: number;
+  tableId: string;
+  tableNumber?: number;
   qrSessionId: string | null;
 }
 
@@ -15,6 +16,7 @@ export const CustomerQRModal: React.FC<CustomerQRModalProps> = ({
   showQrModal,
   setShowQrModal,
   tableId,
+  tableNumber,
   qrSessionId,
 }) => {
   if (!showQrModal || !qrSessionId) return null;
@@ -37,7 +39,7 @@ export const CustomerQRModal: React.FC<CustomerQRModalProps> = ({
             QR สั่งอาหารสำหรับลูกค้า
           </h3>
           <p className="text-xs text-slate-500 dark:text-neutral-400 font-semibold">
-            โต๊ะ {tableId} • รหัสเซสชัน: {qrSessionId.slice(0, 8)}...
+            โต๊ะ {tableNumber ?? tableId} • รหัสเซสชัน: {qrSessionId.slice(0, 8)}...
           </p>
         </div>
 

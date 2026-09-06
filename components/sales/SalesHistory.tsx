@@ -19,7 +19,8 @@ interface PaymentPromo {
 
 interface CompletedOrder {
   id: number;
-  table_id: number;
+  table_id: string;
+  table_number?: number;
   created_at: string;
   payment: {
     id: number;
@@ -90,7 +91,7 @@ export const SalesHistory: React.FC = () => {
 
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
-        .select('id, table_id, created_at')
+        .select('id, table_id, created_at, tables(table_number)')
         .eq('status', 'completed')
         .gte('created_at', startISO)
         .lte('created_at', endISO)
@@ -187,6 +188,7 @@ export const SalesHistory: React.FC = () => {
         return {
           id: order.id,
           table_id: order.table_id,
+          table_number: (order as any).tables?.table_number,
           created_at: order.created_at ?? '',
           payment: payment
             ? {

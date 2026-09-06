@@ -23,13 +23,17 @@ interface OrderItem {
     unit?: string;
   };
   orders?: {
-    table_id: number;
+    table_id: string;
     status: string;
+    tables?: {
+      table_number: number;
+    } | null;
   };
 }
 
 interface TableGroup {
-  table_id: number;
+  table_id: string;
+  table_number: number;
   order_id: number;
   oldest_created_at: string;
   items: OrderItem[];
@@ -59,7 +63,11 @@ export const KitchenScreen: React.FC = () => {
           created_at,
           notes,
           menu_items (id, name, category, unit),
-          orders!inner (table_id, status)
+          orders!inner (
+            table_id,
+            status,
+            tables (table_number)
+          )
         `)
         .eq('status', 'pending')
         .eq('orders.status', 'active')
@@ -184,12 +192,14 @@ export const KitchenScreen: React.FC = () => {
     };
   }, []);
 
-  const groupMap: Record<number, TableGroup> = {};
+  const groupMap: Record<string, TableGroup> = {};
   for (const item of items) {
-    const tableId = item.orders?.table_id || 0;
+    const tableId = item.orders?.table_id || 'unknown';
+    const tableNumber = item.orders?.tables?.table_number ?? 0;
     if (!groupMap[tableId]) {
       groupMap[tableId] = {
         table_id: tableId,
+        table_number: tableNumber,
         order_id: item.order_id,
         oldest_created_at: item.created_at,
         items: [],

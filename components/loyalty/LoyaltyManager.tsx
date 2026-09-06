@@ -42,7 +42,7 @@ interface BillRecord {
   points_earned: number;
   points_redeemed: number;
   created_at: string;
-  orders: { table_id: number } | null;
+  orders: { table_id: string; tables?: { table_number: number } | null } | null;
 }
 
 interface PointsLog {
@@ -118,7 +118,21 @@ export const LoyaltyManager: React.FC = () => {
 
       const { data: billsData, error: billsError } = await supabase
         .from('payments')
-        .select('id, order_id, payment_method, subtotal, discount_amount, net_amount, points_earned, points_redeemed, created_at, orders(table_id)')
+        .select(`
+          id,
+          order_id,
+          payment_method,
+          subtotal,
+          discount_amount,
+          net_amount,
+          points_earned,
+          points_redeemed,
+          created_at,
+          orders (
+            table_id,
+            tables (table_number)
+          )
+        `)
         .eq('phone_number', phone)
         .order('created_at', { ascending: false });
 
@@ -494,7 +508,7 @@ export const LoyaltyManager: React.FC = () => {
                       >
                         <div className="flex justify-between items-center font-bold text-slate-900 dark:text-neutral-100">
                           <span>
-                            บิล ORD-{b.order_id} ({b.orders?.table_id ? `โต๊ะ ${b.orders.table_id}` : 'กลับบ้าน'})
+                            บิล ORD-{b.order_id} ({b.orders?.tables?.table_number ? `โต๊ะ ${b.orders.tables.table_number}` : b.orders?.table_id ? `โต๊ะ ${b.orders.table_id}` : 'กลับบ้าน'})
                           </span>
                           <span className="text-red-600 dark:text-red-400">
                             {b.net_amount.toLocaleString()} ฿

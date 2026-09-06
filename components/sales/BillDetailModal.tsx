@@ -14,7 +14,8 @@ interface PaymentPromo {
 
 interface CompletedOrder {
   id: number;
-  table_id: number;
+  table_id: string;
+  table_number?: number;
   created_at: string;
   payment: {
     id: number;
@@ -85,7 +86,7 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
               ) : null}
             </div>
             <p className="text-xs sm:text-sm text-neutral-300 font-semibold flex items-center gap-2 flex-wrap">
-              <span>โต๊ะ {selectedOrder.table_id}</span>
+              <span>โต๊ะ {selectedOrder.table_number ?? selectedOrder.table_id}</span>
               <span>•</span>
               <span>ปิดบิลเวลา {formatTime(selectedOrder.payment?.created_at || selectedOrder.created_at)} น.</span>
             </p>
