@@ -8,15 +8,24 @@ import {
   Eye, EyeOff
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { canAccessTab, EMPLOYEE_ROLES, type EmployeeRole } from '@/lib/permissions';
 
 // ========== Interfaces ==========
 
 interface Employee {
   id: number;
   name: string;
-  role: 'owner' | 'staff';
+  role: EmployeeRole;
   created_at: string;
 }
+
+const ROLE_LABELS: Record<EmployeeRole, string> = {
+  owner: 'เจ้าของร้าน',
+  manager: 'ผู้จัดการ',
+  cashier: 'แคชเชียร์',
+  kitchen: 'ครัว',
+  accountant: 'บัญชี',
+};
 
 type ModalType = 'add' | 'edit' | 'delete' | null;
 
@@ -39,12 +48,12 @@ export const EmployeeManager: React.FC = () => {
   const [addName, setAddName] = useState('');
   const [addPin, setAddPin] = useState('');
   const [addPinConfirm, setAddPinConfirm] = useState('');
-  const [addRole, setAddRole] = useState<'staff' | 'owner'>('staff');
+  const [addRole, setAddRole] = useState<EmployeeRole>('cashier');
   const [showAddPin, setShowAddPin] = useState(false);
 
   // ฟอร์มแก้ไขพนักงาน (รวม ชื่อ, ตำแหน่ง, และ PIN)
   const [editName, setEditName] = useState('');
-  const [editRole, setEditRole] = useState<'staff' | 'owner'>('staff');
+  const [editRole, setEditRole] = useState<EmployeeRole>('cashier');
   const [editPin, setEditPin] = useState('');
   const [editPinConfirm, setEditPinConfirm] = useState('');
   const [showEditPin, setShowEditPin] = useState(false);
@@ -72,7 +81,7 @@ export const EmployeeManager: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!currentUser || currentUser.role !== 'owner') return;
+    if (!currentUser || !canAccessTab(currentUser.role, 'employees')) return;
     fetchEmployees();
   }, [currentUser?.id]);
 
@@ -90,10 +99,10 @@ export const EmployeeManager: React.FC = () => {
     setAddName('');
     setAddPin('');
     setAddPinConfirm('');
-    setAddRole('staff');
+    setAddRole('cashier');
     setShowAddPin(false);
     setEditName('');
-    setEditRole('staff');
+    setEditRole('cashier');
     setEditPin('');
     setEditPinConfirm('');
     setShowEditPin(false);
@@ -231,7 +240,7 @@ export const EmployeeManager: React.FC = () => {
   // ========== Computed ==========
 
   const ownerCount = employees.filter(e => e.role === 'owner').length;
-  const staffCount = employees.filter(e => e.role === 'staff').length;
+  const managerCount = employees.filter(e => e.role === 'manager').length;
 
   // ========== Render ==========
 
@@ -282,16 +291,16 @@ export const EmployeeManager: React.FC = () => {
         <Card className="p-4">
           <div className="flex items-center gap-1.5">
             <Shield className="w-4 h-4 text-red-500" />
-            <p className="text-card-label">Owner</p>
+            <p className="text-card-label">เจ้าของร้าน</p>
           </div>
           <p className="text-2xl font-black text-red-600 dark:text-red-400 mt-1">{ownerCount}</p>
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-1.5">
             <User className="w-4 h-4 text-slate-400" />
-            <p className="text-card-label">Staff</p>
+            <p className="text-card-label">ผู้จัดการ</p>
           </div>
-          <p className="text-2xl font-black text-slate-700 dark:text-neutral-300 mt-1">{staffCount}</p>
+          <p className="text-2xl font-black text-slate-700 dark:text-neutral-300 mt-1">{managerCount}</p>
         </Card>
       </div>
 
@@ -307,7 +316,7 @@ export const EmployeeManager: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {employees.map(emp => {
-            const isOwnerBadge = emp.role === 'owner';
+            const isPrivilegedRole = emp.role === 'owner' || emp.role === 'manager';
             const isSelf = currentUser?.id === emp.id;
 
             return (
@@ -331,12 +340,12 @@ export const EmployeeManager: React.FC = () => {
                     </p>
                   </div>
 
-                  <span className={`text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full border ${
-                    isOwnerBadge
+                  <span className={`text-xs font-extrabold tracking-wider px-3 py-1 rounded-full border ${
+                    isPrivilegedRole
                       ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/50'
                       : 'bg-slate-50 dark:bg-neutral-800 text-slate-600 dark:text-neutral-300 border-slate-200 dark:border-neutral-700'
                   }`}>
-                    {emp.role}
+                    {ROLE_LABELS[emp.role]}
                   </span>
                 </div>
 
@@ -444,30 +453,15 @@ export const EmployeeManager: React.FC = () => {
                   {/* Role */}
                   <div>
                     <label className="block text-sm font-bold text-slate-600 dark:text-neutral-300 mb-1.5">ตำแหน่ง</label>
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => setAddRole('staff')}
-                        className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition cursor-pointer ${
-                          addRole === 'staff'
-                            ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-sky-300 dark:border-sky-800 ring-1 ring-sky-200 dark:ring-sky-900/50'
-                            : 'bg-white dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 border-slate-200 dark:border-neutral-700 hover:bg-slate-50 dark:hover:bg-neutral-700'
-                        }`}
-                      >
-                        <User className="w-4 h-4 inline mr-1.5" />
-                        Staff
-                      </button>
-                      <button
-                        onClick={() => setAddRole('owner')}
-                        className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition cursor-pointer ${
-                          addRole === 'owner'
-                            ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-800 ring-1 ring-amber-200 dark:ring-amber-900/50'
-                            : 'bg-white dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 border-slate-200 dark:border-neutral-700 hover:bg-slate-50 dark:hover:bg-neutral-700'
-                        }`}
-                      >
-                        <Shield className="w-4 h-4 inline mr-1.5" />
-                        Owner
-                      </button>
-                    </div>
+                    <select
+                      value={addRole}
+                      onChange={e => setAddRole(e.target.value as EmployeeRole)}
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-sm text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 transition"
+                    >
+                      {EMPLOYEE_ROLES.map(role => (
+                        <option key={role} value={role}>{ROLE_LABELS[role]}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
@@ -521,32 +515,15 @@ export const EmployeeManager: React.FC = () => {
                   {/* ตำแหน่ง (Role) */}
                   <div>
                     <label className="block text-sm font-bold text-slate-600 dark:text-neutral-300 mb-1.5">ตำแหน่ง</label>
-                    <div className="flex gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setEditRole('staff')}
-                        className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition cursor-pointer ${
-                          editRole === 'staff'
-                            ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-sky-300 dark:border-sky-800 ring-1 ring-sky-200 dark:ring-sky-900/50'
-                            : 'bg-white dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 border-slate-200 dark:border-neutral-700 hover:bg-slate-50 dark:hover:bg-neutral-700'
-                        }`}
-                      >
-                        <User className="w-4 h-4 inline mr-1.5" />
-                        Staff
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditRole('owner')}
-                        className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition cursor-pointer ${
-                          editRole === 'owner'
-                            ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-800 ring-1 ring-amber-200 dark:ring-amber-900/50'
-                            : 'bg-white dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 border-slate-200 dark:border-neutral-700 hover:bg-slate-50 dark:hover:bg-neutral-700'
-                        }`}
-                      >
-                        <Shield className="w-4 h-4 inline mr-1.5" />
-                        Owner
-                      </button>
-                    </div>
+                    <select
+                      value={editRole}
+                      onChange={e => setEditRole(e.target.value as EmployeeRole)}
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-sm text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 transition"
+                    >
+                      {EMPLOYEE_ROLES.map(role => (
+                        <option key={role} value={role}>{ROLE_LABELS[role]}</option>
+                      ))}
+                    </select>
                   </div>
 
                   {/* เปลี่ยน PIN (ไม่บังคับ — ปล่อยว่างถ้าไม่เปลี่ยน) */}
@@ -662,7 +639,7 @@ export const EmployeeManager: React.FC = () => {
                 </div>
 
                 <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl p-3 text-sm text-rose-700 dark:text-rose-300 font-semibold">
-                  <p>⚠️ คุณกำลังจะลบพนักงาน <span className="font-extrabold">{targetEmployee.name}</span> ({targetEmployee.role}) ออกจากระบบ</p>
+                  <p>⚠️ คุณกำลังจะลบพนักงาน <span className="font-extrabold">{targetEmployee.name}</span> ({ROLE_LABELS[targetEmployee.role]}) ออกจากระบบ</p>
                   <p className="mt-1 text-rose-500 dark:text-rose-400">การลบนี้ไม่สามารถย้อนกลับได้</p>
                 </div>
 

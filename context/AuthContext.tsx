@@ -3,11 +3,12 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { setStaffToken } from '@/lib/staffToken';
 import { unlockAudio } from '@/lib/audioNotifier';
+import type { EmployeeRole } from '@/lib/permissions';
 
 export interface Employee {
   id: number;
   name: string;
-  role: 'owner' | 'staff';
+  role: EmployeeRole;
 }
 
 interface AuthContextType {

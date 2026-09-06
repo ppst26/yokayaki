@@ -17,6 +17,7 @@ import { LoyaltyManager } from '@/components/LoyaltyManager';
 import { EmployeeManager } from '@/components/EmployeeManager';
 import { playNewOrderSound, playCheckBillSound } from '@/lib/audioNotifier';
 import { TableCard } from '@/components/TableCard';
+import { canAccessTab, type EmployeeRole } from '@/lib/permissions';
 
 interface Table {
   id: string;
@@ -38,6 +39,14 @@ export const TableMap: React.FC = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<NavTab>('floor');
+
+  useEffect(() => {
+    if (!employee) return;
+    const role = employee.role as EmployeeRole;
+    if (role === 'kitchen') setActiveTab('kitchen');
+    else if (role === 'accountant') setActiveTab('history');
+    else setActiveTab('floor');
+  }, [employee?.id]);
 
   useEffect(() => {
     if (actionSelectorTable === null) {
@@ -150,8 +159,11 @@ export const TableMap: React.FC = () => {
   }, [selectedTableId]);
 
   const handleTabChange = (tab: NavTab) => {
-    if (tab === 'history' && employee?.role !== 'owner') {
-      setActiveTab('floor');
+    const role = (employee?.role ?? 'cashier') as EmployeeRole;
+    if (!canAccessTab(role, tab)) {
+      if (role === 'kitchen') setActiveTab('kitchen');
+      else if (role === 'accountant') setActiveTab('history');
+      else setActiveTab('floor');
       return;
     }
     setActiveTab(tab);
@@ -206,23 +218,23 @@ export const TableMap: React.FC = () => {
     }
   };
 
-  const isOwner = employee?.role === 'owner';
+  const role = (employee?.role ?? 'cashier') as EmployeeRole;
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-gray-100 dark:bg-neutral-950 font-sans text-slate-800 dark:text-neutral-100 overflow-hidden">
       <SidebarNav activeTab={activeTab} onSelectTab={handleTabChange} />
 
       <main className="flex-1 overflow-y-auto no-scrollbar p-4 md:p-8 pb-24 md:pb-8">
-        {activeTab === 'kitchen' && <KitchenScreen />}
-        {activeTab === 'history' && isOwner && <SalesHistory />}
-        {activeTab === 'menu' && isOwner && <MenuManager />}
-        {activeTab === 'stock' && isOwner && <StockManager />}
-        {activeTab === 'promo' && isOwner && <PromoManager />}
-        {activeTab === 'dashboard' && isOwner && <OwnerDashboard />}
-        {activeTab === 'loyalty' && isOwner && <LoyaltyManager />}
-        {activeTab === 'employees' && isOwner && <EmployeeManager />}
+        {activeTab === 'kitchen' && canAccessTab(role, 'kitchen') && <KitchenScreen />}
+        {activeTab === 'history' && canAccessTab(role, 'history') && <SalesHistory />}
+        {activeTab === 'menu' && canAccessTab(role, 'menu') && <MenuManager />}
+        {activeTab === 'stock' && canAccessTab(role, 'stock') && <StockManager />}
+        {activeTab === 'promo' && canAccessTab(role, 'promo') && <PromoManager />}
+        {activeTab === 'dashboard' && canAccessTab(role, 'dashboard') && <OwnerDashboard />}
+        {activeTab === 'loyalty' && canAccessTab(role, 'loyalty') && <LoyaltyManager />}
+        {activeTab === 'employees' && canAccessTab(role, 'employees') && <EmployeeManager />}
 
-        {activeTab === 'floor' && (
+        {activeTab === 'floor' && canAccessTab(role, 'floor') && (
           <div className="w-full space-y-6">
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="w-[50%]">

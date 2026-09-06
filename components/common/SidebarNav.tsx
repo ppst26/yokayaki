@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { canAccessTab, type EmployeeRole } from '@/lib/permissions';
 import {
   LogOut,
   ChefHat,
@@ -133,7 +134,11 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
     }
   };
 
-  const isOwner = employee?.role === 'owner';
+  const role = (employee?.role ?? 'cashier') as EmployeeRole;
+  const showCatalogSection =
+    canAccessTab(role, 'menu') || canAccessTab(role, 'stock') || canAccessTab(role, 'promo');
+  const showManagementSection =
+    canAccessTab(role, 'dashboard') || canAccessTab(role, 'loyalty') || canAccessTab(role, 'employees');
 
   const handleCloseDrawer = (callback?: () => void) => {
     setIsDrawerClosing(true);
@@ -212,6 +217,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
               </div>
 
               <nav className="space-y-1">
+                {canAccessTab(role, 'floor') && (
                 <button
                   onClick={() => handleTabClick('floor')}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
@@ -236,7 +242,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                     </span>
                   )}
                 </button>
+                )}
 
+                {canAccessTab(role, 'kitchen') && (
                 <button
                   onClick={() => handleTabClick('kitchen')}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
@@ -261,8 +269,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                     </span>
                   )}
                 </button>
+                )}
 
-                {isOwner && (
+                {canAccessTab(role, 'history') && (
                   <button
                     onClick={() => handleTabClick('history')}
                     className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
@@ -276,7 +285,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   </button>
                 )}
 
-                {isOwner && (
+                {showCatalogSection && (
                   <>
                     <div className="pt-4 pb-1">
                       <p className="text-xs font-extrabold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 px-3">
@@ -284,6 +293,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                       </p>
                     </div>
 
+                    {canAccessTab(role, 'menu') && (
                     <button
                       onClick={() => handleTabClick('menu')}
                       className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
@@ -295,7 +305,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                       <UtensilsCrossed className="w-4.5 h-4.5" />
                       <span>จัดการเมนู</span>
                     </button>
+                    )}
 
+                    {canAccessTab(role, 'stock') && (
                     <button
                       onClick={() => handleTabClick('stock')}
                       className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
@@ -307,7 +319,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                       <Package className="w-4.5 h-4.5" />
                       <span>ต้นทุนวัตถุดิบ</span>
                     </button>
+                    )}
 
+                    {canAccessTab(role, 'promo') && (
                     <button
                       onClick={() => handleTabClick('promo')}
                       className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
@@ -319,13 +333,19 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                       <Tag className="w-4.5 h-4.5" />
                       <span>โปรโมชั่น</span>
                     </button>
+                    )}
+                  </>
+                )}
 
+                {showManagementSection && (
+                  <>
                     <div className="pt-3 pb-1 border-t border-zinc-100 dark:border-zinc-800 mt-2">
                       <p className="text-xs font-extrabold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 px-3">
                         MANAGEMENT
                       </p>
                     </div>
 
+                    {canAccessTab(role, 'dashboard') && (
                     <button
                       onClick={() => handleTabClick('dashboard')}
                       className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
@@ -337,7 +357,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                       <LayoutDashboard className="w-4.5 h-4.5" />
                       <span>รายงาน / Dashboard</span>
                     </button>
+                    )}
 
+                    {canAccessTab(role, 'loyalty') && (
                     <button
                       onClick={() => handleTabClick('loyalty')}
                       className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
@@ -349,7 +371,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                       <Users className="w-4.5 h-4.5" />
                       <span>สมาชิก</span>
                     </button>
+                    )}
 
+                    {canAccessTab(role, 'employees') && (
                     <button
                       onClick={() => handleTabClick('employees')}
                       className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
@@ -361,6 +385,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                       <UserCog className="w-4.5 h-4.5" />
                       <span>จัดการพนักงาน</span>
                     </button>
+                    )}
                   </>
                 )}
               </nav>
@@ -408,6 +433,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
       {/* Mobile Fixed Bottom Navigation Bar */}
       <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-zinc-200/80 dark:border-zinc-800 px-3 py-1.5 flex items-center justify-around shadow-lg">
         {/* 1. แผนผังโต๊ะ */}
+        {canAccessTab(role, 'floor') && (
         <button
           onClick={() => onSelectTab('floor')}
           className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all duration-200 cursor-pointer ${
@@ -426,8 +452,10 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
           </div>
           <span className="text-xs mt-0.5 leading-none font-bold">ผังโต๊ะ</span>
         </button>
+        )}
 
         {/* 2. หน้าจอครัว */}
+        {canAccessTab(role, 'kitchen') && (
         <button
           onClick={() => onSelectTab('kitchen')}
           className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all duration-200 cursor-pointer ${
@@ -446,9 +474,10 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
           </div>
           <span className="text-xs mt-0.5 leading-none font-bold">หน้าครัว</span>
         </button>
+        )}
 
-        {/* 3. ประวัติการขาย (owner เท่านั้น) */}
-        {isOwner && (
+        {/* 3. ประวัติการขาย */}
+        {canAccessTab(role, 'history') && (
           <button
             onClick={() => onSelectTab('history')}
             className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all duration-200 cursor-pointer ${
@@ -492,6 +521,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
           </div>
 
           <nav className="space-y-1">
+            {canAccessTab(role, 'floor') && (
             <button
               onClick={() => onSelectTab('floor')}
               className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
@@ -516,7 +546,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                 </span>
               )}
             </button>
+            )}
 
+            {canAccessTab(role, 'kitchen') && (
             <button
               onClick={() => onSelectTab('kitchen')}
               className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
@@ -541,8 +573,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                 </span>
               )}
             </button>
+            )}
 
-            {isOwner && (
+            {canAccessTab(role, 'history') && (
               <button
                 onClick={() => onSelectTab('history')}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
@@ -556,7 +589,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
               </button>
             )}
 
-            {isOwner && (
+            {showCatalogSection && (
               <>
                 <div className="pt-4 pb-1">
                   <p className="text-xs font-extrabold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 px-3">
@@ -564,6 +597,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   </p>
                 </div>
 
+                {canAccessTab(role, 'menu') && (
                 <button
                   onClick={() => onSelectTab('menu')}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
@@ -575,7 +609,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   <UtensilsCrossed className="w-4.5 h-4.5" />
                   <span>จัดการเมนู</span>
                 </button>
+                )}
 
+                {canAccessTab(role, 'stock') && (
                 <button
                   onClick={() => onSelectTab('stock')}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
@@ -587,7 +623,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   <Package className="w-4.5 h-4.5" />
                   <span>ต้นทุนวัตถุดิบ</span>
                 </button>
+                )}
 
+                {canAccessTab(role, 'promo') && (
                 <button
                   onClick={() => onSelectTab('promo')}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
@@ -599,13 +637,19 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   <Tag className="w-4.5 h-4.5" />
                   <span>โปรโมชั่น</span>
                 </button>
+                )}
+              </>
+            )}
 
+            {showManagementSection && (
+              <>
                 <div className="pt-3 pb-1 border-t border-zinc-100 dark:border-zinc-800 mt-2">
                   <p className="text-xs font-extrabold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 px-3">
                     MANAGEMENT
                   </p>
                 </div>
 
+                {canAccessTab(role, 'dashboard') && (
                 <button
                   onClick={() => onSelectTab('dashboard')}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
@@ -617,7 +661,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   <LayoutDashboard className="w-4.5 h-4.5" />
                   <span>รายงาน / Dashboard</span>
                 </button>
+                )}
 
+                {canAccessTab(role, 'loyalty') && (
                 <button
                   onClick={() => onSelectTab('loyalty')}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
@@ -629,7 +675,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   <Users className="w-4.5 h-4.5" />
                   <span>สมาชิก</span>
                 </button>
+                )}
 
+                {canAccessTab(role, 'employees') && (
                 <button
                   onClick={() => onSelectTab('employees')}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
@@ -641,6 +689,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   <UserCog className="w-4.5 h-4.5" />
                   <span>จัดการพนักงาน</span>
                 </button>
+                )}
               </>
             )}
           </nav>
