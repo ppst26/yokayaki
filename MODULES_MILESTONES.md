@@ -5,7 +5,7 @@
 > ที่มาของรายการงาน: [`PosRestuarantSass.md`](PosRestuarantSass.md) (§4 Gap Analysis + §5 Roadmap)
 > ประวัติฟีเจอร์ที่ทำไปแล้ว: [`ROADMAP.md`](ROADMAP.md) · สเปกรายฟีเจอร์: `docs/superpowers/specs/`
 
-**Last Updated:** 2026-09-06 · **Milestone ปัจจุบัน:** `M5 Auth & RBAC` (พร้อมเริ่ม)
+**Last Updated:** 2026-09-06 · **Milestone ปัจจุบัน:** `M5 Auth & RBAC` (5a 🟢 · 5b/5c ⬜)
 
 ---
 
@@ -30,7 +30,7 @@
 
 | ID | โมดูล | ไฟล์หลัก | สถานะ | หนี้ที่ค้างอยู่ | Milestone ที่จะเก็บ |
 |---|---|---|:--:|---|:--:|
-| `P-AUTH` | Auth & RBAC | `context/AuthContext.tsx` · `components/PinPad.tsx` · `app/api/auth/*` | 🟢 | ยังเป็น PIN ชั้นเดียว ไม่มี Supabase Auth · role มีแค่ 2 ระดับ | M5 |
+| `P-AUTH` | Auth & RBAC | `context/AuthContext.tsx` · `components/PinPad.tsx` · `app/api/auth/*` | ⚠️ | 5 roles + tab gating ปิดใน 5a แล้ว · ยัง PIN ชั้นเดียว ไม่มี Supabase Auth / revoke (5b/5c) | M5 |
 | `P-FLOOR` | Table Map / App Shell | `components/TableMap.tsx` · `SidebarNav.tsx` | 🟢 | — | M2 |
 | `P-POS` | POS Order (Staff) | `components/POSOrderScreen.tsx` | 🟢 | — | M2 |
 | `P-QR` | Customer QR Portal | `app/customer/[session_id]/page.tsx` · `app/api/customer/*` | 🟢 | ไฟล์ยาว 1,235 บรรทัด ควรแตก · polling 5 วิ แทน realtime | M2 / M7 |
@@ -54,7 +54,7 @@
 | `F-DATA` | Data Integrity & Scale | index · atomic · timezone · migration hygiene · aggregation | 🟢 | migration hygiene ยังไม่ idempotent ทั้งชุด (ไฟล์เก่าก่อน M0) | M2 / M8 |
 | `F-TEST` | Testing & CI | unit · integration (RPC/RLS) · E2E · GitHub Actions | 🟢 | Vitest PromptPay/แต้ม · `lib/database.types.ts` · CI `pnpm test:unit` | M3 |
 | `F-TENANT` | Multi-Tenancy | organizations / branches / memberships / org_settings | 🟢 | M4 |
-| `F-AUTHZ` | Auth & Permission Matrix | Supabase Auth · JWT claim · role 5 ระดับ | ⬜ | M5 |
+| `F-AUTHZ` | Auth & Permission Matrix | Supabase Auth · JWT claim · role 5 ระดับ | ⚠️ | 5a 🟢 — `can_*()` + RLS/RPC matrix · `role_matrix.sql` · รอ 5b Auth + 5c revoke | M5 |
 | `F-BILL` | Billing & Subscription | plans / subscriptions / usage / gateway / trial | ⬜ | M6 |
 | `F-OPS` | Reliability & Operations | offline queue · backup/PITR · staging · deploy | ⬜ | M7 |
 | `F-OBS` | Observability | Sentry · structured log · alerting · provider dashboard | ⬜ | M7 |
@@ -73,7 +73,7 @@
 | **M2** | 🔧 Data Integrity & Bug Sweep | `F-DATA` + product modules | L1–L18 ปิดครบ · index H1 ครบ · `supabase db reset` บน DB เปล่าผ่าน · timezone ถูกทุกหน้า | 2–3 สัปดาห์ | 🟢 |
 | **M3** | 🧪 Testing Foundation | `F-TEST` | E2E สั่ง→ครัว→เช็คบิลผ่านใน CI · integration test ครอบทุก RPC + RLS · CI บล็อก PR ที่ fail | 2–3 สัปดาห์ | 🟢 |
 | **M4** | 🏢 Multi-Tenancy | `F-TENANT` | 2 org ในฐานเดียวกันมองข้ามกันไม่ได้ (พิสูจน์ด้วย test) · ไม่มี config ร้านค้างใน env/hardcode | 6–10 สัปดาห์ | 🟢 |
-| **M5** | 🔑 Auth & RBAC | `F-AUTHZ` `P-AUTH` | Supabase Auth + JWT claim `org_id`/`role` · role 5 ระดับบังคับที่ DB · revoke session ได้ | 3–5 สัปดาห์ | ⬜ |
+| **M5** | 🔑 Auth & RBAC | `F-AUTHZ` `P-AUTH` | Supabase Auth + JWT claim `org_id`/`role` · role 5 ระดับบังคับที่ DB · revoke session ได้ | 3–5 สัปดาห์ | 🟡 |
 | **M6** | 💰 Billing | `F-BILL` | สมัครเอง→ทดลอง→จ่ายเงิน→ตัดรอบ ครบวง · feature gating ตาม plan · dunning ทำงาน | 4–6 สัปดาห์ | ⛔ รอ M5 |
 | **M7** | 🔄 Reliability & Observability | `F-OPS` `F-OBS` | ขายต่อได้ตอนเน็ตหลุดแล้ว sync กลับถูก · PITR + ทดสอบ restore สำเร็จ · Sentry + alert ยิงจริง | 5–7 สัปดาห์ | ⛔ รอ M6 |
 | **M8** | 🏗️ Enterprise Features | `F-ENT` | multi-branch report · COGS รายจานจาก BOM · KOT ออกเครื่องพิมพ์จริง · payment webhook reconcile | 3–6 เดือน | ⛔ รอ M7 |
@@ -203,9 +203,38 @@
 
 เกณฑ์ผ่าน M4: 🟢 2 org ในฐานเดียวกันมองข้ามกันไม่ได้ (พิสูจน์ด้วย `tenant_isolation.sql`) · ไม่มี config ร้านค้างใน env/hardcode · types และ build สะอาดสมบูรณ์
 
-## M5–M9 `⛔ รอ milestone ก่อนหน้า (M5 พร้อมเริ่ม — M4 ปิดแล้ว)`
+## M5 — 🔑 Auth & RBAC `🟡 กำลังทำ (Phase 5a 🟢 · 5b/5c ⬜)`
 
-ขอบเขตงานละเอียดอยู่ใน [`PosRestuarantSass.md`](PosRestuarantSass.md) — §B (M4) · §C (M5) · §E (M6) · §F + §G (M7) · §J (M8) · §I (M9)
+สเปก: [`docs/superpowers/specs/2026-09-06-m5-auth-rbac-design.md`](docs/superpowers/specs/2026-09-06-m5-auth-rbac-design.md) · แผน: [`docs/superpowers/plans/2026-09-06-m5-auth-rbac-implementation-plan.md`](docs/superpowers/plans/2026-09-06-m5-auth-rbac-implementation-plan.md)
+
+### Phase 5a — 5 roles + SQL matrix `🟢`
+
+- [x] Task 1: Migration role enum (`staff`→`cashier`) — `20260911_m5_roles_enum.sql`
+- [x] Task 2: Permission helpers — `20260912_m5_permission_helpers.sql` (`can_operate_pos` … `can_manage_employees`)
+- [x] Task 3: RLS rewrite — `20260913_m5_rls_role_matrix.sql` (policy ใหม่ทุกตาราง)
+- [x] Task 4: RPC role guards — `20260914_m5_rpc_role_guards.sql`
+- [x] Task 5: `lib/permissions.ts` + JWT/types — `canAccessTab` · `EmployeeRole` 5 ค่า
+- [x] Task 6: UI tab gating — `SidebarNav` · `TableMap` · `EmployeeManager`
+- [x] Task 7: `requireManageEmployees()` — manager + owner จัดการพนักงาน
+- [x] Task 8: Integration tests — `supabase/tests/role_matrix.sql` + อัปเดต `rls_policies.sql` · `employees_rpc.sql` · `a7_audit.sql` · `security.sql`
+- [x] Task 9: Types + milestone partial — `lib/database.types.ts` (18 tables · 29 functions รวม `can_*`) · verification ครบ
+
+**หลักฐาน 5a (2026-09-06):** `pnpm db:reset && pnpm db:test` (11 ไฟล์ผ่าน รวม `role_matrix.sql`) · `pnpm test:unit` (16 ผ่าน) · `pnpm typecheck && pnpm build` (exit 0) · `node scripts/verify-lockdown.mjs` (15/15 ปิดแล้ว)
+
+### Phase 5b — Supabase Auth + memberships `⬜`
+
+- [ ] Task 10: `memberships` + `employees.auth_user_id` — `20260915_m5_memberships.sql`
+- [ ] Task 11: org-login + PIN gate + `link-owner-auth.mjs`
+
+### Phase 5c — Session revoke + audit `⬜`
+
+- [ ] Task 12: `staff_sessions` · `login_audit` · revoke API · ปิด M5 ใน milestone tracker
+
+เกณฑ์ผ่าน M5 (ทั้ง milestone): 5 roles ที่ RLS ✅ (5a) · Supabase Auth + memberships (5b) · revoke session (5c)
+
+## M6–M9 `⛔ รอ milestone ก่อนหน้า`
+
+ขอบเขตงานละเอียดอยู่ใน [`PosRestuarantSass.md`](PosRestuarantSass.md) — §E (M6) · §F + §G (M7) · §J (M8) · §I (M9)
 
 แตกเป็น task board เมื่อ milestone ก่อนหน้าผ่านเกณฑ์แล้วเท่านั้น — กันกระดานบวมด้วยงานที่ขอบเขตยังเปลี่ยนได้
 

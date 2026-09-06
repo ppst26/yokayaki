@@ -666,6 +666,38 @@ export type Database = {
         }
         Returns: string
       }
+      can_kitchen: {
+        Args: {}
+        Returns: boolean
+      }
+      can_manage_employees: {
+        Args: {}
+        Returns: boolean
+      }
+      can_manage_loyalty: {
+        Args: {}
+        Returns: boolean
+      }
+      can_manage_stock: {
+        Args: {}
+        Returns: boolean
+      }
+      can_operate_pos: {
+        Args: {}
+        Returns: boolean
+      }
+      can_read_org_settings: {
+        Args: {}
+        Returns: boolean
+      }
+      can_read_sales: {
+        Args: {}
+        Returns: boolean
+      }
+      can_write_catalog: {
+        Args: {}
+        Returns: boolean
+      }
       complete_checkout: {
         Args: {
           p_order_id: number | null
