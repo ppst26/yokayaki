@@ -40,6 +40,10 @@ EXCEPTION
 END;
 $fn$;
 
+CREATE FUNCTION pg_temp.table_id(p_num INT) RETURNS UUID LANGUAGE sql AS $fn$
+  SELECT id FROM tables WHERE org_id = '00000000-0000-4000-8000-000000000001' AND table_number = p_num LIMIT 1;
+$fn$;
+
 -- -------------------------------------------------------------
 -- 1. บัญชี policy ต้องตรงกับที่ตั้งใจไว้ทุกแถว
 --    ใครเพิ่ม/ลบ policy โดยไม่อัปเดตเทสต์ ต้องรู้ตัวที่นี่
@@ -47,30 +51,34 @@ $fn$;
 CREATE TEMP TABLE expected_policies (tablename TEXT, policyname TEXT, cmd TEXT);
 
 INSERT INTO expected_policies VALUES
-  ('tables',             'staff_read',   'SELECT'),
-  ('orders',             'staff_read',   'SELECT'),
-  ('order_items',        'staff_read',   'SELECT'),
-  ('order_items',        'staff_serve',  'UPDATE'),
-  ('menu_items',         'staff_read',   'SELECT'),
-  ('menu_items',         'owner_write',  'ALL'),
-  ('promotions',         'staff_read',   'SELECT'),
-  ('promotions',         'owner_write',  'ALL'),
-  ('qr_sessions',        'staff_read',   'SELECT'),
-  ('qr_sessions',        'staff_create', 'INSERT'),
-  ('loyalty_members',    'staff_read',   'SELECT'),
-  ('loyalty_members',    'staff_create', 'INSERT'),
-  ('loyalty_members',    'owner_update', 'UPDATE'),
-  ('loyalty_members',    'owner_delete', 'DELETE'),
-  ('payments',           'staff_read',   'SELECT'),
-  ('payment_promotions', 'staff_read',   'SELECT'),
-  ('void_logs',          'staff_read',   'SELECT'),
-  ('stock_logs',         'owner_read',   'SELECT'),
-  ('points_logs',        'owner_read',   'SELECT'),
-  ('points_logs',        'owner_write',  'INSERT'),
-  ('item_ingredients',   'owner_read',   'SELECT'),
-  ('item_ingredients',   'owner_write',  'ALL'),
-  ('purchase_orders',    'owner_read',   'SELECT'),
-  ('purchase_orders',    'owner_write',  'ALL');
+  ('organizations',      'org_read',          'SELECT'),
+  ('org_settings',       'org_settings_read', 'SELECT'),
+  ('employees',          'staff_read',        'SELECT'),
+  ('tables',             'staff_read',        'SELECT'),
+  ('tables',             'staff_update',      'UPDATE'),
+  ('orders',             'staff_read',        'SELECT'),
+  ('order_items',        'staff_read',        'SELECT'),
+  ('order_items',        'staff_serve',       'UPDATE'),
+  ('menu_items',         'staff_read',        'SELECT'),
+  ('menu_items',         'owner_write',       'ALL'),
+  ('promotions',         'staff_read',        'SELECT'),
+  ('promotions',         'owner_write',       'ALL'),
+  ('qr_sessions',        'staff_read',        'SELECT'),
+  ('qr_sessions',        'staff_create',      'INSERT'),
+  ('loyalty_members',    'staff_read',        'SELECT'),
+  ('loyalty_members',    'staff_create',      'INSERT'),
+  ('loyalty_members',    'owner_update',      'UPDATE'),
+  ('loyalty_members',    'owner_delete',      'DELETE'),
+  ('payments',           'staff_read',        'SELECT'),
+  ('payment_promotions', 'staff_read',        'SELECT'),
+  ('void_logs',          'staff_read',        'SELECT'),
+  ('stock_logs',         'owner_read',        'SELECT'),
+  ('points_logs',        'owner_read',        'SELECT'),
+  ('points_logs',        'owner_write',       'INSERT'),
+  ('item_ingredients',   'owner_read',        'SELECT'),
+  ('item_ingredients',   'owner_write',       'ALL'),
+  ('purchase_orders',    'owner_read',        'SELECT'),
+  ('purchase_orders',    'owner_write',       'ALL');
 
 DO $$
 DECLARE
@@ -118,7 +126,7 @@ BEGIN
     RAISE EXCEPTION 'A1 ไม่ผ่าน: ตารางที่ยังไม่เปิด RLS: %', v_norls;
   END IF;
 
-  RAISE NOTICE 'PASS  A1 · policy 24 แถวตรงตามบัญชี · เล็ง authenticated ทั้งหมด · ทุกตารางเปิด RLS';
+  RAISE NOTICE 'PASS  A1 · policy 28 แถวตรงตามบัญชี · เล็ง authenticated ทั้งหมด · ทุกตารางเปิด RLS';
 END
 $$;
 
@@ -133,39 +141,42 @@ DECLARE
   v_item    INT;
   v_promo   INT;
   v_phone   TEXT := '0800000000';
+  v_tbl1    UUID := pg_temp.table_id(1);
+  v_tbl2    UUID := pg_temp.table_id(2);
+  v_tbl3    UUID := pg_temp.table_id(3);
 BEGIN
   PERFORM set_config('request.jwt.claims',
-    '{"emp_id":1,"emp_name":"ผู้ทดสอบ","emp_role":"owner"}', TRUE);
+    '{"emp_id":1,"emp_name":"ผู้ทดสอบ","emp_role":"owner","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
 
-  SELECT id INTO v_menu FROM menu_items ORDER BY id LIMIT 1;
+  SELECT id INTO v_menu FROM menu_items WHERE org_id = '00000000-0000-4000-8000-000000000001' ORDER BY id LIMIT 1;
   UPDATE menu_items SET stock = 500, is_stock_tracked = TRUE WHERE id = v_menu;
 
-  INSERT INTO loyalty_members (phone_number, name, points)
-  VALUES (v_phone, 'สมาชิกทดสอบ RLS', 50)
-  ON CONFLICT (phone_number) DO UPDATE SET points = 50;
+  INSERT INTO loyalty_members (org_id, phone_number, name, points)
+  VALUES ('00000000-0000-4000-8000-000000000001', v_phone, 'สมาชิกทดสอบ RLS', 50)
+  ON CONFLICT (org_id, phone_number) DO UPDATE SET points = 50;
 
-  INSERT INTO promotions (name, type, discount_amount, coupon_code, min_order_amount, is_active)
-  VALUES ('คูปองทดสอบ RLS', 'fixed', 10, 'RLSTEST', 0, TRUE)
+  INSERT INTO promotions (org_id, name, type, discount_amount, coupon_code, min_order_amount, is_active)
+  VALUES ('00000000-0000-4000-8000-000000000001', 'คูปองทดสอบ RLS', 'fixed', 10, 'RLSTEST', 0, TRUE)
   RETURNING id INTO v_promo;
 
   -- โต๊ะ 1: บิลที่ปิดแล้ว → payments + payment_promotions
-  UPDATE tables SET status = 'vacant' WHERE id = 1;
-  PERFORM public.place_order_item(1, v_menu, 2, NULL);
-  SELECT o.id INTO v_order FROM orders o WHERE o.table_id = 1 AND o.status = 'active';
+  UPDATE tables SET status = 'vacant' WHERE id = v_tbl1;
+  PERFORM public.place_order_item(v_tbl1, v_menu, 2, NULL);
+  SELECT o.id INTO v_order FROM orders o WHERE o.table_id = v_tbl1 AND o.status = 'active';
   PERFORM public.complete_checkout(v_order, 1000, 'RLSTEST', v_phone, 0);
 
   -- โต๊ะ 2: บิลที่ยังเปิดอยู่ + รายการที่ถูก void → order_items(pending) + void_logs
-  UPDATE tables SET status = 'vacant' WHERE id = 2;
-  PERFORM public.place_order_item(2, v_menu, 1, NULL);
-  PERFORM public.place_order_item(2, v_menu, 1, 'รายการที่จะ void');
+  UPDATE tables SET status = 'vacant' WHERE id = v_tbl2;
+  PERFORM public.place_order_item(v_tbl2, v_menu, 1, NULL);
+  PERFORM public.place_order_item(v_tbl2, v_menu, 1, 'รายการที่จะ void');
   SELECT oi.id INTO v_item
   FROM order_items oi JOIN orders o ON o.id = oi.order_id
-  WHERE o.table_id = 2 AND oi.notes = 'รายการที่จะ void';
+  WHERE o.table_id = v_tbl2 AND oi.notes = 'รายการที่จะ void';
   PERFORM public.void_order_item(v_item, 'wrong_key', NULL, NULL);
 
   -- qr_sessions
-  INSERT INTO qr_sessions (table_id, status, expired_at)
-  VALUES (3, 'active', NOW() + INTERVAL '2 hours');
+  INSERT INTO qr_sessions (org_id, table_id, status, expired_at)
+  VALUES ('00000000-0000-4000-8000-000000000001', v_tbl3, 'active', NOW() + INTERVAL '2 hours');
 
   -- points_logs
   PERFORM public.adjust_loyalty_points(v_phone, 5, 'ทดสอบ RLS');
@@ -179,8 +190,9 @@ BEGIN
   );
 
   -- stock_logs
-  INSERT INTO stock_logs (menu_item_id, menu_item_name, employee_name, old_stock, new_stock, change_amount)
-  SELECT v_menu, mi.name, 'ผู้ทดสอบ', 500, 505, 5 FROM menu_items mi WHERE mi.id = v_menu;
+  INSERT INTO stock_logs (org_id, menu_item_id, menu_item_name, employee_name, old_stock, new_stock, change_amount)
+  SELECT '00000000-0000-4000-8000-000000000001', v_menu, mi.name, 'ผู้ทดสอบ', 500, 505, 5
+  FROM menu_items mi WHERE mi.id = v_menu AND mi.org_id = '00000000-0000-4000-8000-000000000001';
 
   RAISE NOTICE 'setup  · มีข้อมูลอย่างละแถวในทุกตารางแล้ว';
 END
@@ -199,16 +211,18 @@ DECLARE
   c_tables TEXT[] := ARRAY[
     'tables', 'orders', 'order_items', 'menu_items', 'promotions', 'qr_sessions',
     'loyalty_members', 'payments', 'payment_promotions', 'void_logs',
+    'organizations', 'org_settings',
     'points_logs', 'stock_logs', 'item_ingredients', 'purchase_orders',
     'employees', 'pin_attempts'];
   c_expect TEXT[] := ARRAY[
     'rows', 'rows', 'rows', 'rows', 'rows', 'rows',
     'rows', 'rows', 'rows', 'rows',
+    'rows', 'rows',
     'zero', 'zero', 'zero', 'zero',
     'denied', 'denied'];
 BEGIN
   PERFORM set_config('request.jwt.claims',
-    '{"emp_id":2,"emp_name":"พนักงาน","emp_role":"staff"}', TRUE);
+    '{"emp_id":2,"emp_name":"พนักงาน","emp_role":"staff","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
   SET LOCAL ROLE authenticated;
 
   FOR v_i IN 1 .. array_length(c_tables, 1) LOOP
@@ -226,12 +240,12 @@ BEGIN
     RAISE EXCEPTION 'A1 ไม่ผ่าน (staff อ่าน): %', v_bad;
   END IF;
 
-  RAISE NOTICE 'PASS  A1 · staff อ่านตารางปฏิบัติการได้ 10 ตาราง · ตารางหลังร้าน 4 ตารางมองไม่เห็น · employees/pin_attempts ถูกปฏิเสธ';
+  RAISE NOTICE 'PASS  A1 · staff อ่านตารางปฏิบัติการได้ 12 ตาราง · ตารางหลังร้าน 4 ตารางมองไม่เห็น · employees/pin_attempts ถูกปฏิเสธ';
 END
 $$;
 
 -- -------------------------------------------------------------
--- 4. staff — เขียนได้แค่ 3 อย่างที่หน้างานต้องใช้
+-- 4. staff — เขียนได้แค่สิ่งที่หน้างานต้องใช้
 -- -------------------------------------------------------------
 DO $$
 DECLARE
@@ -254,25 +268,25 @@ DECLARE
     'แทรกรายการอาหารตรงๆ (INSERT order_items)'];
   c_sql TEXT[] := ARRAY[
     $q$UPDATE order_items SET status = 'served' WHERE status = 'pending'$q$,
-    $q$INSERT INTO qr_sessions (table_id, status, expired_at) VALUES (4, 'active', NOW() + INTERVAL '1 hour')$q$,
-    $q$INSERT INTO loyalty_members (phone_number, name, points) VALUES ('0800000111', 'สมาชิกใหม่', 0)$q$,
+    $q$INSERT INTO qr_sessions (table_id, status, expired_at, org_id) VALUES (pg_temp.table_id(4), 'active', NOW() + INTERVAL '1 hour', '00000000-0000-4000-8000-000000000001')$q$,
+    $q$INSERT INTO loyalty_members (phone_number, name, points, org_id) VALUES ('0800000111', 'สมาชิกใหม่', 0, '00000000-0000-4000-8000-000000000001')$q$,
     $q$UPDATE menu_items SET stock = 1$q$,
-    $q$INSERT INTO promotions (name, type, discount_amount, is_active) VALUES ('โปรที่ staff ไม่ควรเพิ่มได้', 'fixed', 1, TRUE)$q$,
+    $q$INSERT INTO promotions (name, type, discount_amount, is_active, org_id) VALUES ('โปรที่ staff ไม่ควรเพิ่มได้', 'fixed', 1, TRUE, '00000000-0000-4000-8000-000000000001')$q$,
     $q$UPDATE loyalty_members SET points = 9999$q$,
     $q$DELETE FROM loyalty_members WHERE phone_number = '0800000000'$q$,
-    $q$INSERT INTO points_logs (phone_number, adjustment, reason, adjusted_by) VALUES ('0800000000', 99, 'ไม่ควรเขียนได้', 'staff')$q$,
-    $q$INSERT INTO item_ingredients (name, quantity, unit, cost, purchase_date, buyer_name) VALUES ('ของที่ staff ไม่ควรคีย์', 1, 'กก.', 1, CURRENT_DATE, 'staff')$q$,
+    $q$INSERT INTO points_logs (phone_number, adjustment, reason, adjusted_by, org_id) VALUES ('0800000000', 99, 'ไม่ควรเขียนได้', 'staff', '00000000-0000-4000-8000-000000000001')$q$,
+    $q$INSERT INTO item_ingredients (name, quantity, unit, cost, purchase_date, buyer_name, org_id) VALUES ('ของที่ staff ไม่ควรคีย์', 1, 'กก.', 1, CURRENT_DATE, 'staff', '00000000-0000-4000-8000-000000000001')$q$,
     $q$UPDATE orders SET status = 'voided'$q$,
     $q$UPDATE tables SET status = 'vacant'$q$,
     $q$DELETE FROM payments$q$,
-    $q$INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price) SELECT 1, 1, 1, 0$q$];
+    $q$INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price, org_id) SELECT 1, 1, 1, 0, '00000000-0000-4000-8000-000000000001'$q$];
   c_expect TEXT[] := ARRAY[
     'ok', 'ok', 'ok',
     'zero', 'denied', 'zero', 'zero', 'denied', 'denied',
     'denied', 'denied', 'denied', 'denied'];
 BEGIN
   PERFORM set_config('request.jwt.claims',
-    '{"emp_id":2,"emp_name":"พนักงาน","emp_role":"staff"}', TRUE);
+    '{"emp_id":2,"emp_name":"พนักงาน","emp_role":"staff","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
   SET LOCAL ROLE authenticated;
 
   FOR v_i IN 1 .. array_length(c_sql, 1) LOOP
@@ -294,7 +308,7 @@ $$;
 
 -- -------------------------------------------------------------
 -- 5. owner — เห็นตารางหลังร้าน และเขียนงานหลังร้านได้
---            แต่ยังห้ามแก้ออเดอร์/โต๊ะ/การเงินตรงๆ (ต้องผ่าน RPC)
+--            แต่ยังห้ามแก้ออเดอร์/การเงินตรงๆ (ต้องผ่าน RPC)
 -- -------------------------------------------------------------
 DO $$
 DECLARE
@@ -314,22 +328,22 @@ DECLARE
     'ลบประวัติการเงิน (DELETE payments)',
     'แทรกรายการอาหารตรงๆ (INSERT order_items)'];
   c_sql TEXT[] := ARRAY[
-    $q$UPDATE menu_items SET stock = 123 WHERE is_stock_tracked$q$,
-    $q$INSERT INTO promotions (name, type, discount_amount, is_active) VALUES ('โปรที่ owner เพิ่มได้', 'fixed', 1, TRUE)$q$,
-    $q$UPDATE loyalty_members SET points = 77 WHERE phone_number = '0800000000'$q$,
-    $q$INSERT INTO points_logs (phone_number, adjustment, reason, adjusted_by) VALUES ('0800000000', 1, 'owner ปรับ', 'owner')$q$,
-    $q$INSERT INTO item_ingredients (name, quantity, unit, cost, purchase_date, buyer_name) VALUES ('ของที่ owner คีย์ได้', 1, 'กก.', 1, CURRENT_DATE, 'owner')$q$,
-    $q$UPDATE purchase_orders SET note = 'owner แก้ได้'$q$,
-    $q$DELETE FROM loyalty_members WHERE phone_number = '0800000111'$q$,
+    $q$UPDATE menu_items SET stock = 123 WHERE is_stock_tracked AND org_id = '00000000-0000-4000-8000-000000000001'$q$,
+    $q$INSERT INTO promotions (name, type, discount_amount, is_active, org_id) VALUES ('โปรที่ owner เพิ่มได้', 'fixed', 1, TRUE, '00000000-0000-4000-8000-000000000001')$q$,
+    $q$UPDATE loyalty_members SET points = 77 WHERE phone_number = '0800000000' AND org_id = '00000000-0000-4000-8000-000000000001'$q$,
+    $q$INSERT INTO points_logs (phone_number, adjustment, reason, adjusted_by, org_id) VALUES ('0800000000', 1, 'owner ปรับ', 'owner', '00000000-0000-4000-8000-000000000001')$q$,
+    $q$INSERT INTO item_ingredients (name, quantity, unit, cost, purchase_date, buyer_name, org_id) VALUES ('ของที่ owner คีย์ได้', 1, 'กก.', 1, CURRENT_DATE, 'owner', '00000000-0000-4000-8000-000000000001')$q$,
+    $q$UPDATE purchase_orders SET note = 'owner แก้ได้' WHERE org_id = '00000000-0000-4000-8000-000000000001'$q$,
+    $q$DELETE FROM loyalty_members WHERE phone_number = '0800000111' AND org_id = '00000000-0000-4000-8000-000000000001'$q$,
     $q$UPDATE orders SET status = 'voided'$q$,
     $q$DELETE FROM payments$q$,
-    $q$INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price) SELECT 1, 1, 1, 0$q$];
+    $q$INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price, org_id) SELECT 1, 1, 1, 0, '00000000-0000-4000-8000-000000000001'$q$];
   c_expect TEXT[] := ARRAY[
     'ok', 'ok', 'ok', 'ok', 'ok', 'ok', 'ok',
     'denied', 'denied', 'denied'];
 BEGIN
   PERFORM set_config('request.jwt.claims',
-    '{"emp_id":1,"emp_name":"เจ้าของร้าน","emp_role":"owner"}', TRUE);
+    '{"emp_id":1,"emp_name":"เจ้าของร้าน","emp_role":"owner","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
   SET LOCAL ROLE authenticated;
 
   FOREACH v_got IN ARRAY c_read LOOP
@@ -367,12 +381,13 @@ DECLARE
   c_tables TEXT[] := ARRAY[
     'tables', 'orders', 'order_items', 'menu_items', 'promotions', 'qr_sessions',
     'loyalty_members', 'payments', 'payment_promotions', 'void_logs',
-    'points_logs', 'stock_logs', 'item_ingredients', 'purchase_orders'];
+    'points_logs', 'stock_logs', 'item_ingredients', 'purchase_orders',
+    'organizations', 'org_settings'];
 BEGIN
   FOREACH v_claim IN ARRAY ARRAY[
     '{"sub":"someone"}',
-    '{"emp_id":9,"emp_role":"cook"}',
-    '{"emp_id":9,"emp_role":""}'
+    '{"emp_id":9,"emp_role":"cook","org_id":"00000000-0000-4000-8000-000000000001"}',
+    '{"emp_id":9,"emp_role":"","org_id":"00000000-0000-4000-8000-000000000001"}'
   ]
   LOOP
     PERFORM set_config('request.jwt.claims', v_claim, TRUE);
@@ -385,7 +400,7 @@ BEGIN
     END LOOP;
 
     IF public._rls_write(
-         $q$INSERT INTO qr_sessions (table_id, status, expired_at) VALUES (4, 'active', NOW())$q$
+         $q$INSERT INTO qr_sessions (table_id, status, expired_at, org_id) VALUES (pg_temp.table_id(4), 'active', NOW(), '00000000-0000-4000-8000-000000000001')$q$
        ) = 'ok' THEN
       v_bad := v_bad || format('claim %s สร้าง QR ได้ · ', v_claim);
     END IF;

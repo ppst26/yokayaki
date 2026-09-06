@@ -16,7 +16,7 @@ DECLARE
   v_ppu    DECIMAL(10, 2);
 BEGIN
   PERFORM set_config('request.jwt.claims',
-    '{"emp_id":1,"emp_name":"เจ้าของร้าน","emp_role":"owner"}', TRUE);
+    '{"emp_id":1,"emp_name":"เจ้าของร้าน","emp_role":"owner","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
 
   v_result := public.upsert_purchase_order(
     NULL,
@@ -55,7 +55,7 @@ DECLARE
   v_name     TEXT;
 BEGIN
   PERFORM set_config('request.jwt.claims',
-    '{"emp_id":1,"emp_name":"เจ้าของร้าน","emp_role":"owner"}', TRUE);
+    '{"emp_id":1,"emp_name":"เจ้าของร้าน","emp_role":"owner","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
 
   v_result := public.upsert_purchase_order(
     NULL,
@@ -110,11 +110,11 @@ DECLARE
   v_log    INT;
 BEGIN
   PERFORM set_config('request.jwt.claims',
-    '{"emp_id":1,"emp_name":"เจ้าของร้าน","emp_role":"owner"}', TRUE);
+    '{"emp_id":1,"emp_name":"เจ้าของร้าน","emp_role":"owner","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
 
-  INSERT INTO loyalty_members (phone_number, name, points)
-  VALUES (v_phone, 'สมาชิกทดสอบ', 10)
-  ON CONFLICT (phone_number) DO UPDATE SET points = 10;
+  INSERT INTO loyalty_members (org_id, phone_number, name, points)
+  VALUES ('00000000-0000-4000-8000-000000000001', v_phone, 'สมาชิกทดสอบ', 10)
+  ON CONFLICT (org_id, phone_number) DO UPDATE SET points = 10;
 
   v_result := public.adjust_loyalty_points(v_phone, 5, 'ทดสอบเพิ่มแต้ม');
 
@@ -130,14 +130,14 @@ BEGIN
 
   SELECT adjustment INTO v_log
   FROM points_logs
-  WHERE phone_number = v_phone AND reason = 'ทดสอบหักเกิน'
+  WHERE phone_number = v_phone AND reason = 'ทดสอบหักเกิน' AND org_id = '00000000-0000-4000-8000-000000000001'
   ORDER BY id DESC LIMIT 1;
 
   IF v_log <> -15 THEN
     RAISE EXCEPTION 'L7 ไม่ผ่าน: log ควรบันทึก delta จริง -15 ได้ %', v_log;
   END IF;
 
-  SELECT points INTO v_points FROM loyalty_members WHERE phone_number = v_phone;
+  SELECT points INTO v_points FROM loyalty_members WHERE phone_number = v_phone AND org_id = '00000000-0000-4000-8000-000000000001';
   IF v_points <> 0 THEN
     RAISE EXCEPTION 'L7 ไม่ผ่าน: แต้มใน DB ควรเป็น 0';
   END IF;

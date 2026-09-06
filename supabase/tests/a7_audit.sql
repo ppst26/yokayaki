@@ -7,6 +7,11 @@
 \set ON_ERROR_STOP on
 BEGIN;
 
+CREATE FUNCTION pg_temp.table_id(p_num INT) RETURNS UUID
+LANGUAGE sql AS $fn$
+  SELECT id FROM tables WHERE org_id = '00000000-0000-4000-8000-000000000001' AND table_number = p_num LIMIT 1;
+$fn$;
+
 -- -------------------------------------------------------------
 -- A1 (หาง) · authenticated ต้องไม่มีสิทธิ์เกินที่ตั้งใจ
 --            โดยเฉพาะ TRUNCATE ซึ่ง RLS ไม่คุม
@@ -47,19 +52,24 @@ $$;
 -- A7.7 · ลบโต๊ะต้องไม่ลบประวัติการเงิน
 -- -------------------------------------------------------------
 DO $$
-DECLARE v_menu_id INT; v_order_id INT; v_before INT; v_after INT;
+DECLARE
+  v_menu_id INT; v_order_id INT; v_before INT; v_after INT;
+  v_tbl UUID := pg_temp.table_id(4);
 BEGIN
+  PERFORM set_config('request.jwt.claims',
+    '{"emp_id":1,"emp_name":"ผู้ทดสอบ","emp_role":"owner","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
+
   SELECT id INTO v_menu_id FROM menu_items ORDER BY id LIMIT 1;
   UPDATE menu_items SET stock = 100, is_stock_tracked = TRUE WHERE id = v_menu_id;
 
-  PERFORM public.place_order_item(4, v_menu_id, 1, NULL);
-  SELECT o.id INTO v_order_id FROM orders o WHERE o.table_id = 4 AND o.status = 'active';
+  PERFORM public.place_order_item(v_tbl, v_menu_id, 1, NULL);
+  SELECT o.id INTO v_order_id FROM orders o WHERE o.table_id = v_tbl AND o.status = 'active';
   PERFORM public.complete_checkout(v_order_id, 1000, NULL, NULL, 0);
 
   SELECT COUNT(*) INTO v_before FROM payments;
 
   BEGIN
-    DELETE FROM tables WHERE id = 4;
+    DELETE FROM tables WHERE id = v_tbl;
     RAISE EXCEPTION 'A7.7 ไม่ผ่าน: ลบโต๊ะที่มีประวัติออเดอร์ได้';
   EXCEPTION WHEN foreign_key_violation THEN
     NULL;
@@ -78,14 +88,20 @@ $$;
 -- A7.4 · หนึ่งโต๊ะมีบิล active ได้ใบเดียว
 -- -------------------------------------------------------------
 DO $$
-DECLARE v_menu_id INT;
+DECLARE
+  v_menu_id INT;
+  v_tbl UUID := pg_temp.table_id(1);
 BEGIN
+  PERFORM set_config('request.jwt.claims',
+    '{"emp_id":1,"emp_name":"ผู้ทดสอบ","emp_role":"owner","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
+
   SELECT id INTO v_menu_id FROM menu_items ORDER BY id LIMIT 1;
   UPDATE menu_items SET stock = 100, is_stock_tracked = TRUE WHERE id = v_menu_id;
-  PERFORM public.place_order_item(1, v_menu_id, 1, NULL);
+  PERFORM public.place_order_item(v_tbl, v_menu_id, 1, NULL);
 
   BEGIN
-    INSERT INTO orders (table_id, status) VALUES (1, 'active');
+    INSERT INTO orders (table_id, status, org_id)
+    VALUES (v_tbl, 'active', '00000000-0000-4000-8000-000000000001');
     RAISE EXCEPTION 'A7.4 ไม่ผ่าน: เปิดบิล active ซ้ำบนโต๊ะเดิมได้';
   EXCEPTION WHEN unique_violation THEN
     RAISE NOTICE 'PASS  A7.4 · unique index กันบิล active ซ้ำต่อโต๊ะแล้ว';
@@ -99,14 +115,18 @@ $$;
 DO $$
 DECLARE
   v_menu_id INT; v_item_id INT; v_before INT; v_after INT; v_log RECORD;
+  v_tbl UUID := pg_temp.table_id(1);
 BEGIN
+  PERFORM set_config('request.jwt.claims',
+    '{"org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
+
   SELECT id INTO v_menu_id FROM menu_items ORDER BY id LIMIT 1;
   UPDATE menu_items SET stock = 100, is_stock_tracked = TRUE WHERE id = v_menu_id;
-  PERFORM public.place_order_item(1, v_menu_id, 4, NULL);
+  PERFORM public.place_order_item(v_tbl, v_menu_id, 4, NULL);
 
   SELECT oi.id INTO v_item_id
   FROM order_items oi JOIN orders o ON o.id = oi.order_id
-  WHERE o.table_id = 1 AND o.status = 'active' AND oi.status <> 'voided'
+  WHERE o.table_id = v_tbl AND o.status = 'active' AND oi.status <> 'voided'
   ORDER BY oi.id DESC LIMIT 1;
 
   -- ข้อความไทยแบบเดิมต้องใช้ไม่ได้แล้ว
@@ -145,7 +165,7 @@ BEGIN
       v_log.reason_code, v_log.restored_stock;
   END IF;
   IF v_log.employee_id IS NOT NULL THEN
-    RAISE EXCEPTION 'A7.6 ไม่ผ่าน: ไม่มี JWT แต่กลับมี employee_id = %', v_log.employee_id;
+    RAISE EXCEPTION 'A7.6 ไม่ผ่าน: ไม่มี JWT emp_id แต่กลับมี employee_id = %', v_log.employee_id;
   END IF;
 
   RAISE NOTICE 'PASS  A7.5 · รหัสเหตุผลตัดสินการคืนสต็อก · ข้อความไทยถูกปฏิเสธ · บันทึก reason_code ลง audit';
@@ -156,20 +176,25 @@ $$;
 -- A7.6 · ตัวตนผู้ทำรายการมาจาก JWT ไม่ใช่จาก payload
 -- -------------------------------------------------------------
 DO $$
-DECLARE v_menu_id INT; v_item_id INT; v_log RECORD;
+DECLARE
+  v_menu_id INT; v_item_id INT; v_log RECORD;
+  v_tbl UUID := pg_temp.table_id(1);
 BEGIN
+  PERFORM set_config('request.jwt.claims',
+    '{"emp_id":1,"emp_name":"ผู้ทดสอบ","emp_role":"owner","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
+
   SELECT id INTO v_menu_id FROM menu_items ORDER BY id LIMIT 1;
   UPDATE menu_items SET stock = 100, is_stock_tracked = TRUE WHERE id = v_menu_id;
-  PERFORM public.place_order_item(1, v_menu_id, 1, NULL);
+  PERFORM public.place_order_item(v_tbl, v_menu_id, 1, NULL);
 
   SELECT oi.id INTO v_item_id
   FROM order_items oi JOIN orders o ON o.id = oi.order_id
-  WHERE o.table_id = 1 AND o.status = 'active' AND oi.status <> 'voided'
+  WHERE o.table_id = v_tbl AND o.status = 'active' AND oi.status <> 'voided'
   ORDER BY oi.id DESC LIMIT 1;
 
   -- จำลอง JWT ของพนักงาน id 7
   PERFORM set_config('request.jwt.claims',
-    '{"emp_id":7,"emp_name":"พนักงานทดสอบ","emp_role":"staff"}', TRUE);
+    '{"emp_id":7,"emp_name":"พนักงานทดสอบ","emp_role":"staff","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
 
   PERFORM public.void_order_item(v_item_id, 'cooking_error', 'ทดสอบ', 1);
 
@@ -189,10 +214,10 @@ DO $$
 DECLARE v_po RECORD;
 BEGIN
   PERFORM set_config('request.jwt.claims',
-    '{"emp_id":9,"emp_name":"เจ้าของร้าน","emp_role":"owner"}', TRUE);
+    '{"emp_id":9,"emp_name":"เจ้าของร้าน","emp_role":"owner","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
 
-  INSERT INTO purchase_orders (buyer_name, total_cost, created_by_emp_id, created_by_name)
-  VALUES ('ลุงแดง (คนไปตลาด)', 500, 999, 'ชื่อปลอมที่ client ส่งมา');
+  INSERT INTO purchase_orders (buyer_name, total_cost, created_by_emp_id, created_by_name, org_id)
+  VALUES ('ลุงแดง (คนไปตลาด)', 500, 999, 'ชื่อปลอมที่ client ส่งมา', '00000000-0000-4000-8000-000000000001');
 
   SELECT * INTO v_po FROM purchase_orders ORDER BY id DESC LIMIT 1;
 

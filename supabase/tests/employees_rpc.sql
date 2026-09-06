@@ -21,7 +21,7 @@ DECLARE
 BEGIN
   FOREACH v_fn IN ARRAY ARRAY[
     'public.admin_list_employees()',
-    'public.admin_add_employee(text,text,text)',
+    'public.admin_add_employee(text,text,text,uuid)',
     'public.admin_update_employee(int,text,text,text)',
     'public.admin_delete_employee(int,int)',
     'public.pin_taken(text,int)',
@@ -65,7 +65,7 @@ BEGIN
     RAISE EXCEPTION 'A2 ไม่ผ่าน: admin_list_employees คืน hash ออกมาด้วย (%)', v_result_type;
   END IF;
 
-  v_id := public.admin_add_employee('พนักงานทดสอบรายชื่อ', '918273', 'staff');
+  v_id := public.admin_add_employee('พนักงานทดสอบรายชื่อ', '918273', 'staff', '00000000-0000-4000-8000-000000000001'::UUID);
 
   SELECT e.has_pin INTO v_has_pin
   FROM public.admin_list_employees() e WHERE e.id = v_id;
@@ -88,27 +88,29 @@ DECLARE
   v_bcrypt TEXT;
   v_case   TEXT;
 BEGIN
-  -- role / ชื่อ / รูปแบบ PIN ที่ผิดต้องโยน error ไม่ใช่บันทึกครึ่งๆ
-  FOREACH v_case IN ARRAY ARRAY['bad_role', 'empty_name', 'short_pin', 'alpha_pin']
+  -- bad_org / bad_role / ชื่อ / รูปแบบ PIN ที่ผิดต้องโยน error ไม่ใช่บันทึกครึ่งๆ
+  FOREACH v_case IN ARRAY ARRAY['bad_org', 'bad_role', 'empty_name', 'short_pin', 'alpha_pin']
   LOOP
     BEGIN
       CASE v_case
-        WHEN 'bad_role'   THEN v_id := public.admin_add_employee('ทดสอบ', '827364', 'admin');
-        WHEN 'empty_name' THEN v_id := public.admin_add_employee('   ',    '827364', 'staff');
-        WHEN 'short_pin'  THEN v_id := public.admin_add_employee('ทดสอบ', '1234',   'staff');
-        ELSE                   v_id := public.admin_add_employee('ทดสอบ', 'abcdef', 'staff');
+        WHEN 'bad_org'    THEN v_id := public.admin_add_employee('ทดสอบ', '827364', 'staff', '00000000-0000-4000-8000-000000000099'::UUID);
+        WHEN 'bad_role'   THEN v_id := public.admin_add_employee('ทดสอบ', '827364', 'admin', '00000000-0000-4000-8000-000000000001'::UUID);
+        WHEN 'empty_name' THEN v_id := public.admin_add_employee('   ',    '827364', 'staff', '00000000-0000-4000-8000-000000000001'::UUID);
+        WHEN 'short_pin'  THEN v_id := public.admin_add_employee('ทดสอบ', '1234',   'staff', '00000000-0000-4000-8000-000000000001'::UUID);
+        ELSE                   v_id := public.admin_add_employee('ทดสอบ', 'abcdef', 'staff', '00000000-0000-4000-8000-000000000001'::UUID);
       END CASE;
       RAISE EXCEPTION 'ไม่ผ่าน: admin_add_employee ยอมรับ input แบบ %', v_case;
     EXCEPTION WHEN OTHERS THEN
-      IF SQLERRM NOT LIKE '%invalid_role%'
+      IF SQLERRM NOT LIKE '%invalid_org%'
+         AND SQLERRM NOT LIKE '%invalid_role%'
          AND SQLERRM NOT LIKE '%empty_name%'
          AND SQLERRM NOT LIKE '%invalid_pin%' THEN
-        RAISE EXCEPTION 'ไม่ผ่าน (%): คาดหวัง invalid_role/empty_name/invalid_pin ได้ %', v_case, SQLERRM;
+        RAISE EXCEPTION 'ไม่ผ่าน (%): คาดหวัง invalid_org/invalid_role/empty_name/invalid_pin ได้ %', v_case, SQLERRM;
       END IF;
     END;
   END LOOP;
 
-  v_id := public.admin_add_employee('พนักงานทดสอบ PIN', '827364', 'staff');
+  v_id := public.admin_add_employee('พนักงานทดสอบ PIN', '827364', 'staff', '00000000-0000-4000-8000-000000000001'::UUID);
   IF v_id IS NULL OR v_id <= 0 THEN
     RAISE EXCEPTION 'ไม่ผ่าน: เพิ่มพนักงานที่ข้อมูลถูกต้องไม่สำเร็จ (ได้ %)', v_id;
   END IF;
@@ -123,7 +125,7 @@ BEGIN
   END IF;
 
   -- PIN ซ้ำกับคนอื่น → -1 (ไม่ใช่สร้างซ้อนแล้วล็อกอินสลับคนกัน)
-  v_dup := public.admin_add_employee('พนักงาน PIN ซ้ำ', '827364', 'staff');
+  v_dup := public.admin_add_employee('พนักงาน PIN ซ้ำ', '827364', 'staff', '00000000-0000-4000-8000-000000000001'::UUID);
   IF v_dup <> -1 THEN
     RAISE EXCEPTION 'ไม่ผ่าน: PIN ซ้ำควรคืน -1 ได้ %', v_dup;
   END IF;
@@ -143,8 +145,8 @@ DECLARE
   v_res   TEXT;
   v_name  TEXT;
 BEGIN
-  v_staff := public.admin_add_employee('พนักงานก่อนแก้ชื่อ', '736455', 'staff');
-  v_other := public.admin_add_employee('พนักงานอีกคน',      '645544', 'staff');
+  v_staff := public.admin_add_employee('พนักงานก่อนแก้ชื่อ', '736455', 'staff', '00000000-0000-4000-8000-000000000001'::UUID);
+  v_other := public.admin_add_employee('พนักงานอีกคน',      '645544', 'staff', '00000000-0000-4000-8000-000000000001'::UUID);
 
   -- ไม่มีพนักงานคนนี้
   IF public.admin_update_employee(2147483600, 'ใครก็ไม่รู้', NULL, NULL) <> 'not_found' THEN
@@ -188,7 +190,7 @@ BEGIN
   -- เหลือ owner คนเดียวแล้วลดสิทธิ์ตัวเอง = ไม่มีใครเข้าหลังบ้านได้อีก
   SELECT e.id INTO v_owner FROM employees e WHERE e.role = 'owner' ORDER BY e.id LIMIT 1;
   IF v_owner IS NULL THEN
-    v_owner := public.admin_add_employee('เจ้าของร้านทดสอบ', '443322', 'owner');
+    v_owner := public.admin_add_employee('เจ้าของร้านทดสอบ', '443322', 'owner', '00000000-0000-4000-8000-000000000001'::UUID);
   END IF;
   UPDATE employees SET role = 'staff' WHERE role = 'owner' AND id <> v_owner;
 
@@ -214,11 +216,11 @@ DECLARE
 BEGIN
   SELECT e.id INTO v_owner FROM employees e WHERE e.role = 'owner' ORDER BY e.id LIMIT 1;
   IF v_owner IS NULL THEN
-    v_owner := public.admin_add_employee('เจ้าของร้านทดสอบลบ', '332211', 'owner');
+    v_owner := public.admin_add_employee('เจ้าของร้านทดสอบลบ', '332211', 'owner', '00000000-0000-4000-8000-000000000001'::UUID);
   END IF;
   UPDATE employees SET role = 'staff' WHERE role = 'owner' AND id <> v_owner;
 
-  v_staff := public.admin_add_employee('พนักงานรอถูกลบ', '221100', 'staff');
+  v_staff := public.admin_add_employee('พนักงานรอถูกลบ', '221100', 'staff', '00000000-0000-4000-8000-000000000001'::UUID);
 
   -- ลบตัวเอง = ล็อกตัวเองออกจากระบบ
   IF public.admin_delete_employee(v_owner, v_owner) <> 'self_delete' THEN

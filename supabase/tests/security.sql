@@ -11,6 +11,10 @@
 \timing off
 BEGIN;
 
+CREATE FUNCTION pg_temp.table_id(p_num INT) RETURNS UUID LANGUAGE sql AS $fn$
+  SELECT id FROM tables WHERE org_id = '00000000-0000-4000-8000-000000000001' AND table_number = p_num LIMIT 1;
+$fn$;
+
 -- -------------------------------------------------------------
 -- A1 · สิทธิ์ของ anon ต้องไม่เหลืออะไรเลย
 -- -------------------------------------------------------------
@@ -94,7 +98,7 @@ BEGIN
     RAISE EXCEPTION 'A2 ไม่ผ่าน: คอลัมน์ employees.pin_hash ยังอยู่';
   END IF;
 
-  v_id := public.admin_add_employee('ทดสอบ A2', '654321', 'staff');
+  v_id := public.admin_add_employee('ทดสอบ A2', '654321', 'staff', '00000000-0000-4000-8000-000000000001'::UUID);
   IF v_id IS NULL OR v_id < 0 THEN
     RAISE EXCEPTION 'A2 ไม่ผ่าน: สร้างพนักงานทดสอบไม่สำเร็จ (%)', v_id;
   END IF;
@@ -159,7 +163,11 @@ $$;
 DO $$
 DECLARE
   v_menu_id INT; v_price DECIMAL(10,2); v_saved DECIMAL(10,2); v_ok BOOLEAN;
+  v_tbl1 UUID := pg_temp.table_id(1);
 BEGIN
+  PERFORM set_config('request.jwt.claims',
+    '{"emp_id":1,"emp_name":"ผู้ทดสอบ","emp_role":"owner","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
+
   -- ต้องไม่มี overload ที่รับราคาหลงเหลือ
   IF EXISTS (
     SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
@@ -174,15 +182,15 @@ BEGIN
   -- ไม่งั้นเทสต์จะล้มเองทุกวันช่วง 17:00–19:00 เมื่อเมนูนั้นติด Happy Hour (L2)
   SELECT id, public.menu_item_sale_price(is_happy_hour, price, happy_hour_price, NOW())
   INTO v_menu_id, v_price
-  FROM menu_items ORDER BY id LIMIT 1;
+  FROM menu_items WHERE org_id = '00000000-0000-4000-8000-000000000001' ORDER BY id LIMIT 1;
   UPDATE menu_items SET stock = 100, is_stock_tracked = TRUE WHERE id = v_menu_id;
 
-  v_ok := public.place_order_item(1, v_menu_id, 2, NULL);
+  v_ok := public.place_order_item(v_tbl1, v_menu_id, 2, NULL);
   IF NOT v_ok THEN RAISE EXCEPTION 'A4 ไม่ผ่าน: สั่งอาหารไม่สำเร็จ'; END IF;
 
   SELECT oi.unit_price INTO v_saved
   FROM order_items oi JOIN orders o ON o.id = oi.order_id
-  WHERE o.table_id = 1 AND o.status = 'active'
+  WHERE o.table_id = v_tbl1 AND o.status = 'active'
   ORDER BY oi.id DESC LIMIT 1;
 
   IF v_saved IS DISTINCT FROM v_price THEN
@@ -190,10 +198,10 @@ BEGIN
   END IF;
 
   -- จำนวนติดลบ/ศูนย์ต้องถูกปฏิเสธ
-  IF public.place_order_item(1, v_menu_id, 0, NULL) THEN
+  IF public.place_order_item(v_tbl1, v_menu_id, 0, NULL) THEN
     RAISE EXCEPTION 'A4 ไม่ผ่าน: สั่งจำนวน 0 ได้';
   END IF;
-  IF public.place_order_item(1, v_menu_id, -5, NULL) THEN
+  IF public.place_order_item(v_tbl1, v_menu_id, -5, NULL) THEN
     RAISE EXCEPTION 'A4 ไม่ผ่าน: สั่งจำนวนติดลบได้';
   END IF;
 
@@ -207,8 +215,12 @@ $$;
 DO $$
 DECLARE
   v_order_id INT; v_expected DECIMAL(10,2); v_res RECORD;
+  v_tbl1 UUID := pg_temp.table_id(1);
 BEGIN
-  SELECT o.id INTO v_order_id FROM orders o WHERE o.table_id = 1 AND o.status = 'active';
+  PERFORM set_config('request.jwt.claims',
+    '{"emp_id":1,"emp_name":"ผู้ทดสอบ","emp_role":"owner","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
+
+  SELECT o.id INTO v_order_id FROM orders o WHERE o.table_id = v_tbl1 AND o.status = 'active';
   SELECT SUM(oi.quantity * oi.unit_price) INTO v_expected
   FROM order_items oi WHERE oi.order_id = v_order_id AND oi.status <> 'voided';
 
@@ -233,15 +245,19 @@ $$;
 DO $$
 DECLARE
   v_menu_id INT; v_order_id INT; v_res RECORD; v_points INT;
+  v_tbl2 UUID := pg_temp.table_id(2);
 BEGIN
-  INSERT INTO loyalty_members (phone_number, name, points)
-  VALUES ('0812345678', 'ทดสอบ A5', 5)
-  ON CONFLICT (phone_number) DO UPDATE SET points = 5;
+  PERFORM set_config('request.jwt.claims',
+    '{"emp_id":1,"emp_name":"ผู้ทดสอบ","emp_role":"owner","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
 
-  SELECT id INTO v_menu_id FROM menu_items ORDER BY id LIMIT 1;
+  INSERT INTO loyalty_members (org_id, phone_number, name, points)
+  VALUES ('00000000-0000-4000-8000-000000000001', '0812345678', 'ทดสอบ A5', 5)
+  ON CONFLICT (org_id, phone_number) DO UPDATE SET points = 5;
+
+  SELECT id INTO v_menu_id FROM menu_items WHERE org_id = '00000000-0000-4000-8000-000000000001' ORDER BY id LIMIT 1;
   UPDATE menu_items SET stock = 100, is_stock_tracked = TRUE WHERE id = v_menu_id;
-  PERFORM public.place_order_item(2, v_menu_id, 3, NULL);
-  SELECT o.id INTO v_order_id FROM orders o WHERE o.table_id = 2 AND o.status = 'active';
+  PERFORM public.place_order_item(v_tbl2, v_menu_id, 3, NULL);
+  SELECT o.id INTO v_order_id FROM orders o WHERE o.table_id = v_tbl2 AND o.status = 'active';
 
   -- ขอใช้ 99999 แต้ม ทั้งที่มี 5
   SELECT * INTO v_res FROM public.complete_checkout(v_order_id, 0, NULL, '0812345678', 99999);
@@ -250,7 +266,7 @@ BEGIN
     RAISE EXCEPTION 'A5 ไม่ผ่าน: ใช้แต้มได้ % ทั้งที่มีแค่ 5', v_res.points_redeemed;
   END IF;
 
-  SELECT points INTO v_points FROM loyalty_members WHERE phone_number = '0812345678';
+  SELECT points INTO v_points FROM loyalty_members WHERE phone_number = '0812345678' AND org_id = '00000000-0000-4000-8000-000000000001';
   IF v_points < 0 THEN
     RAISE EXCEPTION 'A5 ไม่ผ่าน: แต้มสมาชิกติดลบ (%)', v_points;
   END IF;
@@ -270,18 +286,22 @@ $$;
 DO $$
 DECLARE
   v_menu_id INT; v_order_id INT; v_res RECORD;
+  v_tbl3 UUID := pg_temp.table_id(3);
 BEGIN
-  INSERT INTO promotions (name, type, discount_percent, min_order_amount, is_active, end_date)
-  VALUES ('โปรหมดอายุ (ทดสอบ)', 'percentage', 50, 0, TRUE, CURRENT_DATE - 1);
-  INSERT INTO promotions (name, type, discount_percent, min_order_amount, is_active)
-  VALUES ('โปรปิดอยู่ (ทดสอบ)', 'percentage', 50, 0, FALSE);
-  INSERT INTO promotions (name, type, discount_amount, min_order_amount, is_active)
-  VALUES ('โปรยอดขั้นต่ำสูง (ทดสอบ)', 'fixed', 100, 999999, TRUE);
+  PERFORM set_config('request.jwt.claims',
+    '{"emp_id":1,"emp_name":"ผู้ทดสอบ","emp_role":"owner","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
 
-  SELECT id INTO v_menu_id FROM menu_items ORDER BY id LIMIT 1;
+  INSERT INTO promotions (org_id, name, type, discount_percent, min_order_amount, is_active, end_date)
+  VALUES ('00000000-0000-4000-8000-000000000001', 'โปรหมดอายุ (ทดสอบ)', 'percentage', 50, 0, TRUE, CURRENT_DATE - 1);
+  INSERT INTO promotions (org_id, name, type, discount_percent, min_order_amount, is_active)
+  VALUES ('00000000-0000-4000-8000-000000000001', 'โปรปิดอยู่ (ทดสอบ)', 'percentage', 50, 0, FALSE);
+  INSERT INTO promotions (org_id, name, type, discount_amount, min_order_amount, is_active)
+  VALUES ('00000000-0000-4000-8000-000000000001', 'โปรยอดขั้นต่ำสูง (ทดสอบ)', 'fixed', 100, 999999, TRUE);
+
+  SELECT id INTO v_menu_id FROM menu_items WHERE org_id = '00000000-0000-4000-8000-000000000001' ORDER BY id LIMIT 1;
   UPDATE menu_items SET stock = 100, is_stock_tracked = TRUE WHERE id = v_menu_id;
-  PERFORM public.place_order_item(3, v_menu_id, 1, NULL);
-  SELECT o.id INTO v_order_id FROM orders o WHERE o.table_id = 3 AND o.status = 'active';
+  PERFORM public.place_order_item(v_tbl3, v_menu_id, 1, NULL);
+  SELECT o.id INTO v_order_id FROM orders o WHERE o.table_id = v_tbl3 AND o.status = 'active';
 
   SELECT * INTO v_res FROM public.complete_checkout(v_order_id, 0, NULL, NULL, 0);
 
@@ -302,11 +322,15 @@ $$;
 DO $$
 DECLARE
   v_menu_id INT; v_order_id INT; v_first RECORD; v_second RECORD; v_count INT;
+  v_tbl4 UUID := pg_temp.table_id(4);
 BEGIN
-  SELECT id INTO v_menu_id FROM menu_items ORDER BY id LIMIT 1;
+  PERFORM set_config('request.jwt.claims',
+    '{"emp_id":1,"emp_name":"ผู้ทดสอบ","emp_role":"owner","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
+
+  SELECT id INTO v_menu_id FROM menu_items WHERE org_id = '00000000-0000-4000-8000-000000000001' ORDER BY id LIMIT 1;
   UPDATE menu_items SET stock = 100, is_stock_tracked = TRUE WHERE id = v_menu_id;
-  PERFORM public.place_order_item(4, v_menu_id, 2, NULL);
-  SELECT o.id INTO v_order_id FROM orders o WHERE o.table_id = 4 AND o.status = 'active';
+  PERFORM public.place_order_item(v_tbl4, v_menu_id, 2, NULL);
+  SELECT o.id INTO v_order_id FROM orders o WHERE o.table_id = v_tbl4 AND o.status = 'active';
 
   SELECT * INTO v_first  FROM public.complete_checkout(v_order_id, 1000, NULL, NULL, 0);
   SELECT * INTO v_second FROM public.complete_checkout(v_order_id, 1000, NULL, NULL, 0);
@@ -333,8 +357,8 @@ DECLARE v_order_id INT;
 BEGIN
   SELECT order_id INTO v_order_id FROM payments WHERE order_id IS NOT NULL LIMIT 1;
   BEGIN
-    INSERT INTO payments (order_id, payment_method, subtotal, discount_amount, net_amount)
-    VALUES (v_order_id, 'cash', 1, 0, 1);
+    INSERT INTO payments (org_id, order_id, payment_method, subtotal, discount_amount, net_amount)
+    VALUES ('00000000-0000-4000-8000-000000000001', v_order_id, 'cash', 1, 0, 1);
     RAISE EXCEPTION 'A6 ไม่ผ่าน: เขียน payments ซ้ำ order เดิมได้';
   EXCEPTION WHEN unique_violation THEN
     RAISE NOTICE 'PASS  A6 · UNIQUE(payments.order_id) กันการเขียนซ้ำที่ระดับตาราง';
@@ -346,7 +370,7 @@ $$;
 DO $$
 BEGIN
   BEGIN
-    UPDATE loyalty_members SET points = -1 WHERE phone_number = '0812345678';
+    UPDATE loyalty_members SET points = -1 WHERE phone_number = '0812345678' AND org_id = '00000000-0000-4000-8000-000000000001';
     RAISE EXCEPTION 'A5 ไม่ผ่าน: ตั้งแต้มเป็นค่าติดลบได้';
   EXCEPTION WHEN check_violation THEN
     RAISE NOTICE 'PASS  A5 · CHECK (points >= 0) ปฏิเสธแต้มติดลบ';

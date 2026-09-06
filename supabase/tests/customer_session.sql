@@ -10,7 +10,11 @@
 \timing off
 BEGIN;
 
-CREATE FUNCTION pg_temp.reset_table(p_table_id INT) RETURNS VOID
+CREATE FUNCTION pg_temp.table_id(p_num INT) RETURNS UUID LANGUAGE sql AS $fn$
+  SELECT id FROM tables WHERE org_id = '00000000-0000-4000-8000-000000000001' AND table_number = p_num LIMIT 1;
+$fn$;
+
+CREATE FUNCTION pg_temp.reset_table(p_table_id UUID) RETURNS VOID
 LANGUAGE plpgsql AS $fn$
 BEGIN
   DELETE FROM payments    WHERE order_id IN (SELECT id FROM orders WHERE table_id = p_table_id);
@@ -34,8 +38,9 @@ DECLARE
   v_menu    INT;
   v_expired UUID;
   v_stale   UUID;
+  v_tbl2    UUID := pg_temp.table_id(2);
 BEGIN
-  SELECT id INTO v_menu FROM menu_items ORDER BY id LIMIT 1;
+  SELECT id INTO v_menu FROM menu_items WHERE org_id = '00000000-0000-4000-8000-000000000001' ORDER BY id LIMIT 1;
   UPDATE menu_items SET stock = 100, is_stock_tracked = TRUE WHERE id = v_menu;
 
   -- 1. session ที่ไม่มีในฐานเลย
@@ -50,8 +55,8 @@ BEGIN
   END;
 
   -- 2. session ที่ถูกปิดไปแล้ว (ปิดบิลแล้ว/พนักงานยกเลิก)
-  INSERT INTO qr_sessions (table_id, status, expired_at)
-  VALUES (2, 'expired', NOW() + INTERVAL '2 hours')
+  INSERT INTO qr_sessions (table_id, status, expired_at, org_id)
+  VALUES (v_tbl2, 'expired', NOW() + INTERVAL '2 hours', '00000000-0000-4000-8000-000000000001')
   RETURNING id INTO v_stale;
 
   BEGIN
@@ -64,8 +69,8 @@ BEGIN
   END;
 
   -- 3. session ที่ยัง active แต่เลยเวลาหมดอายุ (QR เก่าที่ลูกค้าเก็บรูปไว้)
-  INSERT INTO qr_sessions (table_id, status, expired_at)
-  VALUES (2, 'active', NOW() - INTERVAL '1 minute')
+  INSERT INTO qr_sessions (table_id, status, expired_at, org_id)
+  VALUES (v_tbl2, 'active', NOW() - INTERVAL '1 minute', '00000000-0000-4000-8000-000000000001')
   RETURNING id INTO v_expired;
 
   BEGIN
@@ -90,21 +95,26 @@ DECLARE
   v_session    UUID;
   v_result     JSONB;
   v_order_id   INT;
-  v_order_tbl  INT;
+  v_order_tbl  UUID;
   v_linked     UUID;
   v_other_cnt  INT;
+  v_tbl3       UUID := pg_temp.table_id(3);
+  v_tbl4       UUID := pg_temp.table_id(4);
 BEGIN
-  SELECT id INTO v_menu FROM menu_items ORDER BY id LIMIT 1;
+  PERFORM set_config('request.jwt.claims',
+    '{"emp_id":1,"emp_name":"ผู้ทดสอบ","emp_role":"owner","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
+
+  SELECT id INTO v_menu FROM menu_items WHERE org_id = '00000000-0000-4000-8000-000000000001' ORDER BY id LIMIT 1;
   UPDATE menu_items SET stock = 100, is_stock_tracked = TRUE WHERE id = v_menu;
 
-  PERFORM pg_temp.reset_table(3);
-  PERFORM pg_temp.reset_table(4);
+  PERFORM pg_temp.reset_table(v_tbl3);
+  PERFORM pg_temp.reset_table(v_tbl4);
 
   -- โต๊ะ 4 มีบิลของตัวเองอยู่ก่อน — ลูกค้าโต๊ะ 3 ต้องไม่ไปเพิ่มรายการในบิลนั้น
-  PERFORM public.place_order_item(4, v_menu, 1, NULL);
+  PERFORM public.place_order_item(v_tbl4, v_menu, 1, NULL);
 
-  INSERT INTO qr_sessions (table_id, status, expired_at)
-  VALUES (3, 'active', NOW() + INTERVAL '2 hours')
+  INSERT INTO qr_sessions (table_id, status, expired_at, org_id)
+  VALUES (v_tbl3, 'active', NOW() + INTERVAL '2 hours', '00000000-0000-4000-8000-000000000001')
   RETURNING id INTO v_session;
 
   v_result := public.customer_place_order_batch(v_session, pg_temp.one_item(v_menu, 2));
@@ -113,8 +123,8 @@ BEGIN
   SELECT o.table_id, o.qr_session_id INTO v_order_tbl, v_linked
   FROM orders o WHERE o.id = v_order_id;
 
-  IF v_order_tbl <> 3 THEN
-    RAISE EXCEPTION 'ไม่ผ่าน: ออเดอร์ไปอยู่โต๊ะ % แทนโต๊ะของ session (3)', v_order_tbl;
+  IF v_order_tbl <> v_tbl3 THEN
+    RAISE EXCEPTION 'ไม่ผ่าน: ออเดอร์ไปอยู่โต๊ะ % แทนโต๊ะของ session (%)', v_order_tbl, v_tbl3;
   END IF;
   IF v_linked IS DISTINCT FROM v_session THEN
     RAISE EXCEPTION 'ไม่ผ่าน: orders.qr_session_id ไม่ได้ผูกกับ session ที่สั่ง';
@@ -122,13 +132,13 @@ BEGIN
 
   SELECT COUNT(*) INTO v_other_cnt
   FROM order_items oi JOIN orders o ON o.id = oi.order_id
-  WHERE o.table_id = 4;
+  WHERE o.table_id = v_tbl4;
 
   IF v_other_cnt <> 1 THEN
     RAISE EXCEPTION 'ไม่ผ่าน: บิลของโต๊ะ 4 ถูกแตะ (มี % รายการ)', v_other_cnt;
   END IF;
 
-  IF (SELECT status FROM tables WHERE id = 3) <> 'occupied' THEN
+  IF (SELECT status FROM tables WHERE id = v_tbl3) <> 'occupied' THEN
     RAISE EXCEPTION 'ไม่ผ่าน: สั่งแล้วโต๊ะ 3 ไม่ถูกตั้งเป็น occupied';
   END IF;
 
@@ -147,6 +157,7 @@ DECLARE
   v_unit   DECIMAL(10, 2);
   v_stock  INT;
   v_args   TEXT;
+  v_tbl1   UUID := pg_temp.table_id(1);
 BEGIN
   SELECT pg_get_function_arguments(p.oid) INTO v_args
   FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
@@ -156,22 +167,22 @@ BEGIN
     RAISE EXCEPTION 'A4 ไม่ผ่าน: customer_place_order_batch ยังรับราคาจาก client (%)', v_args;
   END IF;
 
-  SELECT id INTO v_menu FROM menu_items ORDER BY id LIMIT 1;
+  SELECT id INTO v_menu FROM menu_items WHERE org_id = '00000000-0000-4000-8000-000000000001' ORDER BY id LIMIT 1;
   UPDATE menu_items
   SET price = 77, is_happy_hour = FALSE, happy_hour_price = NULL,
       stock = 10, is_stock_tracked = TRUE
-  WHERE id = v_menu;
+  WHERE id = v_menu AND org_id = '00000000-0000-4000-8000-000000000001';
 
-  PERFORM pg_temp.reset_table(1);
-  INSERT INTO qr_sessions (table_id, status, expired_at)
-  VALUES (1, 'active', NOW() + INTERVAL '2 hours')
+  PERFORM pg_temp.reset_table(v_tbl1);
+  INSERT INTO qr_sessions (table_id, status, expired_at, org_id)
+  VALUES (v_tbl1, 'active', NOW() + INTERVAL '2 hours', '00000000-0000-4000-8000-000000000001')
   RETURNING id INTO v_session;
 
   v_result := public.customer_place_order_batch(v_session, pg_temp.one_item(v_menu, 3));
 
   SELECT oi.unit_price INTO v_unit
   FROM order_items oi WHERE oi.order_id = (v_result ->> 'order_id')::INT LIMIT 1;
-  SELECT stock INTO v_stock FROM menu_items WHERE id = v_menu;
+  SELECT stock INTO v_stock FROM menu_items WHERE id = v_menu AND org_id = '00000000-0000-4000-8000-000000000001';
 
   IF v_unit <> 77 THEN
     RAISE EXCEPTION 'A4 ไม่ผ่าน: unit_price % ไม่ตรงราคาใน menu_items (77)', v_unit;
@@ -214,19 +225,20 @@ DECLARE
   v_stale   UUID;
   v_unit    DECIMAL(10, 2);
   v_expect  DECIMAL(10, 2);
+  v_tbl4    UUID := pg_temp.table_id(4);
 BEGIN
-  SELECT id INTO v_menu FROM menu_items ORDER BY id LIMIT 1;
-  UPDATE menu_items SET stock = 10, is_stock_tracked = TRUE WHERE id = v_menu;
+  SELECT id INTO v_menu FROM menu_items WHERE org_id = '00000000-0000-4000-8000-000000000001' ORDER BY id LIMIT 1;
+  UPDATE menu_items SET stock = 10, is_stock_tracked = TRUE WHERE id = v_menu AND org_id = '00000000-0000-4000-8000-000000000001';
   SELECT public.menu_item_sale_price(is_happy_hour, price, happy_hour_price, NOW())
-  INTO v_expect FROM menu_items WHERE id = v_menu;
+  INTO v_expect FROM menu_items WHERE id = v_menu AND org_id = '00000000-0000-4000-8000-000000000001';
 
-  PERFORM pg_temp.reset_table(4);
-  INSERT INTO qr_sessions (table_id, status, expired_at)
-  VALUES (4, 'active', NOW() + INTERVAL '2 hours')
+  PERFORM pg_temp.reset_table(v_tbl4);
+  INSERT INTO qr_sessions (table_id, status, expired_at, org_id)
+  VALUES (v_tbl4, 'active', NOW() + INTERVAL '2 hours', '00000000-0000-4000-8000-000000000001')
   RETURNING id INTO v_session;
 
-  INSERT INTO qr_sessions (table_id, status, expired_at)
-  VALUES (4, 'active', NOW() - INTERVAL '1 minute')
+  INSERT INTO qr_sessions (table_id, status, expired_at, org_id)
+  VALUES (v_tbl4, 'active', NOW() - INTERVAL '1 minute', '00000000-0000-4000-8000-000000000001')
   RETURNING id INTO v_stale;
 
   IF public.customer_place_order_item(
@@ -252,7 +264,7 @@ BEGIN
 
   SELECT oi.unit_price INTO v_unit
   FROM order_items oi JOIN orders o ON o.id = oi.order_id
-  WHERE o.table_id = 4 ORDER BY oi.id DESC LIMIT 1;
+  WHERE o.table_id = v_tbl4 ORDER BY oi.id DESC LIMIT 1;
 
   IF v_unit IS DISTINCT FROM v_expect THEN
     RAISE EXCEPTION 'ไม่ผ่าน: unit_price % ไม่ตรงราคาขาย % ณ เวลานี้', v_unit, v_expect;
@@ -268,13 +280,14 @@ $$;
 DO $$
 DECLARE
   v_menu INT; v_session UUID; v_bad JSONB; v_case TEXT;
+  v_tbl2 UUID := pg_temp.table_id(2);
 BEGIN
-  SELECT id INTO v_menu FROM menu_items ORDER BY id LIMIT 1;
-  UPDATE menu_items SET stock = 100, is_stock_tracked = TRUE WHERE id = v_menu;
+  SELECT id INTO v_menu FROM menu_items WHERE org_id = '00000000-0000-4000-8000-000000000001' ORDER BY id LIMIT 1;
+  UPDATE menu_items SET stock = 100, is_stock_tracked = TRUE WHERE id = v_menu AND org_id = '00000000-0000-4000-8000-000000000001';
 
-  PERFORM pg_temp.reset_table(2);
-  INSERT INTO qr_sessions (table_id, status, expired_at)
-  VALUES (2, 'active', NOW() + INTERVAL '2 hours')
+  PERFORM pg_temp.reset_table(v_tbl2);
+  INSERT INTO qr_sessions (table_id, status, expired_at, org_id)
+  VALUES (v_tbl2, 'active', NOW() + INTERVAL '2 hours', '00000000-0000-4000-8000-000000000001')
   RETURNING id INTO v_session;
 
   FOREACH v_case IN ARRAY ARRAY['empty', 'zero_qty', 'negative_qty', 'too_many_qty', 'no_menu']

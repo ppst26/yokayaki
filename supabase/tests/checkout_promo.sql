@@ -10,14 +10,18 @@
 \timing off
 BEGIN;
 
+CREATE FUNCTION pg_temp.table_id(p_num INT) RETURNS UUID LANGUAGE sql AS $fn$
+  SELECT id FROM tables WHERE org_id = '00000000-0000-4000-8000-000000000001' AND table_number = p_num LIMIT 1;
+$fn$;
+
 -- โปรที่ค้างอยู่ในฐานจะติดมากับบิลทดสอบด้วย — แต่ละเทสต์ปิดทั้งหมดก่อนแล้วเปิดเฉพาะตัวของตัวเอง
 CREATE FUNCTION pg_temp.only_promo(p_promo_id INT) RETURNS VOID
 LANGUAGE sql AS $fn$
-  UPDATE promotions SET is_active = (id = p_promo_id);
+  UPDATE promotions SET is_active = (id = p_promo_id) WHERE org_id = '00000000-0000-4000-8000-000000000001';
 $fn$;
 
 -- คืนโต๊ะให้ว่างและล้างบิลเก่าของโต๊ะนั้น (payments ถูก FK RESTRICT จึงต้องลบก่อน order)
-CREATE FUNCTION pg_temp.reset_table(p_table_id INT) RETURNS VOID
+CREATE FUNCTION pg_temp.reset_table(p_table_id UUID) RETURNS VOID
 LANGUAGE plpgsql AS $fn$
 BEGIN
   DELETE FROM payments    WHERE order_id IN (SELECT id FROM orders WHERE table_id = p_table_id);
@@ -32,11 +36,11 @@ CREATE FUNCTION pg_temp.fixed_price_menu(p_offset INT, p_price DECIMAL) RETURNS 
 LANGUAGE plpgsql AS $fn$
 DECLARE v_id INT;
 BEGIN
-  SELECT id INTO v_id FROM menu_items ORDER BY id OFFSET p_offset LIMIT 1;
+  SELECT id INTO v_id FROM menu_items WHERE org_id = '00000000-0000-4000-8000-000000000001' ORDER BY id OFFSET p_offset LIMIT 1;
   UPDATE menu_items
   SET price = p_price, is_happy_hour = FALSE, happy_hour_price = NULL,
       stock = 500, is_stock_tracked = TRUE
-  WHERE id = v_id;
+  WHERE id = v_id AND org_id = '00000000-0000-4000-8000-000000000001';
   RETURN v_id;
 END;
 $fn$;
@@ -51,18 +55,24 @@ DECLARE
   v_order INT;
   v_res   RECORD;
   v_saved DECIMAL(10, 2);
+  v_tbl1  UUID := pg_temp.table_id(1);
+  v_tbl2  UUID := pg_temp.table_id(2);
+  v_tbl3  UUID := pg_temp.table_id(3);
 BEGIN
+  PERFORM set_config('request.jwt.claims',
+    '{"emp_id":1,"emp_name":"ผู้ทดสอบ","emp_role":"owner","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
+
   v_menu := pg_temp.fixed_price_menu(0, 100);
 
-  INSERT INTO promotions (name, type, discount_amount, coupon_code, min_order_amount, is_active)
-  VALUES ('คูปองทดสอบ 50', 'fixed', 50, 'E2ETEST50', 0, TRUE)
+  INSERT INTO promotions (name, type, discount_amount, coupon_code, min_order_amount, is_active, org_id)
+  VALUES ('คูปองทดสอบ 50', 'fixed', 50, 'E2ETEST50', 0, TRUE, '00000000-0000-4000-8000-000000000001')
   RETURNING id INTO v_promo;
   PERFORM pg_temp.only_promo(v_promo);
 
   -- ไม่กรอกคูปอง → ไม่ได้ส่วนลด
-  PERFORM pg_temp.reset_table(1);
-  PERFORM public.place_order_item(1, v_menu, 1, NULL);
-  SELECT o.id INTO v_order FROM orders o WHERE o.table_id = 1 AND o.status = 'active';
+  PERFORM pg_temp.reset_table(v_tbl1);
+  PERFORM public.place_order_item(v_tbl1, v_menu, 1, NULL);
+  SELECT o.id INTO v_order FROM orders o WHERE o.table_id = v_tbl1 AND o.status = 'active';
   SELECT * INTO v_res FROM public.complete_checkout(v_order, 100, NULL, NULL, 0);
 
   IF v_res.promo_discount <> 0 OR v_res.net_amount <> 100 THEN
@@ -71,9 +81,9 @@ BEGIN
   END IF;
 
   -- กรอกรหัสผิด → ไม่ได้ส่วนลด
-  PERFORM pg_temp.reset_table(2);
-  PERFORM public.place_order_item(2, v_menu, 1, NULL);
-  SELECT o.id INTO v_order FROM orders o WHERE o.table_id = 2 AND o.status = 'active';
+  PERFORM pg_temp.reset_table(v_tbl2);
+  PERFORM public.place_order_item(v_tbl2, v_menu, 1, NULL);
+  SELECT o.id INTO v_order FROM orders o WHERE o.table_id = v_tbl2 AND o.status = 'active';
   SELECT * INTO v_res FROM public.complete_checkout(v_order, 100, 'NOPE', NULL, 0);
 
   IF v_res.promo_discount <> 0 THEN
@@ -81,9 +91,9 @@ BEGIN
   END IF;
 
   -- กรอกถูก (พิมพ์เล็ก + มีช่องว่าง) → ได้ส่วนลด และถูกบันทึกใน payment_promotions
-  PERFORM pg_temp.reset_table(3);
-  PERFORM public.place_order_item(3, v_menu, 1, NULL);
-  SELECT o.id INTO v_order FROM orders o WHERE o.table_id = 3 AND o.status = 'active';
+  PERFORM pg_temp.reset_table(v_tbl3);
+  PERFORM public.place_order_item(v_tbl3, v_menu, 1, NULL);
+  SELECT o.id INTO v_order FROM orders o WHERE o.table_id = v_tbl3 AND o.status = 'active';
   SELECT * INTO v_res FROM public.complete_checkout(v_order, 100, '  e2etest50 ', NULL, 0);
 
   IF v_res.promo_discount <> 50 OR v_res.net_amount <> 50 THEN
@@ -108,17 +118,21 @@ $$;
 DO $$
 DECLARE
   v_menu INT; v_promo INT; v_order INT; v_res RECORD;
+  v_tbl1 UUID := pg_temp.table_id(1);
 BEGIN
+  PERFORM set_config('request.jwt.claims',
+    '{"emp_id":1,"emp_name":"ผู้ทดสอบ","emp_role":"owner","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
+
   v_menu := pg_temp.fixed_price_menu(0, 100);
 
-  INSERT INTO promotions (name, type, discount_amount, min_order_amount, is_active)
-  VALUES ('ลดเกินยอดบิล (ทดสอบ)', 'fixed', 999, 0, TRUE)
+  INSERT INTO promotions (name, type, discount_amount, min_order_amount, is_active, org_id)
+  VALUES ('ลดเกินยอดบิล (ทดสอบ)', 'fixed', 999, 0, TRUE, '00000000-0000-4000-8000-000000000001')
   RETURNING id INTO v_promo;
   PERFORM pg_temp.only_promo(v_promo);
 
-  PERFORM pg_temp.reset_table(1);
-  PERFORM public.place_order_item(1, v_menu, 1, NULL);
-  SELECT o.id INTO v_order FROM orders o WHERE o.table_id = 1 AND o.status = 'active';
+  PERFORM pg_temp.reset_table(v_tbl1);
+  PERFORM public.place_order_item(v_tbl1, v_menu, 1, NULL);
+  SELECT o.id INTO v_order FROM orders o WHERE o.table_id = v_tbl1 AND o.status = 'active';
   SELECT * INTO v_res FROM public.complete_checkout(v_order, 0, NULL, NULL, 0);
 
   IF v_res.promo_discount <> 100 OR v_res.net_amount <> 0 THEN
@@ -136,18 +150,23 @@ $$;
 DO $$
 DECLARE
   v_menu INT; v_promo INT; v_order INT; v_res RECORD; v_free JSONB;
+  v_tbl1 UUID := pg_temp.table_id(1);
+  v_tbl2 UUID := pg_temp.table_id(2);
 BEGIN
+  PERFORM set_config('request.jwt.claims',
+    '{"emp_id":1,"emp_name":"ผู้ทดสอบ","emp_role":"owner","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
+
   v_menu := pg_temp.fixed_price_menu(0, 100);
 
-  INSERT INTO promotions (name, type, buy_qty, free_qty, menu_item_id, min_order_amount, is_active)
-  VALUES ('ซื้อ 2 แถม 1 (ทดสอบ)', 'buy_x_get_y', 2, 1, v_menu, 0, TRUE)
+  INSERT INTO promotions (name, type, buy_qty, free_qty, menu_item_id, min_order_amount, is_active, org_id)
+  VALUES ('ซื้อ 2 แถม 1 (ทดสอบ)', 'buy_x_get_y', 2, 1, v_menu, 0, TRUE, '00000000-0000-4000-8000-000000000001')
   RETURNING id INTO v_promo;
   PERFORM pg_temp.only_promo(v_promo);
 
   -- สั่ง 3 ชิ้น = 1 ชุด (2+1) → แถม 1 ชิ้น = ลด 100
-  PERFORM pg_temp.reset_table(1);
-  PERFORM public.place_order_item(1, v_menu, 3, NULL);
-  SELECT o.id INTO v_order FROM orders o WHERE o.table_id = 1 AND o.status = 'active';
+  PERFORM pg_temp.reset_table(v_tbl1);
+  PERFORM public.place_order_item(v_tbl1, v_menu, 3, NULL);
+  SELECT o.id INTO v_order FROM orders o WHERE o.table_id = v_tbl1 AND o.status = 'active';
   SELECT * INTO v_res FROM public.complete_checkout(v_order, 0, NULL, NULL, 0);
 
   IF v_res.subtotal <> 300 OR v_res.promo_discount <> 100 OR v_res.net_amount <> 200 THEN
@@ -164,9 +183,9 @@ BEGIN
   END IF;
 
   -- สั่ง 2 ชิ้น = ยังไม่ครบชุด → ไม่มีของแถม
-  PERFORM pg_temp.reset_table(2);
-  PERFORM public.place_order_item(2, v_menu, 2, NULL);
-  SELECT o.id INTO v_order FROM orders o WHERE o.table_id = 2 AND o.status = 'active';
+  PERFORM pg_temp.reset_table(v_tbl2);
+  PERFORM public.place_order_item(v_tbl2, v_menu, 2, NULL);
+  SELECT o.id INTO v_order FROM orders o WHERE o.table_id = v_tbl2 AND o.status = 'active';
   SELECT * INTO v_res FROM public.complete_checkout(v_order, 0, NULL, NULL, 0);
 
   IF v_res.promo_discount <> 0 THEN
@@ -183,19 +202,23 @@ $$;
 DO $$
 DECLARE
   v_menu_a INT; v_menu_b INT; v_promo INT; v_order INT; v_res RECORD;
+  v_tbl1 UUID := pg_temp.table_id(1);
 BEGIN
+  PERFORM set_config('request.jwt.claims',
+    '{"emp_id":1,"emp_name":"ผู้ทดสอบ","emp_role":"owner","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
+
   v_menu_a := pg_temp.fixed_price_menu(0, 100);
   v_menu_b := pg_temp.fixed_price_menu(1, 200);
 
-  INSERT INTO promotions (name, type, discount_percent, menu_item_id, min_order_amount, is_active)
-  VALUES ('ลด 50% เฉพาะเมนู A (ทดสอบ)', 'percentage', 50, v_menu_a, 0, TRUE)
+  INSERT INTO promotions (name, type, discount_percent, menu_item_id, min_order_amount, is_active, org_id)
+  VALUES ('ลด 50% เฉพาะเมนู A (ทดสอบ)', 'percentage', 50, v_menu_a, 0, TRUE, '00000000-0000-4000-8000-000000000001')
   RETURNING id INTO v_promo;
   PERFORM pg_temp.only_promo(v_promo);
 
-  PERFORM pg_temp.reset_table(1);
-  PERFORM public.place_order_item(1, v_menu_a, 1, NULL);
-  PERFORM public.place_order_item(1, v_menu_b, 1, NULL);
-  SELECT o.id INTO v_order FROM orders o WHERE o.table_id = 1 AND o.status = 'active';
+  PERFORM pg_temp.reset_table(v_tbl1);
+  PERFORM public.place_order_item(v_tbl1, v_menu_a, 1, NULL);
+  PERFORM public.place_order_item(v_tbl1, v_menu_b, 1, NULL);
+  SELECT o.id INTO v_order FROM orders o WHERE o.table_id = v_tbl1 AND o.status = 'active';
   SELECT * INTO v_res FROM public.complete_checkout(v_order, 0, NULL, NULL, 0);
 
   -- 50% ของเมนู A (100) = 50 · เมนู B (200) ไม่ถูกลด
@@ -214,14 +237,20 @@ $$;
 DO $$
 DECLARE
   v_menu INT; v_order INT; v_res RECORD;
+  v_tbl1 UUID := pg_temp.table_id(1);
+  v_tbl2 UUID := pg_temp.table_id(2);
+  v_tbl3 UUID := pg_temp.table_id(3);
 BEGIN
+  PERFORM set_config('request.jwt.claims',
+    '{"emp_id":1,"emp_name":"ผู้ทดสอบ","emp_role":"owner","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
+
   v_menu := pg_temp.fixed_price_menu(0, 100);
-  UPDATE promotions SET is_active = FALSE;
+  UPDATE promotions SET is_active = FALSE WHERE org_id = '00000000-0000-4000-8000-000000000001';
 
   -- จ่ายสดเกินยอด → cash เท่ายอดบิล · ที่เหลือเป็นเงินทอน
-  PERFORM pg_temp.reset_table(1);
-  PERFORM public.place_order_item(1, v_menu, 1, NULL);
-  SELECT o.id INTO v_order FROM orders o WHERE o.table_id = 1 AND o.status = 'active';
+  PERFORM pg_temp.reset_table(v_tbl1);
+  PERFORM public.place_order_item(v_tbl1, v_menu, 1, NULL);
+  SELECT o.id INTO v_order FROM orders o WHERE o.table_id = v_tbl1 AND o.status = 'active';
   SELECT * INTO v_res FROM public.complete_checkout(v_order, 500, NULL, NULL, 0);
 
   IF v_res.payment_method <> 'cash' OR v_res.cash_amount <> 100
@@ -235,9 +264,9 @@ BEGIN
   END IF;
 
   -- ไม่จ่ายสดเลย → เป็นการโอนทั้งจำนวน
-  PERFORM pg_temp.reset_table(2);
-  PERFORM public.place_order_item(2, v_menu, 1, NULL);
-  SELECT o.id INTO v_order FROM orders o WHERE o.table_id = 2 AND o.status = 'active';
+  PERFORM pg_temp.reset_table(v_tbl2);
+  PERFORM public.place_order_item(v_tbl2, v_menu, 1, NULL);
+  SELECT o.id INTO v_order FROM orders o WHERE o.table_id = v_tbl2 AND o.status = 'active';
   SELECT * INTO v_res FROM public.complete_checkout(v_order, 0, NULL, NULL, 0);
 
   IF v_res.payment_method <> 'promptpay' OR v_res.promptpay_amount <> 100 THEN
@@ -246,9 +275,9 @@ BEGIN
   END IF;
 
   -- จ่ายสดบางส่วน → ที่เหลือเป็นยอดโอน
-  PERFORM pg_temp.reset_table(3);
-  PERFORM public.place_order_item(3, v_menu, 1, NULL);
-  SELECT o.id INTO v_order FROM orders o WHERE o.table_id = 3 AND o.status = 'active';
+  PERFORM pg_temp.reset_table(v_tbl3);
+  PERFORM public.place_order_item(v_tbl3, v_menu, 1, NULL);
+  SELECT o.id INTO v_order FROM orders o WHERE o.table_id = v_tbl3 AND o.status = 'active';
   SELECT * INTO v_res FROM public.complete_checkout(v_order, 40, NULL, NULL, 0);
 
   IF v_res.payment_method <> 'mixed' OR v_res.cash_amount <> 40
@@ -268,18 +297,19 @@ DO $$
 DECLARE
   v_menu_a INT; v_menu_b INT; v_order INT; v_item_b INT; v_session UUID; v_res RECORD;
   v_table_status TEXT; v_session_status TEXT; v_pending INT; v_order_status TEXT;
+  v_tbl4 UUID := pg_temp.table_id(4);
 BEGIN
+  PERFORM set_config('request.jwt.claims',
+    '{"emp_id":1,"emp_name":"ผู้ทดสอบ","emp_role":"owner","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
+
   v_menu_a := pg_temp.fixed_price_menu(0, 100);
   v_menu_b := pg_temp.fixed_price_menu(1, 200);
-  UPDATE promotions SET is_active = FALSE;
+  UPDATE promotions SET is_active = FALSE WHERE org_id = '00000000-0000-4000-8000-000000000001';
 
-  PERFORM set_config('request.jwt.claims',
-    '{"emp_id":1,"emp_name":"ผู้ทดสอบ","emp_role":"owner"}', TRUE);
-
-  PERFORM pg_temp.reset_table(4);
-  PERFORM public.place_order_item(4, v_menu_a, 1, NULL);
-  PERFORM public.place_order_item(4, v_menu_b, 1, NULL);
-  SELECT o.id INTO v_order FROM orders o WHERE o.table_id = 4 AND o.status = 'active';
+  PERFORM pg_temp.reset_table(v_tbl4);
+  PERFORM public.place_order_item(v_tbl4, v_menu_a, 1, NULL);
+  PERFORM public.place_order_item(v_tbl4, v_menu_b, 1, NULL);
+  SELECT o.id INTO v_order FROM orders o WHERE o.table_id = v_tbl4 AND o.status = 'active';
 
   SELECT oi.id INTO v_item_b
   FROM order_items oi WHERE oi.order_id = v_order AND oi.menu_item_id = v_menu_b;
@@ -288,8 +318,8 @@ BEGIN
     RAISE EXCEPTION 'ไม่ผ่าน: void รายการเตรียมทดสอบไม่สำเร็จ';
   END IF;
 
-  INSERT INTO qr_sessions (table_id, status, expired_at)
-  VALUES (4, 'active', NOW() + INTERVAL '2 hours')
+  INSERT INTO qr_sessions (table_id, status, expired_at, org_id)
+  VALUES (v_tbl4, 'active', NOW() + INTERVAL '2 hours', '00000000-0000-4000-8000-000000000001')
   RETURNING id INTO v_session;
 
   SELECT * INTO v_res FROM public.complete_checkout(v_order, 100, NULL, NULL, 0);
@@ -298,7 +328,7 @@ BEGIN
     RAISE EXCEPTION 'ไม่ผ่าน: รายการที่ void ยังถูกนับในยอดบิล (subtotal %)', v_res.subtotal;
   END IF;
 
-  SELECT t.status INTO v_table_status FROM tables t WHERE t.id = 4;
+  SELECT t.status INTO v_table_status FROM tables t WHERE t.id = v_tbl4;
   SELECT qs.status INTO v_session_status FROM qr_sessions qs WHERE qs.id = v_session;
   SELECT o.status INTO v_order_status FROM orders o WHERE o.id = v_order;
   SELECT COUNT(*) INTO v_pending
@@ -327,6 +357,9 @@ $$;
 DO $$
 DECLARE v_res RECORD; v_before INT; v_after INT;
 BEGIN
+  PERFORM set_config('request.jwt.claims',
+    '{"emp_id":1,"emp_name":"ผู้ทดสอบ","emp_role":"owner","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
+
   SELECT COUNT(*) INTO v_before FROM payments;
   SELECT * INTO v_res FROM public.complete_checkout(2147483600, 100, NULL, NULL, 0);
   SELECT COUNT(*) INTO v_after FROM payments;
