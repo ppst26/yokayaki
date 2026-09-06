@@ -1,6 +1,7 @@
 import 'server-only';
 import { readFileSync } from 'node:fs';
 import { SignJWT, jwtVerify, importJWK } from 'jose';
+import { EMPLOYEE_ROLES, type EmployeeRole } from '@/lib/permissions';
 
 // =============================================================
 // JWT ของพนักงาน — สำหรับ PostgREST / Realtime (role authenticated)
@@ -13,7 +14,7 @@ import { SignJWT, jwtVerify, importJWK } from 'jose';
 export const SESSION_COOKIE = 'yk_session';
 export const SESSION_TTL_SECONDS = 8 * 60 * 60; // 1 กะ
 
-export type EmployeeRole = 'owner' | 'staff';
+export type { EmployeeRole };
 
 export interface StaffClaims {
   empId: number;
@@ -136,13 +137,13 @@ export async function verifyStaffToken(token: string): Promise<StaffClaims | nul
     const orgId = payload.org_id;
 
     if (typeof empId !== 'number') return null;
-    if (empRole !== 'owner' && empRole !== 'staff') return null;
+    if (!EMPLOYEE_ROLES.includes(empRole as EmployeeRole)) return null;
     if (typeof orgId !== 'string' || !orgId) return null;
 
     return {
       empId,
       empName: typeof empName === 'string' ? empName : '',
-      empRole,
+      empRole: empRole as EmployeeRole,
       orgId,
     };
   } catch {

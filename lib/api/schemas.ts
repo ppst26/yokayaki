@@ -16,9 +16,10 @@ export const pinSchema = z
   .string()
   .regex(pinRegex, 'PIN ต้องเป็นตัวเลข 6 หลัก');
 
-export const employeeRoleSchema = z.enum(['owner', 'staff'], {
-  message: 'ตำแหน่งไม่ถูกต้อง',
-});
+export const employeeRoleSchema = z.enum(
+  ['owner', 'manager', 'cashier', 'kitchen', 'accountant'],
+  { message: 'ตำแหน่งไม่ถูกต้อง' },
+);
 
 export const sessionIdSchema = z.string().uuid('เซสชันไม่ถูกต้อง');
 
