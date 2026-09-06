@@ -118,11 +118,15 @@ DECLARE
   v_tbl UUID := pg_temp.table_id(1);
 BEGIN
   PERFORM set_config('request.jwt.claims',
-    '{"org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
+    '{"emp_id":1,"emp_name":"ผู้ทดสอบ","emp_role":"owner","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
 
   SELECT id INTO v_menu_id FROM menu_items ORDER BY id LIMIT 1;
   UPDATE menu_items SET stock = 100, is_stock_tracked = TRUE WHERE id = v_menu_id;
   PERFORM public.place_order_item(v_tbl, v_menu_id, 4, NULL);
+
+  -- void ต้องมี can_kitchen() — ใช้ kitchen JWT (M5)
+  PERFORM set_config('request.jwt.claims',
+    '{"emp_id":7,"emp_name":"พนักงานทดสอบ","emp_role":"kitchen","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
 
   SELECT oi.id INTO v_item_id
   FROM order_items oi JOIN orders o ON o.id = oi.order_id
@@ -164,9 +168,6 @@ BEGIN
     RAISE EXCEPTION 'A7.5 ไม่ผ่าน: void_logs บันทึก code=% restored=%',
       v_log.reason_code, v_log.restored_stock;
   END IF;
-  IF v_log.employee_id IS NOT NULL THEN
-    RAISE EXCEPTION 'A7.6 ไม่ผ่าน: ไม่มี JWT emp_id แต่กลับมี employee_id = %', v_log.employee_id;
-  END IF;
 
   RAISE NOTICE 'PASS  A7.5 · รหัสเหตุผลตัดสินการคืนสต็อก · ข้อความไทยถูกปฏิเสธ · บันทึก reason_code ลง audit';
 END
@@ -194,7 +195,7 @@ BEGIN
 
   -- จำลอง JWT ของพนักงาน id 7
   PERFORM set_config('request.jwt.claims',
-    '{"emp_id":7,"emp_name":"พนักงานทดสอบ","emp_role":"staff","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
+    '{"emp_id":7,"emp_name":"พนักงานทดสอบ","emp_role":"cashier","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
 
   PERFORM public.void_order_item(v_item_id, 'cooking_error', 'ทดสอบ', 1);
 

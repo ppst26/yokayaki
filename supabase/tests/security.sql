@@ -98,7 +98,7 @@ BEGIN
     RAISE EXCEPTION 'A2 ไม่ผ่าน: คอลัมน์ employees.pin_hash ยังอยู่';
   END IF;
 
-  v_id := public.admin_add_employee('ทดสอบ A2', '654321', 'staff', '00000000-0000-4000-8000-000000000001'::UUID);
+  v_id := public.admin_add_employee('ทดสอบ A2', '654321', 'cashier', '00000000-0000-4000-8000-000000000001'::UUID);
   IF v_id IS NULL OR v_id < 0 THEN
     RAISE EXCEPTION 'A2 ไม่ผ่าน: สร้างพนักงานทดสอบไม่สำเร็จ (%)', v_id;
   END IF;

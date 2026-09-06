@@ -2,7 +2,7 @@
 -- M3 — RLS ราย policy (A1)
 --
 -- security.sql พิสูจน์ว่า anon แตะอะไรไม่ได้ · a7_audit ตรวจ grant ระดับตาราง
--- ไฟล์นี้สวมสิทธิ์ `authenticated` จริงพร้อม claim ของ staff / owner / คนที่ไม่มี emp_role
+-- ไฟล์นี้สวมสิทธิ์ `authenticated` จริงพร้อม claim ของ cashier / owner / คนที่ไม่มี emp_role
 -- แล้วไล่ทุกตารางว่าอ่านได้/เขียนได้ตรงกับ policy ที่ประกาศไว้หรือไม่
 --
 -- ความหมายของผลลัพธ์:
@@ -199,7 +199,7 @@ END
 $$;
 
 -- -------------------------------------------------------------
--- 3. staff — อ่านตารางปฏิบัติการได้ · ตารางหลังร้านต้องมองไม่เห็น
+-- 3. cashier — อ่านตารางปฏิบัติการได้ · ตารางการเงิน/หลังร้านต้องมองไม่เห็น
 -- -------------------------------------------------------------
 DO $$
 DECLARE
@@ -216,13 +216,13 @@ DECLARE
     'employees', 'pin_attempts'];
   c_expect TEXT[] := ARRAY[
     'rows', 'rows', 'rows', 'rows', 'rows', 'rows',
-    'rows', 'rows', 'rows', 'rows',
+    'rows', 'zero', 'zero', 'zero',
     'rows', 'rows',
     'zero', 'zero', 'zero', 'zero',
     'denied', 'denied'];
 BEGIN
   PERFORM set_config('request.jwt.claims',
-    '{"emp_id":2,"emp_name":"พนักงาน","emp_role":"staff","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
+    '{"emp_id":2,"emp_name":"พนักงาน","emp_role":"cashier","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
   SET LOCAL ROLE authenticated;
 
   FOR v_i IN 1 .. array_length(c_tables, 1) LOOP
@@ -237,15 +237,15 @@ BEGIN
   RESET ROLE;
 
   IF v_bad <> '' THEN
-    RAISE EXCEPTION 'A1 ไม่ผ่าน (staff อ่าน): %', v_bad;
+    RAISE EXCEPTION 'A1 ไม่ผ่าน (cashier อ่าน): %', v_bad;
   END IF;
 
-  RAISE NOTICE 'PASS  A1 · staff อ่านตารางปฏิบัติการได้ 12 ตาราง · ตารางหลังร้าน 4 ตารางมองไม่เห็น · employees/pin_attempts ถูกปฏิเสธ';
+  RAISE NOTICE 'PASS  A1 · cashier อ่านตารางปฏิบัติการได้ 9 ตาราง · การเงิน/หลังร้านมองไม่เห็น · employees/pin_attempts ถูกปฏิเสธ';
 END
 $$;
 
 -- -------------------------------------------------------------
--- 4. staff — เขียนได้แค่สิ่งที่หน้างานต้องใช้
+-- 4. cashier — เขียนได้แค่สิ่งที่หน้างานต้องใช้
 -- -------------------------------------------------------------
 DO $$
 DECLARE
@@ -271,11 +271,11 @@ DECLARE
     $q$INSERT INTO qr_sessions (table_id, status, expired_at, org_id) VALUES (pg_temp.table_id(4), 'active', NOW() + INTERVAL '1 hour', '00000000-0000-4000-8000-000000000001')$q$,
     $q$INSERT INTO loyalty_members (phone_number, name, points, org_id) VALUES ('0800000111', 'สมาชิกใหม่', 0, '00000000-0000-4000-8000-000000000001')$q$,
     $q$UPDATE menu_items SET stock = 1$q$,
-    $q$INSERT INTO promotions (name, type, discount_amount, is_active, org_id) VALUES ('โปรที่ staff ไม่ควรเพิ่มได้', 'fixed', 1, TRUE, '00000000-0000-4000-8000-000000000001')$q$,
+    $q$INSERT INTO promotions (name, type, discount_amount, is_active, org_id) VALUES ('โปรที่ cashier ไม่ควรเพิ่มได้', 'fixed', 1, TRUE, '00000000-0000-4000-8000-000000000001')$q$,
     $q$UPDATE loyalty_members SET points = 9999$q$,
     $q$DELETE FROM loyalty_members WHERE phone_number = '0800000000'$q$,
     $q$INSERT INTO points_logs (phone_number, adjustment, reason, adjusted_by, org_id) VALUES ('0800000000', 99, 'ไม่ควรเขียนได้', 'staff', '00000000-0000-4000-8000-000000000001')$q$,
-    $q$INSERT INTO item_ingredients (name, quantity, unit, cost, purchase_date, buyer_name, org_id) VALUES ('ของที่ staff ไม่ควรคีย์', 1, 'กก.', 1, CURRENT_DATE, 'staff', '00000000-0000-4000-8000-000000000001')$q$,
+    $q$INSERT INTO item_ingredients (name, quantity, unit, cost, purchase_date, buyer_name, org_id) VALUES ('ของที่ cashier ไม่ควรคีย์', 1, 'กก.', 1, CURRENT_DATE, 'cashier', '00000000-0000-4000-8000-000000000001')$q$,
     $q$UPDATE orders SET status = 'voided'$q$,
     $q$UPDATE tables SET status = 'vacant'$q$,
     $q$DELETE FROM payments$q$,
@@ -286,7 +286,7 @@ DECLARE
     'denied', 'denied', 'denied', 'denied'];
 BEGIN
   PERFORM set_config('request.jwt.claims',
-    '{"emp_id":2,"emp_name":"พนักงาน","emp_role":"staff","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
+    '{"emp_id":2,"emp_name":"พนักงาน","emp_role":"cashier","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
   SET LOCAL ROLE authenticated;
 
   FOR v_i IN 1 .. array_length(c_sql, 1) LOOP
@@ -299,10 +299,10 @@ BEGIN
   RESET ROLE;
 
   IF v_bad <> '' THEN
-    RAISE EXCEPTION 'A1 ไม่ผ่าน (staff เขียน): %', v_bad;
+    RAISE EXCEPTION 'A1 ไม่ผ่าน (cashier เขียน): %', v_bad;
   END IF;
 
-  RAISE NOTICE 'PASS  A1 · staff เขียนได้แค่ เสิร์ฟ/สร้าง QR/สมัครสมาชิก · งานหลังร้านและตารางการเงินถูกปฏิเสธ';
+  RAISE NOTICE 'PASS  A1 · cashier เขียนได้แค่ เสิร์ฟ/สร้าง QR/สมัครสมาชิก · งานหลังร้านและตารางการเงินถูกปฏิเสธ';
 END
 $$;
 
