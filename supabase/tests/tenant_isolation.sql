@@ -67,6 +67,22 @@ EXCEPTION WHEN OTHERS THEN
   END IF;
 END $$;
 
+-- 4. client INSERT ไม่ส่ง org_id — DEFAULT jwt_org_id() stamp ให้ผ่าน RLS
+DO $$
+DECLARE v_id INT;
+BEGIN
+  INSERT INTO menu_items (name, price, stock)
+  VALUES ('เมนู client default org', 99, 5)
+  RETURNING id INTO v_id;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM menu_items
+    WHERE id = v_id AND org_id = '00000000-0000-4000-8000-000000000001'
+  ) THEN
+    RAISE EXCEPTION 'M4 fail: client INSERT ไม่ได้ org_id จาก DEFAULT';
+  END IF;
+END $$;
+
 RESET ROLE;
 
 DO $$
