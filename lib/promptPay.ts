@@ -1,4 +1,8 @@
-export function generatePromptPayQR(targetId: string, amount: number): string {
+export function generatePromptPayQR(
+  targetId: string,
+  amount: number,
+  merchantName = 'YOKAYAKI',
+): string {
   let target = targetId.replace(/[^0-9]/g, '');
   if (target.length === 10 && target.startsWith('0')) {
     target = '0066' + target.substring(1);
@@ -8,8 +12,10 @@ export function generatePromptPayQR(targetId: string, amount: number): string {
   const field29 = `29${subField04.length.toString().padStart(2, '0')}${subField04}`;
   const amtStr = amount.toFixed(2);
   const field54 = `54${amtStr.length.toString().padStart(2, '0')}${amtStr}`;
+  const merchant = merchantName.slice(0, 25);
+  const field59 = `59${merchant.length.toString().padStart(2, '0')}${merchant}`;
 
-  const raw = `000201010212${field29}5303764${field54}5802TH5908YOKAYAKI6304`;
+  const raw = `000201010212${field29}5303764${field54}5802TH${field59}6304`;
 
   function crc16Hex(str: string): string {
     let crc = 0xffff;

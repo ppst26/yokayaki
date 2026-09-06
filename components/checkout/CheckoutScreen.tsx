@@ -125,6 +125,12 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNu
   const [couponError, setCouponError] = useState<string | null>(null);
   const [couponApplied, setCouponApplied] = useState<Promotion | null>(null);
 
+  // Org settings (PromptPay + receipt merchant name)
+  const [orgSettings, setOrgSettings] = useState<{
+    promptpay_id: string | null;
+    receipt_merchant_name: string;
+  } | null>(null);
+
   // Computed values
   const activeItems = orderedItems.filter(i => i.status !== 'voided');
   const pendingItemsCount = orderedItems.filter(i => i.status === 'pending').length;
@@ -142,12 +148,14 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNu
 
   // เดิม fallback เป็น '0899999999' เงียบๆ = ลูกค้าโอนเงินเข้าเบอร์ของคนอื่นโดยไม่มีใครรู้ (A7.8)
   // ตอนนี้ถ้าไม่ได้ตั้งค่า จะปิดช่องทาง PromptPay ไปเลยและบอกให้ไปตั้งค่า
-  const promptPayId = (process.env.NEXT_PUBLIC_PROMPTPAY_ID || '').replace(/[^0-9]/g, '');
+  const promptPayId = (orgSettings?.promptpay_id ?? '').replace(/[^0-9]/g, '');
+  const merchantName = orgSettings?.receipt_merchant_name ?? 'YOKAYAKI';
   const promptPayReady = promptPayId.length === 10 || promptPayId.length === 13;
 
   useEffect(() => {
     fetchOrderData();
     fetchPromotions();
+    fetchOrgSettings().catch((err) => console.error('Error fetching org settings:', err));
   }, [tableId]);
 
   // ฟังเฉพาะรายการของบิลใบนี้ ไม่ใช่ order_items ทั้งร้าน (A7.9)
@@ -175,6 +183,15 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNu
       autoApplyPromotions();
     }
   }, [subtotal, allPromos, couponApplied, orderedItems]);
+
+  const fetchOrgSettings = async () => {
+    const { data, error } = await supabase
+      .from('org_settings')
+      .select('promptpay_id, receipt_merchant_name')
+      .maybeSingle();
+    if (error) throw error;
+    setOrgSettings(data);
+  };
 
   const fetchPromotions = async () => {
     try {
@@ -728,6 +745,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNu
         setShowQrModal={setShowQrModal}
         transferAmount={transferAmount}
         promptPayId={promptPayId}
+        merchantName={merchantName}
         generatePromptPayQR={generatePromptPayQR}
       />
     </div>

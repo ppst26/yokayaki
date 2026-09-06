@@ -9,7 +9,8 @@ interface PromptPayQRModalProps {
   setShowQrModal: (val: boolean) => void;
   transferAmount: number;
   promptPayId: string;
-  generatePromptPayQR: (id: string, amount: number) => string;
+  merchantName: string;
+  generatePromptPayQR: (id: string, amount: number, merchantName?: string) => string;
 }
 
 export const PromptPayQRModal: React.FC<PromptPayQRModalProps> = ({
@@ -17,6 +18,7 @@ export const PromptPayQRModal: React.FC<PromptPayQRModalProps> = ({
   setShowQrModal,
   transferAmount,
   promptPayId,
+  merchantName,
   generatePromptPayQR,
 }) => {
   if (!showQrModal) return null;
@@ -38,7 +40,7 @@ export const PromptPayQRModal: React.FC<PromptPayQRModalProps> = ({
         </p>
         <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 inline-block">
           <QRCode
-            value={generatePromptPayQR(promptPayId, transferAmount)}
+            value={generatePromptPayQR(promptPayId, transferAmount, merchantName)}
             size={200}
             level="H"
           />
