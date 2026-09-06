@@ -20,7 +20,7 @@
     "db:psql": "docker compose exec db psql -U postgres -d yokayaki_test",
     "db:test": "node scripts/db-test.mjs",
     "db:types": "supabase gen types typescript --project-id \"${SUPABASE_PROJECT_ID}\" --schema public > lib/database.types.ts",
-    "db:types:local": "node scripts/gen-db-types.mjs"
+    "db:types:local": "node scripts/gen-db-types.mjs --local"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1125.0",

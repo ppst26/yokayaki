@@ -1,143 +1,181 @@
-### Task 2: Auth Context & Global PIN Pad Component
+### Task 2: Migration 4b — `jwt_org_id()` + RLS rewrite
 
 **Files:**
-- Create: `context/AuthContext.tsx`
-- Create: `components/PinPad.tsx`
-- Modify: `app/layout.tsx`
+- Create: `supabase/migrations/20260906_m4_jwt_org_rls.sql`
 
 **Interfaces:**
-- Consumes: `supabase` from `lib/supabase.ts`
-- Produces: `useAuth` hook providing current `employee`, `loginWithPin`, and `logout` functions
+- Produces:
+  - `public.jwt_org_id() RETURNS UUID`
+  - policy ทุกตาราง operational ใช้ `org_id = public.jwt_org_id() AND public.is_staff()` (หรือ `is_owner()`)
+  - policy `organizations` / `org_settings` อ่านได้เฉพาะ org ของ JWT
 
-- [ ] **Step 1: Create AuthContext for global role state**
-  Create file: `context/AuthContext.tsx`
-  ```typescript
-  "use client";
-  import React, { createContext, useContext, useState } from 'react';
+- [ ] **Step 1: สร้าง migration 4b**
 
-  interface Employee {
-    id: number;
-    name: string;
-    role: 'owner' | 'staff';
-  }
+สร้าง `supabase/migrations/20260906_m4_jwt_org_rls.sql` — ลบ policy เก่าทุกตัวใน `public` แล้วสร้างใหม่:
 
-  interface AuthContextType {
-    employee: Employee | null;
-    error: string | null;
-    loginWithPin: (pin: string) => Promise<boolean>;
-    logout: () => void;
-  }
+```sql
+BEGIN;
 
-  const AuthContext = createContext<AuthContextType | undefined>(undefined);
+CREATE OR REPLACE FUNCTION public.jwt_org_id()
+RETURNS UUID
+LANGUAGE sql STABLE
+SET search_path = public
+AS $fn$
+  SELECT NULLIF(
+    NULLIF(current_setting('request.jwt.claims', true), '')::jsonb ->> 'org_id', ''
+  )::UUID;
+$fn$;
 
-  export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [employee, setEmployee] = useState<Employee | null>(null);
-    const [error, setError] = useState<string | null>(null);
+REVOKE EXECUTE ON FUNCTION public.jwt_org_id() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.jwt_org_id() TO authenticated, service_role;
 
-    const loginWithPin = async (pin: string): Promise<boolean> => {
-      try {
-        setError(null);
-        if (pin === "111111") {
-          setEmployee({ id: 1, name: "Pee Pee (Owner)", role: "owner" });
-          return true;
-        } else if (pin === "222222") {
-          setEmployee({ id: 2, name: "Best (Staff)", role: "staff" });
-          return true;
-        }
-        setError("รหัส PIN ไม่ถูกต้อง");
-        return false;
-      } catch (err) {
-        setError("เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์");
-        return false;
-      }
-    };
+-- DROP policies เก่า (ชื่อจาก 20260824)
+DO $do$
+DECLARE r RECORD;
+BEGIN
+  FOR r IN
+    SELECT schemaname, tablename, policyname
+    FROM pg_policies WHERE schemaname = 'public'
+  LOOP
+    EXECUTE format('DROP POLICY IF EXISTS %I ON %I.%I', r.policyname, r.schemaname, r.tablename);
+  END LOOP;
+END
+$do$;
 
-    const logout = () => {
-      setEmployee(null);
-    };
+-- organizations / org_settings
+CREATE POLICY org_read ON public.organizations
+  FOR SELECT TO authenticated
+  USING (id = public.jwt_org_id() AND public.is_staff());
 
-    return (
-      <AuthContext.Provider value={{ employee, error, loginWithPin, logout }}>
-        {children}
-      </AuthContext.Provider>
-    );
-  };
+CREATE POLICY org_settings_read ON public.org_settings
+  FOR SELECT TO authenticated
+  USING (org_id = public.jwt_org_id() AND public.is_staff());
 
-  export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) throw new Error('useAuth must be used within an AuthProvider');
-    return context;
-  };
-  ```
+-- pattern สำหรับตารางที่มี org_id
+CREATE POLICY staff_read ON public.tables
+  FOR SELECT TO authenticated
+  USING (org_id = public.jwt_org_id() AND public.is_staff());
 
-- [ ] **Step 2: Create PinPad component**
-  Create file: `components/PinPad.tsx`
-  ```typescript
-  "use client";
-  import React, { useState } from 'react';
-  import { useAuth } from '@/context/AuthContext';
+CREATE POLICY staff_read ON public.orders
+  FOR SELECT TO authenticated
+  USING (org_id = public.jwt_org_id() AND public.is_staff());
 
-  export const PinPad: React.FC = () => {
-    const [pin, setPin] = useState('');
-    const { loginWithPin, error } = useAuth();
+CREATE POLICY staff_read ON public.order_items
+  FOR SELECT TO authenticated
+  USING (org_id = public.jwt_org_id() AND public.is_staff());
 
-    const handleNumberClick = (num: string) => {
-      if (pin.length < 6) {
-        const nextPin = pin + num;
-        setPin(nextPin);
-        if (nextPin.length === 6) {
-          loginWithPin(nextPin).then((success) => {
-            if (!success) setPin('');
-          });
-        }
-      }
-    };
+CREATE POLICY staff_serve ON public.order_items
+  FOR UPDATE TO authenticated
+  USING (org_id = public.jwt_org_id() AND public.is_staff())
+  WITH CHECK (org_id = public.jwt_org_id() AND public.is_staff());
 
-    const handleClear = () => setPin('');
+CREATE POLICY staff_read ON public.menu_items
+  FOR SELECT TO authenticated
+  USING (org_id = public.jwt_org_id() AND public.is_staff());
 
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-4">
-        <div className="w-full max-w-sm bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-2xl">
-          <h2 className="text-xl font-semibold text-center mb-6">Yokayaki POS</h2>
-          <div className="flex justify-center gap-3 mb-8">
-            {[...Array(6)].map((_, i) => (
-              <div
-                key={i}
-                className={`w-4 h-4 rounded-full border border-neutral-700 ${
-                  pin.length > i ? 'bg-amber-500' : 'bg-transparent'
-                }`}
-              />
-            ))}
-          </div>
-          {error && <p className="text-red-500 text-center text-sm mb-4">{error}</p>}
-          <div className="grid grid-cols-3 gap-4">
-            {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((num) => (
-              <button
-                key={num}
-                onClick={() => handleNumberClick(num)}
-                className="h-16 text-2xl font-bold bg-neutral-800 hover:bg-neutral-700 rounded-xl transition"
-              >
-                {num}
-              </button>
-            ))}
-            <button
-              onClick={handleClear}
-              className="h-16 text-lg font-medium bg-neutral-800 hover:bg-neutral-700 rounded-xl text-neutral-400"
-            >
-              Clear
-            </button>
-            <button
-              onClick={() => handleNumberClick('0')}
-              className="h-16 text-2xl font-bold bg-neutral-800 hover:bg-neutral-700 rounded-xl"
-            >
-              0
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-  ```
+CREATE POLICY owner_write ON public.menu_items
+  FOR ALL TO authenticated
+  USING (org_id = public.jwt_org_id() AND public.is_owner())
+  WITH CHECK (org_id = public.jwt_org_id() AND public.is_owner());
 
-- [ ] **Step 3: Modify app/layout.tsx to include AuthProvider**
-- [ ] **Step 4: Commit changes**
+CREATE POLICY staff_read ON public.promotions
+  FOR SELECT TO authenticated
+  USING (org_id = public.jwt_org_id() AND public.is_staff());
+
+CREATE POLICY owner_write ON public.promotions
+  FOR ALL TO authenticated
+  USING (org_id = public.jwt_org_id() AND public.is_owner())
+  WITH CHECK (org_id = public.jwt_org_id() AND public.is_owner());
+
+CREATE POLICY staff_read ON public.qr_sessions
+  FOR SELECT TO authenticated
+  USING (org_id = public.jwt_org_id() AND public.is_staff());
+
+CREATE POLICY staff_create ON public.qr_sessions
+  FOR INSERT TO authenticated
+  WITH CHECK (org_id = public.jwt_org_id() AND public.is_staff());
+
+CREATE POLICY staff_read ON public.loyalty_members
+  FOR SELECT TO authenticated
+  USING (org_id = public.jwt_org_id() AND public.is_staff());
+
+CREATE POLICY staff_create ON public.loyalty_members
+  FOR INSERT TO authenticated
+  WITH CHECK (org_id = public.jwt_org_id() AND public.is_staff());
+
+CREATE POLICY owner_update ON public.loyalty_members
+  FOR UPDATE TO authenticated
+  USING (org_id = public.jwt_org_id() AND public.is_owner())
+  WITH CHECK (org_id = public.jwt_org_id() AND public.is_owner());
+
+CREATE POLICY owner_delete ON public.loyalty_members
+  FOR DELETE TO authenticated
+  USING (org_id = public.jwt_org_id() AND public.is_owner());
+
+CREATE POLICY staff_read ON public.payments
+  FOR SELECT TO authenticated
+  USING (org_id = public.jwt_org_id() AND public.is_staff());
+
+CREATE POLICY staff_read ON public.payment_promotions
+  FOR SELECT TO authenticated
+  USING (org_id = public.jwt_org_id() AND public.is_staff());
+
+CREATE POLICY staff_read ON public.void_logs
+  FOR SELECT TO authenticated
+  USING (org_id = public.jwt_org_id() AND public.is_staff());
+
+CREATE POLICY owner_read ON public.stock_logs
+  FOR SELECT TO authenticated
+  USING (org_id = public.jwt_org_id() AND public.is_owner());
+
+CREATE POLICY owner_read ON public.points_logs
+  FOR SELECT TO authenticated
+  USING (org_id = public.jwt_org_id() AND public.is_owner());
+
+CREATE POLICY owner_write ON public.points_logs
+  FOR INSERT TO authenticated
+  WITH CHECK (org_id = public.jwt_org_id() AND public.is_owner());
+
+CREATE POLICY owner_read ON public.item_ingredients
+  FOR SELECT TO authenticated
+  USING (org_id = public.jwt_org_id() AND public.is_owner());
+
+CREATE POLICY owner_write ON public.item_ingredients
+  FOR ALL TO authenticated
+  USING (org_id = public.jwt_org_id() AND public.is_owner())
+  WITH CHECK (org_id = public.jwt_org_id() AND public.is_owner());
+
+CREATE POLICY owner_read ON public.purchase_orders
+  FOR SELECT TO authenticated
+  USING (org_id = public.jwt_org_id() AND public.is_owner());
+
+CREATE POLICY owner_write ON public.purchase_orders
+  FOR ALL TO authenticated
+  USING (org_id = public.jwt_org_id() AND public.is_owner())
+  WITH CHECK (org_id = public.jwt_org_id() AND public.is_owner());
+
+CREATE POLICY staff_update ON public.tables
+  FOR UPDATE TO authenticated
+  USING (org_id = public.jwt_org_id() AND public.is_staff())
+  WITH CHECK (org_id = public.jwt_org_id() AND public.is_staff());
+
+COMMIT;
+```
+
+- [ ] **Step 2: รัน db:reset**
+
+```bash
+pnpm db:reset
+```
+
+Expected: ผ่าน (เทสต์ SQL ยังไม่ผ่านทั้งหมด — แก้ใน Task 7–8)
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add supabase/migrations/20260906_m4_jwt_org_rls.sql
+git commit -m "feat(db): M4 4b jwt_org_id and tenant-scoped RLS"
+```
+
+---
+

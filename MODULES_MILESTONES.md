@@ -5,7 +5,7 @@
 > ที่มาของรายการงาน: [`PosRestuarantSass.md`](PosRestuarantSass.md) (§4 Gap Analysis + §5 Roadmap)
 > ประวัติฟีเจอร์ที่ทำไปแล้ว: [`ROADMAP.md`](ROADMAP.md) · สเปกรายฟีเจอร์: `docs/superpowers/specs/`
 
-**Last Updated:** 2026-09-05 · **Milestone ปัจจุบัน:** `M4 Multi-Tenancy` (ยังไม่เริ่ม)
+**Last Updated:** 2026-09-06 · **Milestone ปัจจุบัน:** `M5 Auth & RBAC` (พร้อมเริ่ม)
 
 ---
 
@@ -53,7 +53,7 @@
 | `F-API` | Server Tier | `app/api/*` · service-role · zod · transaction เดียวต่อออเดอร์ | 🟢 | operational mutations ผ่าน API แล้ว · owner menu/promo/loyalty/stock ยัง client+RLS |
 | `F-DATA` | Data Integrity & Scale | index · atomic · timezone · migration hygiene · aggregation | 🟢 | migration hygiene ยังไม่ idempotent ทั้งชุด (ไฟล์เก่าก่อน M0) | M2 / M8 |
 | `F-TEST` | Testing & CI | unit · integration (RPC/RLS) · E2E · GitHub Actions | 🟢 | Vitest PromptPay/แต้ม · `lib/database.types.ts` · CI `pnpm test:unit` | M3 |
-| `F-TENANT` | Multi-Tenancy | organizations / branches / memberships / org_settings | ⬜ | M4 |
+| `F-TENANT` | Multi-Tenancy | organizations / branches / memberships / org_settings | 🟢 | M4 |
 | `F-AUTHZ` | Auth & Permission Matrix | Supabase Auth · JWT claim · role 5 ระดับ | ⬜ | M5 |
 | `F-BILL` | Billing & Subscription | plans / subscriptions / usage / gateway / trial | ⬜ | M6 |
 | `F-OPS` | Reliability & Operations | offline queue · backup/PITR · staging · deploy | ⬜ | M7 |
@@ -72,8 +72,8 @@
 | **M1** | 🛡️ Server Tier | `F-API` | ทุก mutation ผ่าน route handler · zod ทุก payload · rate limit ฝั่ง server · 1 ออเดอร์ = 1 transaction | 3–4 สัปดาห์ | 🟢 operational path ปิดแล้ว · owner CRUD ยัง client |
 | **M2** | 🔧 Data Integrity & Bug Sweep | `F-DATA` + product modules | L1–L18 ปิดครบ · index H1 ครบ · `supabase db reset` บน DB เปล่าผ่าน · timezone ถูกทุกหน้า | 2–3 สัปดาห์ | 🟢 |
 | **M3** | 🧪 Testing Foundation | `F-TEST` | E2E สั่ง→ครัว→เช็คบิลผ่านใน CI · integration test ครอบทุก RPC + RLS · CI บล็อก PR ที่ fail | 2–3 สัปดาห์ | 🟢 |
-| **M4** | 🏢 Multi-Tenancy | `F-TENANT` | 2 org ในฐานเดียวกันมองข้ามกันไม่ได้ (พิสูจน์ด้วย test) · ไม่มี config ร้านค้างใน env/hardcode | 6–10 สัปดาห์ | ⬜ |
-| **M5** | 🔑 Auth & RBAC | `F-AUTHZ` `P-AUTH` | Supabase Auth + JWT claim `org_id`/`role` · role 5 ระดับบังคับที่ DB · revoke session ได้ | 3–5 สัปดาห์ | ⛔ รอ M4 |
+| **M4** | 🏢 Multi-Tenancy | `F-TENANT` | 2 org ในฐานเดียวกันมองข้ามกันไม่ได้ (พิสูจน์ด้วย test) · ไม่มี config ร้านค้างใน env/hardcode | 6–10 สัปดาห์ | 🟢 |
+| **M5** | 🔑 Auth & RBAC | `F-AUTHZ` `P-AUTH` | Supabase Auth + JWT claim `org_id`/`role` · role 5 ระดับบังคับที่ DB · revoke session ได้ | 3–5 สัปดาห์ | ⬜ |
 | **M6** | 💰 Billing | `F-BILL` | สมัครเอง→ทดลอง→จ่ายเงิน→ตัดรอบ ครบวง · feature gating ตาม plan · dunning ทำงาน | 4–6 สัปดาห์ | ⛔ รอ M5 |
 | **M7** | 🔄 Reliability & Observability | `F-OPS` `F-OBS` | ขายต่อได้ตอนเน็ตหลุดแล้ว sync กลับถูก · PITR + ทดสอบ restore สำเร็จ · Sentry + alert ยิงจริง | 5–7 สัปดาห์ | ⛔ รอ M6 |
 | **M8** | 🏗️ Enterprise Features | `F-ENT` | multi-branch report · COGS รายจานจาก BOM · KOT ออกเครื่องพิมพ์จริง · payment webhook reconcile | 3–6 เดือน | ⛔ รอ M7 |
@@ -188,7 +188,22 @@
 - [x] E2E full flow: `e2e/full-flow.spec.ts` (สั่ง→ครัว→เช็คบิล) · รันเมื่อมี Supabase env จริง · CI ต้องตั้ง GitHub secrets
 - [x] `lib/database.types.ts` จาก schema จริง — `scripts/gen-db-types.mjs` (`pnpm db:types:local`) · ผูก `createClient<Database>` ใน `lib/supabase*.ts` · official `pnpm db:types` ใช้ Supabase CLI + login
 
-## M4–M9 `⛔ รอ milestone ก่อนหน้า (M4 พร้อมเริ่ม — M3 ปิดแล้ว)
+## M4 — 🏢 Multi-Tenancy `🟢`
+
+- [x] Task 1: Schema `organizations` + `org_id` backfill + `org_settings` — `20260906_m4_organizations_org_id.sql` สร้างตาราง organizations / org_settings, backfill default org (`00000000-0000-4000-8000-000000000001`) ใน 12 ตารางธุรกิจ
+- [x] Task 2: JWT claim `org_id` + `jwt_org_id()` — `20260907_m4_jwt_org_rls.sql` helper `jwt_org_id()`, `lib/authToken.ts` sign/verify claim `org_id`, `scripts/verify-staff-jwt.mjs`
+- [x] Task 3: Tenant RLS Isolation — Policy 28 ตัว scoped ด้วย `org_id = public.jwt_org_id()`, staff/owner อ่าน-เขียนข้าม org ไม่ได้
+- [x] Task 4: Tables Surrogate UUID + `table_number` — `20260908_m4_tables_uuid.sql` `tables.id` เป็น UUID, `table_number` int, `UNIQUE(org_id, table_number)`, cascade FK orders/qr_sessions
+- [x] Task 5: RPC org guards & scope — `20260909_m4_rpc_org_guards.sql` `place_order_item`, `place_order_batch`, `complete_checkout`, `void_order_item`, `customer_*` guard ข้าม org
+- [x] Task 6: Server Route Handlers + QR Session Org Scope — `app/api/*` routes validate `org_id` จาก token/session, `customerSession.ts` scope org
+- [x] Task 7: App Org Settings & UI Migration — `lib/orgSettings.ts`, `TableMap`, `POSOrderScreen`, `CheckoutScreen` รองรับ table UUID + dynamic PromptPay
+- [x] Task 8: Scripts & Tools for Multi-tenancy — `scripts/create-org.mjs`, `scripts/migrate-org-settings.mjs`, `scripts/set-pin.mjs` รองรับ `org_id`
+- [x] Task 9: Tenant Isolation Integration Tests — `supabase/tests/tenant_isolation.sql` สร้าง 2 org, พิสูจน์ staff A มองไม่เห็นและแตะข้อมูล org B ไม่ได้ พร้อมอัปเดต 8 ไฟล์เทสต์เดิม
+- [x] Task 10: Regen types + verification + close milestone — `lib/database.types.ts` อัปเดต 18 tables / 21 functions, `pnpm db:reset && pnpm db:test` (10 ไฟล์ผ่าน), `pnpm test:unit` (7 ผ่าน), `pnpm typecheck && pnpm build` (exit 0), `verify-lockdown.mjs` (ผ่าน 100%)
+
+เกณฑ์ผ่าน M4: 🟢 2 org ในฐานเดียวกันมองข้ามกันไม่ได้ (พิสูจน์ด้วย `tenant_isolation.sql`) · ไม่มี config ร้านค้างใน env/hardcode · types และ build สะอาดสมบูรณ์
+
+## M5–M9 `⛔ รอ milestone ก่อนหน้า (M5 พร้อมเริ่ม — M4 ปิดแล้ว)`
 
 ขอบเขตงานละเอียดอยู่ใน [`PosRestuarantSass.md`](PosRestuarantSass.md) — §B (M4) · §C (M5) · §E (M6) · §F + §G (M7) · §J (M8) · §I (M9)
 

@@ -1,98 +1,122 @@
-### Task 3: Table Map Screen & Auto-Lock Timer
+### Task 3: JWT login — `org_id` claim
 
 **Files:**
-- Create: `components/TableMap.tsx`
-- Modify: `app/page.tsx`
+- Modify: `lib/authToken.ts`
+- Modify: `app/api/auth/login/route.ts`
+- Test: `lib/authToken.test.ts` (สร้างใหม่)
 
 **Interfaces:**
-- Consumes: `useAuth` context
+- Produces:
+  - `StaffClaims.orgId: string`
+  - JWT payload `org_id: string` (UUID)
+  - `verifyStaffToken()` คืน `orgId` หรือ `null` ถ้าไม่มี claim
 
-- [ ] **Step 1: Create TableMap component**
-  Create file: `components/TableMap.tsx`
-  ```typescript
-  "use client";
-  import React, { useState, useEffect } from 'react';
-  import { useAuth } from '@/context/AuthContext';
-  import { LogOut } from 'lucide-react';
+- [ ] **Step 1: เขียน failing test**
 
-  interface Table {
-    id: number;
-    status: 'vacant' | 'occupied' | 'checking_out';
+สร้าง `lib/authToken.test.ts`:
+
+```ts
+import { describe, expect, it, beforeAll } from 'vitest';
+import { signStaffToken, verifyStaffToken } from '@/lib/authToken';
+
+const ORG = '00000000-0000-4000-8000-000000000001';
+
+beforeAll(() => {
+  if (!process.env.SUPABASE_JWT_SECRET && !process.env.SUPABASE_JWT_SIGNING_JWK) {
+    process.env.SUPABASE_JWT_SECRET = 'test-secret-at-least-32-chars-long!!';
   }
+});
 
-  export const TableMap: React.FC = () => {
-    const { employee, logout } = useAuth();
-    const [tables, setTables] = useState<Table[]>([
-      { id: 1, status: 'vacant' },
-      { id: 2, status: 'vacant' },
-      { id: 3, status: 'vacant' },
-      { id: 4, status: 'vacant' },
-    ]);
+describe('signStaffToken', () => {
+  it('ใส่ org_id ใน JWT', async () => {
+    const token = await signStaffToken({
+      empId: 1,
+      empName: 'ทดสอบ',
+      empRole: 'owner',
+      orgId: ORG,
+    });
+    const claims = await verifyStaffToken(token);
+    expect(claims?.orgId).toBe(ORG);
+  });
+});
+```
 
-    // Handle Auto-lock 5 minutes
-    useEffect(() => {
-      let timeout = setTimeout(logout, 5 * 60 * 1000);
-      const resetTimer = () => {
-        clearTimeout(timeout);
-        timeout = setTimeout(logout, 5 * 60 * 1000);
-      };
-      window.addEventListener('click', resetTimer);
-      window.addEventListener('keypress', resetTimer);
+- [ ] **Step 2: รันให้ล้ม**
 
-      return () => {
-        clearTimeout(timeout);
-        window.removeEventListener('click', resetTimer);
-        window.removeEventListener('keypress', resetTimer);
-      };
-    }, [logout]);
+```bash
+pnpm test:unit lib/authToken.test.ts
+```
 
-    const toggleTable = (id: number) => {
-      setTables(prev => prev.map(t => {
-        if (t.id === id) {
-          const nextStatus = t.status === 'vacant' ? 'occupied' : t.status === 'occupied' ? 'checking_out' : 'vacant';
-          return { ...t, status: nextStatus };
-        }
-        return t;
-      }));
+Expected: FAIL — `orgId` ไม่มีใน type หรือ verify คืน undefined
+
+- [ ] **Step 3: แก้ `lib/authToken.ts`**
+
+```ts
+export interface StaffClaims {
+  empId: number;
+  empName: string;
+  empRole: EmployeeRole;
+  orgId: string;
+}
+
+// ใน signStaffToken:
+  return new SignJWT({
+    role: 'authenticated',
+    emp_id: claims.empId,
+    emp_name: claims.empName,
+    emp_role: claims.empRole,
+    org_id: claims.orgId,
+  })
+
+// ใน verifyStaffToken:
+    const orgId = payload.org_id;
+    if (typeof orgId !== 'string' || !orgId) return null;
+
+    return {
+      empId,
+      empName: typeof empName === 'string' ? empName : '',
+      empRole,
+      orgId,
     };
+```
 
-    return (
-      <div className="min-h-screen bg-black text-white p-6">
-        <header className="flex justify-between items-center mb-10 pb-6 border-b border-neutral-800">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">YOKAYAKI MAP</h1>
-            <p className="text-sm text-neutral-400">พนักงานผู้ใช้งาน: {employee?.name} ({employee?.role.toUpperCase()})</p>
-          </div>
-          <button onClick={logout} className="flex items-center gap-2 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 px-4 py-2 rounded-xl transition">
-            <LogOut size={18} />
-            สลับพนักงาน
-          </button>
-        </header>
+- [ ] **Step 4: แก้ `app/api/auth/login/route.ts`**
 
-        <main className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-          {tables.map(table => (
-            <button
-              key={table.id}
-              onClick={() => toggleTable(table.id)}
-              className={`h-48 rounded-2xl border flex flex-col items-center justify-center gap-3 transition shadow-lg ${
-                table.status === 'vacant'
-                  ? 'bg-neutral-950 border-neutral-800 hover:bg-neutral-900 text-green-500'
-                  : table.status === 'occupied'
-                  ? 'bg-neutral-950 border-neutral-800 hover:bg-neutral-900 text-blue-500 font-semibold'
-                  : 'bg-neutral-950 border-neutral-800 hover:bg-neutral-900 text-amber-500 font-bold'
-              }`}
-            >
-              <span className="text-3xl font-extrabold">โต๊ะ {table.id}</span>
-              <span className="text-xs uppercase tracking-widest px-3 py-1 rounded-full bg-neutral-900 border border-neutral-800">
-                {table.status === 'vacant' ? 'ว่าง (Vacant)' : table.status === 'occupied' ? 'มีลูกค้า (Occupied)' : 'รอเช็คบิล'}
-              </span>
-            </button>
-          ))}
-        </main>
-      </div>
-    );
-  };
-  ```
+หลัง verify_pin สำเร็จ อ่าน `org_id`:
 
-- [ ] **Step 2: Update app/page.tsx to dynamically load PinPad or TableMap**
-- [ ] **Step 3: Commit changes**
+```ts
+    const { data: empRow, error: empError } = await supabaseAdmin
+      .from('employees')
+      .select('org_id')
+      .eq('id', row.emp_id)
+      .single();
+
+    if (empError || !empRow?.org_id) {
+      return Response.json({ error: 'ไม่พบข้อมูลองค์กรของพนักงาน' }, { status: 500 });
+    }
+
+    const token = await signStaffToken({
+      empId: employee.id,
+      empName: employee.name,
+      empRole: employee.role,
+      orgId: empRow.org_id,
+    });
+```
+
+- [ ] **Step 5: รัน unit test**
+
+```bash
+pnpm test:unit lib/authToken.test.ts
+```
+
+Expected: PASS
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add lib/authToken.ts lib/authToken.test.ts app/api/auth/login/route.ts
+git commit -m "feat(auth): add org_id to staff JWT at login"
+```
+
+---
+

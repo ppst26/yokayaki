@@ -106,7 +106,13 @@ function parseFnReturn(resultStr) {
 
 async function main() {
   loadEnvLocal();
-  const connectionString = process.env.SUPABASE_DB_URL;
+  const isLocalFlag = process.argv.includes('--local');
+  const connectionString =
+    process.env.LOCAL_DB_URL ||
+    process.env.SUPABASE_LOCAL_DB_URL ||
+    (isLocalFlag
+      ? 'postgresql://postgres:postgres@127.0.0.1:54329/yokayaki_test'
+      : process.env.SUPABASE_DB_URL || 'postgresql://postgres:postgres@127.0.0.1:54329/yokayaki_test');
   if (!connectionString) {
     console.error('[gen-db-types] ต้องตั้ง SUPABASE_DB_URL ใน .env.local');
     process.exit(1);
