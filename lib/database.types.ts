@@ -19,6 +19,7 @@ export type Database = {
           role: string
           created_at: string | null
           pin_bcrypt: string | null
+          org_id: string
         }
         Insert: {
           id?: number
@@ -26,6 +27,7 @@ export type Database = {
           role: string
           created_at?: string | null
           pin_bcrypt?: string | null
+          org_id: string
         }
         Update: {
           id?: number
@@ -33,6 +35,7 @@ export type Database = {
           role?: string
           created_at?: string | null
           pin_bcrypt?: string | null
+          org_id?: string
         }
         Relationships: []
       }

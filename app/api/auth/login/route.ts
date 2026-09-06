@@ -47,10 +47,21 @@ export async function POST(request: Request) {
       role: row.emp_role as EmployeeRole,
     };
 
+    const { data: empRow, error: empError } = await supabaseAdmin
+      .from('employees')
+      .select('org_id')
+      .eq('id', row.emp_id)
+      .single();
+
+    if (empError || !empRow?.org_id) {
+      return Response.json({ error: 'ไม่พบข้อมูลองค์กรของพนักงาน' }, { status: 500 });
+    }
+
     const token = await signStaffToken({
       empId: employee.id,
       empName: employee.name,
       empRole: employee.role,
+      orgId: empRow.org_id,
     });
 
     const response = Response.json({ employee, token });
