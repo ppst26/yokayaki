@@ -1,7 +1,7 @@
 # Design: M4 — Multi-Tenancy (org-only)
 
 วันที่: 2026-09-06  
-สถานะ: draft · รอรีวิวก่อนทำ implementation plan  
+สถานะ: approved · implementation plan อยู่ที่ `docs/superpowers/plans/2026-09-06-m4-multi-tenancy-org-implementation-plan.md`  
 Milestone: `M4 Multi-Tenancy`
 
 ## ปัญหา
