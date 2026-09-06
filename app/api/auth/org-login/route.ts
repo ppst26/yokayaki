@@ -1,4 +1,8 @@
-import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import {
+  createIsolatedServiceClient,
+  resetSupabaseAdminAuthSession,
+  supabaseAdmin,
+} from '@/lib/supabaseAdmin';
 import { setOrgAuthCookie } from '@/lib/orgAuthCookie';
 import { clientKeyFrom, errorResponse } from '@/lib/session';
 import { enforceRateLimit } from '@/lib/rateLimit';
@@ -22,7 +26,10 @@ export async function POST(request: Request) {
     const body = await parseJsonBody(request, orgLoginBodySchema);
     if (body instanceof Response) return body;
 
-    const { data: authData, error: authError } = await supabaseAdmin.auth.signInWithPassword({
+    // ห้าม signIn บน supabaseAdmin singleton — client จะสลับ JWT เป็น authenticated
+    // แล้ว query memberships/staff_sessions จะได้ permission denied (42501)
+    const authClient = createIsolatedServiceClient();
+    const { data: authData, error: authError } = await authClient.auth.signInWithPassword({
       email: body.email,
       password: body.password,
     });
@@ -32,6 +39,8 @@ export async function POST(request: Request) {
     }
 
     const authUserId = authData.user.id;
+
+    await resetSupabaseAdminAuthSession();
 
     const { data: memberships, error: memError } = await supabaseAdmin
       .from('memberships')

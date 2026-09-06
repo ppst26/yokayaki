@@ -39,3 +39,27 @@ export const supabaseAdmin = new Proxy({} as SupabaseClient<Database>, {
     return typeof value === 'function' ? value.bind(instance) : value;
   },
 });
+
+/** Client แยกสำหรับ auth.signInWithPassword — ห้ามใช้ singleton เพราะจะเปลี่ยน JWT เป็น authenticated */
+export function createIsolatedServiceClient(): SupabaseClient<Database> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url) {
+    throw new Error('[supabaseAdmin] ไม่พบ NEXT_PUBLIC_SUPABASE_URL');
+  }
+  if (!serviceRoleKey) {
+    throw new Error('[supabaseAdmin] ไม่พบ SUPABASE_SERVICE_ROLE_KEY');
+  }
+  return createClient<Database>(url, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
+/** ล้าง session ที่ signInWithPassword ทิ้งไว้บน singleton (กู้หลัง deploy เก่า) */
+export async function resetSupabaseAdminAuthSession(): Promise<void> {
+  try {
+    await getClient().auth.signOut();
+  } catch {
+    // ไม่มี session อยู่แล้ว
+  }
+}

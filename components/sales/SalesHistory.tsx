@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/context/AuthContext';
+import { canReadSales } from '@/lib/permissions';
 import { RefreshCw, Banknote, CreditCard, ArrowLeftRight } from 'lucide-react';
 import { SalesSummaryCards } from './SalesSummaryCards';
 import { ClosedBillTable } from './ClosedBillTable';
@@ -37,6 +39,8 @@ interface CompletedOrder {
     created_at: string;
   } | null;
   promos: PaymentPromo[];
+  /** ยอดรวมจาก order_items — ใช้เมื่อไม่มี payment (cashier/kitchen) */
+  auditSubtotal?: number;
 }
 
 interface OrderItemDetail {
@@ -59,6 +63,9 @@ interface VoidLog {
 }
 
 export const SalesHistory: React.FC = () => {
+  const { employee } = useAuth();
+  const showKpi = employee ? canReadSales(employee.role) : false;
+
   const [activeSubTab, setActiveSubTab] = useState<'sales' | 'voids'>('sales');
   const [auditRange, setAuditRange] = useState<'today' | 'yesterday'>('today');
   const [orders, setOrders] = useState<CompletedOrder[]>([]);
@@ -100,6 +107,11 @@ export const SalesHistory: React.FC = () => {
       if (orderError) throw orderError;
       if (!orderData || orderData.length === 0) {
         setOrders([]);
+        return;
+      }
+
+      if (!showKpi) {
+        await fetchOrdersAuditMode(orderData);
         return;
       }
 
@@ -220,6 +232,38 @@ export const SalesHistory: React.FC = () => {
     }
   };
 
+  const fetchOrdersAuditMode = async (
+    orderData: { id: number; table_id: string; created_at: string | null }[],
+  ) => {
+    const orderIds = orderData.map(o => o.id);
+    const subtotalByOrder: Record<number, number> = {};
+
+    const { data: items, error: itemsError } = await supabase
+      .from('order_items')
+      .select('order_id, quantity, unit_price')
+      .in('order_id', orderIds)
+      .neq('status', 'voided');
+
+    if (itemsError) throw itemsError;
+
+    for (const item of items ?? []) {
+      const line = Number(item.quantity) * parseFloat(String(item.unit_price));
+      subtotalByOrder[item.order_id] = (subtotalByOrder[item.order_id] ?? 0) + line;
+    }
+
+    const combined: CompletedOrder[] = orderData.map(order => ({
+      id: order.id,
+      table_id: order.table_id,
+      table_number: (order as { tables?: { table_number?: number } | null }).tables?.table_number,
+      created_at: order.created_at ?? '',
+      payment: null,
+      promos: [],
+      auditSubtotal: subtotalByOrder[order.id] ?? 0,
+    }));
+
+    setOrders(combined);
+  };
+
   const fetchVoidLogsForRange = async (range: 'today' | 'yesterday') => {
     try {
       setVoidLoading(true);
@@ -271,9 +315,10 @@ export const SalesHistory: React.FC = () => {
   };
 
   useEffect(() => {
+    if (!employee) return;
     fetchOrdersForRange(auditRange);
     fetchVoidLogsForRange(auditRange);
-  }, [auditRange]);
+  }, [auditRange, employee?.id, showKpi]);
 
   const totalRevenue = orders.reduce((s, o) => s + (o.payment?.net_amount || 0), 0);
   const totalDiscount = orders.reduce((s, o) => s + (o.payment?.discount_amount || 0), 0);
@@ -373,14 +418,16 @@ export const SalesHistory: React.FC = () => {
         </div>
       </div>
 
-      {/* Sales Summary Cards */}
-      <SalesSummaryCards
-        totalRevenue={totalRevenue}
-        totalDiscount={totalDiscount}
-        totalBills={totalBills}
-        totalVoidCount={totalVoidCount}
-        totalVoidAmount={totalVoidAmount}
-      />
+      {/* Sales Summary Cards — owner/manager/accountant เท่านั้น */}
+      {showKpi && (
+        <SalesSummaryCards
+          totalRevenue={totalRevenue}
+          totalDiscount={totalDiscount}
+          totalBills={totalBills}
+          totalVoidCount={totalVoidCount}
+          totalVoidAmount={totalVoidAmount}
+        />
+      )}
 
       {/* Sub Tabs Toggle */}
       <div className="flex gap-2 border-b border-slate-200 dark:border-neutral-800 pb-3">
@@ -416,6 +463,7 @@ export const SalesHistory: React.FC = () => {
           getPaymentIcon={getPaymentIcon}
           getPaymentLabel={getPaymentLabel}
           formatTime={formatTime}
+          auditMode={!showKpi}
         />
       ) : (
         <VoidLogsTable
@@ -435,6 +483,7 @@ export const SalesHistory: React.FC = () => {
         getPaymentLabel={getPaymentLabel}
         getPromoTypeLabel={getPromoTypeLabel}
         formatTime={formatTime}
+        auditMode={!showKpi}
       />
     </div>
   );

@@ -51,6 +51,7 @@ interface BillDetailModalProps {
   getPaymentLabel: (method: string) => string;
   getPromoTypeLabel: (type: string) => string;
   formatTime: (dateStr: string) => string;
+  auditMode?: boolean;
 }
 
 export const BillDetailModal: React.FC<BillDetailModalProps> = ({
@@ -62,6 +63,7 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
   getPaymentLabel,
   getPromoTypeLabel,
   formatTime,
+  auditMode = false,
 }) => {
   if (!selectedOrder) return null;
 
@@ -246,7 +248,25 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
               )}
 
               {/* สรุปยอด */}
-              {selectedOrder.payment && (
+              {auditMode ? (
+                <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-neutral-800">
+                  <h4 className="text-card-label">สรุปยอดจากรายการอาหาร</h4>
+                  <div className="flex justify-between items-center">
+                    <span className="text-base font-extrabold text-slate-900 dark:text-neutral-100">
+                      ยอดรวม
+                    </span>
+                    <span className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">
+                      {orderItems
+                        .reduce((s, item) => s + item.quantity * item.unit_price, 0)
+                        .toLocaleString()}{' '}
+                      ฿
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-neutral-400 font-medium">
+                    ยอดจากรายการอาหาร ไม่รวมส่วนลด/โปร — กรณีข้อพิพาทเรื่องยอดเงิน แจ้งผู้จัดการ
+                  </p>
+                </div>
+              ) : selectedOrder.payment ? (
                 <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-neutral-800">
                   <h4 className="text-card-label">
                     สรุปยอดชำระ
@@ -331,7 +351,7 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
                     </div>
                   </div>
                 </div>
-              )}
+              ) : null}
             </>
           )}
         </div>

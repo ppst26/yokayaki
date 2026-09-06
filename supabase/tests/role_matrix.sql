@@ -141,6 +141,7 @@ BEGIN
   PERFORM pg_temp.expect_read('payments', 'zero');
   PERFORM pg_temp.expect_read('menu_items', 'zero');
   PERFORM pg_temp.expect_read('qr_sessions', 'zero');
+  PERFORM pg_temp.expect_read('void_logs', 'rows');
 
   RESET ROLE;
 
@@ -178,7 +179,7 @@ BEGIN
   PERFORM pg_temp.expect_read('menu_items', 'rows');
   PERFORM pg_temp.expect_read('payments', 'zero');
   PERFORM pg_temp.expect_read('payment_promotions', 'zero');
-  PERFORM pg_temp.expect_read('void_logs', 'zero');
+  PERFORM pg_temp.expect_read('void_logs', 'rows');
   PERFORM pg_temp.expect_read('stock_logs', 'zero');
 
   RESET ROLE;
@@ -195,7 +196,7 @@ BEGIN
     RAISE EXCEPTION 'cashier place_order_batch ไม่สำเร็จ: %', v_result;
   END IF;
 
-  RAISE NOTICE 'PASS  cashier · POS สั่งได้ · ตารางการเงิน/หลังร้านอ่านไม่ได้';
+  RAISE NOTICE 'PASS  cashier · POS สั่งได้ · void_logs อ่านได้ · payments/หลังร้านอ่านไม่ได้';
 END
 $$;
 

@@ -172,7 +172,7 @@ export const EmployeeManager: React.FC = () => {
 
     // หากมีการเปลี่ยน Role หรือเปลี่ยน PIN ให้ยืนยัน PIN ของ Owner
     if ((isRoleChanged || isPinEntered) && confirmPin.length !== 6) {
-      return showMessage('กรุณากรอก PIN 6 หลักของคุณเพื่อยืนยันการทำรายการ', 'error');
+      return showMessage('กรุณากรอก PIN 6 หลักของ Owner/Manager เพื่อยืนยันการทำรายการ', 'error');
     }
 
     try {
@@ -577,7 +577,7 @@ export const EmployeeManager: React.FC = () => {
                   {(editRole !== targetEmployee.role || editPin.length > 0) && (
                     <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 bg-amber-50/50 dark:bg-amber-950/20 p-3 rounded-2xl border border-amber-200/60 dark:border-amber-900/40">
                       <label className="block text-sm font-bold text-amber-800 dark:text-amber-300 mb-1.5">
-                        🔐 กรอก PIN ของคุณเพื่ออนุมัติการเปลี่ยนตำแหน่ง/PIN
+                        🔐 กรอก PIN ของ Owner/Manager เพื่ออนุมัติการเปลี่ยนตำแหน่ง/PIN
                       </label>
                       <div className="relative">
                         <input

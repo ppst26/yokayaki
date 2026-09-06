@@ -74,10 +74,10 @@ export const employeeCreateBodySchema = z.object({
 });
 
 export const employeeUpdateBodySchema = z.object({
-  name: z.string().trim().min(1).optional(),
-  pin: pinSchema.optional(),
-  role: employeeRoleSchema.optional(),
-  confirmPin: pinSchema.optional(),
+  name: z.string().trim().min(1).nullish(),
+  pin: pinSchema.nullish(),
+  role: employeeRoleSchema.nullish(),
+  confirmPin: pinSchema.nullish(),
 });
 
 export const employeeDeleteBodySchema = z.object({

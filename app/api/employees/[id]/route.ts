@@ -1,5 +1,7 @@
-import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { supabaseAdmin, createIsolatedServiceClient } from '@/lib/supabaseAdmin';
 import { requireManageEmployees, errorResponse, clientKeyFrom, HttpError } from '@/lib/session';
+import type { StaffClaims } from '@/lib/authToken';
+import type { EmployeeRole } from '@/lib/permissions';
 import { enforceRateLimit } from '@/lib/rateLimit';
 import { parseJsonBody, parseValue } from '@/lib/api/parse';
 import {
@@ -16,7 +18,9 @@ const RESULT_MESSAGES: Record<string, string> = {
   self_delete: 'ไม่สามารถลบบัญชีของตัวเองได้',
 };
 
-async function assertOwnerConfirmPin(request: Request, pin: string): Promise<void> {
+const STEP_UP_ROLES: EmployeeRole[] = ['owner', 'manager'];
+
+async function assertStepUpPin(request: Request, pin: string, actor: StaffClaims): Promise<void> {
   const limited = enforceRateLimit({
     key: `owner-confirm:${clientKeyFrom(request)}`,
     max: 15,
@@ -26,7 +30,9 @@ async function assertOwnerConfirmPin(request: Request, pin: string): Promise<voi
     throw new HttpError(429, 'ยืนยัน PIN ผิดหลายครั้ง กรุณารอก่อน');
   }
 
-  const { data, error } = await supabaseAdmin.rpc('verify_pin', {
+  // client แยก — ห้ามใช้ singleton หลัง org-login (JWT จะกลายเป็น authenticated)
+  const db = createIsolatedServiceClient();
+  const { data, error } = await db.rpc('verify_pin', {
     p_pin: pin,
     p_client_key: clientKeyFrom(request),
   });
@@ -37,8 +43,18 @@ async function assertOwnerConfirmPin(request: Request, pin: string): Promise<voi
   if (row?.locked_seconds > 0) {
     throw new HttpError(429, 'ยืนยัน PIN ผิดหลายครั้ง ระบบถูกล็อคชั่วคราว');
   }
-  if (!row?.emp_id || row.emp_role !== 'owner') {
-    throw new HttpError(403, 'PIN ไม่ถูกต้อง หรือไม่ใช่ PIN ของ Owner');
+  if (!row?.emp_id || !STEP_UP_ROLES.includes(row.emp_role as EmployeeRole)) {
+    throw new HttpError(403, 'PIN ไม่ถูกต้อง หรือไม่มีสิทธิ์อนุมัติรายการนี้');
+  }
+
+  const { data: empRow, error: empError } = await supabaseAdmin
+    .from('employees')
+    .select('org_id')
+    .eq('id', row.emp_id)
+    .single();
+
+  if (empError || empRow?.org_id !== actor.orgId) {
+    throw new HttpError(403, 'PIN ไม่ถูกต้อง หรือไม่มีสิทธิ์อนุมัติรายการนี้');
   }
 }
 
@@ -47,7 +63,7 @@ export async function PATCH(
   ctx: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireManageEmployees();
+    const actor = await requireManageEmployees();
 
     const { id: rawId } = await ctx.params;
     const id = parseValue(rawId, employeeIdParamSchema);
@@ -65,7 +81,7 @@ export async function PATCH(
       if (confirm instanceof Response) {
         return Response.json({ error: 'กรุณากรอก PIN 6 หลักเพื่อยืนยันการทำรายการ' }, { status: 400 });
       }
-      await assertOwnerConfirmPin(request, confirm);
+      await assertStepUpPin(request, confirm, actor);
     }
 
     const { data, error } = await supabaseAdmin.rpc('admin_update_employee', {
@@ -103,7 +119,7 @@ export async function DELETE(
     const body = await parseJsonBody(request, employeeDeleteBodySchema);
     if (body instanceof Response) return body;
 
-    await assertOwnerConfirmPin(request, body.confirmPin);
+    await assertStepUpPin(request, body.confirmPin, actor);
 
     const { data, error } = await supabaseAdmin.rpc('admin_delete_employee', {
       p_employee_id: id,
