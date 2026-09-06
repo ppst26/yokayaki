@@ -1,4 +1,3 @@
-import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import {
   orderLinesToRpcJson,
   staffOrderBodySchema,
@@ -6,6 +5,7 @@ import {
 import { parseJsonBody } from '@/lib/api/parse';
 import { orderBatchErrorMessage } from '@/lib/orderBatchErrors';
 import { requireStaff, errorResponse, clientKeyFrom } from '@/lib/session';
+import { requireStaffSupabase } from '@/lib/supabaseStaff';
 import { enforceRateLimit } from '@/lib/rateLimit';
 
 // =============================================================
@@ -26,7 +26,9 @@ export async function POST(request: Request) {
     const body = await parseJsonBody(request, staffOrderBodySchema);
     if (body instanceof Response) return body;
 
-    const { data: menuRows, error: menuError } = await supabaseAdmin
+    const staffDb = await requireStaffSupabase();
+
+    const { data: menuRows, error: menuError } = await staffDb
       .from('menu_items')
       .select('id, name')
       .in('id', body.items.map(i => i.menuItemId));
@@ -38,7 +40,7 @@ export async function POST(request: Request) {
       nameById.set(row.id, row.name);
     }
 
-    const { data, error } = await supabaseAdmin.rpc('place_order_batch', {
+    const { data, error } = await staffDb.rpc('place_order_batch', {
       p_table_id: body.tableId,
       p_items: orderLinesToRpcJson(body.items),
     });

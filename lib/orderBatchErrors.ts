@@ -29,5 +29,8 @@ export function orderBatchErrorMessage(
   if (msg.includes('invalid_items') || msg.includes('invalid_item')) {
     return 'รายการสั่งอาหารไม่ถูกต้อง';
   }
+  if (msg.includes('unauthorized')) {
+    return 'กรุณาเข้าสู่ระบบใหม่';
+  }
   return 'ไม่สามารถสั่งอาหารได้';
 }
