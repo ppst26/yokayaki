@@ -1,6 +1,7 @@
 import 'server-only';
 import { cookies } from 'next/headers';
 import { SESSION_COOKIE, verifyStaffToken, type StaffClaims } from '@/lib/authToken';
+import type { EmployeeRole } from '@/lib/permissions';
 
 // =============================================================
 // Trust boundary ของฝั่งพนักงาน
@@ -29,11 +30,22 @@ export async function requireStaff(): Promise<StaffClaims> {
   return session;
 }
 
+const MANAGE_EMPLOYEES: EmployeeRole[] = ['owner', 'manager'];
+
 /** ต้องเป็น owner เท่านั้น */
 export async function requireOwner(): Promise<StaffClaims> {
   const session = await requireStaff();
   if (session.empRole !== 'owner') {
     throw new HttpError(403, 'ต้องใช้สิทธิ์เจ้าของร้าน (Owner) เท่านั้น');
+  }
+  return session;
+}
+
+/** ต้องเป็น owner หรือ manager — จัดการพนักงาน */
+export async function requireManageEmployees(): Promise<StaffClaims> {
+  const session = await requireStaff();
+  if (!MANAGE_EMPLOYEES.includes(session.empRole as EmployeeRole)) {
+    throw new HttpError(403, 'ต้องใช้สิทธิ์ผู้จัดการหรือเจ้าของร้าน');
   }
   return session;
 }

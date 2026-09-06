@@ -1,5 +1,5 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
-import { requireOwner, errorResponse, clientKeyFrom, HttpError } from '@/lib/session';
+import { requireManageEmployees, errorResponse, clientKeyFrom, HttpError } from '@/lib/session';
 import { enforceRateLimit } from '@/lib/rateLimit';
 import { parseJsonBody, parseValue } from '@/lib/api/parse';
 import {
@@ -47,7 +47,7 @@ export async function PATCH(
   ctx: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireOwner();
+    await requireManageEmployees();
 
     const { id: rawId } = await ctx.params;
     const id = parseValue(rawId, employeeIdParamSchema);
@@ -94,7 +94,7 @@ export async function DELETE(
   ctx: { params: Promise<{ id: string }> }
 ) {
   try {
-    const actor = await requireOwner();
+    const actor = await requireManageEmployees();
 
     const { id: rawId } = await ctx.params;
     const id = parseValue(rawId, employeeIdParamSchema);

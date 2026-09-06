@@ -1,11 +1,11 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
-import { requireOwner, errorResponse } from '@/lib/session';
+import { requireManageEmployees, errorResponse } from '@/lib/session';
 import { parseJsonBody } from '@/lib/api/parse';
 import { employeeCreateBodySchema } from '@/lib/api/schemas';
 
 export async function GET() {
   try {
-    await requireOwner();
+    await requireManageEmployees();
 
     const { data, error } = await supabaseAdmin.rpc('admin_list_employees');
     if (error) throw error;
@@ -18,7 +18,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const owner = await requireOwner();
+    const actor = await requireManageEmployees();
 
     const body = await parseJsonBody(request, employeeCreateBodySchema);
     if (body instanceof Response) return body;
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
       p_name: body.name,
       p_pin: body.pin,
       p_role: body.role,
-      p_org_id: owner.orgId,
+      p_org_id: actor.orgId,
     });
     if (error) throw error;
 
