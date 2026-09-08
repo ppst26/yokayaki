@@ -356,7 +356,7 @@ export const MenuManager: React.FC = () => {
 
         <button
           onClick={openAddModal}
-          className="flex items-center gap-1.5 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-sm text-xs font-extrabold transition active:scale-95 shadow-md shadow-red-600/20 cursor-pointer self-end md:self-auto"
+          className="flex items-center gap-1.5 px-4 py-2.5 btn-crimson text-white rounded-sm text-xs font-extrabold transition active:scale-95 shadow-md shadow-red-600/20 cursor-pointer self-end md:self-auto"
         >
           <Plus className="w-4 h-4" />
           <span>เพิ่มเมนูอาหารใหม่</span>
@@ -494,7 +494,7 @@ export const MenuManager: React.FC = () => {
           <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : filteredItems.length === 0 ? (
-        <div className="text-center py-16 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl p-8">
+        <div className="text-center py-16 app-dialog p-8">
           <UtensilsCrossed className="w-12 h-12 text-slate-300 dark:text-neutral-600 mx-auto mb-3" />
           <p className="text-sm font-bold text-slate-500 dark:text-neutral-400">
             ไม่พบรายการอาหารที่ตรงกับเงื่อนไข
@@ -623,8 +623,8 @@ export const MenuManager: React.FC = () => {
 
       {/* Delete Confirmation Modal */}
       {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs">
-          <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl w-full max-w-sm p-6 shadow-xl space-y-4 text-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 app-dialog-backdrop">
+          <div className="app-dialog w-full max-w-sm p-6 shadow-xl space-y-4 text-center">
             <div className="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 mx-auto flex items-center justify-center">
               <AlertTriangle className="w-6 h-6" />
             </div>

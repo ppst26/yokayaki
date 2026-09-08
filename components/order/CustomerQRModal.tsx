@@ -24,8 +24,8 @@ export const CustomerQRModal: React.FC<CustomerQRModalProps> = ({
   const customerOrderUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/customer/${qrSessionId}`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs">
-      <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl w-full max-w-sm p-6 shadow-xl relative text-center space-y-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 app-dialog-backdrop">
+      <div className="app-dialog w-full max-w-sm p-6 shadow-xl relative text-center space-y-4">
         <button
           onClick={() => setShowQrModal(false)}
           className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-300 rounded-full"

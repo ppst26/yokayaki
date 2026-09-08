@@ -174,7 +174,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
         <div className="fixed inset-0 z-50 md:hidden flex justify-end">
           <div
             onClick={() => handleCloseDrawer()}
-            className={`fixed inset-0 bg-zinc-900/60 backdrop-blur-xs transition-opacity duration-300 ${
+            className={`fixed inset-0 app-dialog-backdrop transition-opacity duration-300 ${
               isDrawerClosing ? 'opacity-0' : 'animate-backdrop-in'
             }`}
           />
@@ -203,7 +203,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   onClick={() => handleTabClick('floor')}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
                     activeTab === 'floor'
-                      ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
+                      ? 'nav-active font-extrabold'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
                   }`}
                 >
@@ -230,7 +230,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   onClick={() => handleTabClick('kitchen')}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
                     activeTab === 'kitchen'
-                      ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
+                      ? 'nav-active font-extrabold'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
                   }`}
                 >
@@ -257,7 +257,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                     onClick={() => handleTabClick('history')}
                     className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
                       activeTab === 'history'
-                        ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
+                        ? 'nav-active font-extrabold'
                         : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
                     }`}
                   >
@@ -279,7 +279,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                       onClick={() => handleTabClick('menu')}
                       className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
                         activeTab === 'menu'
-                          ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
+                          ? 'nav-active font-extrabold'
                           : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
                       }`}
                     >
@@ -293,7 +293,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                       onClick={() => handleTabClick('stock')}
                       className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
                         activeTab === 'stock'
-                          ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
+                          ? 'nav-active font-extrabold'
                           : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
                       }`}
                     >
@@ -307,7 +307,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                       onClick={() => handleTabClick('promo')}
                       className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
                         activeTab === 'promo'
-                          ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
+                          ? 'nav-active font-extrabold'
                           : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
                       }`}
                     >
@@ -331,7 +331,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                       onClick={() => handleTabClick('dashboard')}
                       className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
                         activeTab === 'dashboard'
-                          ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
+                          ? 'nav-active font-extrabold'
                           : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
                       }`}
                     >
@@ -345,7 +345,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                       onClick={() => handleTabClick('loyalty')}
                       className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
                         activeTab === 'loyalty'
-                          ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
+                          ? 'nav-active font-extrabold'
                           : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
                       }`}
                     >
@@ -359,7 +359,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                       onClick={() => handleTabClick('employees')}
                       className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
                         activeTab === 'employees'
-                          ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
+                          ? 'nav-active font-extrabold'
                           : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
                       }`}
                     >
@@ -421,7 +421,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
               : 'text-zinc-500 dark:text-zinc-400 font-bold hover:text-zinc-800 dark:hover:text-zinc-200'
           }`}
         >
-          <div className={`p-1.5 rounded-xl transition-all relative ${activeTab === 'floor' ? 'bg-red-600 text-white shadow-md shadow-red-600/30' : ''}`}>
+          <div className={`p-1.5 rounded-xl transition-all relative ${activeTab === 'floor' ? 'nav-active' : ''}`}>
             <Layers className="w-5 h-5 stroke-[2.2]" />
             {checkingOutCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-black min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-900 animate-bounce">
@@ -443,7 +443,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
               : 'text-zinc-500 dark:text-zinc-400 font-bold hover:text-zinc-800 dark:hover:text-zinc-200'
           }`}
         >
-          <div className={`p-1.5 rounded-xl transition-all relative ${activeTab === 'kitchen' ? 'bg-red-600 text-white shadow-md shadow-red-600/30' : ''}`}>
+          <div className={`p-1.5 rounded-xl transition-all relative ${activeTab === 'kitchen' ? 'nav-active' : ''}`}>
             <ChefHat className="w-5 h-5 stroke-[2.2]" />
             {pendingTablesCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-black min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-900 animate-pulse">
@@ -465,7 +465,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                 : 'text-zinc-500 dark:text-zinc-400 font-bold hover:text-zinc-800 dark:hover:text-zinc-200'
             }`}
           >
-            <div className={`p-1.5 rounded-xl transition-all ${activeTab === 'history' ? 'bg-red-600 text-white shadow-md shadow-red-600/30' : ''}`}>
+            <div className={`p-1.5 rounded-xl transition-all ${activeTab === 'history' ? 'nav-active' : ''}`}>
               <History className="w-5 h-5 stroke-[2.2]" />
             </div>
             <span className="text-xs mt-0.5 leading-none font-bold">ออเดอร์</span>
@@ -497,7 +497,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
               onClick={() => onSelectTab('floor')}
               className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                 activeTab === 'floor'
-                  ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
+                  ? 'nav-active font-extrabold'
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
               }`}
             >
@@ -524,7 +524,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
               onClick={() => onSelectTab('kitchen')}
               className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                 activeTab === 'kitchen'
-                  ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
+                  ? 'nav-active font-extrabold'
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
               }`}
             >
@@ -551,7 +551,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                 onClick={() => onSelectTab('history')}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                   activeTab === 'history'
-                    ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
+                    ? 'nav-active font-extrabold'
                     : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                 }`}
               >
@@ -573,7 +573,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   onClick={() => onSelectTab('menu')}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                     activeTab === 'menu'
-                      ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
+                      ? 'nav-active font-extrabold'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                   }`}
                 >
@@ -587,7 +587,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   onClick={() => onSelectTab('stock')}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                     activeTab === 'stock'
-                      ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
+                      ? 'nav-active font-extrabold'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                   }`}
                 >
@@ -601,7 +601,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   onClick={() => onSelectTab('promo')}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                     activeTab === 'promo'
-                      ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
+                      ? 'nav-active font-extrabold'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                   }`}
                 >
@@ -625,7 +625,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   onClick={() => onSelectTab('dashboard')}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                     activeTab === 'dashboard'
-                      ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
+                      ? 'nav-active font-extrabold'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                   }`}
                 >
@@ -639,7 +639,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   onClick={() => onSelectTab('loyalty')}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                     activeTab === 'loyalty'
-                      ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
+                      ? 'nav-active font-extrabold'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                   }`}
                 >
@@ -653,7 +653,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   onClick={() => onSelectTab('employees')}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                     activeTab === 'employees'
-                      ? 'bg-red-600 text-white font-extrabold shadow-md shadow-red-600/25'
+                      ? 'nav-active font-extrabold'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                   }`}
                 >

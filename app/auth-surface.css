@@ -1,0 +1,283 @@
+/* ปุ่มหลัก / sidebar active — แดงเข้มไล่สี + แสงขอบ */
+
+.btn-crimson,
+.nav-active,
+.badge-active {
+  background: linear-gradient(145deg, #d11f24 0%, #8b1010 46%, #3d0505 100%);
+  color: #fff;
+  border: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 196, 196, 0.28),
+    0 8px 22px rgba(100, 6, 6, 0.42);
+}
+
+@media (hover: hover) {
+  .btn-crimson:hover:not(:disabled) {
+    background: linear-gradient(145deg, #e4272c 0%, #9c1414 46%, #4a0707 100%);
+  }
+}
+
+.btn-crimson:active:not(:disabled) {
+  transform: scale(0.98);
+  background: linear-gradient(155deg, #a8181c 0%, #2d0404 100%);
+}
+
+.btn-crimson:disabled {
+  opacity: 0.4;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* พื้นผิวการ์ดกลาง — login + Card ทั้งระบบ */
+
+.app-card,
+.app-dialog,
+[data-slot="card"] {
+  background:
+    radial-gradient(
+      ellipse at 62% 0%,
+      rgba(255, 255, 255, 0.92) 0%,
+      rgba(255, 255, 255, 0.4) 28%,
+      transparent 58%
+    ),
+    linear-gradient(145deg, #ffffff 0%, #f6f5f3 60%, #f3f2f0 100%);
+
+  border: 1px solid rgba(15, 15, 15, 0.06);
+  border-radius: 24px;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    0 12px 32px rgba(0, 0, 0, 0.08);
+}
+
+.auth-card,
+.dark .app-card,
+.dark .app-dialog,
+.dark [data-slot="card"] {
+  background:
+    radial-gradient(
+      ellipse at 62% 0%,
+      rgba(255, 255, 255, 0.085) 0%,
+      rgba(255, 255, 255, 0.025) 28%,
+      transparent 58%
+    ),
+    linear-gradient(145deg, #101010 0%, #0c0c0c 60%, #0e0e0e 100%);
+
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 24px;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 12px 32px rgba(0, 0, 0, 0.2);
+}
+
+.app-dialog-backdrop {
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.app-dialog--sheet,
+[data-slot="card"][data-card-shape="sheet"] {
+  border-radius: 24px 24px 0 0;
+}
+
+@media (min-width: 1024px) {
+  [data-slot="card"][data-card-shape="sheet"] {
+    border-radius: 24px;
+  }
+}
+
+.pinpad {
+  --pinpad-scale: 1;
+
+  box-sizing: border-box;
+  width: 100%;
+  max-width: min(384px, calc(100% - 24px));
+  padding: calc(40px * var(--pinpad-scale)) calc(28px * var(--pinpad-scale));
+  color: #f2f0eb;
+}
+
+@media (min-width: 768px) {
+  .pinpad {
+    --pinpad-scale: 1.05;
+    max-width: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .pinpad {
+    --pinpad-scale: 1.1;
+  }
+}
+
+@media (min-width: 1280px) {
+  .pinpad {
+    --pinpad-scale: 1.15;
+  }
+}
+
+@media (min-width: 1536px) {
+  .pinpad {
+    --pinpad-scale: 1.2;
+  }
+}
+
+.pinpad__logo {
+  display: block;
+  width: 100%;
+  max-width: calc(290px * var(--pinpad-scale));
+  height: auto;
+  margin: 0 auto;
+}
+
+.pinpad__dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(16px * var(--pinpad-scale));
+  margin: calc(36px * var(--pinpad-scale)) 0;
+}
+
+.pinpad__dots.is-shaking {
+  animation: pinpad-shake 0.5s ease-in-out;
+}
+
+.pinpad__dots span {
+  box-sizing: border-box;
+  width: calc(19px * var(--pinpad-scale));
+  height: calc(19px * var(--pinpad-scale));
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 50%;
+  background: transparent;
+  transition: background-color 150ms ease, box-shadow 150ms ease;
+}
+
+.pinpad__dots span.is-filled {
+  background: #f2f0eb;
+  box-shadow: none;
+}
+
+.pinpad__error {
+  margin: calc(-12px * var(--pinpad-scale)) 0 calc(16px * var(--pinpad-scale));
+  text-align: center;
+  font-size: calc(0.75rem * var(--pinpad-scale));
+  font-weight: 600;
+  color: #fca5a5;
+}
+
+.pinpad__keys {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: calc(10px * var(--pinpad-scale)) calc(14px * var(--pinpad-scale));
+}
+
+.pinpad .pinpad__keys button {
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: calc(54px * var(--pinpad-scale));
+  padding: 0;
+
+  appearance: none;
+  border: 0;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #282828 0%, #191919 100%);
+  color: #f2f0eb;
+
+  font-family: system-ui, sans-serif;
+  font-size: calc(25px * var(--pinpad-scale));
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+
+  box-shadow: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+
+  transition: transform 100ms ease;
+}
+
+@media (hover: hover) {
+  .pinpad .pinpad__keys button:hover:not(:disabled) {
+    background: linear-gradient(180deg, #323232, #222222);
+    box-shadow: none;
+  }
+}
+
+.pinpad .pinpad__keys button:active:not(:disabled) {
+  transform: scale(0.97);
+  background: linear-gradient(180deg, #181818, #202020);
+  box-shadow: none;
+}
+
+.pinpad .pinpad__keys button:focus-visible {
+  outline: 2px solid #a3a3a3;
+  outline-offset: 3px;
+}
+
+.pinpad .pinpad__keys button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.pinpad__keys svg {
+  width: calc(23px * var(--pinpad-scale));
+  height: calc(23px * var(--pinpad-scale));
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pinpad__loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 24px;
+  background: rgba(10, 10, 9, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.pinpad__loading-spinner {
+  width: calc(2.25rem * var(--pinpad-scale));
+  height: calc(2.25rem * var(--pinpad-scale));
+  margin-bottom: calc(0.75rem * var(--pinpad-scale));
+  border: 3px solid #f2f0eb;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.pinpad__loading-text {
+  font-size: calc(0.75rem * var(--pinpad-scale));
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: rgba(242, 240, 235, 0.75);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pinpad-shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-6px); }
+  20%, 40%, 60%, 80% { transform: translateX(6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pinpad .pinpad__keys button,
+  .pinpad__dots span {
+    transition: none;
+  }
+
+  .pinpad__dots.is-shaking {
+    animation: none;
+  }
+}

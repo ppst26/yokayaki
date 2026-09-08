@@ -524,7 +524,7 @@ export const IngredientPurchaseManager: React.FC = () => {
           </button>
           <button
             onClick={openModal}
-            className="flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-extrabold border-none shadow-none transition active:scale-95 cursor-pointer shrink-0"
+            className="flex items-center gap-1.5 px-4 py-2 btn-crimson text-white rounded-xl text-sm font-extrabold border-none shadow-none transition active:scale-95 cursor-pointer shrink-0"
           >
             <PackagePlus className="w-4 h-4" />
             <span>เพิ่มรายการสั่งซื้อ</span>
@@ -698,8 +698,8 @@ export const IngredientPurchaseManager: React.FC = () => {
 
       {/* ── Add Purchase Order Modal ──────────────────────────────────────── */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-8 bg-black/60 backdrop-blur-xs overflow-y-auto">
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-2xl shadow-2xl border-none flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-8 app-dialog-backdrop overflow-y-auto">
+          <div className="app-dialog w-full max-w-2xl flex flex-col max-h-[90vh]">
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 dark:border-zinc-800/80">
               <h3 className="text-base font-black text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
@@ -943,7 +943,7 @@ export const IngredientPurchaseManager: React.FC = () => {
               <button
                 onClick={handleSave}
                 disabled={isSaving}
-                className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-xl text-sm font-bold border-none shadow-none transition cursor-pointer flex items-center justify-center gap-2"
+                className="flex-1 py-2.5 btn-crimson disabled:opacity-50 text-white rounded-xl text-sm font-bold border-none shadow-none transition cursor-pointer flex items-center justify-center gap-2"
               >
                 {isSaving ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -960,8 +960,8 @@ export const IngredientPurchaseManager: React.FC = () => {
 
       {/* ── Delete PO Confirmation Modal ────────────────────────────────────── */}
       {deletingOrder && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-md p-6 shadow-2xl border-none space-y-4">
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 app-dialog-backdrop">
+          <div className="app-dialog w-full max-w-md p-6 space-y-4">
             <div className="flex items-center gap-3 text-rose-600 dark:text-rose-400">
               <div className="p-2.5 bg-rose-100 dark:bg-rose-950/60 rounded-xl shrink-0">
                 <Trash2 className="w-6 h-6" />
@@ -1008,8 +1008,8 @@ export const IngredientPurchaseManager: React.FC = () => {
 
       {/* ── Custom Add Ingredient Name / Unit Sub-Modal ─────────────────────── */}
       {customModalState && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-sm p-5 shadow-2xl border-none space-y-4">
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 app-dialog-backdrop">
+          <div className="app-dialog w-full max-w-sm p-5 space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-black text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                 <Plus className="w-4 h-4 text-red-600 dark:text-red-400" />
@@ -1062,7 +1062,7 @@ export const IngredientPurchaseManager: React.FC = () => {
                 type="button"
                 onClick={handleConfirmAddCustom}
                 disabled={!customValueInput.trim()}
-                className="flex-1 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white rounded-xl text-xs font-bold transition cursor-pointer"
+                className="flex-1 py-2 btn-crimson disabled:opacity-40 text-white rounded-xl text-xs font-bold transition cursor-pointer"
               >
                 + เพิ่มใหม่
               </button>

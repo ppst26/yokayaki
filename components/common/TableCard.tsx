@@ -28,7 +28,7 @@ export const TableCard: React.FC<TableCardProps> = ({ table, onClick, className 
     if (isOccupied) {
       return 'bg-gradient-to-br from-amber-400 via-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/20 border-transparent';
     }
-    return 'bg-white dark:bg-neutral-900 text-slate-900 dark:text-neutral-100 border border-slate-200 dark:border-neutral-800 hover:border-slate-300 dark:hover:border-neutral-700';
+    return 'app-card text-slate-900 dark:text-neutral-100';
   };
 
   // Status Badge Styling & Text

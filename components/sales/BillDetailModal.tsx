@@ -68,8 +68,8 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
   if (!selectedOrder) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs">
-      <div className="bg-white dark:bg-neutral-900 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 app-dialog-backdrop">
+      <div className="app-dialog w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
         {/* Modal Header */}
         <div className="px-6 py-4 bg-neutral-800 text-white flex items-center justify-between">
           <div className="space-y-0.5">

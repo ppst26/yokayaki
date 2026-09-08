@@ -128,8 +128,8 @@ export const MenuItemModal: React.FC<MenuItemModalProps> = ({
   if (!showFormModal) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs">
-      <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto space-y-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 app-dialog-backdrop">
+      <div className="app-dialog w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-black text-slate-900 dark:text-neutral-100">
             {editingItem ? 'แก้ไขเมนูอาหาร' : 'เพิ่มเมนูอาหารใหม่'}
@@ -294,7 +294,7 @@ export const MenuItemModal: React.FC<MenuItemModalProps> = ({
             <button
               type="submit"
               disabled={isSaving}
-              className="flex-1 py-3 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-sm font-bold transition shadow-md shadow-red-600/20 cursor-pointer flex items-center justify-center gap-2"
+              className="flex-1 py-3 btn-crimson disabled:opacity-50 text-white rounded-sm font-bold transition shadow-md shadow-red-600/20 cursor-pointer flex items-center justify-center gap-2"
             >
               {isSaving ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

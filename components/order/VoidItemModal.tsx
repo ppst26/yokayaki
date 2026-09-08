@@ -43,8 +43,8 @@ export const VoidItemModal: React.FC<VoidItemModalProps> = ({
   if (!voidTarget) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs">
-      <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl w-full max-w-sm p-6 shadow-xl space-y-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 app-dialog-backdrop">
+      <div className="app-dialog w-full max-w-sm p-6 shadow-xl space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-black text-rose-600 dark:text-rose-400 flex items-center gap-2">
             <ShieldAlert className="w-5 h-5" />

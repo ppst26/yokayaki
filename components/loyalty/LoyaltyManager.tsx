@@ -24,14 +24,10 @@ import { Card } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { CustomSelect } from '@/components/ui/select';
 import { TablePagination } from '@/components/ui/pagination';
-import { MemberInfoCard } from './MemberInfoCard';
+import { MemberDetailPanel } from './MemberDetailPanel';
 import { PointsHistoryModal } from './PointsHistoryModal';
-import { MemberStatsRow } from './MemberStatsRow';
-import { FavoriteMenusChips } from './FavoriteMenusChips';
-import { MemberPointsTimeline } from './MemberPointsTimeline';
 import { MemberTagChips } from './MemberTagChips';
 import { MemberRfmBadge } from './MemberRfmBadge';
-import { MemberRfmCard } from './MemberRfmCard';
 import {
   type MemberTagCode,
   MEMBER_TAG_FILTER_OPTIONS,
@@ -606,7 +602,7 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
               <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : filteredMembers.length === 0 ? (
-            <div className="text-center py-16 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl p-8">
+            <div className="text-center py-16 app-dialog p-8">
               <Users className="w-12 h-12 text-slate-300 dark:text-neutral-600 mx-auto mb-3" />
               <p className="text-sm font-bold text-slate-500 dark:text-neutral-400">
                 {listTab === 'dormant'
@@ -710,112 +706,40 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
             <span>ย้อนกลับไปหน้ารายชื่อสมาชิก</span>
           </button>
 
-          {/* SINGLE MAIN OUTER CARD */}
-          <Card className="p-6 md:p-8 space-y-6">
-            {/* Member Info Card Header */}
-            <MemberInfoCard
-              selectedMember={selectedMember}
-              tags={profileTags}
-              setShowEditModal={setShowEditModal}
-              setEditName={setEditName}
-              setEditPhone={setEditPhone}
-              setShowPointsModal={setShowPointsModal}
-              setShowDeleteModal={setShowDeleteModal}
-              formatDate={formatDate}
-            />
-
-            <MemberStatsRow
-              stats={
-                memberProfile?.stats ?? {
-                  lifetime_spend: 0,
-                  visit_count: 0,
-                  last_visit_at: null,
-                  avg_per_bill: 0,
-                }
+          <MemberDetailPanel
+            selectedMember={selectedMember}
+            stats={
+              memberProfile?.stats ?? {
+                lifetime_spend: 0,
+                visit_count: 0,
+                last_visit_at: null,
+                avg_per_bill: 0,
               }
-              formatDate={formatDate}
-              loading={detailLoading}
-            />
-
-            <FavoriteMenusChips
-              menus={memberProfile?.favorite_menus ?? []}
-              loading={detailLoading}
-            />
-
-            <MemberRfmCard rfm={profileRfm} loading={detailLoading} />
-
-            {/* Member Purchase & Points History Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Purchase History Inner Section */}
-              <div className="bg-slate-50 dark:bg-neutral-800/50 border border-slate-200/80 dark:border-neutral-700/60 rounded-2xl p-5 space-y-4">
-                <h3 className="text-sm font-extrabold text-slate-900 dark:text-neutral-100 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-red-600 dark:text-red-400" />
-                  ประวัติการใช้บริการ (ชำระเงิน)
-                </h3>
-
-                {detailLoading ? (
-                  <div className="flex justify-center py-10">
-                    <div className="w-8 h-8 border-3 border-red-600 border-t-transparent rounded-full animate-spin" />
-                  </div>
-                ) : bills.length === 0 ? (
-                  <p className="text-xs text-slate-400 dark:text-neutral-500 text-center py-8">
-                    ยังไม่มีประวัติการชำระเงิน
-                  </p>
-                ) : (
-                  <div className="space-y-2.5 max-h-[400px] overflow-y-auto pr-1">
-                    {bills.map(b => (
-                      <div
-                        key={b.id}
-                        className="p-3 bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-700 rounded-xl text-xs space-y-1 shadow-2xs"
-                      >
-                        <div className="flex justify-between items-center font-bold text-slate-900 dark:text-neutral-100">
-                          <span>
-                            บิล ORD-{b.order_id} ({b.table_number ? `โต๊ะ ${b.table_number}` : 'กลับบ้าน'})
-                          </span>
-                          <span className="text-red-600 dark:text-red-400">
-                            {b.net_amount.toLocaleString()} ฿
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center text-[11px] text-slate-500 dark:text-neutral-400 font-semibold">
-                          <span>
-                            {formatDate(b.created_at)} {formatTime(b.created_at)} น. •{' '}
-                            {getPaymentLabel(b.payment_method)}
-                          </span>
-                          <div className="flex gap-2">
-                            {b.points_earned > 0 && (
-                              <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">
-                                +{b.points_earned} แต้ม
-                              </span>
-                            )}
-                            {b.points_redeemed > 0 && (
-                              <span className="text-rose-600 dark:text-rose-400 font-extrabold">
-                                ใช้ {b.points_redeemed} แต้ม
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Points Timeline */}
-              <MemberPointsTimeline
-                events={pointEvents}
-                loading={detailLoading}
-                formatDate={formatDate}
-                formatTime={formatTime}
-              />
-            </div>
-          </Card>
+            }
+            tags={profileTags}
+            rfm={profileRfm}
+            favoriteMenus={memberProfile?.favorite_menus ?? []}
+            bills={bills}
+            pointEvents={pointEvents}
+            loading={detailLoading}
+            formatDate={formatDate}
+            formatTime={formatTime}
+            getPaymentLabel={getPaymentLabel}
+            onEdit={() => {
+              setEditName(selectedMember.name);
+              setEditPhone(selectedMember.phone_number);
+              setShowEditModal(true);
+            }}
+            onAdjustPoints={() => setShowPointsModal(true)}
+            onDelete={() => setShowDeleteModal(true)}
+          />
         </div>
       )}
 
       {/* Edit Modal */}
       {showEditModal && selectedMember && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs">
-          <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl w-full max-w-sm p-6 shadow-xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 app-dialog-backdrop">
+          <div className="app-dialog w-full max-w-sm p-6 shadow-xl space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-black text-slate-900 dark:text-neutral-100">
                 แก้ไขข้อมูลสมาชิก
@@ -862,7 +786,7 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
               <button
                 onClick={handleEditMember}
                 disabled={isSaving || !editName.trim()}
-                className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition shadow-md shadow-red-600/20 cursor-pointer flex items-center justify-center gap-1.5"
+                className="flex-1 py-2.5 btn-crimson disabled:opacity-50 text-white rounded-xl text-xs font-bold transition shadow-md shadow-red-600/20 cursor-pointer flex items-center justify-center gap-1.5"
               >
                 {isSaving ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -877,8 +801,8 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
 
       {/* Delete Modal */}
       {showDeleteModal && selectedMember && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs">
-          <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl w-full max-w-sm p-6 shadow-xl space-y-4 text-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 app-dialog-backdrop">
+          <div className="app-dialog w-full max-w-sm p-6 shadow-xl space-y-4 text-center">
             <div className="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 mx-auto flex items-center justify-center">
               <AlertTriangle className="w-6 h-6" />
             </div>

@@ -286,7 +286,7 @@ export const EmployeeManager: React.FC = () => {
 
         <button
           onClick={() => openModal('add')}
-          className="flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-extrabold shadow-md shadow-red-600/20 transition active:scale-95 cursor-pointer shrink-0 self-end md:self-auto border-none"
+          className="btn-crimson flex items-center gap-2 px-5 py-2.5 text-white rounded-full text-sm font-extrabold cursor-pointer shrink-0 self-end md:self-auto"
         >
           <Plus className="w-4 h-4" />
           เพิ่มพนักงานใหม่
@@ -372,7 +372,7 @@ export const EmployeeManager: React.FC = () => {
                   {!isSelf && (
                     <button
                       onClick={() => openModal('delete', emp)}
-                      className="flex items-center gap-1.5 px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold transition active:scale-95 shadow-md shadow-red-600/20 cursor-pointer border-none"
+                      className="flex items-center gap-1.5 px-3.5 py-1.5 btn-crimson text-white rounded-xl text-sm font-bold transition active:scale-95 shadow-md shadow-red-600/20 cursor-pointer border-none"
                     >
                       <Trash2 className="w-4 h-4 text-white" />
                       ลบ
@@ -388,8 +388,8 @@ export const EmployeeManager: React.FC = () => {
       {/* ========== Modals ========== */}
 
       {activeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl w-full max-w-md p-6 shadow-xl space-y-5 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 app-dialog-backdrop">
+          <div className="app-dialog w-full max-w-md p-6 shadow-xl space-y-5 max-h-[90vh] overflow-y-auto">
 
             {/* === Modal: เพิ่มพนักงาน === */}
             {activeModal === 'add' && (
@@ -484,7 +484,7 @@ export const EmployeeManager: React.FC = () => {
                   <button
                     onClick={handleAddEmployee}
                     disabled={isSaving || !addName.trim() || addPin.length !== 6 || addPin !== addPinConfirm}
-                    className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-extrabold transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-red-600/20 border-none"
+                    className="flex-1 py-2.5 btn-crimson text-white rounded-xl text-sm font-extrabold transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-red-600/20 border-none"
                   >
                     {isSaving ? 'กำลังบันทึก...' : '✅ บันทึก'}
                   </button>
@@ -622,7 +622,7 @@ export const EmployeeManager: React.FC = () => {
                       (editPin.length > 0 && (editPin.length !== 6 || editPin !== editPinConfirm)) ||
                       ((editRole !== targetEmployee.role || editPin.length > 0) && confirmPin.length !== 6)
                     }
-                    className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-extrabold transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-red-600/20 border-none"
+                    className="flex-1 py-2.5 btn-crimson text-white rounded-xl text-sm font-extrabold transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-red-600/20 border-none"
                   >
                     {isSaving ? 'กำลังบันทึก...' : '✅ บันทึก'}
                   </button>

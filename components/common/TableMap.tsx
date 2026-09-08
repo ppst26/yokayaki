@@ -369,8 +369,8 @@ export const TableMap: React.FC = () => {
       </AppMainContent>
 
       {actionSelectorTable !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs">
-          <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl w-full max-w-sm p-6 shadow-xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 app-dialog-backdrop">
+          <div className="app-dialog w-full max-w-sm p-6 shadow-xl space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-h2 text-slate-900 dark:text-neutral-100">
                 จัดการ โต๊ะ {actionSelectorTable.table_number}
@@ -416,7 +416,7 @@ export const TableMap: React.FC = () => {
                 className={`w-full py-3.5 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 ${
                   pendingItemCount > 0
                     ? 'bg-slate-200 dark:bg-neutral-800 text-slate-400 dark:text-neutral-500 border border-slate-200 dark:border-neutral-700 cursor-not-allowed'
-                    : 'bg-red-600 hover:bg-red-700 text-white shadow-md shadow-red-600/20 cursor-pointer'
+                    : 'btn-crimson text-white shadow-md shadow-red-600/20 cursor-pointer'
                 }`}
               >
                 <Receipt className="w-4 h-4" />

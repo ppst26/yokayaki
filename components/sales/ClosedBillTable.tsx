@@ -83,7 +83,7 @@ export const ClosedBillTable: React.FC<ClosedBillTableProps> = ({
           className="p-3 sm:p-4 flex items-center justify-between transition active:scale-98 cursor-pointer gap-2 sm:gap-4"
         >
           <div className="flex items-center gap-2.5 sm:gap-4 min-w-0 flex-1">
-            <div className="px-2.5 h-8 sm:px-3 sm:h-9 rounded-xl bg-red-600 text-white flex items-center justify-center font-black text-xs sm:text-sm tracking-tight whitespace-nowrap shrink-0 shadow-xs">
+            <div className="nav-active px-2.5 h-8 sm:px-3 sm:h-9 rounded-xl flex items-center justify-center font-black text-xs sm:text-sm tracking-tight whitespace-nowrap shrink-0">
               ORD-{order.id}
             </div>
             <div className="min-w-0 flex-1">

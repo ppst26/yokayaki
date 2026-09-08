@@ -34,12 +34,15 @@ interface ChartBar {
 const chartConfig = {
   revenue: {
     label: 'ยอดขายสุทธิ',
-    color: '#dc2626',
+    color: '#d11f24',
   },
 } satisfies ChartConfig;
 
 export const SalesChart: React.FC<SalesChartProps> = ({ startDate, endDate, bundle }) => {
   const { payments, loading } = bundle;
+  const gradientUid = React.useId().replace(/:/g, '');
+  const barFillId = `sales-bar-${gradientUid}`;
+  const peakFillId = `sales-bar-peak-${gradientUid}`;
 
   const bars = useMemo(() => {
     const paymentsList = payments;
@@ -152,7 +155,7 @@ export const SalesChart: React.FC<SalesChartProps> = ({ startDate, endDate, bund
     <Card className="p-5 space-y-4 h-full flex flex-col justify-between">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400">
+          <div className="nav-active p-1.5 rounded-lg">
             <BarChart3 className="w-4 h-4" />
           </div>
           <div>
@@ -176,6 +179,18 @@ export const SalesChart: React.FC<SalesChartProps> = ({ startDate, endDate, bund
             <div className={`h-[210px] ${isManyBars ? 'min-w-[650px]' : 'w-full'}`}>
               <ChartContainer config={chartConfig} className="h-full w-full">
                 <BarChart data={bars} margin={{ top: 12, right: 8, left: -16, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id={barFillId} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#d11f24" />
+                      <stop offset="50%" stopColor="#8b1010" />
+                      <stop offset="100%" stopColor="#3d0505" />
+                    </linearGradient>
+                    <linearGradient id={peakFillId} x1="0" y1="0" x2="0.2" y2="1">
+                      <stop offset="0%" stopColor="#e4272c" />
+                      <stop offset="50%" stopColor="#9c1414" />
+                      <stop offset="100%" stopColor="#4a0707" />
+                    </linearGradient>
+                  </defs>
                   <CartesianGrid
                     strokeDasharray="3 3"
                     vertical={false}
@@ -203,7 +218,7 @@ export const SalesChart: React.FC<SalesChartProps> = ({ startDate, endDate, bund
                       <ChartTooltipContent
                         formatter={(val, _name, item) => (
                           <div className="flex flex-col gap-0.5">
-                            <span className="text-xs font-black text-red-600 dark:text-red-400">
+                            <span className="text-xs font-black text-[#d11f24] dark:text-[#e4272c]">
                               ฿{Number(val).toLocaleString()}
                             </span>
                             <span className="text-xs font-bold text-slate-500 dark:text-neutral-400">
@@ -220,7 +235,13 @@ export const SalesChart: React.FC<SalesChartProps> = ({ startDate, endDate, bund
                       return (
                         <Cell
                           key={`cell-${index}`}
-                          fill={isPeak ? '#ef4444' : entry.revenue > 0 ? '#dc2626' : '#e2e8f0'}
+                          fill={
+                            entry.revenue <= 0
+                              ? 'rgba(148, 163, 184, 0.22)'
+                              : isPeak
+                                ? `url(#${peakFillId})`
+                                : `url(#${barFillId})`
+                          }
                           className="transition-all duration-200 hover:opacity-80 cursor-pointer"
                         />
                       );

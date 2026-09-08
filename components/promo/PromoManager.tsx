@@ -360,7 +360,7 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
 
         <button
           onClick={openAdd}
-          className="flex items-center gap-1.5 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-extrabold transition active:scale-95 shadow-md shadow-red-600/20 cursor-pointer self-end md:self-auto"
+          className="flex items-center gap-1.5 px-4 py-2.5 btn-crimson text-white rounded-xl text-xs font-extrabold transition active:scale-95 shadow-md shadow-red-600/20 cursor-pointer self-end md:self-auto"
         >
           <Plus className="w-4 h-4" />
           <span>สร้างโปรโมชั่นใหม่</span>
@@ -387,7 +387,7 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
           <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : promotions.length === 0 ? (
-        <div className="text-center py-16 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl p-8">
+        <div className="text-center py-16 app-dialog p-8">
           <Tag className="w-12 h-12 text-slate-300 dark:text-neutral-600 mx-auto mb-3" />
           <p className="text-sm font-bold text-slate-500 dark:text-neutral-400">
             ยังไม่มีโปรโมชั่นในระบบ
@@ -532,8 +532,8 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs">
-          <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto space-y-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 app-dialog-backdrop">
+          <div className="app-dialog w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto space-y-5">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-neutral-800 pb-3">
               <div>
@@ -927,7 +927,7 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
                   type="button"
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-xl font-bold transition shadow-md shadow-red-600/20 cursor-pointer flex items-center justify-center gap-1.5"
+                  className="flex-1 py-2.5 btn-crimson disabled:opacity-50 text-white rounded-xl font-bold transition shadow-md shadow-red-600/20 cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   {isSaving ? (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -943,8 +943,8 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
 
       {/* Delete Modal */}
       {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs">
-          <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl w-full max-w-sm p-6 shadow-xl space-y-4 text-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 app-dialog-backdrop">
+          <div className="app-dialog w-full max-w-sm p-6 shadow-xl space-y-4 text-center">
             <div className="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 mx-auto flex items-center justify-center">
               <AlertTriangle className="w-6 h-6" />
             </div>

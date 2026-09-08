@@ -391,7 +391,7 @@ export const SalesHistory: React.FC = () => {
               onClick={() => setAuditRange('today')}
               className={`px-3 py-1.5 rounded-xl  text-xs md:text-sm font-extrabold transition cursor-pointer ${
                 auditRange === 'today'
-                  ? 'bg-red-600 text-white shadow-md shadow-red-600/25 border-none'
+                  ? 'nav-active border-none'
                   : 'text-slate-600  dark:text-neutral-300 hover:text-slate-900 dark:hover:text-neutral-100 border-none'
               }`}
             >
@@ -402,7 +402,7 @@ export const SalesHistory: React.FC = () => {
               onClick={() => setAuditRange('yesterday')}
               className={`px-3 py-1.5 rounded-xl text-xs md:text-sm font-extrabold transition cursor-pointer ${
                 auditRange === 'yesterday'
-                  ? 'bg-red-600 text-white shadow-md shadow-red-600/25 border-none'
+                  ? 'nav-active border-none'
                   : 'text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-neutral-100 border-none'
               }`}
             >
@@ -437,7 +437,7 @@ export const SalesHistory: React.FC = () => {
           onClick={() => setActiveSubTab('sales')}
           className={`flex-1 sm:flex-none text-center px-3.5 py-2 rounded-xl text-xs md:text-sm font-extrabold transition cursor-pointer ${
             activeSubTab === 'sales'
-              ? 'bg-red-600 text-white shadow-md shadow-red-600/25 border-none'
+              ? 'nav-active border-none'
               : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-100 hover:bg-slate-100/60 dark:hover:bg-neutral-800/60 border-none'
           }`}
         >
@@ -448,7 +448,7 @@ export const SalesHistory: React.FC = () => {
           onClick={() => setActiveSubTab('voids')}
           className={`flex-1 sm:flex-none text-center px-3.5 py-2 rounded-xl text-xs md:text-sm font-extrabold transition cursor-pointer ${
             activeSubTab === 'voids'
-              ? 'bg-red-600 text-white shadow-md shadow-red-600/25 border-none'
+              ? 'nav-active border-none'
               : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-100 hover:bg-slate-100/60 dark:hover:bg-neutral-800/60 border-none'
           }`}
         >

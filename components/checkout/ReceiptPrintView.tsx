@@ -181,7 +181,7 @@ export const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
       <div className="flex gap-3 mt-6 print:hidden">
         <button
           onClick={() => window.print()}
-          className="flex items-center gap-2 bg-red-600 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-red-700 active:scale-95 transition shadow-sm cursor-pointer"
+          className="btn-crimson flex items-center gap-2 text-white px-6 py-3 rounded-xl font-bold text-sm active:scale-95 transition cursor-pointer"
         >
           <Printer className="w-4 h-4" />
           พิมพ์ใบเสร็จ

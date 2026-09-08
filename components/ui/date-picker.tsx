@@ -287,7 +287,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                       isDisabled
                         ? 'cursor-not-allowed text-slate-300 dark:text-neutral-700'
                         : isSelected
-                          ? 'cursor-pointer bg-red-600 text-white shadow-md shadow-red-600/30'
+                          ? 'nav-active cursor-pointer'
                           : isToday
                             ? 'cursor-pointer border border-red-200 bg-red-50 text-red-600 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-400'
                             : 'cursor-pointer text-slate-700 hover:bg-slate-100 dark:text-neutral-200 dark:hover:bg-neutral-800'

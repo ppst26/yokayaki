@@ -26,8 +26,8 @@ export const SpecialNoteModal: React.FC<SpecialNoteModalProps> = ({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs">
-      <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl w-full max-w-sm p-6 shadow-xl space-y-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 app-dialog-backdrop">
+      <div className="app-dialog w-full max-w-sm p-6 shadow-xl space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-extrabold text-slate-900 dark:text-neutral-100">
             ระบุโน้ตพิเศษ
@@ -84,7 +84,7 @@ export const SpecialNoteModal: React.FC<SpecialNoteModalProps> = ({
           </button>
           <button
             onClick={saveNotes}
-            className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition shadow-md shadow-red-600/20"
+            className="flex-1 py-2.5 btn-crimson text-white rounded-xl text-xs font-bold transition shadow-md shadow-red-600/20"
           >
             บันทึกโน้ต
           </button>

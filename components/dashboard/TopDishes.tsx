@@ -140,11 +140,11 @@ export const TopDishes: React.FC<TopDishesProps> = ({ bundle }) => {
 
       {showAll && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center app-dialog-backdrop p-4"
           onClick={() => setShowAll(false)}
         >
           <div
-            className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-3xl border border-slate-200 bg-white shadow-xl dark:border-neutral-800 dark:bg-neutral-900"
+            className="app-dialog flex max-h-[85vh] w-full max-w-2xl flex-col"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 dark:border-neutral-800">

@@ -31,7 +31,10 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({
   isProcessing,
 }) => {
   return (
-    <Card className="fixed lg:relative bottom-0 left-0 right-0 z-40 lg:z-auto w-full rounded-t-3xl lg:rounded-2xl rounded-b-none lg:rounded-b-2xl border-t lg:border border-slate-200 dark:border-neutral-800 shadow-[0_-8px_30px_rgba(0,0,0,0.15)] lg:shadow-xs p-4 sm:p-5 bg-white dark:bg-neutral-900 space-y-3 sm:space-y-4 transition-all">
+    <Card
+      data-card-shape="sheet"
+      className="fixed lg:relative bottom-0 left-0 right-0 z-40 lg:z-auto w-full p-4 sm:p-5 space-y-3 sm:space-y-4 transition-all"
+    >
       {/* Cash Input */}
       <div>
         <h3 className="text-xs md:text-sm font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-400 mb-2 flex items-center gap-2">
@@ -134,7 +137,7 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({
           className={`w-full py-3.5 rounded-xl font-extrabold text-base transition active:scale-98 flex items-center justify-center gap-2 shadow-md ${
             pendingItemsCount > 0
               ? 'bg-slate-300 dark:bg-neutral-800 text-slate-500 dark:text-neutral-500 cursor-not-allowed shadow-none'
-              : 'bg-red-600 hover:bg-red-700 disabled:bg-slate-300 dark:disabled:bg-neutral-800 text-white shadow-red-600/20 cursor-pointer border-none'
+              : 'btn-crimson disabled:bg-slate-300 dark:disabled:bg-neutral-800 text-white shadow-red-600/20 cursor-pointer border-none'
           }`}
         >
           {isProcessing ? (

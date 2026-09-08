@@ -248,7 +248,7 @@ export const KitchenOrderCard: React.FC<KitchenOrderCardProps> = ({
       <div className="p-4 pt-0">
         <button
           onClick={() => markAllTableItemsAsServed(group.items)}
-          className="w-full py-3 bg-red-600 hover:bg-red-700 text-white text-body font-bold rounded-xl shadow-md shadow-red-600/20 transition active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-3 btn-crimson text-white text-body font-bold rounded-xl shadow-md shadow-red-600/20 transition active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
         >
           <CheckCircle className="w-4 h-4" />
           <span>เสิร์ฟทั้งหมดของโต๊ะ {group.table_number || group.table_id}</span>

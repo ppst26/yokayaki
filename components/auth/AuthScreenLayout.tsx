@@ -43,7 +43,7 @@ type AuthGlassPanelProps = {
 export function AuthGlassPanel({ children, className = '' }: AuthGlassPanelProps) {
   return (
     <div
-      className={`relative flex flex-col rounded-[28px] border border-white/20 bg-black/55 px-8 py-8 backdrop-blur-2xl ${className}`}
+      className={`auth-card relative flex flex-col px-8 py-8 ${className}`}
     >
       {children}
     </div>

@@ -679,8 +679,8 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNu
 
       {/* Quick Add Member Modal */}
       {showAddMemberModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in-50 duration-200">
-          <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-50 app-dialog-backdrop flex items-center justify-center p-4 animate-in fade-in-50 duration-200">
+          <div className="app-dialog p-6 w-full max-w-md shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-neutral-800 pb-3">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center">
@@ -747,7 +747,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNu
                 <button
                   type="submit"
                   disabled={newMemberPhone.length !== 10 || !newMemberName.trim() || isSubmittingMember}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl text-xs shadow-md shadow-red-600/25 disabled:opacity-50 transition active:scale-95 cursor-pointer border-none"
+                  className="flex items-center gap-2 px-5 py-2.5 btn-crimson text-white font-extrabold rounded-xl text-xs shadow-md shadow-red-600/25 disabled:opacity-50 transition active:scale-95 cursor-pointer border-none"
                 >
                   <UserPlus className="w-4 h-4" />
                   <span>{isSubmittingMember ? 'กำลังบันทึก...' : 'สมัครสมาชิก & สะสมแต้มบิลนี้'}</span>

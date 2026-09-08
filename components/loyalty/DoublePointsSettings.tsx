@@ -244,7 +244,7 @@ export function DoublePointsSettingsForm(props: DoublePointsSettingsFormProps) {
         type="button"
         onClick={handleSave}
         disabled={saving}
-        className="cursor-pointer rounded-xl bg-red-600 px-4 py-2.5 text-xs font-extrabold text-white hover:bg-red-700 disabled:opacity-50"
+        className="btn-crimson cursor-pointer rounded-xl px-4 py-2.5 text-xs font-extrabold text-white disabled:opacity-50"
       >
         {saving ? 'กำลังบันทึก...' : 'บันทึกการตั้งค่า'}
       </button>
@@ -270,7 +270,7 @@ export function DoublePointsDialog() {
           <span
             className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
               settings.activeToday
-                ? 'bg-red-600 text-white'
+                ? 'nav-active'
                 : 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300'
             }`}
           >
@@ -281,11 +281,11 @@ export function DoublePointsDialog() {
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center app-dialog-backdrop p-4"
           onClick={close}
         >
           <div
-            className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-slate-200 bg-white p-6 shadow-xl dark:border-neutral-800 dark:bg-neutral-900"
+            className="app-dialog max-h-[90vh] w-full max-w-lg overflow-y-auto p-6"
             onClick={e => e.stopPropagation()}
           >
             <div className="mb-5 flex items-center justify-between border-b border-slate-100 pb-3 dark:border-neutral-800">

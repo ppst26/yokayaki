@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Noto_Sans_Thai, Geist_Mono, Geist } from "next/font/google";
 import "./globals.css";
+import "./auth-surface.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 

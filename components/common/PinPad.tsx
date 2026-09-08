@@ -81,7 +81,7 @@ export const PinPad: React.FC = () => {
 
   return (
     <AuthScreenLayout panel="pinpad">
-      <div className="pinpad relative">
+      <div className="auth-card pinpad relative">
         <Image
           src={getLogoForTheme('dark')}
           alt="Yo-Yaki Izakaya"

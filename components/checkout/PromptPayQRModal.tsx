@@ -24,8 +24,8 @@ export const PromptPayQRModal: React.FC<PromptPayQRModalProps> = ({
   if (!showQrModal) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl w-full max-w-sm p-6 shadow-xl relative text-center">
+    <div className="fixed inset-0 app-dialog-backdrop flex items-center justify-center p-4 z-50">
+      <div className="app-dialog w-full max-w-sm p-6 shadow-xl relative text-center">
         <button
           onClick={() => setShowQrModal(false)}
           className="absolute top-4 right-4 p-2 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 rounded-full text-slate-500 dark:text-neutral-400 transition cursor-pointer"

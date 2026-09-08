@@ -69,7 +69,7 @@ export const CouponInputCard: React.FC<CouponInputCardProps> = ({
             <button
               onClick={applyCoupon}
               disabled={!couponInput.trim()}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-40 rounded-xl text-sm font-bold text-white transition active:scale-95 cursor-pointer shadow-xs border-none"
+              className="px-4 py-2 btn-crimson disabled:opacity-40 rounded-xl text-sm font-bold text-white transition active:scale-95 cursor-pointer shadow-xs border-none"
             >
               ใช้คูปอง
             </button>

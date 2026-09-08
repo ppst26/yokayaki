@@ -81,7 +81,7 @@ export const MemberInfoCard: React.FC<MemberInfoCardProps> = ({
             {/* ปุ่มปรับแต้ม */}
             <button
               onClick={() => setShowPointsModal(true)}
-              className="flex items-center gap-1.5 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-extrabold transition active:scale-95 shadow-md shadow-red-600/20 cursor-pointer border-none"
+              className="flex items-center gap-1.5 px-4 py-2.5 btn-crimson text-white rounded-xl text-sm font-extrabold transition active:scale-95 shadow-md shadow-red-600/20 cursor-pointer border-none"
             >
               <Plus className="w-4 h-4" />
               <span>ปรับแต้ม</span>

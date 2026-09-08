@@ -346,7 +346,7 @@ export default function CustomerOrderPortal() {
   if (isCheckoutCompleted) {
     return (
       <div className="flex min-h-screen animate-fade-in flex-col items-center justify-center bg-neutral-950 p-6 text-center font-sans">
-        <div className="relative flex w-full max-w-sm flex-col items-center space-y-4 overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900 p-8 shadow-xl">
+        <div className="app-dialog relative flex w-full max-w-sm flex-col items-center space-y-4 overflow-hidden p-8">
           {/* Top Decorative Banner */}
           <div className="absolute top-0 inset-x-0 h-3 bg-gradient-to-r from-red-600 via-rose-500 to-orange-500" />
           
@@ -401,7 +401,7 @@ export default function CustomerOrderPortal() {
           <p className="mb-6 text-xs leading-relaxed text-neutral-400">กรุณาสแกนใหม่อีกครั้ง หรือแจ้งพนักงานประจำร้านเพื่อสร้าง QR Code สั่งอาหารชุดใหม่ครับ</p>
           <button 
             onClick={() => window.location.reload()}
-            className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs shadow-xs transition"
+            className="w-full py-3 btn-crimson text-white rounded-xl font-bold text-xs shadow-xs transition"
           >
             ลองใหม่อีกครั้ง
           </button>
@@ -563,7 +563,7 @@ export default function CustomerOrderPortal() {
                   onClick={() => setSelectedCategory(cat)}
                   className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap border transition duration-150 active:scale-95 cursor-pointer ${
                     selectedCategory === cat
-                      ? 'bg-red-600 text-white border-red-600 shadow-xs shadow-red-600/20'
+                      ? 'nav-active'
                       : 'bg-neutral-900 hover:bg-neutral-800 border-neutral-800 text-neutral-300'
                   }`}
                 >
@@ -633,7 +633,7 @@ export default function CustomerOrderPortal() {
                             <button
                               onClick={() => addToCart(item)}
                               disabled={qty >= item.stock}
-                              className="w-7 h-7 flex items-center justify-center rounded-lg bg-red-600 hover:bg-red-700 text-white disabled:opacity-40 transition active:scale-95 cursor-pointer shadow-xs"
+                              className="w-7 h-7 flex items-center justify-center rounded-lg btn-crimson text-white disabled:opacity-40 transition active:scale-95 cursor-pointer shadow-xs"
                             >
                               <Plus className="w-3.5 h-3.5" />
                             </button>
@@ -675,7 +675,7 @@ export default function CustomerOrderPortal() {
                 <p className="text-neutral-500 text-xs">คุณยังไม่ได้ส่งสั่งอาหารเข้าครัวสำหรับโต๊ะนี้</p>
                 <button
                   onClick={() => setActiveTab('order')}
-                  className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-bold text-xs shadow-xs transition"
+                  className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 btn-crimson text-white rounded-2xl font-bold text-xs shadow-xs transition"
                 >
                   เลือกสั่งอาหารทันที
                 </button>
@@ -784,7 +784,7 @@ export default function CustomerOrderPortal() {
                         ) : (
                           <button
                             onClick={() => setShowCheckBillConfirm(true)}
-                            className="w-full py-3.5 bg-red-600 hover:bg-red-700 text-white font-extrabold text-sm rounded-2xl shadow-md shadow-red-600/20 transition active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
+                            className="w-full py-3.5 btn-crimson text-white font-extrabold text-sm rounded-2xl shadow-md shadow-red-600/20 transition active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
                           >
                             <BellRing className="w-5 h-5 animate-bounce" />
                             <span>เรียกเช็คบิล / ชำระเงิน</span>
@@ -794,8 +794,8 @@ export default function CustomerOrderPortal() {
 
                       {/* Check Bill Confirmation Modal */}
                       {showCheckBillConfirm && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fade-in">
-                          <div className="w-full max-w-sm bg-neutral-900 border border-neutral-800 rounded-3xl p-5 shadow-2xl space-y-4 text-center">
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 app-dialog-backdrop animate-fade-in">
+                          <div className="app-dialog w-full max-w-sm p-5 space-y-4 text-center">
                             <div className="w-14 h-14 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto border border-red-200">
                               <BellRing className="w-7 h-7" />
                             </div>
@@ -815,7 +815,7 @@ export default function CustomerOrderPortal() {
                               <button
                                 onClick={handleRequestCheckBill}
                                 disabled={isUpdatingStatus}
-                                className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-extrabold rounded-xl transition cursor-pointer shadow-xs"
+                                className="flex-1 py-2.5 btn-crimson text-white text-xs font-extrabold rounded-xl transition cursor-pointer shadow-xs"
                               >
                                 {isUpdatingStatus ? 'กำลังส่งสัญญาณ...' : 'ยืนยันเรียกเช็คบิล'}
                               </button>
@@ -896,7 +896,7 @@ export default function CustomerOrderPortal() {
         <div className="fixed bottom-20 inset-x-0 z-30 px-4 max-w-md mx-auto">
           <button 
             onClick={() => setShowCartDrawer(true)}
-            className="w-full bg-red-600 text-white p-3.5 rounded-2xl shadow-lg flex items-center justify-between hover:bg-red-700 active:scale-98 transition cursor-pointer"
+            className="btn-crimson w-full text-white p-3.5 rounded-2xl flex items-center justify-between active:scale-98 transition cursor-pointer"
           >
             <div className="flex items-center gap-3">
               <div className="relative rounded-xl bg-white/20 p-2">
@@ -917,8 +917,8 @@ export default function CustomerOrderPortal() {
 
       {/* Cart Drawer Modal (Light Theme) */}
       {showCartDrawer && cart.length > 0 && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-end animate-fade-in" onClick={() => setShowCartDrawer(false)}>
-          <div className="bg-neutral-900 border-t border-neutral-800 w-full max-h-[80vh] rounded-t-3xl p-5 shadow-2xl flex flex-col gap-4 max-w-md mx-auto animate-slide-up" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 app-dialog-backdrop flex items-end animate-fade-in" onClick={() => setShowCartDrawer(false)}>
+          <div className="app-dialog app-dialog--sheet w-full max-h-[80vh] p-5 flex flex-col gap-4 max-w-md mx-auto animate-slide-up" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center pb-2 border-b border-neutral-800">
               <h3 className="font-extrabold text-base flex items-center gap-2 text-neutral-100">
                 <ShoppingBag className="w-5 h-5 text-red-600" />
@@ -985,7 +985,7 @@ export default function CustomerOrderPortal() {
                   confirmOrder();
                 }}
                 disabled={isSubmitting}
-                className="w-full py-3.5 bg-red-600 hover:bg-red-700 disabled:bg-neutral-700 disabled:text-neutral-400 text-white font-extrabold text-sm rounded-2xl transition active:scale-98 flex items-center justify-center gap-2 shadow-md shadow-red-600/20 cursor-pointer"
+                className="w-full py-3.5 btn-crimson disabled:bg-neutral-700 disabled:text-neutral-400 text-white font-extrabold text-sm rounded-2xl transition active:scale-98 flex items-center justify-center gap-2 shadow-md shadow-red-600/20 cursor-pointer"
               >
                 {isSubmitting ? 'กำลังส่งคำสั่งซื้อ...' : 'ยืนยันสั่งอาหารส่งเข้าครัว'}
               </button>
@@ -996,8 +996,8 @@ export default function CustomerOrderPortal() {
 
       {/* Note Edit Modal (Light Theme) */}
       {noteEditTarget !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fade-in">
-          <div className="w-full max-w-sm bg-neutral-900 border border-neutral-800 rounded-3xl p-5 shadow-2xl relative space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 app-dialog-backdrop animate-fade-in">
+          <div className="app-dialog w-full max-w-sm p-5 relative space-y-4">
             <div>
               <h3 className="text-base font-black text-neutral-100 flex items-center gap-2">
                 <ClipboardList className="w-4 h-4 text-red-600" />
@@ -1074,7 +1074,7 @@ export default function CustomerOrderPortal() {
                   updateCartItemNotes(noteEditTarget.index, noteEditTarget.notes);
                   setNoteEditTarget(null);
                 }}
-                className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-extrabold rounded-xl transition cursor-pointer shadow-xs"
+                className="flex-1 py-2.5 btn-crimson text-white text-xs font-extrabold rounded-xl transition cursor-pointer shadow-xs"
               >
                 บันทึกโน้ต
               </button>
