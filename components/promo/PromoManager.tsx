@@ -16,8 +16,19 @@ import {
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { CustomSelect } from '@/components/ui/select';
+import { DatePicker } from '@/components/ui/date-picker';
 import { ImageUploadField } from '@/components/ui/ImageUploadField';
 import { deleteOldImage } from '@/lib/deleteOldImage';
+import {
+  type WinbackPromoDraft,
+  formatWinbackNote,
+} from '@/lib/winbackPromo';
+import {
+  type PromoTargetSegment,
+  PROMO_SEGMENT_OPTIONS,
+  getPromoSegmentMeta,
+  parsePromoTargetSegment,
+} from '@/lib/promoSegments';
 
 interface MenuItem {
   id: number;
@@ -42,6 +53,7 @@ interface Promotion {
   coupon_code?: string;
   is_active: boolean;
   image_url?: string | null;
+  target_segment?: string | null;
   created_at: string;
 }
 
@@ -51,7 +63,15 @@ const TYPE_LABELS: Record<string, { label: string; desc: string }> = {
   buy_x_get_y: { label: 'ซื้อ X แถม Y', desc: 'ซื้อเมนูที่กำหนดครบ X จาน แถมฟรี Y จาน' },
 };
 
-export const PromoManager: React.FC = () => {
+interface PromoManagerProps {
+  winbackDraft?: WinbackPromoDraft | null;
+  onWinbackDraftConsumed?: () => void;
+}
+
+export const PromoManager: React.FC<PromoManagerProps> = ({
+  winbackDraft = null,
+  onWinbackDraftConsumed,
+}) => {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,6 +103,8 @@ export const PromoManager: React.FC = () => {
   const [endTime, setEndTime] = useState('');
   const [couponCode, setCouponCode] = useState('');
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [targetSegment, setTargetSegment] = useState<PromoTargetSegment>('all');
+  const [winbackNote, setWinbackNote] = useState<string | null>(null);
 
   const showMsg = (text: string, t: 'success' | 'error') => {
     setMessage({ text, type: t });
@@ -119,6 +141,7 @@ export const PromoManager: React.FC = () => {
 
   const openAdd = () => {
     setEditingPromo(null);
+    setWinbackNote(null);
     setName('');
     setPromoCategory('discount');
     setDiscountUnit('percent');
@@ -136,11 +159,45 @@ export const PromoManager: React.FC = () => {
     setEndTime('');
     setCouponCode('');
     setImageUrl(null);
+    setTargetSegment('all');
     setPreviousImageUrl(null);
     setShowModal(true);
   };
 
+  const applyWinbackDraft = (draft: WinbackPromoDraft) => {
+    setEditingPromo(null);
+    setName(draft.name);
+    setPromoCategory('coupon');
+    setDiscountUnit(draft.discountUnit);
+    setIsHappyHour(false);
+    setType(draft.discountUnit === 'percent' ? 'percentage' : 'fixed');
+    setDiscountPercent(String(draft.discountPercent));
+    setDiscountAmount(String(draft.discountAmount));
+    setMinOrderAmount(String(draft.minOrderAmount));
+    setBuyQty('1');
+    setFreeQty('1');
+    setMenuItemId('');
+    setStartDate('');
+    setEndDate(draft.endDate);
+    setStartTime('');
+    setEndTime('');
+    setCouponCode(draft.couponCode);
+    setTargetSegment(draft.targetSegment);
+    setImageUrl(null);
+    setPreviousImageUrl(null);
+    setWinbackNote(formatWinbackNote(draft));
+    setShowModal(true);
+    showMsg('เติมฟอร์ม Win-back แล้ว — ตรวจสอบแล้วกดบันทึก', 'success');
+  };
+
+  useEffect(() => {
+    if (!winbackDraft) return;
+    applyWinbackDraft(winbackDraft);
+    onWinbackDraftConsumed?.();
+  }, [winbackDraft]);
+
   const openEdit = (p: Promotion) => {
+    setWinbackNote(null);
     setEditingPromo(p);
     setName(p.name);
 
@@ -167,9 +224,15 @@ export const PromoManager: React.FC = () => {
     setStartTime(p.start_time || '');
     setEndTime(p.end_time || '');
     setCouponCode(p.coupon_code || '');
+    setTargetSegment(parsePromoTargetSegment(p.target_segment) ?? 'all');
     setImageUrl(p.image_url ?? null);
     setPreviousImageUrl(p.image_url ?? null);
     setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setWinbackNote(null);
   };
 
   const handleSave = async () => {
@@ -202,6 +265,7 @@ export const PromoManager: React.FC = () => {
         end_time: isHappyHour ? (endTime || null) : null,
         menu_item_id: menuItemId ? Number(menuItemId) : null,
         coupon_code: promoCategory === 'coupon' && couponCode.trim() ? couponCode.trim().toUpperCase() : null,
+        target_segment: targetSegment === 'all' ? null : targetSegment,
         image_url: imageUrl,
         is_active: editingPromo ? editingPromo.is_active : true,
       };
@@ -236,6 +300,7 @@ export const PromoManager: React.FC = () => {
       }
 
       setShowModal(false);
+      setWinbackNote(null);
       fetchData();
     } catch (err: any) {
       console.error('Error saving promo:', err);
@@ -336,119 +401,128 @@ export const PromoManager: React.FC = () => {
             return (
               <Card
                 key={p.id}
-                className={`p-5 rounded-2xl border border-slate-200/80 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between space-y-4 ${
+                className={`overflow-hidden rounded-2xl border border-slate-200/80 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col ${
                   p.is_active ? '' : 'opacity-65 grayscale-[20%]'
                 }`}
               >
-                {/* Upper Section */}
-                <div className="space-y-3">
-                  {/* Category Badge & Active Toggle */}
-                  <div className="flex items-center justify-between gap-2">
+                {/* Banner + overlay badges */}
+                <div className="relative h-40 w-full shrink-0 bg-slate-100 dark:bg-neutral-800">
+                  {p.image_url ? (
+                    <img
+                      src={p.image_url}
+                      alt={p.name}
+                      className="size-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex size-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200/80 dark:from-neutral-800 dark:to-neutral-900">
+                      <Tag className="size-10 text-slate-300 dark:text-neutral-600" />
+                    </div>
+                  )}
+
+                  <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-3">
                     <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-badge ${
+                      className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-badge backdrop-blur-sm ${
                         p.type === 'percentage'
-                          ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/40'
+                          ? 'bg-rose-50/90 text-rose-600 border border-rose-100/80 dark:bg-rose-950/80 dark:text-rose-400 dark:border-rose-900/40'
                           : p.type === 'fixed'
-                          ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-900/40'
-                          : 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/40'
+                          ? 'bg-amber-50/90 text-amber-600 border border-amber-100/80 dark:bg-amber-950/80 dark:text-amber-400 dark:border-amber-900/40'
+                          : 'bg-indigo-50/90 text-indigo-600 border border-indigo-100/80 dark:bg-indigo-950/80 dark:text-indigo-400 dark:border-indigo-900/40'
                       }`}
                     >
-                      {p.type === 'percentage' && <TicketPercent className="w-3.5 h-3.5" />}
-                      {p.type === 'fixed' && <Tag className="w-3.5 h-3.5" />}
-                      {p.type === 'buy_x_get_y' && <Gift className="w-3.5 h-3.5" />}
+                      {p.type === 'percentage' && <TicketPercent className="size-3.5" />}
+                      {p.type === 'fixed' && <Tag className="size-3.5" />}
+                      {p.type === 'buy_x_get_y' && <Gift className="size-3.5" />}
                       <span>{TYPE_LABELS[p.type]?.label || p.type}</span>
                     </span>
 
                     <button
                       onClick={() => toggleActive(p)}
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-badge transition cursor-pointer ${
+                      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-badge backdrop-blur-sm transition cursor-pointer ${
                         p.is_active
-                          ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60'
-                          : 'bg-slate-100 dark:bg-neutral-800 text-slate-400 dark:text-neutral-500 border border-slate-200/60 dark:border-neutral-700'
+                          ? 'bg-emerald-50/90 text-emerald-600 border border-emerald-200/80 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-800/60'
+                          : 'bg-slate-100/90 text-slate-400 border border-slate-200/60 dark:bg-neutral-800/90 dark:text-neutral-500 dark:border-neutral-700'
                       }`}
                     >
                       <span
-                        className={`w-1.5 h-1.5 rounded-full ${
+                        className={`size-1.5 rounded-full ${
                           p.is_active ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'
                         }`}
                       />
                       <span>{p.is_active ? 'เปิดใช้งานอยู่' : 'ปิดอยู่'}</span>
                     </button>
                   </div>
+                </div>
 
-                  {/* Promo Name */}
+                {/* Body */}
+                <div className="flex flex-1 flex-col gap-3 p-4">
                   <h3 className="font-extrabold text-base text-slate-900 dark:text-neutral-100 leading-snug">
                     {p.name}
                   </h3>
 
-                  {/* Badges / Value / Info */}
-                  <div className="flex flex-wrap items-center gap-2 pt-0.5">
-                    {/* Main Value Tag */}
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-black bg-red-600 text-white shadow-xs">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center rounded-md bg-red-600 px-2.5 py-1 text-xs font-black text-white shadow-xs">
                       {p.type === 'percentage' && `ลด ${p.discount_percent}%`}
                       {p.type === 'fixed' && `ลด ฿${p.discount_amount}`}
                       {p.type === 'buy_x_get_y' && `ซื้อ ${p.buy_qty} แถม ${p.free_qty}`}
                     </span>
 
-                    {/* Min Order Condition */}
                     {p.min_order_amount > 0 && (
-                      <span className="inline-flex items-center text-[11px] font-bold text-slate-600 dark:text-neutral-300 bg-slate-100 dark:bg-neutral-800 border border-slate-200/60 dark:border-neutral-700 px-2 py-0.5 rounded-md">
+                      <span className="inline-flex items-center rounded-md border border-slate-200/60 bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
                         ขั้นต่ำ ฿{p.min_order_amount.toLocaleString()}
                       </span>
                     )}
 
-                    {/* Coupon Code Badge */}
                     {p.coupon_code && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-slate-700 dark:text-neutral-200 bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 px-2 py-0.5 rounded-md">
-                        รหัส: <span className="text-red-600 dark:text-red-400 font-extrabold">{p.coupon_code}</span>
+                      <span className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-100 px-2 py-0.5 font-mono text-[11px] font-bold text-slate-700 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200">
+                        รหัส: <span className="font-extrabold text-red-600 dark:text-red-400">{p.coupon_code}</span>
                       </span>
                     )}
 
-                    {/* Specific Menu Item */}
+                    {p.target_segment && parsePromoTargetSegment(p.target_segment) && (
+                      <span className="inline-flex items-center rounded-md border border-violet-200/80 bg-violet-50 px-2 py-0.5 text-[11px] font-bold text-violet-700 dark:border-violet-900/50 dark:bg-violet-950/40 dark:text-violet-300">
+                        กลุ่ม: {getPromoSegmentMeta(parsePromoTargetSegment(p.target_segment)).label}
+                      </span>
+                    )}
+
                     {targetMenu && (
-                      <span className="inline-flex items-center text-[11px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/40 px-2 py-0.5 rounded-md">
+                      <span className="inline-flex items-center rounded-md border border-indigo-100 bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-700 dark:border-indigo-900/40 dark:bg-indigo-950/40 dark:text-indigo-300">
                         เฉพาะ {targetMenu.name}
                       </span>
                     )}
+
+                    <div className="ml-auto flex shrink-0 items-center gap-1">
+                      <button
+                        onClick={() => openEdit(p)}
+                        className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-700 transition hover:bg-slate-200 active:scale-95 cursor-pointer dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+                        title="แก้ไข"
+                      >
+                        <Pencil className="size-3 text-slate-500 dark:text-neutral-400" />
+                        <span>แก้ไข</span>
+                      </button>
+                      <button
+                        onClick={() => setDeleteTarget(p)}
+                        className="inline-flex items-center gap-1 rounded-lg bg-rose-50 px-2.5 py-1 text-[11px] font-bold text-rose-600 transition hover:bg-rose-100 active:scale-95 cursor-pointer dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-900/60"
+                        title="ลบ"
+                      >
+                        <Trash2 className="size-3" />
+                        <span>ลบ</span>
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Happy Hour / Date range if present */}
                   {(p.start_time || p.end_time) && (
-                    <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 dark:text-neutral-400 pt-0.5">
-                      <Clock className="w-3.5 h-3.5 text-slate-400" />
+                    <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 dark:text-neutral-400">
+                      <Clock className="size-3.5 text-slate-400" />
                       <span>
                         Happy Hour: {p.start_time || '00:00'} - {p.end_time || '23:59'} น.
                       </span>
                     </div>
                   )}
-                </div>
 
-                {/* Middle Action Bar (Above the Line) */}
-                <div className="flex items-center justify-end pt-1">
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={() => openEdit(p)}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-200 rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer"
-                      title="แก้ไข"
-                    >
-                      <Pencil className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400" />
-                      <span>แก้ไข</span>
-                    </button>
-                    <button
-                      onClick={() => setDeleteTarget(p)}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer"
-                      title="ลบ"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>ลบ</span>
-                    </button>
+                  <div className="flex items-center justify-between border-t border-slate-100 pt-2 text-[10px] font-semibold text-slate-400 dark:border-neutral-800 dark:text-neutral-500">
+                    <span>สร้างเมื่อ {new Date(p.created_at).toLocaleDateString('th-TH')}</span>
+                    <span>ID: #{p.id}</span>
                   </div>
-                </div>
-
-                {/* Bottom Divider Line & Footer */}
-                <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 flex items-center justify-between text-[10px] font-semibold text-slate-400 dark:text-neutral-500">
-                  <span>สร้างเมื่อ {new Date(p.created_at).toLocaleDateString('th-TH')}</span>
-                  <span>ID: #{p.id}</span>
                 </div>
               </Card>
             );
@@ -471,12 +545,19 @@ export const PromoManager: React.FC = () => {
                 </p>
               </div>
               <button
-                onClick={() => setShowModal(false)}
+                onClick={closeModal}
                 className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-300 rounded-full cursor-pointer transition"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
+
+            {winbackNote && (
+              <div className="p-3 bg-violet-50 dark:bg-violet-950/40 border border-violet-200/80 dark:border-violet-900/50 text-violet-800 dark:text-violet-200 rounded-xl text-xs font-semibold flex items-start gap-2">
+                <TicketPercent className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{winbackNote}</span>
+              </div>
+            )}
 
             <div className="space-y-4 text-xs font-semibold">
               {/* Category Selector: Grid 3 */}
@@ -555,22 +636,21 @@ export const PromoManager: React.FC = () => {
                   <label className="block text-slate-600 dark:text-neutral-300 mb-1 font-bold">
                     วันเริ่มโปร
                   </label>
-                  <input
-                    type="date"
+                  <DatePicker
                     value={startDate}
-                    onChange={e => setStartDate(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2 text-xs font-semibold text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none"
+                    onChange={setStartDate}
+                    placeholder="วันเริ่มโปร..."
                   />
                 </div>
                 <div>
                   <label className="block text-slate-600 dark:text-neutral-300 mb-1 font-bold">
                     วันสิ้นสุดโปร
                   </label>
-                  <input
-                    type="date"
+                  <DatePicker
                     value={endDate}
-                    onChange={e => setEndDate(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2 text-xs font-semibold text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none"
+                    onChange={setEndDate}
+                    placeholder="วันสิ้นสุดโปร..."
+                    minDate={startDate || undefined}
                   />
                 </div>
               </div>
@@ -667,6 +747,26 @@ export const PromoManager: React.FC = () => {
                       />
                     </div>
                   )}
+
+                  <div>
+                    <label className="block text-slate-600 dark:text-neutral-300 mb-1 font-bold">
+                      กลุ่มเป้าหมาย (G6)
+                    </label>
+                    <CustomSelect
+                      value={targetSegment}
+                      onChange={v => setTargetSegment(v as PromoTargetSegment)}
+                      options={PROMO_SEGMENT_OPTIONS.map(o => ({
+                        value: o.value,
+                        label: o.label,
+                      }))}
+                    />
+                    <p className="text-[10px] text-slate-400 dark:text-neutral-500 mt-1 font-semibold">
+                      {getPromoSegmentMeta(targetSegment).description}
+                      {promoCategory === 'coupon' && targetSegment !== 'all'
+                        ? ' — ต้องระบุเบอร์สมาชิกตอนชำระเงิน'
+                        : ''}
+                    </p>
+                  </div>
 
                   {/* Min order amount */}
                   <div>
@@ -818,7 +918,7 @@ export const PromoManager: React.FC = () => {
               <div className="flex gap-2 pt-3 border-t border-slate-100 dark:border-neutral-800">
                 <button
                   type="button"
-                  onClick={() => setShowModal(false)}
+                  onClick={closeModal}
                   className="flex-1 py-2.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-300 rounded-xl font-bold transition cursor-pointer"
                 >
                   ยกเลิก
