@@ -355,22 +355,12 @@ body {
   background-color: #0a0a09;
 }
 
-.app-main__canvas::before {
+.dark .app-main__canvas::before {
   content: '';
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  /* light: ล่างขาว → บนเทาอ่อน โปร่งใส */
-  background: linear-gradient(
-    to bottom,
-    rgba(226, 232, 240, 0.32) 0%,
-    rgba(241, 245, 249, 0.18) 50%,
-    rgba(255, 255, 255, 0.1) 100%
-  );
-}
-
-.dark .app-main__canvas::before {
   background: linear-gradient(
     to top,
     rgba(10, 10, 9, 0.88) 0%,
