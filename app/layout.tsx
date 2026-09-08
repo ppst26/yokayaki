@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Noto_Sans_Thai, Geist_Mono, Geist } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
@@ -38,9 +39,13 @@ export default function RootLayout({
   return (
     <html
       lang="th"
-      className={cn("h-full", "antialiased", notoSansThai.variable, geistMono.variable, geist.variable, "font-sans")}
+      suppressHydrationWarning
+      className={cn("dark h-full antialiased", notoSansThai.variable, geistMono.variable, geist.variable, "font-sans")}
     >
       <body className="min-h-full flex flex-col font-sans bg-background text-foreground antialiased leading-relaxed">
+        <Script id="theme-boot" strategy="beforeInteractive">
+          {`(function(){try{var t=localStorage.getItem('yokayaki_theme');if(t==='light')document.documentElement.classList.remove('dark');else document.documentElement.classList.add('dark');}catch(e){}})();`}
+        </Script>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

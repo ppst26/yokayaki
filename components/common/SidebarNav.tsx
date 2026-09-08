@@ -40,7 +40,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
   const { employee, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDrawerClosing, setIsDrawerClosing] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [pendingTablesCount, setPendingTablesCount] = useState<number>(0);
   const [checkingOutCount, setCheckingOutCount] = useState<number>(0);
 
@@ -115,12 +115,12 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
 
   useEffect(() => {
     const saved = localStorage.getItem('yokayaki_theme');
-    if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      setTheme('dark');
-      document.documentElement.classList.add('dark');
-    } else {
+    if (saved === 'light') {
       setTheme('light');
       document.documentElement.classList.remove('dark');
+    } else {
+      setTheme('dark');
+      document.documentElement.classList.add('dark');
     }
   }, []);
 

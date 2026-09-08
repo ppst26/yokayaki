@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { 
   ShoppingBag, 
@@ -21,6 +22,7 @@ import {
   BellRing
 } from 'lucide-react';
 import { menuItemSalePrice } from '@/lib/menuPrice';
+import { PLATFORM_BRANDING } from '@/lib/branding';
 
 interface OrderedItem {
   id: number;
@@ -330,12 +332,11 @@ export default function CustomerOrderPortal() {
     return 'โปรโมชั่นพิเศษสำหรับลูกค้า Yokayaki';
   };
 
-  // Render Loader (Light Theme)
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
-        <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-slate-600 mt-4 font-bold text-sm animate-pulse">กำลังดาวน์โหลดเมนู Yokayaki...</p>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-950 p-6">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-red-600 border-t-transparent"></div>
+        <p className="mt-4 animate-pulse text-sm font-bold text-neutral-300">กำลังดาวน์โหลดเมนู Yokayaki...</p>
       </div>
     );
   }
@@ -344,8 +345,8 @@ export default function CustomerOrderPortal() {
   // Only shown when checkout happens via realtime while customer is actively using the page
   if (isCheckoutCompleted) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center font-sans animate-fade-in">
-        <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-xl max-w-sm w-full flex flex-col items-center space-y-4 relative overflow-hidden">
+      <div className="flex min-h-screen animate-fade-in flex-col items-center justify-center bg-neutral-950 p-6 text-center font-sans">
+        <div className="relative flex w-full max-w-sm flex-col items-center space-y-4 overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900 p-8 shadow-xl">
           {/* Top Decorative Banner */}
           <div className="absolute top-0 inset-x-0 h-3 bg-gradient-to-r from-red-600 via-rose-500 to-orange-500" />
           
@@ -357,20 +358,20 @@ export default function CustomerOrderPortal() {
             <span className="inline-block px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-black tracking-wide uppercase">
               ชำระเงินเรียบร้อยแล้ว
             </span>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight pt-2">
+            <h1 className="pt-2 text-2xl font-black tracking-tight text-neutral-100">
               ขอบคุณที่ใช้บริการ!
             </h1>
-            <p className="text-slate-500 text-xs font-semibold">
+            <p className="text-xs font-semibold text-neutral-400">
               Yokayaki Izakaya • โต๊ะ {tableNumber ?? ''}
             </p>
           </div>
 
-          <div className="w-full bg-slate-50 border border-slate-200/80 rounded-2xl p-4 text-slate-600 text-xs font-medium leading-relaxed space-y-2 text-left">
-            <div className="flex items-center gap-2 text-slate-900 font-bold border-b border-slate-200 pb-2">
-              <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+          <div className="w-full space-y-2 rounded-2xl border border-neutral-800 bg-neutral-800/70 p-4 text-left text-xs font-medium leading-relaxed text-neutral-300">
+            <div className="flex items-center gap-2 border-b border-neutral-700 pb-2 font-bold text-neutral-100">
+              <Sparkles className="h-4 w-4 shrink-0 text-amber-500" />
               <span>ทางร้านได้รับการชำระเงินเรียบร้อยแล้ว</span>
             </div>
-            <p className="text-slate-500 text-[11px] leading-relaxed pt-1">
+            <p className="pt-1 text-[11px] leading-relaxed text-neutral-400">
               ขอบพระคุณลูกค้าที่มาร่วมรับประทานอาหารกับ Yokayaki ครับ หวังว่าจะได้รับความไว้วางใจและมีโอกาสให้บริการท่านอีกครั้งครับ 🙏
             </p>
           </div>
@@ -378,7 +379,7 @@ export default function CustomerOrderPortal() {
           <div className="w-full pt-2">
             <button
               onClick={() => window.location.reload()}
-              className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition cursor-pointer"
+              className="w-full cursor-pointer rounded-xl bg-neutral-800 py-3 text-xs font-bold text-neutral-200 transition hover:bg-neutral-700"
             >
               รีเฟรช / สแกนโต๊ะใหม่
             </button>
@@ -391,13 +392,13 @@ export default function CustomerOrderPortal() {
   // Render Invalid Session (Light Theme)
   if (sessionValid === false) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
-        <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-md max-w-sm w-full flex flex-col items-center">
-          <div className="w-16 h-16 bg-rose-50 border border-rose-200 rounded-full flex items-center justify-center text-rose-600 mb-4">
-            <AlertCircle className="w-8 h-8" />
+      <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-950 p-6 text-center">
+        <div className="flex w-full max-w-sm flex-col items-center rounded-3xl border border-neutral-800 bg-neutral-900 p-8 shadow-md">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-rose-900/50 bg-rose-950/40 text-rose-400">
+            <AlertCircle className="h-8 w-8" />
           </div>
-          <h1 className="text-xl font-black text-slate-900 mb-2">QR Code หมดอายุหรือไม่ถูกต้อง</h1>
-          <p className="text-slate-500 text-xs leading-relaxed mb-6">กรุณาสแกนใหม่อีกครั้ง หรือแจ้งพนักงานประจำร้านเพื่อสร้าง QR Code สั่งอาหารชุดใหม่ครับ</p>
+          <h1 className="mb-2 text-xl font-black text-neutral-100">QR Code หมดอายุหรือไม่ถูกต้อง</h1>
+          <p className="mb-6 text-xs leading-relaxed text-neutral-400">กรุณาสแกนใหม่อีกครั้ง หรือแจ้งพนักงานประจำร้านเพื่อสร้าง QR Code สั่งอาหารชุดใหม่ครับ</p>
           <button 
             onClick={() => window.location.reload()}
             className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs shadow-xs transition"
@@ -412,27 +413,29 @@ export default function CustomerOrderPortal() {
   const pendingCount = orderedItems.filter(i => i.status === 'pending').length;
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-36">
+    <div className="min-h-screen bg-neutral-950 pb-36 font-sans text-neutral-100">
       
       {/* Sticky Top Header */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-xs">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-red-50 border border-red-200 text-red-600 rounded-2xl flex items-center justify-center shadow-xs">
-            <ChefHat className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="font-black text-base leading-tight tracking-tight text-slate-900">Yokayaki</h1>
-            <p className="text-slate-500 text-xs md:text-sm font-bold whitespace-nowrap mt-0.5">
-              ประจำ <span className="text-red-600 font-black text-sm md:text-base">โต๊ะ {tableNumber ?? ''}</span>
-            </p>
-          </div>
+      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-neutral-800 bg-neutral-900/90 px-4 py-3 shadow-xs backdrop-blur-md">
+        <div className="flex min-w-0 items-center gap-3">
+          <Image
+            src={PLATFORM_BRANDING.logo}
+            alt="Yo-Yaki Izakaya"
+            width={160}
+            height={54}
+            priority
+            className="h-9 w-auto"
+          />
+          <p className="whitespace-nowrap text-xs font-bold text-neutral-400 md:text-sm">
+            ประจำ <span className="text-sm font-black text-red-400 md:text-base">โต๊ะ {tableNumber ?? ''}</span>
+          </p>
         </div>
         <button 
           onClick={verifySessionAndFetchData} 
-          className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition rounded-xl border border-slate-200 active:scale-95 cursor-pointer"
+          className="cursor-pointer rounded-xl border border-neutral-800 p-2 text-neutral-400 transition hover:bg-neutral-800 hover:text-neutral-100 active:scale-95"
           title="รีเฟรชข้อมูล"
         >
-          <RefreshCw className="w-4 h-4" />
+          <RefreshCw className="h-4 w-4" />
         </button>
       </header>
 
@@ -453,7 +456,7 @@ export default function CustomerOrderPortal() {
             {/* Table Welcome Banner */}
             <div className="bg-gradient-to-br from-red-600 to-orange-600 text-white rounded-3xl p-5 shadow-sm relative overflow-hidden">
               <div className="relative z-10">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[11px] font-bold tracking-wide uppercase text-white mb-2">
+                <span className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-[11px] font-bold tracking-wide text-white uppercase backdrop-blur-md">
                   <Sparkles className="w-3.5 h-3.5" />
                   ยินดีต้อนรับสู่ Yokayaki
                 </span>
@@ -464,7 +467,7 @@ export default function CustomerOrderPortal() {
 
                 <button
                   onClick={() => setActiveTab('order')}
-                  className="mt-4 inline-flex items-center gap-2 bg-white text-red-600 px-5 py-2.5 rounded-2xl font-extrabold text-xs shadow-md hover:bg-red-50 transition active:scale-95 cursor-pointer"
+                  className="mt-4 inline-flex items-center gap-2 bg-neutral-900 text-red-600 px-5 py-2.5 rounded-2xl font-extrabold text-xs shadow-md hover:bg-red-50 transition active:scale-95 cursor-pointer"
                 >
                   <span>เริ่มเลือกสั่งอาหาร</span>
                   <ChevronRight className="w-4 h-4" />
@@ -475,14 +478,14 @@ export default function CustomerOrderPortal() {
 
             {/* Active Order Summary Status */}
             {orderedItems.length > 0 && (
-              <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex items-center justify-between">
+              <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 shadow-xs flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
                     <ClipboardList className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-xs text-slate-900">รายการสั่งอาหารของคุณ</h3>
-                    <p className="text-[11px] text-slate-500 font-semibold mt-0.5">
+                    <h3 className="font-bold text-xs text-neutral-100">รายการสั่งอาหารของคุณ</h3>
+                    <p className="text-[11px] text-neutral-400 font-semibold mt-0.5">
                       {pendingCount > 0 ? (
                         <span className="text-amber-600 font-bold flex items-center gap-1">
                           <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
@@ -507,7 +510,7 @@ export default function CustomerOrderPortal() {
             {promotions.length > 0 && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <h3 className="text-xs font-extrabold uppercase tracking-wider text-neutral-500 flex items-center gap-1.5">
                     <Tag className="w-4 h-4 text-red-600" />
                     <span>โปรโมชั่นแนะนำ</span>
                   </h3>
@@ -524,21 +527,21 @@ export default function CustomerOrderPortal() {
                     <div 
                       key={promo.id} 
                       onClick={() => setActiveTab('promotions')}
-                      className="min-w-[240px] max-w-[260px] bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xs shrink-0 cursor-pointer hover:border-red-200 transition"
+                      className="min-w-[240px] max-w-[260px] bg-neutral-900 border border-neutral-800 rounded-2xl p-3.5 shadow-xs shrink-0 cursor-pointer hover:border-red-200 transition"
                     >
                       <div className="flex items-center gap-2 mb-2">
                         <span className="px-2 py-0.5 bg-red-50 border border-red-200 text-red-600 rounded-lg text-[10px] font-black">
                           {promo.type === 'percentage' ? `ลด ${promo.discount_percent}%` : promo.type === 'fixed' ? `ลด ฿${promo.discount_amount}` : 'ซื้อ 2 แถม 1'}
                         </span>
                         {promo.start_time && (
-                          <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-0.5">
+                          <span className="text-[10px] text-neutral-500 font-semibold flex items-center gap-0.5">
                             <Clock className="w-3 h-3" />
                             {promo.start_time.substring(0, 5)} - {promo.end_time?.substring(0, 5)}
                           </span>
                         )}
                       </div>
-                      <h4 className="font-bold text-xs text-slate-900 truncate">{promo.name}</h4>
-                      <p className="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                      <h4 className="font-bold text-xs text-neutral-100 truncate">{promo.name}</h4>
+                      <p className="text-[11px] text-neutral-400 mt-1 line-clamp-2 leading-relaxed">
                         {getPromoShortDesc(promo)}
                       </p>
                     </div>
@@ -561,7 +564,7 @@ export default function CustomerOrderPortal() {
                   className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap border transition duration-150 active:scale-95 cursor-pointer ${
                     selectedCategory === cat
                       ? 'bg-red-600 text-white border-red-600 shadow-xs shadow-red-600/20'
-                      : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-600'
+                      : 'bg-neutral-900 hover:bg-neutral-800 border-neutral-800 text-neutral-300'
                   }`}
                 >
                   {cat}
@@ -582,12 +585,12 @@ export default function CustomerOrderPortal() {
                     <div 
                       key={item.id} 
                       className={`p-3 rounded-2xl border flex flex-col justify-between gap-2.5 transition-all shadow-xs ${
-                        isSoldOut ? 'bg-rose-50/80 border-2 border-rose-200 opacity-95' : 'bg-white border-slate-200 hover:border-slate-300'
+                        isSoldOut ? 'bg-rose-50/80 border-2 border-rose-200 opacity-95' : 'bg-neutral-900 border-neutral-800 hover:border-neutral-700'
                       }`}
                     >
                       <div className="flex flex-col gap-2">
                         {item.image_url && (
-                          <div className="w-full aspect-square rounded-xl overflow-hidden bg-slate-100 border border-slate-200 relative">
+                          <div className="w-full aspect-square rounded-xl overflow-hidden bg-neutral-800 border border-neutral-800 relative">
                             <img
                               src={item.image_url}
                               alt={item.name}
@@ -603,7 +606,7 @@ export default function CustomerOrderPortal() {
                         )}
                         <div>
                           <div className="flex items-start justify-between gap-1">
-                            <h3 className="text-h3 text-slate-900 line-clamp-2">{item.name}</h3>
+                            <h3 className="text-h3 text-neutral-100 line-clamp-2">{item.name}</h3>
                             {!item.image_url && (
                               isSoldOut ? (
                                 <span className="text-micro bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded shrink-0">SOLD OUT</span>
@@ -617,16 +620,16 @@ export default function CustomerOrderPortal() {
                       </div>
 
                       {!isSoldOut && (
-                        <div className="flex items-center justify-between border-t border-slate-100 pt-2.5 mt-1">
-                          <div className="flex items-center gap-2 bg-slate-50 rounded-xl p-1 border border-slate-200 w-full justify-between">
+                        <div className="flex items-center justify-between border-t border-neutral-800 pt-2.5 mt-1">
+                          <div className="flex items-center gap-2 bg-neutral-800/70 rounded-xl p-1 border border-neutral-800 w-full justify-between">
                             <button
                               onClick={() => removeFromCart(item.id)}
                               disabled={qty === 0}
-                              className="w-7 h-7 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 disabled:opacity-40 transition active:scale-95 cursor-pointer shadow-xs"
+                              className="w-7 h-7 flex items-center justify-center rounded-lg bg-neutral-900 border border-neutral-800 text-neutral-300 disabled:opacity-40 transition active:scale-95 cursor-pointer shadow-xs"
                             >
                               <Minus className="w-3.5 h-3.5" />
                             </button>
-                            <span className="text-price text-body font-bold text-slate-900">{qty}</span>
+                            <span className="text-price text-body font-bold text-neutral-100">{qty}</span>
                             <button
                               onClick={() => addToCart(item)}
                               disabled={qty >= item.stock}
@@ -647,13 +650,13 @@ export default function CustomerOrderPortal() {
         {/* TAB 3: 📋 รายการที่สั่งแล้ว (Ordered History View) */}
         {activeTab === 'ordered' && (
           <div className="space-y-4 animate-fade-in">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+            <div className="flex items-center justify-between pb-2 border-b border-neutral-800">
               <div>
-                <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
+                <h2 className="text-base font-black text-neutral-100 flex items-center gap-2">
                   <ClipboardList className="w-5 h-5 text-red-600" />
                   <span>รายการอาหารที่สั่งแล้ว</span>
                 </h2>
-                <p className="text-slate-500 text-xs mt-0.5">ประจำ <span className="font-bold text-red-600">โต๊ะ {tableNumber ?? ''}</span></p>
+                <p className="text-neutral-400 text-xs mt-0.5">ประจำ <span className="font-bold text-red-600">โต๊ะ {tableNumber ?? ''}</span></p>
               </div>
               <button 
                 onClick={() => fetchOrderedItems()} 
@@ -664,12 +667,12 @@ export default function CustomerOrderPortal() {
             </div>
 
             {orderedItems.length === 0 ? (
-              <div className="bg-white border border-slate-200 rounded-3xl p-8 text-center space-y-3 shadow-xs">
-                <div className="w-14 h-14 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto">
+              <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-8 text-center space-y-3 shadow-xs">
+                <div className="w-14 h-14 bg-neutral-800 text-neutral-500 rounded-full flex items-center justify-center mx-auto">
                   <UtensilsCrossed className="w-7 h-7" />
                 </div>
-                <h3 className="font-bold text-slate-700 text-sm">ยังไม่มีรายการสั่งอาหาร</h3>
-                <p className="text-slate-400 text-xs">คุณยังไม่ได้ส่งสั่งอาหารเข้าครัวสำหรับโต๊ะนี้</p>
+                <h3 className="font-bold text-neutral-200 text-sm">ยังไม่มีรายการสั่งอาหาร</h3>
+                <p className="text-neutral-500 text-xs">คุณยังไม่ได้ส่งสั่งอาหารเข้าครัวสำหรับโต๊ะนี้</p>
                 <button
                   onClick={() => setActiveTab('order')}
                   className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-bold text-xs shadow-xs transition"
@@ -689,16 +692,16 @@ export default function CustomerOrderPortal() {
                       key={item.id} 
                       className={`p-3.5 rounded-2xl border text-xs flex justify-between items-start transition-all shadow-xs ${
                         isVoided 
-                          ? 'bg-rose-50/60 border-rose-200 text-slate-400 line-through' 
+                          ? 'bg-rose-50/60 border-rose-200 text-neutral-500 line-through' 
                           : isServed 
-                          ? 'bg-emerald-50/40 border-emerald-200 text-slate-800' 
-                          : 'bg-amber-50/50 border-amber-200 text-slate-900'
+                          ? 'bg-emerald-950/40 border-emerald-800 text-neutral-100' 
+                          : 'bg-amber-50/50 border-amber-200 text-neutral-100'
                       }`}
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-slate-900">{item.menu_items?.name}</span>
-                          <span className="font-extrabold text-slate-500">x{item.quantity}</span>
+                          <span className="font-bold text-sm text-neutral-100">{item.menu_items?.name}</span>
+                          <span className="font-extrabold text-neutral-400">x{item.quantity}</span>
                         </div>
 
                         {item.notes && (
@@ -728,7 +731,7 @@ export default function CustomerOrderPortal() {
                         </div>
                       </div>
 
-                      <span className="font-black text-sm text-slate-900">
+                      <span className="font-black text-sm text-neutral-100">
                         ฿{(item.quantity * item.unit_price).toLocaleString()}
                       </span>
                     </div>
@@ -743,10 +746,10 @@ export default function CustomerOrderPortal() {
 
                   return (
                     <div className="space-y-3 mt-4">
-                      <div className="p-4 bg-white border border-slate-200 rounded-2xl shadow-xs flex justify-between items-center">
+                      <div className="p-4 bg-neutral-900 border border-neutral-800 rounded-2xl shadow-xs flex justify-between items-center">
                         <div>
-                          <span className="text-slate-500 text-xs font-bold block">ยอดรวมทั้งสิ้น</span>
-                          <span className="text-slate-400 text-[11px] font-semibold">{totalQty} รายการ (ไม่รวมรายการที่ยกเลิก)</span>
+                          <span className="text-neutral-400 text-xs font-bold block">ยอดรวมทั้งสิ้น</span>
+                          <span className="text-neutral-500 text-[11px] font-semibold">{totalQty} รายการ (ไม่รวมรายการที่ยกเลิก)</span>
                         </div>
                         <span className="text-xl font-black text-red-600">฿{totalAmt.toLocaleString()}</span>
                       </div>
@@ -759,13 +762,13 @@ export default function CustomerOrderPortal() {
                               <span className="w-2.5 h-2.5 rounded-full bg-rose-600 animate-ping" />
                               <span>⏳ แจ้งเรียกพนักงานเช็คบิลแล้ว</span>
                             </div>
-                            <p className="text-slate-500 text-xs font-semibold">
+                            <p className="text-neutral-400 text-xs font-semibold">
                               พนักงานกำลังจัดเตรียมใบเสร็จและเดินทางมาที่ <span className="font-extrabold text-rose-600">โต๊ะ {tableNumber ?? ''}</span>
                             </p>
                             <button
                               onClick={handleCancelCheckBill}
                               disabled={isUpdatingStatus}
-                              className="px-4 py-1.5 bg-white border border-rose-200 text-rose-600 hover:bg-rose-100 rounded-xl text-xs font-bold transition cursor-pointer active:scale-95"
+                              className="px-4 py-1.5 bg-neutral-900 border border-rose-200 text-rose-600 hover:bg-rose-100 rounded-xl text-xs font-bold transition cursor-pointer active:scale-95"
                             >
                               ยกเลิกการเรียกเช็คบิล
                             </button>
@@ -773,9 +776,9 @@ export default function CustomerOrderPortal() {
                         ) : pendingCount > 0 ? (
                           <button
                             disabled
-                            className="w-full py-3.5 bg-slate-200 text-slate-500 font-extrabold text-xs sm:text-sm rounded-2xl border border-slate-300 flex items-center justify-center gap-2 cursor-not-allowed shadow-none"
+                            className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-2xl border border-neutral-700 bg-neutral-800 py-3.5 text-xs font-extrabold text-neutral-500 shadow-none sm:text-sm"
                           >
-                            <Clock className="w-4 h-4 text-slate-400 shrink-0" />
+                            <Clock className="w-4 h-4 text-neutral-500 shrink-0" />
                             <span>กรุณารออาหารเสริฟครบ ก่อนเรียกเช็คบิล</span>
                           </button>
                         ) : (
@@ -792,20 +795,20 @@ export default function CustomerOrderPortal() {
                       {/* Check Bill Confirmation Modal */}
                       {showCheckBillConfirm && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fade-in">
-                          <div className="w-full max-w-sm bg-white border border-slate-200 rounded-3xl p-5 shadow-2xl space-y-4 text-center">
+                          <div className="w-full max-w-sm bg-neutral-900 border border-neutral-800 rounded-3xl p-5 shadow-2xl space-y-4 text-center">
                             <div className="w-14 h-14 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto border border-red-200">
                               <BellRing className="w-7 h-7" />
                             </div>
                             <div>
-                              <h3 className="text-base font-black text-slate-900">เรียกพนักงานเช็คบิล?</h3>
-                              <p className="text-slate-500 text-xs mt-1">
+                              <h3 className="text-base font-black text-neutral-100">เรียกพนักงานเช็คบิล?</h3>
+                              <p className="text-neutral-400 text-xs mt-1">
                                 โต๊ะ {tableNumber ?? ''} • ยอดรวมทั้งสิ้น <span className="font-extrabold text-red-600">฿{totalAmt.toLocaleString()} บาท</span>
                               </p>
                             </div>
-                            <div className="flex gap-2 pt-2 border-t border-slate-100">
+                            <div className="flex gap-2 pt-2 border-t border-neutral-800">
                               <button
                                 onClick={() => setShowCheckBillConfirm(false)}
-                                className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl transition cursor-pointer"
+                                className="flex-1 py-2.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs font-bold rounded-xl transition cursor-pointer"
                               >
                                 ยังก่อน
                               </button>
@@ -831,42 +834,42 @@ export default function CustomerOrderPortal() {
         {/* TAB 4: 🏷️ โปรโมชั่น (Promotions View) */}
         {activeTab === 'promotions' && (
           <div className="space-y-4 animate-fade-in">
-            <div className="pb-2 border-b border-slate-200">
-              <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
+            <div className="pb-2 border-b border-neutral-800">
+              <h2 className="text-base font-black text-neutral-100 flex items-center gap-2">
                 <Tag className="w-5 h-5 text-red-600" />
                 <span>โปรโมชั่นพิเศษ</span>
               </h2>
-              <p className="text-slate-500 text-xs mt-0.5">ส่วนลดและข้อเสนอสุดคุ้มจากร้าน Yokayaki</p>
+              <p className="text-neutral-400 text-xs mt-0.5">ส่วนลดและข้อเสนอสุดคุ้มจากร้าน Yokayaki</p>
             </div>
 
             {promotions.length === 0 ? (
-              <div className="bg-white border border-slate-200 rounded-3xl p-8 text-center space-y-2 shadow-xs">
-                <Tag className="w-10 h-10 text-slate-300 mx-auto" />
-                <h3 className="font-bold text-slate-700 text-sm">ยังไม่มีโปรโมชั่นใหม่ขณะนี้</h3>
-                <p className="text-slate-400 text-xs">ติดตามส่วนลดและข้อเสนอพิเศษได้ที่นี่เร็วๆ นี้</p>
+              <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-8 text-center space-y-2 shadow-xs">
+                <Tag className="mx-auto h-10 w-10 text-neutral-600" />
+                <h3 className="font-bold text-neutral-200 text-sm">ยังไม่มีโปรโมชั่นใหม่ขณะนี้</h3>
+                <p className="text-neutral-500 text-xs">ติดตามส่วนลดและข้อเสนอพิเศษได้ที่นี่เร็วๆ นี้</p>
               </div>
             ) : (
               <div className="space-y-3.5">
                 {promotions.map(promo => (
-                  <div key={promo.id} className="bg-white border border-slate-200 rounded-3xl p-4 shadow-xs space-y-3 relative overflow-hidden">
+                  <div key={promo.id} className="bg-neutral-900 border border-neutral-800 rounded-3xl p-4 shadow-xs space-y-3 relative overflow-hidden">
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1">
                         <span className="inline-block px-2.5 py-0.5 bg-red-50 border border-red-200 text-red-600 rounded-lg text-[10px] font-black">
                           {promo.type === 'percentage' ? `ส่วนลด ${promo.discount_percent}%` : promo.type === 'fixed' ? `ส่วนลด ฿${promo.discount_amount}` : 'ซื้อ 2 แถม 1'}
                         </span>
-                        <h3 className="font-extrabold text-sm text-slate-900">{promo.name}</h3>
+                        <h3 className="font-extrabold text-sm text-neutral-100">{promo.name}</h3>
                       </div>
 
                       {promo.start_time && (
-                        <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-lg flex items-center gap-1 shrink-0">
-                          <Clock className="w-3 h-3 text-slate-400" />
+                        <span className="text-[10px] font-bold text-neutral-400 bg-neutral-800 px-2 py-1 rounded-lg flex items-center gap-1 shrink-0">
+                          <Clock className="w-3 h-3 text-neutral-500" />
                           {promo.start_time.substring(0, 5)} - {promo.end_time?.substring(0, 5)} น.
                         </span>
                       )}
                     </div>
 
                     {promo.image_url && (
-                      <div className="w-full h-36 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
+                      <div className="w-full h-36 rounded-2xl overflow-hidden bg-neutral-800 border border-neutral-800">
                         <img 
                           src={promo.image_url} 
                           alt={promo.name} 
@@ -876,7 +879,7 @@ export default function CustomerOrderPortal() {
                       </div>
                     )}
 
-                    <p className="text-xs text-slate-600 bg-slate-50 border border-slate-100 p-3 rounded-xl leading-relaxed">
+                    <p className="text-xs text-neutral-300 bg-neutral-800/70 border border-neutral-800 p-3 rounded-xl leading-relaxed">
                       {getPromoShortDesc(promo)}
                     </p>
                   </div>
@@ -896,9 +899,9 @@ export default function CustomerOrderPortal() {
             className="w-full bg-red-600 text-white p-3.5 rounded-2xl shadow-lg flex items-center justify-between hover:bg-red-700 active:scale-98 transition cursor-pointer"
           >
             <div className="flex items-center gap-3">
-              <div className="relative bg-white/20 p-2 rounded-xl">
+              <div className="relative rounded-xl bg-white/20 p-2">
                 <ShoppingBag className="w-5 h-5 text-white" />
-                <span className="absolute -top-1.5 -right-1.5 bg-white text-red-600 text-[10px] font-black w-4 h-4 flex items-center justify-center rounded-full shadow-xs">
+                <span className="absolute -top-1.5 -right-1.5 bg-neutral-900 text-red-600 text-[10px] font-black w-4 h-4 flex items-center justify-center rounded-full shadow-xs">
                   {cartItemCount}
                 </span>
               </div>
@@ -915,33 +918,33 @@ export default function CustomerOrderPortal() {
       {/* Cart Drawer Modal (Light Theme) */}
       {showCartDrawer && cart.length > 0 && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-end animate-fade-in" onClick={() => setShowCartDrawer(false)}>
-          <div className="bg-white border-t border-slate-200 w-full max-h-[80vh] rounded-t-3xl p-5 shadow-2xl flex flex-col gap-4 max-w-md mx-auto animate-slide-up" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center pb-2 border-b border-slate-200">
-              <h3 className="font-extrabold text-base flex items-center gap-2 text-slate-900">
+          <div className="bg-neutral-900 border-t border-neutral-800 w-full max-h-[80vh] rounded-t-3xl p-5 shadow-2xl flex flex-col gap-4 max-w-md mx-auto animate-slide-up" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center pb-2 border-b border-neutral-800">
+              <h3 className="font-extrabold text-base flex items-center gap-2 text-neutral-100">
                 <ShoppingBag className="w-5 h-5 text-red-600" />
                 <span>ตะกร้าของคุณ ({cartItemCount} ชิ้น)</span>
               </h3>
-              <button onClick={() => setShowCartDrawer(false)} className="p-1.5 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-500 cursor-pointer">
+              <button onClick={() => setShowCartDrawer(false)} className="p-1.5 bg-neutral-800 hover:bg-neutral-700 rounded-full text-neutral-400 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
             
             <div className="flex-1 overflow-y-auto space-y-3 pr-1 py-1">
               {cart.map((item, index) => (
-                <div key={`${item.id}-${item.notes || ''}-${index}`} className="flex flex-col bg-slate-50 border border-slate-200 p-3.5 rounded-2xl gap-2.5">
+                <div key={`${item.id}-${item.notes || ''}-${index}`} className="flex flex-col bg-neutral-800/70 border border-neutral-800 p-3.5 rounded-2xl gap-2.5">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h4 className="font-bold text-xs text-slate-900">{item.name}</h4>
+                      <h4 className="font-bold text-xs text-neutral-100">{item.name}</h4>
                       <p className="text-xs text-red-600 font-extrabold mt-0.5">฿{(item.price * item.quantity).toLocaleString()}</p>
                     </div>
-                    <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl p-1 shadow-xs">
+                    <div className="flex items-center gap-2 bg-neutral-900 border border-neutral-800 rounded-xl p-1 shadow-xs">
                       <button
                         onClick={() => removeFromCart(item.id, item.notes)}
-                        className="w-6 h-6 flex items-center justify-center rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer"
+                        className="w-6 h-6 flex items-center justify-center rounded-lg bg-neutral-800 text-neutral-300 hover:bg-neutral-700 cursor-pointer"
                       >
                         <Minus className="w-3 h-3" />
                       </button>
-                      <span className="font-extrabold text-xs w-4 text-center text-slate-900">{item.quantity}</span>
+                      <span className="font-extrabold text-xs w-4 text-center text-neutral-100">{item.quantity}</span>
                       <button
                         onClick={() => addToCart(item, item.notes)}
                         disabled={cart.filter(i => i.id === item.id).reduce((s, i) => s + i.quantity, 0) >= item.stock}
@@ -953,11 +956,11 @@ export default function CustomerOrderPortal() {
                   </div>
                   
                   {/* Notes management */}
-                  <div className="flex justify-between items-center border-t border-slate-200/80 pt-2 text-[11px]">
+                  <div className="flex justify-between items-center border-t border-neutral-800 pt-2 text-[11px]">
                     {item.notes ? (
                       <span className="text-red-600 font-bold">โน้ต: {item.notes}</span>
                     ) : (
-                      <span className="text-slate-400">ไม่มีโน้ตพิเศษ</span>
+                      <span className="text-neutral-500">ไม่มีโน้ตพิเศษ</span>
                     )}
                     <button
                       onClick={() => setNoteEditTarget({ index, notes: item.notes || '' })}
@@ -971,9 +974,9 @@ export default function CustomerOrderPortal() {
               ))}
             </div>
             
-            <div className="pt-2 border-t border-slate-200">
+            <div className="pt-2 border-t border-neutral-800">
               <div className="flex justify-between items-center mb-3">
-                <span className="text-slate-500 font-bold text-xs">ยอดรวมทั้งสิ้น:</span>
+                <span className="text-neutral-400 font-bold text-xs">ยอดรวมทั้งสิ้น:</span>
                 <span className="text-xl font-black text-red-600">฿{cartTotal.toLocaleString()}</span>
               </div>
               <button
@@ -982,7 +985,7 @@ export default function CustomerOrderPortal() {
                   confirmOrder();
                 }}
                 disabled={isSubmitting}
-                className="w-full py-3.5 bg-red-600 hover:bg-red-700 disabled:bg-slate-300 disabled:text-slate-500 text-white font-extrabold text-sm rounded-2xl transition active:scale-98 flex items-center justify-center gap-2 shadow-md shadow-red-600/20 cursor-pointer"
+                className="w-full py-3.5 bg-red-600 hover:bg-red-700 disabled:bg-neutral-700 disabled:text-neutral-400 text-white font-extrabold text-sm rounded-2xl transition active:scale-98 flex items-center justify-center gap-2 shadow-md shadow-red-600/20 cursor-pointer"
               >
                 {isSubmitting ? 'กำลังส่งคำสั่งซื้อ...' : 'ยืนยันสั่งอาหารส่งเข้าครัว'}
               </button>
@@ -994,20 +997,20 @@ export default function CustomerOrderPortal() {
       {/* Note Edit Modal (Light Theme) */}
       {noteEditTarget !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fade-in">
-          <div className="w-full max-w-sm bg-white border border-slate-200 rounded-3xl p-5 shadow-2xl relative space-y-4">
+          <div className="w-full max-w-sm bg-neutral-900 border border-neutral-800 rounded-3xl p-5 shadow-2xl relative space-y-4">
             <div>
-              <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+              <h3 className="text-base font-black text-neutral-100 flex items-center gap-2">
                 <ClipboardList className="w-4 h-4 text-red-600" />
                 <span>ระบุโน้ตพิเศษ</span>
               </h3>
-              <p className="text-slate-500 text-xs mt-1">
-                สำหรับเมนู <span className="font-bold text-slate-900">{cart[noteEditTarget.index]?.name}</span>
+              <p className="text-neutral-400 text-xs mt-1">
+                สำหรับเมนู <span className="font-bold text-neutral-100">{cart[noteEditTarget.index]?.name}</span>
               </p>
             </div>
 
             {/* Quick Note Buttons */}
             <div>
-              <label className="block text-[10px] font-bold text-slate-400 tracking-wider uppercase mb-1.5">
+              <label className="block text-[10px] font-bold text-neutral-500 tracking-wider uppercase mb-1.5">
                 ตัวเลือกด่วน
               </label>
               <div className="flex flex-wrap gap-1.5">
@@ -1034,7 +1037,7 @@ export default function CustomerOrderPortal() {
                       className={`px-2.5 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
                         isSelected
                           ? 'bg-red-50 border-red-200 text-red-600'
-                          : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                          : 'bg-neutral-800/70 border-neutral-800 text-neutral-300 hover:bg-neutral-800'
                       }`}
                     >
                       {quickNote}
@@ -1046,22 +1049,22 @@ export default function CustomerOrderPortal() {
 
             {/* Custom Text Area */}
             <div>
-              <label className="block text-[10px] font-bold text-slate-400 tracking-wider uppercase mb-1.5">
+              <label className="block text-[10px] font-bold text-neutral-500 tracking-wider uppercase mb-1.5">
                 รายละเอียดอื่นๆ
               </label>
               <textarea
                 value={noteEditTarget.notes}
                 onChange={(e) => setNoteEditTarget(prev => prev ? { ...prev, notes: e.target.value } : null)}
                 placeholder="เช่น ขอวาซาบิเพิ่ม, แยกซอสฉ่ำๆ..."
-                className="w-full bg-slate-50 border border-slate-200 focus:border-red-500 focus:outline-none rounded-xl p-3 text-xs text-slate-900 placeholder-slate-400 h-16 resize-none"
+                className="w-full bg-neutral-800/70 border border-neutral-800 focus:border-red-500 focus:outline-none rounded-xl p-3 text-xs text-neutral-100 placeholder-neutral-500 h-16 resize-none"
               />
             </div>
 
-            <div className="flex gap-2 pt-2 border-t border-slate-200">
+            <div className="flex gap-2 pt-2 border-t border-neutral-800">
               <button
                 type="button"
                 onClick={() => setNoteEditTarget(null)}
-                className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-600 text-xs font-bold transition cursor-pointer"
+                className="flex-1 py-2.5 bg-neutral-800 hover:bg-neutral-700 rounded-xl text-neutral-300 text-xs font-bold transition cursor-pointer"
               >
                 ยกเลิก
               </button>
@@ -1081,7 +1084,7 @@ export default function CustomerOrderPortal() {
       )}
 
       {/* Fixed Bottom Navigation Bar */}
-      <nav className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-40 px-3 py-2 shadow-lg">
+      <nav className="fixed bottom-0 inset-x-0 bg-neutral-900/95 backdrop-blur-md border-t border-neutral-800 z-40 px-3 py-2 shadow-lg">
         <div className="max-w-md mx-auto flex items-center justify-around">
           {[
             { id: 'home', label: 'หน้าหลัก', icon: Home },
@@ -1096,7 +1099,7 @@ export default function CustomerOrderPortal() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as CustomerTab)}
                 className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all relative cursor-pointer ${
-                  isActive ? 'text-red-600 font-bold' : 'text-slate-400 font-medium hover:text-slate-600'
+                  isActive ? 'text-red-600 font-bold' : 'text-neutral-500 font-medium hover:text-neutral-300'
                 }`}
               >
                 <div className="relative">
