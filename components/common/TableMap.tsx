@@ -262,7 +262,7 @@ export const TableMap: React.FC = () => {
     return (
       <div className="flex flex-col md:flex-row h-screen bg-gray-100 dark:bg-neutral-950 font-sans text-slate-800 dark:text-neutral-100 overflow-hidden">
         <SidebarNav activeTab={activeTab} onSelectTab={handleTabChange} />
-        <AppMainContent className="overflow-hidden">
+        <AppMainContent className="overflow-hidden" fillHeight>
           <POSOrderScreen
             tableId={selectedTableId}
             tableNumber={selectedTableNumber ?? undefined}
