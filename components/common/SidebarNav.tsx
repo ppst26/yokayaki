@@ -375,28 +375,26 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
             <div className="pt-5 border-t border-zinc-100 dark:border-zinc-800 space-y-3 mt-6">
               <button
                 onClick={toggleTheme}
-                className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition cursor-pointer border border-zinc-200/80 dark:border-zinc-700/80 shadow-2xs"
+                className="w-full flex items-center gap-2.5 px-1 py-2 text-xs font-bold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer"
               >
                 {theme === 'light' ? (
                   <>
-                    <Moon className="w-4 h-4 text-indigo-500 fill-indigo-500/20 shrink-0" />
+                    <Moon className="w-4 h-4 shrink-0" />
                     <span>สลับไปโหมดมืด</span>
                   </>
                 ) : (
                   <>
-                    <Sun className="w-4 h-4 text-amber-400 fill-amber-400/20 shrink-0" />
+                    <Sun className="w-4 h-4 shrink-0" />
                     <span>สลับไปโหมดสว่าง</span>
                   </>
                 )}
               </button>
 
-              <div className="flex items-center gap-3 p-2.5 bg-zinc-50 dark:bg-zinc-800/80 rounded-xl border border-zinc-200/70 dark:border-zinc-700">
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold text-zinc-800 dark:text-zinc-100 truncate">{employee?.name}</p>
-                  <p className="text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
-                    {employee?.role}
-                  </p>
-                </div>
+              <div className="flex items-center justify-between gap-3 px-1 py-1">
+                <p className="min-w-0 truncate text-xs font-bold text-zinc-800 dark:text-zinc-100">{employee?.name}</p>
+                <p className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                  {employee?.role}
+                </p>
               </div>
 
               <button
@@ -487,7 +485,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
       </div>
 
       {/* Desktop Left Sidebar Navigation */}
-      <aside className="hidden md:flex w-64 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 p-5 flex-col justify-between shadow-sm shrink-0 sticky top-0 h-screen">
+      <aside className="relative z-20 hidden md:flex w-72 shrink-0 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 p-5 flex-col justify-between shadow-sm sticky top-0 h-screen">
         <div>
           <div className="mb-8 pb-4 border-b border-zinc-100 dark:border-zinc-800">
             <SidebarBrand theme={theme} />
@@ -671,28 +669,26 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
         <div className="pt-6 border-t border-zinc-100 dark:border-zinc-800 space-y-3 mt-6">
           <button
             onClick={toggleTheme}
-            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition cursor-pointer border border-zinc-200/80 dark:border-zinc-700/80 shadow-2xs"
+            className="w-full flex items-center gap-2.5 px-1 py-2 text-sm font-bold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer"
           >
             {theme === 'light' ? (
               <>
-                <Moon className="w-4.5 h-4.5 text-indigo-500 fill-indigo-500/20 shrink-0" />
+                <Moon className="w-4.5 h-4.5 shrink-0" />
                 <span>สลับไปโหมดมืด</span>
               </>
             ) : (
               <>
-                <Sun className="w-4.5 h-4.5 text-amber-400 fill-amber-400/20 shrink-0" />
+                <Sun className="w-4.5 h-4.5 shrink-0" />
                 <span>สลับไปโหมดสว่าง</span>
               </>
             )}
           </button>
 
-          <div className="flex items-center gap-3 p-2.5 bg-zinc-50 dark:bg-zinc-800/80 rounded-xl border border-zinc-200/70 dark:border-zinc-700">
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold text-zinc-800 dark:text-zinc-100 truncate">{employee?.name}</p>
-              <p className="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
-                {employee?.role}
-              </p>
-            </div>
+          <div className="flex items-center justify-between gap-3 px-1 py-1">
+            <p className="min-w-0 truncate text-sm font-bold text-zinc-800 dark:text-zinc-100">{employee?.name}</p>
+            <p className="shrink-0 text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+              {employee?.role}
+            </p>
           </div>
 
           <button

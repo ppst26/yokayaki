@@ -9,7 +9,7 @@ type SidebarBrandProps = {
   theme: 'light' | 'dark';
 };
 
-export function SidebarBrand({ size = 'md', showSubtitle = true, theme }: SidebarBrandProps) {
+export function SidebarBrand({ size = 'md', showSubtitle = false, theme }: SidebarBrandProps) {
   const logoSrc = getLogoForTheme(theme);
 
   return (
