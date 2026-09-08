@@ -10,6 +10,7 @@ import { CheckoutScreen } from '@/components/CheckoutScreen';
 import { KitchenScreen } from '@/components/KitchenScreen';
 import { playNewOrderSound, playCheckBillSound } from '@/lib/audioNotifier';
 import { TableCard } from '@/components/TableCard';
+import { AppMainContent } from '@/components/common/AppMainContent';
 import { canAccessTab, type EmployeeRole } from '@/lib/permissions';
 import type { WinbackPromoDraft } from '@/lib/winbackPromo';
 
@@ -261,7 +262,7 @@ export const TableMap: React.FC = () => {
     return (
       <div className="flex flex-col md:flex-row h-screen bg-gray-100 dark:bg-neutral-950 font-sans text-slate-800 dark:text-neutral-100 overflow-hidden">
         <SidebarNav activeTab={activeTab} onSelectTab={handleTabChange} />
-        <main className="flex-1 overflow-hidden">
+        <AppMainContent className="overflow-hidden">
           <POSOrderScreen
             tableId={selectedTableId}
             tableNumber={selectedTableNumber ?? undefined}
@@ -270,7 +271,7 @@ export const TableMap: React.FC = () => {
               setSelectedTableNumber(null);
             }}
           />
-        </main>
+        </AppMainContent>
       </div>
     );
   }
@@ -279,7 +280,7 @@ export const TableMap: React.FC = () => {
     return (
       <div className="flex flex-col md:flex-row h-screen bg-gray-100 dark:bg-neutral-950 font-sans text-slate-800 dark:text-neutral-100 overflow-hidden">
         <SidebarNav activeTab={activeTab} onSelectTab={handleTabChange} />
-        <main className="flex-1 overflow-y-auto no-scrollbar p-4 md:p-8">
+        <AppMainContent className="overflow-y-auto no-scrollbar" innerClassName="p-4 md:p-8">
           <CheckoutScreen
             tableId={checkoutTableId}
             tableNumber={checkoutTableNumber ?? undefined}
@@ -288,7 +289,7 @@ export const TableMap: React.FC = () => {
               setCheckoutTableNumber(null);
             }}
           />
-        </main>
+        </AppMainContent>
       </div>
     );
   }
@@ -306,7 +307,7 @@ export const TableMap: React.FC = () => {
     <div className="flex flex-col md:flex-row h-screen bg-gray-100 dark:bg-neutral-950 font-sans text-slate-800 dark:text-neutral-100 overflow-hidden">
       <SidebarNav activeTab={activeTab} onSelectTab={handleTabChange} />
 
-      <main className="flex-1 overflow-y-auto no-scrollbar p-4 md:p-8 pb-24 md:pb-8">
+      <AppMainContent className="overflow-y-auto no-scrollbar" innerClassName="p-4 md:p-8 pb-24 md:pb-8">
         {/* floor + kitchen: eager (ใช้บ่อย) */}
         {canAccessTab(role, 'floor') && (
           <div className={activeTab === 'floor' ? 'block' : 'hidden'}>
@@ -365,7 +366,7 @@ export const TableMap: React.FC = () => {
             );
           })}
         </Suspense>
-      </main>
+      </AppMainContent>
 
       {actionSelectorTable !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs">
