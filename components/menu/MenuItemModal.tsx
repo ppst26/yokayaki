@@ -136,7 +136,7 @@ export const MenuItemModal: React.FC<MenuItemModalProps> = ({
           </h3>
           <button
             onClick={() => setShowFormModal(false)}
-            className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-300 rounded-full cursor-pointer"
+            className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-300 rounded-sm cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -287,14 +287,14 @@ export const MenuItemModal: React.FC<MenuItemModalProps> = ({
             <button
               type="button"
               onClick={() => setShowFormModal(false)}
-              className="flex-1 py-3 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-300 rounded-xl font-bold transition cursor-pointer"
+              className="flex-1 py-3 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-300 rounded-sm font-bold transition cursor-pointer"
             >
               ยกเลิก
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="flex-1 py-3 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-xl font-bold transition shadow-md shadow-red-600/20 cursor-pointer flex items-center justify-center gap-2"
+              className="flex-1 py-3 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-sm font-bold transition shadow-md shadow-red-600/20 cursor-pointer flex items-center justify-center gap-2"
             >
               {isSaving ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
