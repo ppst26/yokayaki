@@ -84,9 +84,13 @@ export function ImageUploadField({
 
       onChange(publicUrl);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'อัปโหลดล้มเหลว กรุณาลองใหม่'
-      );
+      const raw = err instanceof Error ? err.message : '';
+      // TypeError Failed to fetch จาก PUT ข้าม origin = CORS / เน็ต / adblock
+      const message =
+        raw === 'Failed to fetch'
+          ? 'อัปโหลดไม่สำเร็จ (CORS หรือเครือข่าย) — ตรวจ origin ใน R2 หรือรัน node scripts/set-r2-cors.mjs'
+          : raw || 'อัปโหลดล้มเหลว กรุณาลองใหม่';
+      setError(message);
     } finally {
       setUploading(false);
     }
