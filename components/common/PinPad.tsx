@@ -1,15 +1,11 @@
 "use client";
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { CircleX, Clock, Delete, ShieldAlert } from 'lucide-react';
-import {
-  AuthBrandHeader,
-  AuthGlassPanel,
-  AuthScreenLayout,
-  authKeypadButtonClass,
-  authKeypadIconButtonClass,
-} from '@/components/auth/AuthScreenLayout';
+import { AuthGlassPanel, AuthScreenLayout } from '@/components/auth/AuthScreenLayout';
+import { getLogoForTheme } from '@/lib/branding';
 
 const formatCountdown = (seconds: number): string => {
   const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -54,7 +50,7 @@ export const PinPad: React.FC = () => {
 
   if (isLockedOut) {
     return (
-      <AuthScreenLayout>
+      <AuthScreenLayout panel="pinpad">
         <AuthGlassPanel className="items-center justify-center text-center">
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-red-400/40 bg-red-500/10 text-red-300">
             <ShieldAlert className="h-8 w-8" />
@@ -84,39 +80,32 @@ export const PinPad: React.FC = () => {
   }
 
   return (
-    <AuthScreenLayout>
-      <AuthGlassPanel>
-        <AuthBrandHeader compact />
+    <AuthScreenLayout panel="pinpad">
+      <div className="pinpad relative">
+        <Image
+          src={getLogoForTheme('dark')}
+          alt="Yo-Yaki Izakaya"
+          width={1024}
+          height={347}
+          priority
+          className="pinpad__logo"
+        />
 
-        <div
-          className="mb-6 flex shrink-0 justify-center gap-5"
-          style={isShaking ? { animation: 'shake 0.5s ease-in-out' } : undefined}
-        >
-          {[...Array(6)].map((_, i) => {
-            const isActive = pin.length > i;
-            return (
-              <div
-                key={i}
-                className={`h-3 w-3 rounded-full border transition-all duration-200 ${
-                  isActive ? 'border-white bg-white' : 'border-white/80 bg-transparent'
-                }`}
-              />
-            );
-          })}
+        <div className={`pinpad__dots${isShaking ? ' is-shaking' : ''}`}>
+          {[...Array(6)].map((_, i) => (
+            <span key={i} className={pin.length > i ? 'is-filled' : undefined} />
+          ))}
         </div>
 
-        {error ? (
-          <p className="mb-4 shrink-0 text-center text-xs font-semibold text-red-300 animate-fade-in">{error}</p>
-        ) : null}
+        {error ? <p className="pinpad__error">{error}</p> : null}
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="pinpad__keys">
           {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(num => (
             <button
               key={num}
               type="button"
               disabled={isPinLoading}
               onClick={() => handleNumberClick(num)}
-              className={`${authKeypadButtonClass} cursor-pointer`}
             >
               {num}
             </button>
@@ -127,16 +116,14 @@ export const PinPad: React.FC = () => {
             disabled={isPinLoading}
             onClick={handleClear}
             aria-label="ล้าง PIN"
-            className={`${authKeypadIconButtonClass} cursor-pointer`}
           >
-            <CircleX className="h-6 w-6 stroke-[1.5]" />
+            <CircleX aria-hidden />
           </button>
 
           <button
             type="button"
             disabled={isPinLoading}
             onClick={() => handleNumberClick('0')}
-            className={`${authKeypadButtonClass} cursor-pointer`}
           >
             0
           </button>
@@ -146,29 +133,18 @@ export const PinPad: React.FC = () => {
             disabled={isPinLoading}
             onClick={handleBackspace}
             aria-label="ลบตัวเลข"
-            className={`${authKeypadIconButtonClass} cursor-pointer`}
           >
-            <Delete className="h-6 w-6 stroke-[1.5]" />
+            <Delete aria-hidden />
           </button>
         </div>
 
         {isPinLoading && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[28px] bg-black/70 backdrop-blur-sm">
-            <div className="mb-3 h-9 w-9 animate-spin rounded-full border-3 border-white border-t-transparent" />
-            <p className="animate-pulse text-xs font-semibold tracking-wider text-white/80">
-              กำลังตรวจสอบสิทธิ์...
-            </p>
+          <div className="pinpad__loading">
+            <div className="pinpad__loading-spinner" />
+            <p className="pinpad__loading-text">กำลังตรวจสอบสิทธิ์...</p>
           </div>
         )}
-      </AuthGlassPanel>
-
-      <style jsx global>{`
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          10%, 30%, 50%, 70%, 90% { transform: translateX(-6px); }
-          20%, 40%, 60%, 80% { transform: translateX(6px); }
-        }
-      `}</style>
+      </div>
     </AuthScreenLayout>
   );
 };

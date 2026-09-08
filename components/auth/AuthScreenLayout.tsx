@@ -7,9 +7,17 @@ import { getLogoForTheme, resolveBranding, type BrandingAssets } from '@/lib/bra
 type AuthScreenLayoutProps = {
   children: ReactNode;
   branding?: BrandingAssets | null;
+  /** pinpad = กว้างขึ้นบนจอใหญ่ (ตาม mockup ฝั่งขวา) */
+  panel?: 'default' | 'pinpad';
 };
 
-export function AuthScreenLayout({ children, branding }: AuthScreenLayoutProps) {
+const PANEL_SHELL_CLASS = {
+  default: 'w-full max-w-[400px] md:w-[38vw] md:min-w-[340px] md:max-w-[420px]',
+  pinpad:
+    'w-full max-w-[400px] md:w-[36vw] md:min-w-[360px] md:max-w-[480px] lg:max-w-[520px] xl:max-w-[540px]',
+} as const;
+
+export function AuthScreenLayout({ children, branding, panel = 'default' }: AuthScreenLayoutProps) {
   const assets = resolveBranding(branding);
 
   return (
@@ -21,9 +29,7 @@ export function AuthScreenLayout({ children, branding }: AuthScreenLayoutProps) 
       />
 
       <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-6 md:justify-end md:pr-[7%] md:pl-8">
-        <div className="w-full max-w-[400px] md:w-[38vw] md:min-w-[340px] md:max-w-[420px]">
-          {children}
-        </div>
+        <div className={PANEL_SHELL_CLASS[panel]}>{children}</div>
       </div>
     </div>
   );
