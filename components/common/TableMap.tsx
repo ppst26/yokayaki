@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, Suspense, lazy } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { RefreshCw, ShoppingBag, Receipt, AlertTriangle, X } from 'lucide-react';
@@ -11,6 +11,7 @@ import { KitchenScreen } from '@/components/KitchenScreen';
 import { playNewOrderSound, playCheckBillSound } from '@/lib/audioNotifier';
 import { TableCard } from '@/components/TableCard';
 import { canAccessTab, type EmployeeRole } from '@/lib/permissions';
+import type { WinbackPromoDraft } from '@/lib/winbackPromo';
 
 // แท็บหนัก — โหลดเมื่อเปิดครั้งแรก (ลดงานตอน login)
 const SalesHistory = lazy(() =>
@@ -75,6 +76,7 @@ export const TableMap: React.FC = () => {
   const [activeTab, setActiveTab] = useState<NavTab>('floor');
   /** แท็บที่เคยเปิดแล้ว — keep-alive ไม่ remount / ไม่ fetch ซ้ำ */
   const [visitedTabs, setVisitedTabs] = useState<Set<NavTab>>(() => new Set(['floor']));
+  const [winbackDraft, setWinbackDraft] = useState<WinbackPromoDraft | null>(null);
 
   useEffect(() => {
     if (!employee) return;
@@ -220,6 +222,18 @@ export const TableMap: React.FC = () => {
     setCheckoutTableNumber(null);
   };
 
+  const handleCreateWinbackPromo = useCallback((draft: WinbackPromoDraft) => {
+    setWinbackDraft(draft);
+    const role = (employee?.role ?? 'cashier') as EmployeeRole;
+    if (!canAccessTab(role, 'promo')) return;
+    setActiveTab('promo');
+    setVisitedTabs(prev => {
+      const next = new Set(prev);
+      next.add('promo');
+      return next;
+    });
+  }, [employee?.role]);
+
   const role = (employee?.role ?? 'cashier') as EmployeeRole;
 
   const lazyPanels = useMemo(
@@ -228,12 +242,19 @@ export const TableMap: React.FC = () => {
         history: canAccessTab(role, 'history') ? <SalesHistory /> : null,
         menu: canAccessTab(role, 'menu') ? <MenuManager /> : null,
         stock: canAccessTab(role, 'stock') ? <StockManager /> : null,
-        promo: canAccessTab(role, 'promo') ? <PromoManager /> : null,
+        promo: canAccessTab(role, 'promo') ? (
+          <PromoManager
+            winbackDraft={winbackDraft}
+            onWinbackDraftConsumed={() => setWinbackDraft(null)}
+          />
+        ) : null,
         dashboard: canAccessTab(role, 'dashboard') ? <OwnerDashboard /> : null,
-        loyalty: canAccessTab(role, 'loyalty') ? <LoyaltyManager /> : null,
+        loyalty: canAccessTab(role, 'loyalty') ? (
+          <LoyaltyManager onCreateWinbackPromo={handleCreateWinbackPromo} />
+        ) : null,
         employees: canAccessTab(role, 'employees') ? <EmployeeManager /> : null,
       }) as Partial<Record<NavTab, React.ReactNode>>,
-    [role],
+    [role, winbackDraft, handleCreateWinbackPromo],
   );
 
   if (selectedTableId !== null) {

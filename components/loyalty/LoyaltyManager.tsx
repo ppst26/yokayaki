@@ -17,6 +17,8 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
+  TicketPercent,
+  Download,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -24,40 +26,50 @@ import { CustomSelect } from '@/components/ui/select';
 import { TablePagination } from '@/components/ui/pagination';
 import { MemberInfoCard } from './MemberInfoCard';
 import { PointsHistoryModal } from './PointsHistoryModal';
+import { MemberStatsRow } from './MemberStatsRow';
+import { FavoriteMenusChips } from './FavoriteMenusChips';
+import { MemberPointsTimeline } from './MemberPointsTimeline';
+import { MemberTagChips } from './MemberTagChips';
+import { MemberRfmBadge } from './MemberRfmBadge';
+import { MemberRfmCard } from './MemberRfmCard';
+import {
+  type MemberTagCode,
+  MEMBER_TAG_FILTER_OPTIONS,
+  memberHasTag,
+  parseMemberTags,
+} from '@/lib/memberTags';
+import {
+  type RfmSegment,
+  DORMANT_DAYS_OPTIONS,
+  RFM_SEGMENT_FILTER_OPTIONS,
+  parseMemberRfm,
+} from '@/lib/memberRfm';
+import {
+  type LoyaltyMember,
+  type BillRecord,
+  type MemberProfile,
+  type MemberSummary,
+  buildPointEvents,
+} from './memberProfileTypes';
+import { buildWinbackPromoDraft, type WinbackPromoDraft } from '@/lib/winbackPromo';
+import { buildMemberSegmentCsv, downloadCsvFile } from '@/lib/exportMemberCsv';
+import type { SegmentMemberRow } from '@/lib/promoSegments';
+import { DoublePointsDialog } from './DoublePointsSettings';
 
-interface LoyaltyMember {
-  phone_number: string;
-  name: string;
-  points: number;
-  created_at: string;
+interface LoyaltyManagerProps {
+  onCreateWinbackPromo?: (draft: WinbackPromoDraft) => void;
 }
 
-interface BillRecord {
-  id: number;
-  order_id: number;
-  payment_method: 'cash' | 'promptpay' | 'mixed';
-  subtotal: number;
-  discount_amount: number;
-  net_amount: number;
-  points_earned: number;
-  points_redeemed: number;
-  created_at: string;
-  orders: { table_id: string; tables?: { table_number: number } | null } | null;
-}
-
-interface PointsLog {
-  id: number;
-  phone_number: string;
-  adjustment: number;
-  reason: string;
-  adjusted_by: string;
-  created_at: string;
-}
-
-export const LoyaltyManager: React.FC = () => {
+export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
+  onCreateWinbackPromo,
+}) => {
   const [members, setMembers] = useState<LoyaltyMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [tagFilter, setTagFilter] = useState<'all' | MemberTagCode>('all');
+  const [listTab, setListTab] = useState<'all' | 'dormant'>('all');
+  const [dormantDaysMin, setDormantDaysMin] = useState<30 | 60 | 90>(30);
+  const [rfmFilter, setRfmFilter] = useState<'all' | RfmSegment>('all');
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -65,11 +77,11 @@ export const LoyaltyManager: React.FC = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, pageSize]);
+  }, [searchTerm, pageSize, tagFilter, listTab, dormantDaysMin, rfmFilter]);
 
   const [selectedMember, setSelectedMember] = useState<LoyaltyMember | null>(null);
-  const [bills, setBills] = useState<BillRecord[]>([]);
-  const [pointsLogs, setPointsLogs] = useState<PointsLog[]>([]);
+  const [memberProfile, setMemberProfile] = useState<MemberProfile | null>(null);
+  const [memberSummaries, setMemberSummaries] = useState<Record<string, MemberSummary>>({});
   const [detailLoading, setDetailLoading] = useState(false);
 
   const [showEditModal, setShowEditModal] = useState(false);
@@ -94,6 +106,25 @@ export const LoyaltyManager: React.FC = () => {
     'แก้ไขข้อผิดพลาด',
   ];
 
+  const fetchMemberSummaries = async () => {
+    try {
+      const { data, error } = await supabase.rpc('list_member_summaries');
+      if (error) throw error;
+
+      const map: Record<string, MemberSummary> = {};
+      for (const row of (data as unknown as MemberSummary[]) ?? []) {
+        map[row.phone_number] = {
+          ...row,
+          tags: parseMemberTags(row.tags),
+          rfm: parseMemberRfm(row.rfm),
+        };
+      }
+      setMemberSummaries(map);
+    } catch (err: unknown) {
+      console.error('Error fetching member summaries:', err);
+    }
+  };
+
   const fetchMembers = async () => {
     try {
       setLoading(true);
@@ -104,7 +135,8 @@ export const LoyaltyManager: React.FC = () => {
 
       if (error) throw error;
       if (data) setMembers(data as LoyaltyMember[]);
-    } catch (err: any) {
+      await fetchMemberSummaries();
+    } catch (err: unknown) {
       console.error('Error fetching members:', err);
       setMessage({ text: 'ไม่สามารถดึงข้อมูลสมาชิกได้', type: 'error' });
     } finally {
@@ -116,39 +148,22 @@ export const LoyaltyManager: React.FC = () => {
     try {
       setDetailLoading(true);
 
-      const { data: billsData, error: billsError } = await supabase
-        .from('payments')
-        .select(`
-          id,
-          order_id,
-          payment_method,
-          subtotal,
-          discount_amount,
-          net_amount,
-          points_earned,
-          points_redeemed,
-          created_at,
-          orders (
-            table_id,
-            tables (table_number)
-          )
-        `)
-        .eq('phone_number', phone)
-        .order('created_at', { ascending: false });
+      const { data, error } = await supabase.rpc('get_member_profile', {
+        p_phone_number: phone,
+      });
 
-      if (billsError) throw billsError;
-      if (billsData) setBills(billsData as unknown as BillRecord[]);
-
-      const { data: logsData, error: logsError } = await supabase
-        .from('points_logs')
-        .select('*')
-        .eq('phone_number', phone)
-        .order('created_at', { ascending: false });
-
-      if (logsError) throw logsError;
-      if (logsData) setPointsLogs(logsData as PointsLog[]);
-    } catch (err: any) {
-      console.error('Error fetching member details:', err);
+      if (error) throw error;
+      if (data) {
+        const profile = data as unknown as MemberProfile;
+        setMemberProfile({
+          ...profile,
+          tags: parseMemberTags(profile.tags),
+          rfm: parseMemberRfm(profile.rfm),
+        });
+      }
+    } catch (err: unknown) {
+      console.error('Error fetching member profile:', err);
+      setMessage({ text: 'ไม่สามารถดึงข้อมูล Customer 360 ได้', type: 'error' });
     } finally {
       setDetailLoading(false);
     }
@@ -165,8 +180,7 @@ export const LoyaltyManager: React.FC = () => {
 
   const closeDetail = () => {
     setSelectedMember(null);
-    setBills([]);
-    setPointsLogs([]);
+    setMemberProfile(null);
   };
 
   const handleEditMember = async () => {
@@ -252,7 +266,8 @@ export const LoyaltyManager: React.FC = () => {
       setShowPointsModal(false);
       setPointsAdjustment('');
       setPointsReason('');
-      fetchMemberDetails(selectedMember.phone_number);
+      await fetchMemberDetails(selectedMember.phone_number);
+      await fetchMemberSummaries();
       setMessage({
         text: `ปรับแต้มเรียบร้อยแล้ว (${result.adjustment > 0 ? '+' : ''}${result.adjustment} แต้ม)`,
         type: 'success',
@@ -264,11 +279,38 @@ export const LoyaltyManager: React.FC = () => {
     }
   };
 
-  const filteredMembers = members.filter(
-    m =>
-      m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.phone_number.includes(searchTerm)
-  );
+  const getSummary = (phone: string) => memberSummaries[phone];
+
+  const filteredMembers = members
+    .filter(m => {
+      const matchesSearch =
+        m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        m.phone_number.includes(searchTerm);
+      const summary = getSummary(m.phone_number);
+      const tags = parseMemberTags(summary?.tags);
+      const rfm = summary?.rfm ?? null;
+
+      if (listTab === 'dormant') {
+        const days = rfm?.days_inactive ?? 0;
+        return (
+          matchesSearch &&
+          memberHasTag(tags, 'dormant') &&
+          days >= dormantDaysMin
+        );
+      }
+
+      const matchesTag = tagFilter === 'all' || memberHasTag(tags, tagFilter);
+      const matchesRfm = rfmFilter === 'all' || rfm?.segment === rfmFilter;
+      return matchesSearch && matchesTag && matchesRfm;
+    })
+    .sort((a, b) => {
+      if (listTab === 'dormant') {
+        const daysA = getSummary(a.phone_number)?.rfm?.days_inactive ?? 0;
+        const daysB = getSummary(b.phone_number)?.rfm?.days_inactive ?? 0;
+        return daysB - daysA;
+      }
+      return 0;
+    });
 
   const totalPages = Math.ceil(filteredMembers.length / pageSize) || 1;
   const paginatedMembers = filteredMembers.slice(
@@ -278,6 +320,15 @@ export const LoyaltyManager: React.FC = () => {
 
   const totalMembers = members.length;
   const totalPointsInSystem = members.reduce((s, m) => s + m.points, 0);
+  const dormantCount = members.filter(m =>
+    memberHasTag(parseMemberTags(getSummary(m.phone_number)?.tags), 'dormant'),
+  ).length;
+  const dormantTabCount = members.filter(m => {
+    const summary = getSummary(m.phone_number);
+    const tags = parseMemberTags(summary?.tags);
+    const days = summary?.rfm?.days_inactive ?? 0;
+    return memberHasTag(tags, 'dormant') && days >= dormantDaysMin;
+  }).length;
 
   const getPaymentLabel = (method: string) => {
     switch (method) {
@@ -302,11 +353,50 @@ export const LoyaltyManager: React.FC = () => {
   const formatTime = (dateStr: string) =>
     new Date(dateStr).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
 
+  const bills = memberProfile?.bills ?? [];
+  const pointEvents = memberProfile
+    ? buildPointEvents(memberProfile.bills, memberProfile.points_logs)
+    : [];
+
+  const profileTags = parseMemberTags(memberProfile?.tags);
+  const profileRfm = memberProfile?.rfm ?? null;
+
+  const exportFilteredMembers = () => {
+    const rows: SegmentMemberRow[] = filteredMembers.map(m => {
+      const summary = getSummary(m.phone_number);
+      return {
+        phone_number: m.phone_number,
+        name: m.name,
+        lifetime_spend: summary?.lifetime_spend ?? 0,
+        visit_count: summary?.visit_count ?? 0,
+        last_visit_at: summary?.last_visit_at ?? null,
+        days_inactive: summary?.rfm?.days_inactive ?? 0,
+        tags: parseMemberTags(summary?.tags),
+        rfm_segment: summary?.rfm?.segment ?? null,
+      };
+    });
+
+    const suffix =
+      listTab === 'dormant'
+        ? `dormant-${dormantDaysMin}d`
+        : tagFilter !== 'all'
+          ? tagFilter
+          : rfmFilter !== 'all'
+            ? `rfm-${rfmFilter}`
+            : 'all';
+
+    downloadCsvFile(
+      `members-${suffix}-${new Date().toISOString().slice(0, 10)}.csv`,
+      buildMemberSegmentCsv(rows),
+    );
+    setMessage({ text: `ส่งออก ${rows.length} รายชื่อแล้ว`, type: 'success' });
+  };
+
   return (
     <div className="w-full text-slate-800 dark:text-neutral-100 font-sans space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="w-[50%]">
+        <div>
           <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-neutral-100 tracking-tight flex items-center gap-2">
             <Users className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />
             <span>สมาชิก CRM</span>
@@ -315,6 +405,7 @@ export const LoyaltyManager: React.FC = () => {
             จัดการข้อมูลสมาชิก ค้นหาเบอร์โทร 
           </p>
         </div>
+        {!selectedMember && <DoublePointsDialog />}
       </div>
 
       {message && (
@@ -336,7 +427,7 @@ export const LoyaltyManager: React.FC = () => {
       {!selectedMember ? (
         <>
           {/* Summary Metric Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="p-5 flex items-center justify-between">
               <div>
                 <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
@@ -368,9 +459,53 @@ export const LoyaltyManager: React.FC = () => {
                 <Users className="w-6 h-6" />
               </div>
             </Card>
+
+            <Card className="p-5 flex items-center justify-between">
+              <div>
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                  ลูกค้าหายไป (≥30 วัน)
+                </span>
+                <p className="text-2xl font-black text-slate-600 dark:text-neutral-300 mt-1">
+                  {dormantCount}{' '}
+                  <span className="text-xs font-bold text-slate-500 dark:text-neutral-400">คน</span>
+                </p>
+              </div>
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 flex items-center justify-center font-bold">
+                <Clock className="w-6 h-6" />
+              </div>
+            </Card>
           </div>
 
-          {/* Search bar */}
+          {/* List tabs: ทั้งหมด / ลูกค้าหายไป (G4) */}
+          <div className="flex items-center gap-2 border-b border-slate-200/80 dark:border-neutral-800 pb-1">
+            <button
+              type="button"
+              onClick={() => setListTab('all')}
+              className={`px-4 py-2 text-xs font-extrabold rounded-t-xl transition cursor-pointer ${
+                listTab === 'all'
+                  ? 'bg-white dark:bg-neutral-900 text-red-600 dark:text-red-400 border border-b-0 border-slate-200/80 dark:border-neutral-800'
+                  : 'text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-neutral-200'
+              }`}
+            >
+              รายชื่อทั้งหมด ({totalMembers})
+            </button>
+            <button
+              type="button"
+              onClick={() => setListTab('dormant')}
+              className={`px-4 py-2 text-xs font-extrabold rounded-t-xl transition cursor-pointer flex items-center gap-1.5 ${
+                listTab === 'dormant'
+                  ? 'bg-white dark:bg-neutral-900 text-red-600 dark:text-red-400 border border-b-0 border-slate-200/80 dark:border-neutral-800'
+                  : 'text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-neutral-200'
+              }`}
+            >
+              <Clock className="w-3.5 h-3.5" />
+              ลูกค้าหายไป ({dormantTabCount})
+            </button>
+          </div>
+
+          {/* Search + filters + export */}
+          <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-1 min-w-0">
           <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-xl px-3.5 py-2.5 shadow-xs flex items-center gap-2.5 max-w-xs w-full">
             <Search className="w-4 h-4 text-slate-400 dark:text-neutral-500 shrink-0" />
             <input
@@ -390,6 +525,81 @@ export const LoyaltyManager: React.FC = () => {
             )}
           </div>
 
+          {listTab === 'dormant' ? (
+            <div className="w-full sm:w-40 shrink-0">
+              <CustomSelect
+                value={String(dormantDaysMin)}
+                onChange={val => setDormantDaysMin(Number(val) as 30 | 60 | 90)}
+                options={DORMANT_DAYS_OPTIONS.map(opt => ({
+                  value: String(opt.value),
+                  label: opt.label,
+                }))}
+                placeholder="หายไปกี่วัน"
+              />
+            </div>
+          ) : (
+            <>
+              <div className="w-full sm:w-40 shrink-0">
+                <CustomSelect
+                  value={tagFilter}
+                  onChange={val => setTagFilter(val as 'all' | MemberTagCode)}
+                  options={MEMBER_TAG_FILTER_OPTIONS}
+                  placeholder="ประเภทลูกค้า"
+                />
+              </div>
+              <div className="w-full sm:w-40 shrink-0">
+                <CustomSelect
+                  value={rfmFilter}
+                  onChange={val => setRfmFilter(val as 'all' | RfmSegment)}
+                  options={RFM_SEGMENT_FILTER_OPTIONS}
+                  placeholder="กลุ่มลูกค้า"
+                />
+              </div>
+            </>
+          )}
+          </div>
+
+          {filteredMembers.length > 0 && (
+            <button
+              type="button"
+              onClick={exportFilteredMembers}
+              className="flex items-center justify-center gap-2 px-3.5 py-2.5 bg-white dark:bg-neutral-900 hover:bg-slate-50 dark:hover:bg-neutral-800 border border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-neutral-200 rounded-xl text-xs font-extrabold transition cursor-pointer shrink-0 lg:ml-auto"
+            >
+              <Download className="w-4 h-4" />
+              ส่งออกรายชื่อ ({filteredMembers.length})
+            </button>
+          )}
+          </div>
+
+          {listTab === 'dormant' && onCreateWinbackPromo && (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-violet-50/80 dark:bg-violet-950/30 border border-violet-200/80 dark:border-violet-900/40 rounded-2xl">
+              <div>
+                <p className="text-xs font-extrabold text-violet-800 dark:text-violet-200">
+                  Win-back — ดึงลูกค้ากลับมา
+                </p>
+                <p className="text-[11px] font-semibold text-violet-600/90 dark:text-violet-300/80 mt-0.5">
+                  สร้างคูปองจากกลุ่มที่ filter อยู่ ({filteredMembers.length} คน · ≥
+                  {dormantDaysMin} วัน)
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  disabled={filteredMembers.length === 0}
+                  onClick={() =>
+                    onCreateWinbackPromo(
+                      buildWinbackPromoDraft(dormantDaysMin, filteredMembers.length),
+                    )
+                  }
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-xs font-extrabold transition shadow-md shadow-violet-600/20 cursor-pointer"
+                >
+                  <TicketPercent className="w-4 h-4" />
+                  สร้างคูปอง Win-back
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Members Table */}
           {loading ? (
             <div className="flex justify-center py-20">
@@ -399,7 +609,9 @@ export const LoyaltyManager: React.FC = () => {
             <div className="text-center py-16 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl p-8">
               <Users className="w-12 h-12 text-slate-300 dark:text-neutral-600 mx-auto mb-3" />
               <p className="text-sm font-bold text-slate-500 dark:text-neutral-400">
-                ไม่พบข้อมูลสมาชิก
+                {listTab === 'dormant'
+                  ? 'ไม่พบลูกค้าหายไปในช่วงที่เลือก'
+                  : 'ไม่พบข้อมูลสมาชิก'}
               </p>
             </div>
           ) : (
@@ -409,29 +621,57 @@ export const LoyaltyManager: React.FC = () => {
                   <TableRow>
                     <TableHead>สมาชิก</TableHead>
                     <TableHead>เบอร์โทรศัพท์</TableHead>
+                    <TableHead className="text-right">ยอดรวม</TableHead>
+                    <TableHead>
+                      {listTab === 'dormant' ? 'หายไป' : 'ครั้งล่าสุด'}
+                    </TableHead>
+                    <TableHead>RFM</TableHead>
                     <TableHead className="text-right">แต้มสะสม</TableHead>
-                    <TableHead>วันที่สมัคร</TableHead>
                     <TableHead className="text-center">จัดการ</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedMembers.map(m => (
+                  {paginatedMembers.map(m => {
+                    const summary = getSummary(m.phone_number);
+                    return (
                     <TableRow
                       key={m.phone_number}
                       className="cursor-pointer"
                       onClick={() => openDetail(m)}
                     >
-                      <TableCell className="font-bold text-slate-900 dark:text-neutral-100">
-                        {m.name}
+                      <TableCell>
+                        <div className="space-y-1">
+                          <span className="font-bold text-slate-900 dark:text-neutral-100 block">
+                            {m.name}
+                          </span>
+                          <MemberTagChips
+                            tags={parseMemberTags(summary?.tags)}
+                            size="xs"
+                          />
+                        </div>
                       </TableCell>
                       <TableCell className="font-mono text-slate-600 dark:text-neutral-300">
                         {m.phone_number}
                       </TableCell>
+                      <TableCell className="text-right font-bold text-slate-700 dark:text-neutral-200 text-sm">
+                        {(summary?.lifetime_spend ?? 0).toLocaleString()} ฿
+                      </TableCell>
+                      <TableCell className="text-slate-500 dark:text-neutral-400 text-xs">
+                        {listTab === 'dormant' ? (
+                          <span className="font-bold text-slate-700 dark:text-neutral-300">
+                            {summary?.rfm?.days_inactive ?? 0} วัน
+                          </span>
+                        ) : summary?.last_visit_at ? (
+                          formatDate(summary.last_visit_at)
+                        ) : (
+                          '—'
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <MemberRfmBadge rfm={summary?.rfm ?? null} size="xs" />
+                      </TableCell>
                       <TableCell className="text-right font-black text-amber-600 dark:text-amber-400 text-sm">
                         {m.points.toLocaleString()} แต้ม
-                      </TableCell>
-                      <TableCell className="text-slate-500 dark:text-neutral-400">
-                        {formatDate(m.created_at)}
                       </TableCell>
                       <TableCell className="text-center" onClick={e => e.stopPropagation()}>
                         <button
@@ -442,7 +682,8 @@ export const LoyaltyManager: React.FC = () => {
                         </button>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
 
@@ -474,6 +715,7 @@ export const LoyaltyManager: React.FC = () => {
             {/* Member Info Card Header */}
             <MemberInfoCard
               selectedMember={selectedMember}
+              tags={profileTags}
               setShowEditModal={setShowEditModal}
               setEditName={setEditName}
               setEditPhone={setEditPhone}
@@ -481,6 +723,26 @@ export const LoyaltyManager: React.FC = () => {
               setShowDeleteModal={setShowDeleteModal}
               formatDate={formatDate}
             />
+
+            <MemberStatsRow
+              stats={
+                memberProfile?.stats ?? {
+                  lifetime_spend: 0,
+                  visit_count: 0,
+                  last_visit_at: null,
+                  avg_per_bill: 0,
+                }
+              }
+              formatDate={formatDate}
+              loading={detailLoading}
+            />
+
+            <FavoriteMenusChips
+              menus={memberProfile?.favorite_menus ?? []}
+              loading={detailLoading}
+            />
+
+            <MemberRfmCard rfm={profileRfm} loading={detailLoading} />
 
             {/* Member Purchase & Points History Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -508,7 +770,7 @@ export const LoyaltyManager: React.FC = () => {
                       >
                         <div className="flex justify-between items-center font-bold text-slate-900 dark:text-neutral-100">
                           <span>
-                            บิล ORD-{b.order_id} ({b.orders?.tables?.table_number ? `โต๊ะ ${b.orders.tables.table_number}` : b.orders?.table_id ? `โต๊ะ ${b.orders.table_id}` : 'กลับบ้าน'})
+                            บิล ORD-{b.order_id} ({b.table_number ? `โต๊ะ ${b.table_number}` : 'กลับบ้าน'})
                           </span>
                           <span className="text-red-600 dark:text-red-400">
                             {b.net_amount.toLocaleString()} ฿
@@ -538,54 +800,13 @@ export const LoyaltyManager: React.FC = () => {
                 )}
               </div>
 
-              {/* Points Logs Inner Section */}
-              <div className="bg-slate-50 dark:bg-neutral-800/50 border border-slate-200/80 dark:border-neutral-700/60 rounded-2xl p-5 space-y-4">
-                <h3 className="text-sm font-extrabold text-slate-900 dark:text-neutral-100 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                  ประวัติการปรับแต่งแต้มด้วยมือ
-                </h3>
-
-                {detailLoading ? (
-                  <div className="flex justify-center py-10">
-                    <div className="w-8 h-8 border-3 border-amber-600 border-t-transparent rounded-full animate-spin" />
-                  </div>
-                ) : pointsLogs.length === 0 ? (
-                  <p className="text-xs text-slate-400 dark:text-neutral-500 text-center py-8">
-                    ไม่มีประวัติการปรับแต้มด้วยมือ
-                  </p>
-                ) : (
-                  <div className="space-y-2.5 max-h-[400px] overflow-y-auto pr-1">
-                    {pointsLogs.map(log => (
-                      <div
-                        key={log.id}
-                        className="p-3 bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-700 rounded-xl text-xs space-y-1 shadow-2xs"
-                      >
-                        <div className="flex justify-between items-center font-bold">
-                          <span
-                            className={
-                              log.adjustment > 0
-                                ? 'text-emerald-600 dark:text-emerald-400'
-                                : 'text-rose-600 dark:text-rose-400'
-                            }
-                          >
-                            {log.adjustment > 0 ? '+' : ''}
-                            {log.adjustment} แต้ม
-                          </span>
-                          <span className="text-[10px] text-slate-400 dark:text-neutral-500 font-semibold">
-                            โดย: {log.adjusted_by}
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-slate-600 dark:text-neutral-300 font-semibold">
-                          เหตุผล: {log.reason}
-                        </p>
-                        <p className="text-[10px] text-slate-400 dark:text-neutral-500">
-                          {formatDate(log.created_at)} {formatTime(log.created_at)} น.
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              {/* Points Timeline */}
+              <MemberPointsTimeline
+                events={pointEvents}
+                loading={detailLoading}
+                formatDate={formatDate}
+                formatTime={formatTime}
+              />
             </div>
           </Card>
         </div>
