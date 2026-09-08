@@ -20,6 +20,10 @@ export interface CustomSelectProps {
   className?: string;
   triggerClassName?: string;
   disabled?: boolean;
+  /** จุดอ้างอิงตำแหน่ง dropdown (เช่น pill ที่ห่อ label + select) */
+  menuAnchorRef?: React.RefObject<HTMLElement | null>;
+  /** ความกว้างขั้นต่ำของ dropdown */
+  menuMinWidth?: number;
 }
 
 export const CustomSelect: React.FC<CustomSelectProps> = ({
@@ -33,6 +37,8 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   className = '',
   triggerClassName = '',
   disabled = false,
+  menuAnchorRef,
+  menuMinWidth = 180,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -40,6 +46,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   const [coords, setCoords] = useState<{ top: number; bottom?: number; left: number; width: number; placeAbove: boolean } | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -57,24 +64,24 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   const displayLabel = selectedOption ? selectedOption.label : value;
 
   const updateCoords = useCallback(() => {
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const dropdownHeight = 300;
-      const placeAbove = spaceBelow < dropdownHeight && rect.top > dropdownHeight;
+    const anchor = menuAnchorRef?.current ?? triggerRef.current ?? containerRef.current;
+    if (!anchor) return null;
 
-      const newCoords = {
-        top: placeAbove ? 0 : rect.bottom + 4,
-        bottom: placeAbove ? window.innerHeight - rect.top + 4 : undefined,
-        left: rect.left,
-        width: Math.max(rect.width, 180),
-        placeAbove,
-      };
-      setCoords(newCoords);
-      return newCoords;
-    }
-    return null;
-  }, []);
+    const rect = anchor.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const dropdownHeight = 300;
+    const placeAbove = spaceBelow < dropdownHeight && rect.top > dropdownHeight;
+
+    const newCoords = {
+      top: placeAbove ? 0 : rect.bottom + 4,
+      bottom: placeAbove ? window.innerHeight - rect.top + 4 : undefined,
+      left: rect.left,
+      width: Math.max(rect.width, menuMinWidth),
+      placeAbove,
+    };
+    setCoords(newCoords);
+    return newCoords;
+  }, [menuAnchorRef, menuMinWidth]);
 
   const handleToggle = () => {
     if (disabled) return;
@@ -127,10 +134,11 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
     <div ref={containerRef} className={`relative w-full ${className}`}>
       {/* Trigger Button */}
       <button
+        ref={triggerRef}
         type="button"
         disabled={disabled}
         onClick={handleToggle}
-        className={triggerClassName || `w-full bg-white dark:bg-neutral-900 hover:bg-slate-50 dark:hover:bg-neutral-800 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-red-500/50 border border-slate-200 dark:border-neutral-700 shadow-2xs transition flex items-center justify-between cursor-pointer gap-1.5 ${
+        className={triggerClassName || `w-full bg-white dark:bg-neutral-900 hover:bg-slate-50 dark:hover:bg-neutral-800 rounded-sm px-3 py-2 text-xs font-bold text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-red-500/50 border border-slate-200 dark:border-neutral-700 shadow-2xs transition flex items-center justify-between cursor-pointer gap-1.5 ${
           disabled ? 'opacity-50 cursor-not-allowed' : ''
         }`}
       >
@@ -224,7 +232,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                   setSearch('');
                   onAddNew();
                 }}
-                className="w-full text-left px-3 py-2 rounded-lg text-xs font-extrabold text-red-600 dark:text-red-400 bg-red-50/60 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 transition flex items-center gap-1.5 cursor-pointer"
+                className="w-full text-left px-3 py-2 rounded-sm text-xs font-extrabold text-red-600 dark:text-red-400 bg-red-50/60 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 transition flex items-center gap-1.5 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5 text-red-600 dark:text-red-400 shrink-0" />
                 <span className="truncate">{addNewLabel}</span>

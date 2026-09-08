@@ -144,7 +144,7 @@ export function ImageUploadField({
             type="button"
             disabled={isDisabled}
             onClick={() => inputRef.current?.click()}
-            className="cursor-pointer rounded-xl border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+            className="cursor-pointer rounded-sm border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
           >
             {hasImage ? 'เปลี่ยนรูป' : 'เลือกไฟล์'}
           </button>
@@ -154,7 +154,7 @@ export function ImageUploadField({
               type="button"
               disabled={isDisabled}
               onClick={handleClear}
-              className="cursor-pointer rounded-xl border border-red-200 px-3 py-1.5 text-xs font-bold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/30"
+              className="cursor-pointer rounded-sm border border-red-200 px-3 py-1.5 text-xs font-bold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/30"
             >
               ลบรูป
             </button>

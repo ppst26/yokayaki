@@ -60,11 +60,15 @@
 
 ### 3.2 Category Filter Buttons (ปุ่มเลือกหมวดหมู่แท็บ)
 
+ใช้ utility ร่วมใน `globals.css`: `badge-pill` + `badge-active` / `badge-inactive`  
+ใช้ใน MenuManager · MenuGrid · DateFilterBar
+
 | State | Background Color | Text Color | Tailwind Classes |
 | :--- | :--- | :--- | :--- |
-| **Active Category** (เลือกอยู่) | `#DC2626` (`bg-red-600`) | `#FFFFFF` (`text-white`) | `bg-red-600 text-white rounded-full font-medium` |
-| **Inactive Category (Light)** | `#FFFFFF` (`bg-white`) / `#F4F4F5` | `#3F3F46` (`text-zinc-700`) | `bg-white hover:bg-zinc-100 text-zinc-700 rounded-full` |
-| **Inactive Category (Dark)** | `#18181B` (`bg-zinc-900`) / `#27272A` | `#A1A1AA` (`text-zinc-400`) | `bg-zinc-900 hover:bg-zinc-800 text-zinc-400 rounded-full` |
+| **Base (`badge-pill`)** | — | — | `rounded-lg px-2.5 py-1 text-xs font-semibold` |
+| **Active Category** (เลือกอยู่) | `#DC2626` (`bg-red-600`) | `#FFFFFF` (`text-white`) | `badge-active` → `shadow-sm shadow-red-600/20` |
+| **Inactive (Light)** | `#FFFFFF` | `#475569` (`text-slate-600`) | `badge-inactive` → border + hover |
+| **Inactive (Dark)** | `#262626` (`bg-neutral-800`) | `#D4D4D4` (`text-neutral-300`) | `badge-inactive` dark variant |
 
 ---
 
@@ -131,11 +135,11 @@
 // 1. Primary Red Button
 export const primaryBtn = "bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-medium px-4 py-2 rounded-full transition-all shadow-none border-none";
 
-// 2. Active Category Chip
-export const categoryActiveChip = "bg-red-600 text-white font-medium px-4 py-1.5 rounded-full shadow-none border-none";
+// 2. Active Category Chip (badge-pill + badge-active)
+export const categoryActiveChip = "badge-pill badge-active";
 
-// 3. Inactive Category Chip
-export const categoryInactiveChip = "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 px-4 py-1.5 rounded-full shadow-none border-none transition-all";
+// 3. Inactive Category Chip (badge-pill + badge-inactive)
+export const categoryInactiveChip = "badge-pill badge-inactive";
 
 // 4. Table Action Icon (Pencil Edit)
 export const editIconBtn = "p-2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all border-none";
@@ -211,4 +215,108 @@ import { CustomSelect } from '@/components/ui/select';
 | **Caption / Meta** | `.text-caption` | `12px` (`text-xs`) | `font-normal` / `font-medium` | `leading-normal text-muted-foreground` | หมายเหตุโน้ตพิเศษ, เวลาออเดอร์, Subtitle, Help text |
 | **Micro Tag** | `.text-micro` | `10px - 11px` (`text-[10px] / text-[11px]`) | `font-semibold` / `font-bold` | `tracking-wider uppercase` | Badge สถานะ (โต๊ะว่าง, โต๊ะมีลูกค้า, สต็อกเหลือน้อย, pending) |
 | **Numeric / Price** | `.text-price` | Varied size | `font-mono` | `tabular-nums` | ราคาสินค้า (`฿150`), ตัวเลขจำนวน (`x2`), เวลา, เบอร์โทร |
+
+---
+
+## 🏷️ 8. Promotion Card Specification (การ์ดโปรโมชั่น — Owner)
+
+Component: [`components/promo/PromoManager.tsx`](components/promo/PromoManager.tsx)  
+Spec รายละเอียด: [`docs/superpowers/specs/2026-09-08-promo-card-image-banner-design.md`](docs/superpowers/specs/2026-09-08-promo-card-image-banner-design.md)  
+อัปเดตล่าสุด: 8 กันยายน 2026
+
+### 8.1 Layout Structure (โครงสร้างการ์ด)
+
+แนวคิด: **"Poster Card"** — รูปโปรโมชั่นเป็น Hero ด้านบน ข้อมูลและ action อยู่ใต้รูป กระชับพื้นที่แนวตั้ง
+
+```
+┌──────────────────────────────┐
+│ ████ รูปโปรโมชั่น (h-40) ████ │  ← Banner + badge overlay
+│ [ประเภทโปร]    [เปิด/ปิด]     │
+├──────────────────────────────┤
+│ ชื่อโปรโมชั่น                  │
+│ [ลด 10%] [รหัส: HEE] [แก้ไข][ลบ]│  ← แถวเดียวกัน (ml-auto)
+│ Happy Hour: 17:00 - 19:00 น.  │  ← แสดงเมื่อมีช่วงเวลา
+│ สร้างเมื่อ …         ID: #2  │  ← Footer
+└──────────────────────────────┘
+```
+
+| Zone | ความสูง / Spacing | Tailwind Classes |
+| :--- | :--- | :--- |
+| **Banner** | `160px` | `relative h-40 w-full shrink-0` |
+| **Card Body** | padding `16px` | `flex flex-col gap-3 p-4` |
+| **Grid** | 1 / 2 / 3 คอลัมน์ | `grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4` |
+
+### 8.2 Image Banner & Placeholder
+
+| State | การแสดงผล | Tailwind Classes |
+| :--- | :--- | :--- |
+| **มีรูป** (`image_url`) | แบนเนอร์เต็มความกว้าง crop กลาง | `size-full object-cover` |
+| **ไม่มีรูป** | Gradient อ่อน + ไอคอน `Tag` | `bg-gradient-to-br from-slate-100 to-slate-200/80 dark:from-neutral-800 dark:to-neutral-900` |
+| **โปรปิด** (`is_active = false`) | การ์ดทั้งใบจาง + grayscale | `opacity-65 grayscale-[20%]` |
+
+รูปอัปโหลดผ่าน `ImageUploadField` (folder `promo`) เก็บ public URL ใน `promotions.image_url` — ดู flow อัปโหลด R2 ที่ [`docs/superpowers/specs/2026-09-03-menu-promo-r2-upload-design.md`](docs/superpowers/specs/2026-09-03-menu-promo-r2-upload-design.md)
+
+### 8.3 Overlay Badges (ทับบนรูป)
+
+วาง `absolute inset-x-0 top-0` พร้อม `p-3 flex justify-between` — ใช้ `backdrop-blur-sm` + พื้นหลังโปร่ง (`/90`) ให้อ่านได้ทั้งรูปสว่างและมืด
+
+| Badge | ประเภทโปร | Light Theme | Dark Theme |
+| :--- | :--- | :--- | :--- |
+| **Type Badge** | `percentage` | Rose 50 / Rose 600 | Rose 950/80 / Rose 400 |
+| **Type Badge** | `fixed` (คูปอง) | Amber 50 / Amber 600 | Amber 950/80 / Amber 400 |
+| **Type Badge** | `buy_x_get_y` | Indigo 50 / Indigo 600 | Indigo 950/80 / Indigo 400 |
+| **Status Active** | เปิดใช้งาน | Emerald 50 + จุด pulse เขียว | Emerald 950/80 |
+| **Status Inactive** | ปิดอยู่ | Slate 100 / Slate 400 | Neutral 800/90 |
+
+ไอคอนประเภท: `TicketPercent` (%) · `Tag` (คูปอง) · `Gift` (ซื้อแถม)
+
+### 8.4 Body Content & Inline Actions
+
+**แถว Badge + ปุ่ม** — ใช้ `flex flex-wrap items-center gap-2` ปุ่มแก้ไข/ลบอยู่ปลายแถวเดียวกับ badge ส่วนลดและรหัส (`ml-auto shrink-0`) เพื่อลดความสูงการ์ด
+
+| Element | Style | Tailwind Classes |
+| :--- | :--- | :--- |
+| **ชื่อโปร** | Heading 3 | `font-extrabold text-base leading-snug text-slate-900 dark:text-neutral-100` |
+| **Value Badge** (ลด X%) | แดงทึบ | `bg-red-600 text-white text-xs font-black px-2.5 py-1 rounded-md` |
+| **เงื่อนไข** (ขั้นต่ำ / รหัส / เมนู) | Chip อ่อน | `text-[11px] font-bold bg-slate-100 dark:bg-neutral-800 rounded-md` |
+| **รหัสคูปอง** | Mono + แดงเน้น | `font-mono text-red-600 dark:text-red-400 font-extrabold` |
+| **Happy Hour** | Caption + Clock icon | `text-[11px] font-semibold text-slate-500` |
+| **แก้ไข** | Compact inline | `rounded-lg bg-slate-100 px-2.5 py-1 text-[11px] font-bold` |
+| **ลบ** | Compact inline | `rounded-lg bg-rose-50 text-rose-600 px-2.5 py-1 text-[11px] font-bold` |
+| **Footer** | Meta | `border-t pt-2 text-[10px] text-slate-400` — วันที่สร้าง + `ID: #n` |
+
+### 8.5 Implementation Quick Reference
+
+```tsx
+// Promotion Card — โครงสร้างหลัก
+<Card className="overflow-hidden rounded-2xl border border-slate-200/80 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs hover:shadow-md flex flex-col">
+  {/* Banner */}
+  <div className="relative h-40 w-full shrink-0 bg-slate-100 dark:bg-neutral-800">
+    {imageUrl ? (
+      <img src={imageUrl} alt={name} className="size-full object-cover" />
+    ) : (
+      <div className="flex size-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200/80">
+        <Tag className="size-10 text-slate-300" />
+      </div>
+    )}
+    {/* Overlay: type badge (ซ้าย) + status toggle (ขวา) */}
+    <div className="absolute inset-x-0 top-0 flex justify-between gap-2 p-3">...</div>
+  </div>
+
+  {/* Body */}
+  <div className="flex flex-col gap-3 p-4">
+    <h3 className="font-extrabold text-base">{name}</h3>
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="bg-red-600 text-white text-xs font-black px-2.5 py-1 rounded-md">ลด 10%</span>
+      {/* badges เงื่อนไข ... */}
+      <div className="ml-auto flex shrink-0 items-center gap-1">
+        {/* แก้ไข / ลบ */}
+      </div>
+    </div>
+    <div className="flex justify-between border-t pt-2 text-[10px] text-slate-400">...</div>
+  </div>
+</Card>
+```
+
+> **หมายเหตุ:** การ์ดโปรโมชั่น Owner ใช้ `border` + `shadow-xs` เล็กน้อย (ต่างจาก Card หลักใน §1 ที่เป็น Flat ไม่มี border) เพื่อแยกการ์ดใน grid ให้ชัด — สอดคล้องกับ pattern การ์ดจัดการอื่นในระบบ
 
