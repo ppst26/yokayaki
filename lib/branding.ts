@@ -1,7 +1,7 @@
 /** Platform default login assets — ไฟล์อยู่ใน `public/branding/` (โลโก้ต้องเป็น PNG จริงพร้อม alpha) */
 export const PLATFORM_BRANDING = {
   logo: '/branding/logo.png',
-  logoDark: '/branding/logo-dark.png',
+  logoDark: '/branding/logo-dark.webp',
   loginBackground: '/branding/login-bg.webp',
   loginBackgroundMobile: '/branding/login-bg.webp',
   appBackground: '/branding/app-bg.webp',
@@ -33,7 +33,7 @@ export function getAppBackgroundForTheme(theme: 'light' | 'dark', org?: Branding
   return theme === 'light' ? assets.appBackgroundLight : assets.appBackground;
 }
 
-/** light → logo-dark.png · dark → logo.png */
+/** light → logo-dark.webp · dark → logo.png */
 export function getLogoForTheme(theme: 'light' | 'dark', org?: BrandingAssets | null) {
   const assets = resolveBranding(org);
   return theme === 'light' ? assets.logoDark : assets.logo;
