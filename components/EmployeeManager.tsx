@@ -3,11 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import {
-  Plus, Pencil, KeyRound, ArrowLeftRight,
+  Plus, Pencil,
   Trash2, X, CheckCircle, AlertTriangle, Shield, User, Users,
   Eye, EyeOff
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { CustomSelect } from '@/components/ui/select';
 import { canAccessTab, EMPLOYEE_ROLES, type EmployeeRole } from '@/lib/permissions';
 
 // ========== Interfaces ==========
@@ -26,6 +27,16 @@ const ROLE_LABELS: Record<EmployeeRole, string> = {
   kitchen: 'ครัว',
   accountant: 'บัญชี',
 };
+
+const FORM_FIELD_CLASS =
+  'w-full px-4 py-2.5 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-sm text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 transition';
+
+const FORM_SELECT_TRIGGER_CLASS = `${FORM_FIELD_CLASS} font-medium flex items-center justify-between cursor-pointer gap-1.5`;
+
+const ROLE_OPTIONS = EMPLOYEE_ROLES.map(role => ({
+  value: role,
+  label: ROLE_LABELS[role],
+}));
 
 type ModalType = 'add' | 'edit' | 'delete' | null;
 
@@ -453,15 +464,12 @@ export const EmployeeManager: React.FC = () => {
                   {/* Role */}
                   <div>
                     <label className="block text-sm font-bold text-slate-600 dark:text-neutral-300 mb-1.5">ตำแหน่ง</label>
-                    <select
+                    <CustomSelect
                       value={addRole}
-                      onChange={e => setAddRole(e.target.value as EmployeeRole)}
-                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-sm text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 transition"
-                    >
-                      {EMPLOYEE_ROLES.map(role => (
-                        <option key={role} value={role}>{ROLE_LABELS[role]}</option>
-                      ))}
-                    </select>
+                      onChange={v => setAddRole(v as EmployeeRole)}
+                      options={ROLE_OPTIONS}
+                      triggerClassName={FORM_SELECT_TRIGGER_CLASS}
+                    />
                   </div>
                 </div>
 
@@ -515,15 +523,12 @@ export const EmployeeManager: React.FC = () => {
                   {/* ตำแหน่ง (Role) */}
                   <div>
                     <label className="block text-sm font-bold text-slate-600 dark:text-neutral-300 mb-1.5">ตำแหน่ง</label>
-                    <select
+                    <CustomSelect
                       value={editRole}
-                      onChange={e => setEditRole(e.target.value as EmployeeRole)}
-                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-sm text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 transition"
-                    >
-                      {EMPLOYEE_ROLES.map(role => (
-                        <option key={role} value={role}>{ROLE_LABELS[role]}</option>
-                      ))}
-                    </select>
+                      onChange={v => setEditRole(v as EmployeeRole)}
+                      options={ROLE_OPTIONS}
+                      triggerClassName={FORM_SELECT_TRIGGER_CLASS}
+                    />
                   </div>
 
                   {/* เปลี่ยน PIN (ไม่บังคับ — ปล่อยว่างถ้าไม่เปลี่ยน) */}
