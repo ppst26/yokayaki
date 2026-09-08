@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+import { MemberTagChips } from './MemberTagChips';
+import type { MemberTagCode } from '@/lib/memberTags';
 
 interface LoyaltyMember {
   phone_number: string;
@@ -13,6 +14,7 @@ interface LoyaltyMember {
 
 interface MemberInfoCardProps {
   selectedMember: LoyaltyMember;
+  tags?: MemberTagCode[];
   setShowEditModal: (val: boolean) => void;
   setEditName: (val: string) => void;
   setEditPhone: (val: string) => void;
@@ -23,6 +25,7 @@ interface MemberInfoCardProps {
 
 export const MemberInfoCard: React.FC<MemberInfoCardProps> = ({
   selectedMember,
+  tags = [],
   setShowEditModal,
   setEditName,
   setEditPhone,
@@ -47,6 +50,7 @@ export const MemberInfoCard: React.FC<MemberInfoCardProps> = ({
             <p className="text-xs font-medium text-slate-400 dark:text-neutral-500">
               สมาชิกเมื่อ {formatDate(selectedMember.created_at)}
             </p>
+            {tags.length > 0 && <MemberTagChips tags={tags} className="mt-2" />}
           </div>
         </div>
 
