@@ -8,6 +8,11 @@ describe('pointsEarnedFromNet', () => {
     expect(pointsEarnedFromNet(100)).toBe(10);
     expect(pointsEarnedFromNet(109)).toBe(10);
   });
+
+  it('applies multiplier after floor (double points day)', () => {
+    expect(pointsEarnedFromNet(99, 2)).toBe(18);
+    expect(pointsEarnedFromNet(100, 2)).toBe(20);
+  });
 });
 
 describe('clampPointsRedeem', () => {

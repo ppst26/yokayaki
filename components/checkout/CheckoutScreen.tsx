@@ -12,6 +12,7 @@ import { PromptPayQRModal } from './PromptPayQRModal';
 import { ReceiptPrintView } from './ReceiptPrintView';
 import { generatePromptPayQR } from '@/lib/promptPay';
 import { pointsEarnedFromNet } from '@/lib/loyaltyPoints';
+import { isDoublePointsActive, parseDoublePointsDates } from '@/lib/doublePoints';
 
 interface CheckoutScreenProps {
   tableId: string;
@@ -129,6 +130,9 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNu
   const [orgSettings, setOrgSettings] = useState<{
     promptpay_id: string | null;
     receipt_merchant_name: string;
+    double_points_enabled: boolean;
+    double_points_dates: unknown;
+    timezone: string;
   } | null>(null);
 
   // Computed values
@@ -144,13 +148,18 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNu
   const changeAmount = cashNum > netAmount ? cashNum - netAmount : 0;
   // 1 แต้ม = 10 บาท (ยืนยันแล้ว — ปิดข้อขัดแย้ง L1 ที่โค้ดเดิมใช้ /25 แต่เอกสารบอก /10)
   // ตัวเลขนี้ใช้แสดงผลอย่างเดียว ของจริงคำนวณใน complete_checkout
-  const pointsEarned = pointsEarnedFromNet(netAmount);
 
   // เดิม fallback เป็น '0899999999' เงียบๆ = ลูกค้าโอนเงินเข้าเบอร์ของคนอื่นโดยไม่มีใครรู้ (A7.8)
   // ตอนนี้ถ้าไม่ได้ตั้งค่า จะปิดช่องทาง PromptPay ไปเลยและบอกให้ไปตั้งค่า
   const promptPayId = (orgSettings?.promptpay_id ?? '').replace(/[^0-9]/g, '');
   const merchantName = orgSettings?.receipt_merchant_name ?? 'YOKAYAKI';
   const promptPayReady = promptPayId.length === 10 || promptPayId.length === 13;
+  const doublePointsActive = isDoublePointsActive(
+    Boolean(orgSettings?.double_points_enabled),
+    parseDoublePointsDates(orgSettings?.double_points_dates),
+    orgSettings?.timezone ?? 'Asia/Bangkok',
+  );
+  const pointsEarned = pointsEarnedFromNet(netAmount, doublePointsActive ? 2 : 1);
 
   useEffect(() => {
     fetchOrderData();
@@ -187,7 +196,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNu
   const fetchOrgSettings = async () => {
     const { data, error } = await supabase
       .from('org_settings')
-      .select('promptpay_id, receipt_merchant_name')
+      .select('promptpay_id, receipt_merchant_name, double_points_enabled, double_points_dates, timezone')
       .maybeSingle();
     if (error) throw error;
     setOrgSettings(data);
@@ -600,6 +609,14 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNu
           </div>
         )}
 
+        {doublePointsActive && (
+          <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-xs font-semibold text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
+            <p className="text-sm font-extrabold">
+              วันแต้ม x2 — สมาชิกจะได้แต้มสะสม 2 เท่าจากบิลนี้
+            </p>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* LEFT: Order Summary */}
           <OrderSummaryCard
@@ -610,6 +627,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNu
             netAmount={netAmount}
             pointsEarned={pointsEarned}
             member={member}
+            doublePointsActive={doublePointsActive}
             cashNum={cashNum}
             transferAmount={transferAmount}
           />

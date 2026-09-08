@@ -1,6 +1,6 @@
-/** แต้มที่ได้จากยอดสุทธิ — อัตราเดียวกับ complete_checkout (net / 10) */
-export function pointsEarnedFromNet(net: number): number {
-  return Math.floor(Math.max(0, net) / 10);
+/** แต้มที่ได้จากยอดสุทธิ — อัตราเดียวกับ complete_checkout (FLOOR(net/10) × multiplier) */
+export function pointsEarnedFromNet(net: number, multiplier = 1): number {
+  return Math.floor(Math.max(0, net) / 10) * multiplier;
 }
 
 /**

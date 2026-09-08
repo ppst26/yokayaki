@@ -48,6 +48,7 @@ interface OrderSummaryCardProps {
   netAmount: number;
   pointsEarned: number;
   member: LoyaltyMember | null;
+  doublePointsActive?: boolean;
   cashNum?: number;
   transferAmount?: number;
 }
@@ -60,6 +61,7 @@ export const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
   netAmount,
   pointsEarned,
   member,
+  doublePointsActive = false,
   cashNum = 0,
   transferAmount = 0,
 }) => {
@@ -183,6 +185,11 @@ export const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
             <div>
               <span className="text-sm font-bold text-slate-800 dark:text-neutral-200 block">
                 แต้มที่จะได้รับจากบิลนี้
+                {doublePointsActive && member && (
+                  <span className="ml-1.5 text-[10px] font-extrabold uppercase text-red-600 dark:text-red-400">
+                    x2
+                  </span>
+                )}
               </span>
               {member ? (
                 <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold block">
