@@ -1,23 +1,57 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { RefreshCw, ShoppingBag, Receipt, AlertTriangle, X } from 'lucide-react';
 import { SidebarNav, NavTab } from '@/components/SidebarNav';
 import { POSOrderScreen } from '@/components/POSOrderScreen';
 import { CheckoutScreen } from '@/components/CheckoutScreen';
-import { StockManager } from '@/components/StockManager';
-import { OwnerDashboard } from '@/components/OwnerDashboard';
 import { KitchenScreen } from '@/components/KitchenScreen';
-import { MenuManager } from '@/components/MenuManager';
-import { PromoManager } from '@/components/PromoManager';
-import { SalesHistory } from '@/components/SalesHistory';
-import { LoyaltyManager } from '@/components/LoyaltyManager';
-import { EmployeeManager } from '@/components/EmployeeManager';
 import { playNewOrderSound, playCheckBillSound } from '@/lib/audioNotifier';
 import { TableCard } from '@/components/TableCard';
 import { canAccessTab, type EmployeeRole } from '@/lib/permissions';
+
+// แท็บหนัก — โหลดเมื่อเปิดครั้งแรก (ลดงานตอน login)
+const SalesHistory = lazy(() =>
+  import('@/components/SalesHistory').then(m => ({ default: m.SalesHistory })),
+);
+const MenuManager = lazy(() =>
+  import('@/components/MenuManager').then(m => ({ default: m.MenuManager })),
+);
+const StockManager = lazy(() =>
+  import('@/components/StockManager').then(m => ({ default: m.StockManager })),
+);
+const PromoManager = lazy(() =>
+  import('@/components/PromoManager').then(m => ({ default: m.PromoManager })),
+);
+const OwnerDashboard = lazy(() =>
+  import('@/components/OwnerDashboard').then(m => ({ default: m.OwnerDashboard })),
+);
+const LoyaltyManager = lazy(() =>
+  import('@/components/LoyaltyManager').then(m => ({ default: m.LoyaltyManager })),
+);
+const EmployeeManager = lazy(() =>
+  import('@/components/EmployeeManager').then(m => ({ default: m.EmployeeManager })),
+);
+
+const LAZY_TABS: NavTab[] = [
+  'history',
+  'menu',
+  'stock',
+  'promo',
+  'dashboard',
+  'loyalty',
+  'employees',
+];
+
+function TabFallback() {
+  return (
+    <div className="flex justify-center py-20">
+      <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+}
 
 interface Table {
   id: string;
@@ -27,7 +61,7 @@ interface Table {
 }
 
 export const TableMap: React.FC = () => {
-  const { employee, logout } = useAuth();
+  const { employee } = useAuth();
   const [tables, setTables] = useState<Table[]>([]);
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
   const [selectedTableNumber, setSelectedTableNumber] = useState<number | null>(null);
@@ -39,13 +73,21 @@ export const TableMap: React.FC = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<NavTab>('floor');
+  /** แท็บที่เคยเปิดแล้ว — keep-alive ไม่ remount / ไม่ fetch ซ้ำ */
+  const [visitedTabs, setVisitedTabs] = useState<Set<NavTab>>(() => new Set(['floor']));
 
   useEffect(() => {
     if (!employee) return;
     const role = employee.role as EmployeeRole;
-    if (role === 'kitchen') setActiveTab('kitchen');
-    else if (role === 'accountant') setActiveTab('history');
-    else setActiveTab('floor');
+    let initial: NavTab = 'floor';
+    if (role === 'kitchen') initial = 'kitchen';
+    else if (role === 'accountant') initial = 'history';
+    setActiveTab(initial);
+    setVisitedTabs(prev => {
+      const next = new Set(prev);
+      next.add(initial);
+      return next;
+    });
   }, [employee?.id]);
 
   useEffect(() => {
@@ -167,11 +209,32 @@ export const TableMap: React.FC = () => {
       return;
     }
     setActiveTab(tab);
+    setVisitedTabs(prev => {
+      const next = new Set(prev);
+      next.add(tab);
+      return next;
+    });
     setSelectedTableId(null);
     setSelectedTableNumber(null);
     setCheckoutTableId(null);
     setCheckoutTableNumber(null);
   };
+
+  const role = (employee?.role ?? 'cashier') as EmployeeRole;
+
+  const lazyPanels = useMemo(
+    () =>
+      ({
+        history: canAccessTab(role, 'history') ? <SalesHistory /> : null,
+        menu: canAccessTab(role, 'menu') ? <MenuManager /> : null,
+        stock: canAccessTab(role, 'stock') ? <StockManager /> : null,
+        promo: canAccessTab(role, 'promo') ? <PromoManager /> : null,
+        dashboard: canAccessTab(role, 'dashboard') ? <OwnerDashboard /> : null,
+        loyalty: canAccessTab(role, 'loyalty') ? <LoyaltyManager /> : null,
+        employees: canAccessTab(role, 'employees') ? <EmployeeManager /> : null,
+      }) as Partial<Record<NavTab, React.ReactNode>>,
+    [role],
+  );
 
   if (selectedTableId !== null) {
     return (
@@ -218,64 +281,71 @@ export const TableMap: React.FC = () => {
     }
   };
 
-  const role = (employee?.role ?? 'cashier') as EmployeeRole;
-
   return (
     <div className="flex flex-col md:flex-row h-screen bg-gray-100 dark:bg-neutral-950 font-sans text-slate-800 dark:text-neutral-100 overflow-hidden">
       <SidebarNav activeTab={activeTab} onSelectTab={handleTabChange} />
 
       <main className="flex-1 overflow-y-auto no-scrollbar p-4 md:p-8 pb-24 md:pb-8">
-        {activeTab === 'kitchen' && canAccessTab(role, 'kitchen') && <KitchenScreen />}
-        {activeTab === 'history' && canAccessTab(role, 'history') && <SalesHistory />}
-        {activeTab === 'menu' && canAccessTab(role, 'menu') && <MenuManager />}
-        {activeTab === 'stock' && canAccessTab(role, 'stock') && <StockManager />}
-        {activeTab === 'promo' && canAccessTab(role, 'promo') && <PromoManager />}
-        {activeTab === 'dashboard' && canAccessTab(role, 'dashboard') && <OwnerDashboard />}
-        {activeTab === 'loyalty' && canAccessTab(role, 'loyalty') && <LoyaltyManager />}
-        {activeTab === 'employees' && canAccessTab(role, 'employees') && <EmployeeManager />}
+        {/* floor + kitchen: eager (ใช้บ่อย) */}
+        {canAccessTab(role, 'floor') && (
+          <div className={activeTab === 'floor' ? 'block' : 'hidden'}>
+            <div className="w-full space-y-6">
+              <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="w-[50%]">
+                  <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-neutral-100">
+                    ผังโต๊ะ
+                  </h1>
+                  <p className="text-caption mt-0.5">เลือกโต๊ะเพื่อเปิดออเดอร์</p>
+                </div>
 
-        {activeTab === 'floor' && canAccessTab(role, 'floor') && (
-          <div className="w-full space-y-6">
-            <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="w-[50%]">
-                <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-neutral-100">
-                  ผังโต๊ะ
-                </h1>
-                <p className="text-caption mt-0.5">
-                  เลือกโต๊ะเพื่อเปิดออเดอร์ 
-                </p>
+                <button
+                  onClick={fetchTables}
+                  className="flex items-center gap-1.5 px-4 py-2.5 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-200 rounded-xl text-caption font-semibold transition active:scale-95 shadow-xs cursor-pointer self-start md:self-auto"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                  <span>รีเฟรชผังโต๊ะ</span>
+                </button>
+              </header>
+
+              {errorMsg && (
+                <div className="p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-300 rounded-2xl text-caption font-semibold flex items-center gap-3">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+                {tables.map(table => (
+                  <TableCard
+                    key={table.id}
+                    table={table}
+                    onClick={() => handleTableClick(table)}
+                  />
+                ))}
               </div>
-
-              <button
-                onClick={fetchTables}
-                className="flex items-center gap-1.5 px-4 py-2.5 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-200 rounded-xl text-caption font-semibold transition active:scale-95 shadow-xs cursor-pointer self-start md:self-auto"
-              >
-                <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
-                <span>รีเฟรชผังโต๊ะ</span>
-              </button>
-            </header>
-
-            {errorMsg && (
-              <div className="p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-300 rounded-2xl text-caption font-semibold flex items-center gap-3">
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
-                <span>{errorMsg}</span>
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
-              {tables.map(table => (
-                <TableCard
-                  key={table.id}
-                  table={table}
-                  onClick={() => handleTableClick(table)}
-                />
-              ))}
             </div>
           </div>
         )}
+
+        {canAccessTab(role, 'kitchen') && (
+          <div className={activeTab === 'kitchen' ? 'block' : 'hidden'}>
+            {(activeTab === 'kitchen' || visitedTabs.has('kitchen')) && <KitchenScreen />}
+          </div>
+        )}
+
+        {/* แท็บหนัก: lazy + keep-alive หลังเปิดครั้งแรก */}
+        <Suspense fallback={<TabFallback />}>
+          {LAZY_TABS.map(tab => {
+            if (!visitedTabs.has(tab) || !lazyPanels[tab]) return null;
+            return (
+              <div key={tab} className={activeTab === tab ? 'block' : 'hidden'}>
+                {lazyPanels[tab]}
+              </div>
+            );
+          })}
+        </Suspense>
       </main>
 
-      {/* Action Selector Modal */}
       {actionSelectorTable !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs">
           <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl w-full max-w-sm p-6 shadow-xl space-y-4">
@@ -334,7 +404,6 @@ export const TableMap: React.FC = () => {
                     : 'ชำระเงิน / เช็คบิล'}
                 </span>
               </button>
-
             </div>
           </div>
         </div>

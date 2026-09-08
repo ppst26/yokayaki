@@ -14,6 +14,11 @@ export interface Employee {
 interface AuthContextType {
   employee: Employee | null;
   error: string | null;
+  /** กำลังกู้ session ตอนเปิดแอป — ใช้โชว์หน้าจอโหลดเต็มจอ */
+  isRestoring: boolean;
+  /** กำลังยืนยัน PIN — อย่าใช้แทน isRestoring (จะเด้งหน้าจอดำ) */
+  isPinLoading: boolean;
+  /** @deprecated ใช้ isRestoring — คงไว้เพื่อไม่พังโค้ดเก่า */
   isLoading: boolean;
   orgAuthenticated: boolean;
   orgError: string | null;
@@ -41,7 +46,8 @@ const IDLE_TIMEOUT_MS = 5 * 60 * 1000; // 5 นาที auto-lock
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isRestoring, setIsRestoring] = useState<boolean>(true);
+  const [isPinLoading, setIsPinLoading] = useState<boolean>(false);
   const [orgAuthenticated, setOrgAuthenticated] = useState<boolean>(false);
   const [orgError, setOrgError] = useState<string | null>(null);
   const [isOrgLoading, setIsOrgLoading] = useState<boolean>(false);
@@ -74,7 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (err) {
         console.error('Error restoring session:', err);
       } finally {
-        if (!cancelled) setIsLoading(false);
+        if (!cancelled) setIsRestoring(false);
       }
     })();
 
@@ -144,7 +150,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       setError(null);
-      setIsLoading(true);
+      setIsPinLoading(true);
 
       const res = await fetch('/api/auth/login', {
         method: 'POST',
@@ -171,7 +177,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setError('เกิดข้อผิดพลาดในการเชื่อมต่อระบบ');
       return false;
     } finally {
-      setIsLoading(false);
+      setIsPinLoading(false);
     }
   };
 
@@ -219,7 +225,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <AuthContext.Provider value={{
       employee,
       error,
-      isLoading,
+      isRestoring,
+      isPinLoading,
+      isLoading: isRestoring,
       orgAuthenticated,
       orgError,
       isOrgLoading,

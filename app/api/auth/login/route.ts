@@ -122,7 +122,8 @@ export async function POST(request: Request) {
       sessionId: sessionRow.id,
     });
 
-    await insertLoginAudit('login_success', {
+    // ไม่ await audit — อย่าบล็อก critical path ของ login
+    void insertLoginAudit('login_success', {
       employeeId: employee.id,
       orgId: empRow.org_id,
       ipHint,

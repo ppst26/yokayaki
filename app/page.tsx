@@ -5,9 +5,9 @@ import { OrgLoginForm } from '@/components/OrgLoginForm';
 import { TableMap } from '@/components/TableMap';
 
 export default function Home() {
-  const { employee, isLoading, orgAuthenticated } = useAuth();
+  const { employee, isRestoring, orgAuthenticated } = useAuth();
 
-  if (isLoading) {
+  if (isRestoring) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white">
         <div className="w-8 h-8 border-3 border-amber-500 border-t-transparent rounded-full animate-spin mb-4" />

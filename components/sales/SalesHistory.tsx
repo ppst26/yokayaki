@@ -116,25 +116,25 @@ export const SalesHistory: React.FC = () => {
       }
 
       const orderIds = orderData.map(o => o.id);
-      const { data: paymentData, error: paymentError } = await supabase
-        .from('payments')
-        .select(
-          'id, order_id, payment_method, subtotal, discount_amount, net_amount, cash_amount, promptpay_amount, points_earned, points_redeemed, phone_number, created_at'
-        )
-        .in('order_id', orderIds);
-
-      if (paymentError) throw paymentError;
-
       const normalizePhone = (phone?: string | null) => (phone ? phone.replace(/\D/g, '') : '');
 
-      // Fetch member names separately
-      const memberMap: Record<string, string> = {};
-      const { data: memberData } = await supabase
-        .from('loyalty_members')
-        .select('phone_number, name');
+      // รัน payments + members ขนานกัน (เดิมเป็นน้ำตก)
+      const [paymentResult, memberResult] = await Promise.all([
+        supabase
+          .from('payments')
+          .select(
+            'id, order_id, payment_method, subtotal, discount_amount, net_amount, cash_amount, promptpay_amount, points_earned, points_redeemed, phone_number, created_at'
+          )
+          .in('order_id', orderIds),
+        supabase.from('loyalty_members').select('phone_number, name'),
+      ]);
 
-      if (memberData) {
-        memberData.forEach(m => {
+      if (paymentResult.error) throw paymentResult.error;
+      const paymentData = paymentResult.data;
+
+      const memberMap: Record<string, string> = {};
+      if (memberResult.data) {
+        memberResult.data.forEach(m => {
           if (m.name) {
             memberMap[m.phone_number] = m.name;
             const clean = normalizePhone(m.phone_number);
@@ -155,7 +155,6 @@ export const SalesHistory: React.FC = () => {
 
         if (promoError) throw promoError;
 
-        // Fetch coupon codes from promotions separately
         const promoIds = Array.from(
           new Set(
             (promos || [])
@@ -316,8 +315,11 @@ export const SalesHistory: React.FC = () => {
 
   useEffect(() => {
     if (!employee) return;
-    fetchOrdersForRange(auditRange);
-    fetchVoidLogsForRange(auditRange);
+    // โหลด orders + voids ขนานกัน
+    void Promise.all([
+      fetchOrdersForRange(auditRange),
+      fetchVoidLogsForRange(auditRange),
+    ]);
   }, [auditRange, employee?.id, showKpi]);
 
   const totalRevenue = orders.reduce((s, o) => s + (o.payment?.net_amount || 0), 0);

@@ -13,10 +13,10 @@ const formatCountdown = (seconds: number): string => {
 export const PinPad: React.FC = () => {
   const [pin, setPin] = useState('');
   const [isShaking, setIsShaking] = useState(false);
-  const { loginWithPin, error, isLoading, isLockedOut, remainingLockoutSeconds } = useAuth();
+  const { loginWithPin, error, isPinLoading, isLockedOut, remainingLockoutSeconds } = useAuth();
 
   const handleNumberClick = (num: string) => {
-    if (isLoading || isLockedOut || pin.length >= 6) return;
+    if (isPinLoading || isLockedOut || pin.length >= 6) return;
 
     const nextPin = pin + num;
     setPin(nextPin);
@@ -36,12 +36,12 @@ export const PinPad: React.FC = () => {
   };
 
   const handleBackspace = () => {
-    if (isLoading || isLockedOut) return;
+    if (isPinLoading || isLockedOut) return;
     setPin(prev => prev.slice(0, -1));
   };
 
   const handleClear = () => {
-    if (isLoading || isLockedOut) return;
+    if (isPinLoading || isLockedOut) return;
     setPin('');
   };
 
@@ -128,7 +128,7 @@ export const PinPad: React.FC = () => {
           {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(num => (
             <button
               key={num}
-              disabled={isLoading}
+              disabled={isPinLoading}
               onClick={() => handleNumberClick(num)}
               className="h-16 text-xl font-extrabold bg-slate-50 dark:bg-neutral-800 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-600 dark:hover:text-red-400 border border-slate-200 dark:border-neutral-700 hover:border-red-300 active:scale-95 rounded-2xl transition-all duration-150 flex items-center justify-center shadow-xs text-slate-800 dark:text-neutral-100 cursor-pointer"
             >
@@ -137,7 +137,7 @@ export const PinPad: React.FC = () => {
           ))}
 
           <button
-            disabled={isLoading}
+            disabled={isPinLoading}
             onClick={handleClear}
             className="h-16 text-xs font-bold bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 border border-slate-200 dark:border-neutral-700 active:scale-95 rounded-2xl transition-all duration-150 flex items-center justify-center text-slate-600 dark:text-neutral-300 cursor-pointer"
           >
@@ -145,7 +145,7 @@ export const PinPad: React.FC = () => {
           </button>
 
           <button
-            disabled={isLoading}
+            disabled={isPinLoading}
             onClick={() => handleNumberClick('0')}
             className="h-16 text-xl font-extrabold bg-slate-50 dark:bg-neutral-800 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-600 dark:hover:text-red-400 border border-slate-200 dark:border-neutral-700 hover:border-red-300 active:scale-95 rounded-2xl transition-all duration-150 flex items-center justify-center text-slate-800 dark:text-neutral-100 cursor-pointer"
           >
@@ -153,7 +153,7 @@ export const PinPad: React.FC = () => {
           </button>
 
           <button
-            disabled={isLoading}
+            disabled={isPinLoading}
             onClick={handleBackspace}
             className="h-16 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 border border-slate-200 dark:border-neutral-700 active:scale-95 rounded-2xl transition-all duration-150 flex items-center justify-center text-slate-600 dark:text-neutral-300 cursor-pointer"
           >
@@ -162,7 +162,7 @@ export const PinPad: React.FC = () => {
         </div>
 
         {/* Loading Spinner */}
-        {isLoading && (
+        {isPinLoading && (
           <div className="absolute inset-0 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xs rounded-3xl flex flex-col items-center justify-center transition-all duration-300">
             <div className="w-9 h-9 border-3 border-red-600 border-t-transparent rounded-full animate-spin mb-3" />
             <p className="text-red-600 dark:text-red-400 font-extrabold text-xs tracking-wider animate-pulse">

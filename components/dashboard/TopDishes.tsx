@@ -1,15 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
-import { storeTimestampRange } from '@/lib/storeDateRange';
+import React, { useMemo } from 'react';
 import { Award } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import type { DashboardBundle } from '@/lib/useDashboardBundle';
 
 interface TopDishesProps {
-  startDate: Date;
-  endDate: Date;
-  refreshKey: number;
+  bundle: DashboardBundle;
 }
 
 interface DishRank {
@@ -18,49 +15,25 @@ interface DishRank {
   totalRevenue: number;
 }
 
-export const TopDishes: React.FC<TopDishesProps> = ({ startDate, endDate, refreshKey }) => {
-  const [dishes, setDishes] = useState<DishRank[]>([]);
-  const [loading, setLoading] = useState(true);
+export const TopDishes: React.FC<TopDishesProps> = ({ bundle }) => {
+  const { orderItems, loading } = bundle;
 
-  useEffect(() => {
-    const fetch = async () => {
-      setLoading(true);
-      try {
-        const { startISO, endISO } = storeTimestampRange(startDate, endDate);
+  const dishes = useMemo(() => {
+    const menuMap: Record<string, { qty: number; rev: number }> = {};
+    orderItems.forEach(item => {
+      const name = item.menu_items?.name || 'อื่นๆ';
+      if (!menuMap[name]) menuMap[name] = { qty: 0, rev: 0 };
+      menuMap[name].qty += item.quantity;
+      menuMap[name].rev += item.quantity * parseFloat(String(item.unit_price));
+    });
 
-        const { data: items } = await supabase
-          .from('order_items')
-          .select('quantity, unit_price, menu_items(name)')
-          .neq('status', 'voided')
-          .gte('created_at', startISO)
-          .lte('created_at', endISO);
-
-        const menuMap: Record<string, { qty: number; rev: number }> = {};
-        (items || []).forEach((item: any) => {
-          const name = item.menu_items?.name || 'อื่นๆ';
-          if (!menuMap[name]) menuMap[name] = { qty: 0, rev: 0 };
-          menuMap[name].qty += item.quantity;
-          menuMap[name].rev += item.quantity * item.unit_price;
-        });
-
-        const sorted = Object.entries(menuMap)
-          .map(([name, val]) => ({ name, totalQty: val.qty, totalRevenue: val.rev }))
-          .sort((a, b) => b.totalQty - a.totalQty)
-          .slice(0, 8);
-
-        setDishes(sorted);
-      } catch (err) {
-        console.error('TopDishes fetch error:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetch();
-  }, [startDate, endDate, refreshKey]);
+    return Object.entries(menuMap)
+      .map(([name, val]) => ({ name, totalQty: val.qty, totalRevenue: val.rev }))
+      .sort((a, b) => b.totalQty - a.totalQty)
+      .slice(0, 8) as DishRank[];
+  }, [orderItems]);
 
   const maxQty = dishes.length > 0 ? dishes[0].totalQty : 1;
-
-  // Food emojis for visual flair
   const foodEmojis = ['🍖', '🍗', '🍣', '🍜', '🥩', '🍛', '🍤', '🥗'];
 
   return (
@@ -87,13 +60,14 @@ export const TopDishes: React.FC<TopDishesProps> = ({ startDate, endDate, refres
             </div>
           ))
         ) : dishes.length === 0 ? (
-          <p className="text-xs text-slate-400 dark:text-neutral-500 py-6 text-center">ยังไม่มีข้อมูลการขาย</p>
+          <p className="text-xs text-slate-400 dark:text-neutral-500 py-6 text-center">
+            ยังไม่มีข้อมูลการขาย
+          </p>
         ) : (
           dishes.map((dish, idx) => {
             const widthPercent = (dish.totalQty / maxQty) * 100;
             return (
               <div key={dish.name} className="py-3 flex items-center gap-3">
-                {/* Rank + Emoji */}
                 <div className="relative shrink-0">
                   <span className="text-2xl">{foodEmojis[idx] || '🍽️'}</span>
                   <span className="absolute -top-1 -left-1 w-5 h-5 rounded-md bg-gradient-to-br from-red-500 to-red-700 text-white text-xs font-black flex items-center justify-center shadow-sm">
@@ -101,7 +75,6 @@ export const TopDishes: React.FC<TopDishesProps> = ({ startDate, endDate, refres
                   </span>
                 </div>
 
-                {/* Name + Progress Bar */}
                 <div className="flex-1 min-w-0 space-y-1">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-extrabold text-slate-900 dark:text-neutral-100 truncate">

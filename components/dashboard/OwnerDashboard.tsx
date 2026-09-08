@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { TrendingUp, RefreshCw } from 'lucide-react';
 import { useDateFilter } from '@/lib/useDateFilter';
+import { useDashboardBundle } from '@/lib/useDashboardBundle';
 import { DateFilterBar } from '@/components/dashboard/DateFilterBar';
 import { TopKPICards } from '@/components/dashboard/TopKPICards';
 import { BusinessSpotlight } from '@/components/dashboard/BusinessSpotlight';
@@ -24,33 +25,30 @@ export const OwnerDashboard: React.FC = () => {
   } = useDateFilter();
 
   const [refreshKey, setRefreshKey] = useState(0);
+  const bundle = useDashboardBundle(startDate, endDate, refreshKey);
 
   const handleRefresh = () => setRefreshKey(k => k + 1);
 
   return (
     <div className="w-full text-slate-800 dark:text-neutral-100 font-sans space-y-6">
-      {/* Header */}
       <div className="flex items-start sm:items-center justify-between gap-3">
         <div className="w-[50%]">
           <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-neutral-100 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-red-600 dark:text-red-400 shrink-0" />
             <span>แดชบอร์ด</span>
           </h1>
-          <p className="text-caption mt-0.5">
-            ภาพรวมผลประกอบการ • ยอดขาย 
-          </p>
+          <p className="text-caption mt-0.5">ภาพรวมผลประกอบการ • ยอดขาย</p>
         </div>
 
         <button
           onClick={handleRefresh}
           className="flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 bg-white dark:bg-neutral-900 hover:bg-slate-50 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-200 border border-slate-200/60 dark:border-neutral-800 rounded-xl text-xs font-bold transition active:scale-95 shadow-xs cursor-pointer shrink-0"
         >
-          <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${bundle.loading ? 'animate-spin' : ''}`} />
           <span>รีเฟรชข้อมูล</span>
         </button>
       </div>
 
-      {/* Date Filter Bar */}
       <DateFilterBar
         datePreset={datePreset}
         onPresetChange={setDatePreset}
@@ -60,51 +58,29 @@ export const OwnerDashboard: React.FC = () => {
         onCustomEndChange={setCustomEndDate}
       />
 
-      {/* ══════════════════════════════════════════════════════════
-          Main Dashboard Grid — matches reference layout:
-          ┌──────────┬──────────┬──────────┬──────────────┐
-          │  KPI 1   │  KPI 2   │  KPI 3   │  Spotlight   │
-          │          │          │          │  (row-span2) │
-          ├──────────┴──────────┼──────────┤              │
-          │   Sales Chart       │ Biz KPIs │              │
-          │                     │          │              │
-          ├──────────┬──────────┼──────────┴──────────────┤
-          │  Promo Activity     │      Top 8 Dishes       │
-          │  Stream             │                         │
-          └──────────┴──────────┴─────────────────────────┘
-         ══════════════════════════════════════════════════════════ */}
-
-      {/* Desktop: 4-column grid | Mobile: stacked */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_1fr_320px] gap-4 lg:gap-5">
-
-        {/* ─── Row 1, Cols 1-3: Top 3 KPI Cards ─── */}
         <div className="lg:col-span-3">
-          <TopKPICards startDate={startDate} endDate={endDate} refreshKey={refreshKey} />
+          <TopKPICards bundle={bundle} />
         </div>
 
-        {/* ─── Row 1-2, Col 4: Business Spotlight (spans 2 rows) ─── */}
         <div className="lg:row-span-2 h-full flex flex-col">
-          <BusinessSpotlight startDate={startDate} endDate={endDate} refreshKey={refreshKey} />
+          <BusinessSpotlight bundle={bundle} />
         </div>
 
-        {/* ─── Row 2, Cols 1-2: Sales Chart ─── */}
         <div className="lg:col-span-2 min-h-[320px] h-full flex flex-col">
-          <SalesChart startDate={startDate} endDate={endDate} refreshKey={refreshKey} />
+          <SalesChart startDate={startDate} endDate={endDate} bundle={bundle} />
         </div>
 
-        {/* ─── Row 2, Col 3: Business KPIs ─── */}
         <div className="h-full flex flex-col">
-          <BusinessKPIs startDate={startDate} endDate={endDate} refreshKey={refreshKey} />
+          <BusinessKPIs bundle={bundle} />
         </div>
 
-        {/* ─── Row 3, Cols 1-2: Promo Activity Stream ─── */}
         <div className="lg:col-span-2 h-full flex flex-col">
-          <PromoActivityStream startDate={startDate} endDate={endDate} refreshKey={refreshKey} />
+          <PromoActivityStream bundle={bundle} />
         </div>
 
-        {/* ─── Row 3, Cols 3-4: Top 8 Dishes ─── */}
         <div className="lg:col-span-2 h-full flex flex-col">
-          <TopDishes startDate={startDate} endDate={endDate} refreshKey={refreshKey} />
+          <TopDishes bundle={bundle} />
         </div>
       </div>
     </div>
