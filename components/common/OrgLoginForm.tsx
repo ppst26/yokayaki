@@ -2,7 +2,14 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { Building2, Lock } from 'lucide-react';
+import { Lock } from 'lucide-react';
+import {
+  AuthBrandHeader,
+  AuthGlassPanel,
+  AuthScreenLayout,
+  authGlassInputClass,
+  authGlassSubmitClass,
+} from '@/components/auth/AuthScreenLayout';
 
 export const OrgLoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -16,23 +23,13 @@ export const OrgLoginForm: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-neutral-950 text-slate-800 dark:text-neutral-100 p-4 font-sans relative">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl p-8 shadow-xl relative z-10">
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 bg-red-600 rounded-2xl flex items-center justify-center shadow-md shadow-red-600/20 mb-4 text-white">
-            <Building2 className="w-6 h-6 stroke-[2.5]" />
-          </div>
-          <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-neutral-100">
-            YOKAYAKI <span className="text-red-600">POS</span>
-          </h1>
-          <p className="text-slate-500 dark:text-neutral-400 text-xs mt-1.5 font-semibold text-center">
-            เข้าสู่ระบบองค์กรก่อนใช้ PIN พนักงาน
-          </p>
-        </div>
+    <AuthScreenLayout>
+      <AuthGlassPanel className="min-h-0 justify-center">
+        <AuthBrandHeader subtitle="เข้าสู่ระบบองค์กรก่อนใช้ PIN พนักงาน" />
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="org-email" className="block text-xs font-bold text-slate-600 dark:text-neutral-400 mb-1.5">
+            <label htmlFor="org-email" className="mb-1.5 block text-xs font-semibold text-white/70">
               อีเมล
             </label>
             <input
@@ -43,13 +40,13 @@ export const OrgLoginForm: React.FC = () => {
               disabled={isOrgLoading}
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="w-full h-12 px-4 rounded-2xl border border-slate-200 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-800 text-slate-900 dark:text-neutral-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-400"
+              className={authGlassInputClass}
               placeholder="owner@example.com"
             />
           </div>
 
           <div>
-            <label htmlFor="org-password" className="block text-xs font-bold text-slate-600 dark:text-neutral-400 mb-1.5">
+            <label htmlFor="org-password" className="mb-1.5 block text-xs font-semibold text-white/70">
               รหัสผ่าน
             </label>
             <input
@@ -60,38 +57,32 @@ export const OrgLoginForm: React.FC = () => {
               disabled={isOrgLoading}
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="w-full h-12 px-4 rounded-2xl border border-slate-200 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-800 text-slate-900 dark:text-neutral-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-400"
+              className={authGlassInputClass}
               placeholder="••••••••"
             />
           </div>
 
-          <div className="h-6 flex items-center justify-center">
-            {orgError && (
-              <p className="text-rose-600 dark:text-rose-400 text-xs font-bold text-center bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 px-4 py-1 rounded-full animate-fade-in">
-                {orgError}
-              </p>
-            )}
+          <div className="flex h-6 items-center justify-center">
+            {orgError ? (
+              <p className="animate-fade-in text-center text-xs font-semibold text-red-300">{orgError}</p>
+            ) : null}
           </div>
 
-          <button
-            type="submit"
-            disabled={isOrgLoading}
-            className="w-full h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-sm tracking-wide shadow-md shadow-red-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
-          >
-            <Lock className="w-4 h-4" />
+          <button type="submit" disabled={isOrgLoading} className={authGlassSubmitClass}>
+            <Lock className="h-4 w-4" />
             เข้าสู่ระบบองค์กร
           </button>
         </form>
 
         {isOrgLoading && (
-          <div className="absolute inset-0 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xs rounded-3xl flex flex-col items-center justify-center transition-all duration-300">
-            <div className="w-9 h-9 border-3 border-red-600 border-t-transparent rounded-full animate-spin mb-3" />
-            <p className="text-red-600 dark:text-red-400 font-extrabold text-xs tracking-wider animate-pulse">
+          <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[28px] bg-black/70 backdrop-blur-sm">
+            <div className="mb-3 h-9 w-9 animate-spin rounded-full border-3 border-white border-t-transparent" />
+            <p className="animate-pulse text-xs font-semibold tracking-wider text-white/80">
               กำลังตรวจสอบบัญชี...
             </p>
           </div>
         )}
-      </div>
-    </div>
+      </AuthGlassPanel>
+    </AuthScreenLayout>
   );
 };

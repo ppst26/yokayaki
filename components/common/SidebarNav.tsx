@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { canAccessTab, type EmployeeRole } from '@/lib/permissions';
+import { SidebarBrand } from '@/components/common/SidebarBrand';
 import {
   LogOut,
   ChefHat,
@@ -157,17 +158,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
     <>
       {/* Mobile Sticky Top Header Bar */}
       <div className="w-full shrink-0 md:hidden sticky top-0 z-30 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 p-4 flex items-center justify-between shadow-xs">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-red-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-red-600/20">
-            <ChefHat className="w-5 h-5 stroke-[2]" />
-          </div>
-          <div>
-            <h1 className="text-lg font-black tracking-tight text-zinc-900 dark:text-zinc-100 leading-none">
-              Yokayaki <span className="text-red-600">POS</span>
-            </h1>
-            <p className="text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 tracking-wider">MANAGEMENT SYSTEM</p>
-          </div>
-        </div>
+        <SidebarBrand size="sm" theme={theme} />
 
         <button
           onClick={() => setIsMobileMenuOpen(true)}
@@ -195,17 +186,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
           >
             <div>
               <div className="flex items-center justify-between mb-6 pb-4 border-b border-zinc-100 dark:border-zinc-800">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-red-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-red-600/20">
-                    <ChefHat className="w-5 h-5 stroke-[2]" />
-                  </div>
-                  <div>
-                    <h1 className="text-base font-black tracking-tight text-zinc-900 dark:text-zinc-100">
-                      Yokayaki <span className="text-red-600">POS</span>
-                    </h1>
-                    <p className="text-[9px] font-semibold text-zinc-400 dark:text-zinc-500 tracking-wider">MANAGEMENT SYSTEM</p>
-                  </div>
-                </div>
+                <SidebarBrand size="sm" theme={theme} />
 
                 <button
                   onClick={() => handleCloseDrawer()}
@@ -508,16 +489,8 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
       {/* Desktop Left Sidebar Navigation */}
       <aside className="hidden md:flex w-64 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 p-5 flex-col justify-between shadow-sm shrink-0 sticky top-0 h-screen">
         <div>
-          <div className="flex items-center gap-3 mb-8 pb-4 border-b border-zinc-100 dark:border-zinc-800">
-            <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-red-600/20">
-              <ChefHat className="w-6 h-6 stroke-[2]" />
-            </div>
-            <div>
-              <h1 className="text-xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">
-                Yokayaki <span className="text-red-600">POS</span>
-              </h1>
-              <p className="text-xs font-semibold text-zinc-400 dark:text-zinc-500 tracking-wider">MANAGEMENT SYSTEM</p>
-            </div>
+          <div className="mb-8 pb-4 border-b border-zinc-100 dark:border-zinc-800">
+            <SidebarBrand theme={theme} />
           </div>
 
           <nav className="space-y-1">

@@ -2,7 +2,14 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { Delete, Lock, Clock, ShieldAlert } from 'lucide-react';
+import { CircleX, Clock, Delete, ShieldAlert } from 'lucide-react';
+import {
+  AuthBrandHeader,
+  AuthGlassPanel,
+  AuthScreenLayout,
+  authKeypadButtonClass,
+  authKeypadIconButtonClass,
+} from '@/components/auth/AuthScreenLayout';
 
 const formatCountdown = (seconds: number): string => {
   const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -47,56 +54,42 @@ export const PinPad: React.FC = () => {
 
   if (isLockedOut) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-neutral-950 text-slate-800 dark:text-neutral-100 p-4 font-sans relative">
-        <div className="w-full max-w-md bg-white dark:bg-neutral-900 border border-red-200 dark:border-red-900/50 rounded-3xl p-8 shadow-xl relative z-10 text-center animate-fade-in">
-          <div className="w-16 h-16 bg-red-100 dark:bg-red-950/50 border border-red-200 dark:border-red-900/50 rounded-2xl flex items-center justify-center shadow-md mx-auto mb-4 text-red-600 dark:text-red-400">
-            <ShieldAlert className="w-8 h-8" />
+      <AuthScreenLayout>
+        <AuthGlassPanel className="items-center justify-center text-center">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-red-400/40 bg-red-500/10 text-red-300">
+            <ShieldAlert className="h-8 w-8" />
           </div>
 
-          <h1 className="text-xl font-black text-slate-900 dark:text-neutral-100 mb-1 tracking-tight">
-            ระบบถูกล็อคชั่วคราว
-          </h1>
-          <p className="text-slate-500 dark:text-neutral-400 text-xs font-semibold mb-6 leading-relaxed">
+          <h1 className="mb-1 text-xl font-bold tracking-tight text-white">ระบบถูกล็อคชั่วคราว</h1>
+          <p className="mb-6 text-xs font-medium leading-relaxed text-white/60">
             ระบุรหัส PIN ไม่ถูกต้องเกิน 3 ครั้ง เพื่อความปลอดภัย กรุณารอจนกว่าเวลานับถอยหลังจะหมด
           </p>
 
-          <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 rounded-2xl p-5 mb-6 inline-flex flex-col items-center justify-center w-full shadow-inner">
-            <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-xs font-bold uppercase tracking-wider mb-1.5">
-              <Clock className="w-4 h-4 animate-pulse" />
+          <div className="mb-6 inline-flex w-full flex-col items-center justify-center rounded-2xl border border-red-400/30 bg-red-500/10 p-5">
+            <div className="mb-1.5 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-red-300">
+              <Clock className="h-4 w-4 animate-pulse" />
               <span>เวลานับถอยหลัง</span>
             </div>
-            <div className="text-4xl font-black font-mono text-red-600 dark:text-red-400 tracking-wider">
+            <div className="font-mono text-4xl font-bold tracking-wider text-red-200">
               {formatCountdown(remainingLockoutSeconds)}
             </div>
           </div>
 
-          <p className="text-[11px] text-slate-400 dark:text-neutral-500 font-medium">
+          <p className="text-[11px] font-medium text-white/45">
             ระบบจะปลดล็อคให้อัตโนมัติเมื่อครบกำหนด 3 นาที
           </p>
-        </div>
-      </div>
+        </AuthGlassPanel>
+      </AuthScreenLayout>
     );
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-neutral-950 text-slate-800 dark:text-neutral-100 p-4 font-sans relative">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl p-8 shadow-xl relative z-10">
-        {/* Header / Logo */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 bg-red-600 rounded-2xl flex items-center justify-center shadow-md shadow-red-600/20 mb-4 text-white">
-            <Lock className="w-6 h-6 stroke-[2.5]" />
-          </div>
-          <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-neutral-100">
-            YOKAYAKI <span className="text-red-600">POS</span>
-          </h1>
-          <p className="text-slate-500 dark:text-neutral-400 text-xs mt-1.5 font-semibold">
-            กรุณาใส่รหัส PIN 6 หลักเพื่อเข้าใช้งาน
-          </p>
-        </div>
+    <AuthScreenLayout>
+      <AuthGlassPanel>
+        <AuthBrandHeader compact />
 
-        {/* PIN Indicators */}
         <div
-          className={`flex justify-center gap-4 mb-8 ${isShaking ? 'animate-bounce' : ''}`}
+          className="mb-6 flex shrink-0 justify-center gap-5"
           style={isShaking ? { animation: 'shake 0.5s ease-in-out' } : undefined}
         >
           {[...Array(6)].map((_, i) => {
@@ -104,73 +97,70 @@ export const PinPad: React.FC = () => {
             return (
               <div
                 key={i}
-                className={`w-4 h-4 rounded-full transition-all duration-200 ${
-                  isActive
-                    ? 'bg-red-600 scale-110 shadow-xs'
-                    : 'bg-slate-100 dark:bg-neutral-800 border border-slate-300 dark:border-neutral-700'
+                className={`h-3 w-3 rounded-full border transition-all duration-200 ${
+                  isActive ? 'border-white bg-white' : 'border-white/80 bg-transparent'
                 }`}
               />
             );
           })}
         </div>
 
-        {/* Error message */}
-        <div className="h-6 mb-6 flex items-center justify-center">
-          {error && (
-            <p className="text-rose-600 dark:text-rose-400 text-xs font-bold text-center bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 px-4 py-1 rounded-full animate-fade-in">
-              {error}
-            </p>
-          )}
-        </div>
+        {error ? (
+          <p className="mb-4 shrink-0 text-center text-xs font-semibold text-red-300 animate-fade-in">{error}</p>
+        ) : null}
 
-        {/* PinPad Buttons */}
-        <div className="grid grid-cols-3 gap-3.5 max-w-sm mx-auto">
+        <div className="grid grid-cols-3 gap-4">
           {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(num => (
             <button
               key={num}
+              type="button"
               disabled={isPinLoading}
               onClick={() => handleNumberClick(num)}
-              className="h-16 text-xl font-extrabold bg-slate-50 dark:bg-neutral-800 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-600 dark:hover:text-red-400 border border-slate-200 dark:border-neutral-700 hover:border-red-300 active:scale-95 rounded-2xl transition-all duration-150 flex items-center justify-center shadow-xs text-slate-800 dark:text-neutral-100 cursor-pointer"
+              className={`${authKeypadButtonClass} cursor-pointer`}
             >
               {num}
             </button>
           ))}
 
           <button
+            type="button"
             disabled={isPinLoading}
             onClick={handleClear}
-            className="h-16 text-xs font-bold bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 border border-slate-200 dark:border-neutral-700 active:scale-95 rounded-2xl transition-all duration-150 flex items-center justify-center text-slate-600 dark:text-neutral-300 cursor-pointer"
+            aria-label="ล้าง PIN"
+            className={`${authKeypadIconButtonClass} cursor-pointer`}
           >
-            ล้าง (C)
+            <CircleX className="h-6 w-6 stroke-[1.5]" />
           </button>
 
           <button
+            type="button"
             disabled={isPinLoading}
             onClick={() => handleNumberClick('0')}
-            className="h-16 text-xl font-extrabold bg-slate-50 dark:bg-neutral-800 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-600 dark:hover:text-red-400 border border-slate-200 dark:border-neutral-700 hover:border-red-300 active:scale-95 rounded-2xl transition-all duration-150 flex items-center justify-center text-slate-800 dark:text-neutral-100 cursor-pointer"
+            className={`${authKeypadButtonClass} cursor-pointer`}
           >
             0
           </button>
 
           <button
+            type="button"
             disabled={isPinLoading}
             onClick={handleBackspace}
-            className="h-16 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 border border-slate-200 dark:border-neutral-700 active:scale-95 rounded-2xl transition-all duration-150 flex items-center justify-center text-slate-600 dark:text-neutral-300 cursor-pointer"
+            aria-label="ลบตัวเลข"
+            className={`${authKeypadIconButtonClass} cursor-pointer`}
           >
-            <Delete className="w-5 h-5" />
+            <Delete className="h-6 w-6 stroke-[1.5]" />
           </button>
         </div>
 
-        {/* Loading Spinner */}
         {isPinLoading && (
-          <div className="absolute inset-0 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xs rounded-3xl flex flex-col items-center justify-center transition-all duration-300">
-            <div className="w-9 h-9 border-3 border-red-600 border-t-transparent rounded-full animate-spin mb-3" />
-            <p className="text-red-600 dark:text-red-400 font-extrabold text-xs tracking-wider animate-pulse">
+          <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[28px] bg-black/70 backdrop-blur-sm">
+            <div className="mb-3 h-9 w-9 animate-spin rounded-full border-3 border-white border-t-transparent" />
+            <p className="animate-pulse text-xs font-semibold tracking-wider text-white/80">
               กำลังตรวจสอบสิทธิ์...
             </p>
           </div>
         )}
-      </div>
+      </AuthGlassPanel>
 
       <style jsx global>{`
         @keyframes shake {
@@ -179,6 +169,6 @@ export const PinPad: React.FC = () => {
           20%, 40%, 60%, 80% { transform: translateX(6px); }
         }
       `}</style>
-    </div>
+    </AuthScreenLayout>
   );
 };
