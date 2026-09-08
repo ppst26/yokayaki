@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Calendar, ArrowRight } from 'lucide-react';
 import { DatePicker } from '@/components/ui/date-picker';
 import type { DatePreset } from '@/lib/useDateFilter';
@@ -32,12 +32,30 @@ export const DateFilterBar: React.FC<DateFilterBarProps> = ({
   onCustomStartChange,
   onCustomEndChange,
 }) => {
+  const barRef = useRef<HTMLDivElement>(null);
+  const customBtnRef = useRef<HTMLButtonElement>(null);
+  const [customOffset, setCustomOffset] = useState(0);
+
+  useEffect(() => {
+    if (datePreset !== 'custom' || !barRef.current || !customBtnRef.current) return;
+
+    const updateOffset = () => {
+      const bar = barRef.current;
+      const btn = customBtnRef.current;
+      if (!bar || !btn) return;
+      setCustomOffset(btn.offsetLeft + btn.offsetWidth + 8);
+    };
+
+    updateOffset();
+    window.addEventListener('resize', updateOffset);
+    return () => window.removeEventListener('resize', updateOffset);
+  }, [datePreset]);
+
   return (
-    <div className="flex flex-col gap-3">
-      {/* Preset Pill Bar */}
-      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 px-0.5">
-        <div className="flex items-center gap-1.5 text-card-sublabel mr-1 shrink-0">
-          <Calendar className="w-4 h-4 text-red-600 dark:text-red-400" />
+    <div ref={barRef} className="relative h-10">
+      <div className="flex h-10 items-center gap-1.5 overflow-x-auto px-0.5 no-scrollbar">
+        <div className="mr-1 flex shrink-0 items-center gap-1.5 text-card-sublabel">
+          <Calendar className="h-4 w-4 text-red-600 dark:text-red-400" />
           <span>ช่วงเวลา:</span>
         </div>
         {PRESETS.map(preset => {
@@ -45,8 +63,10 @@ export const DateFilterBar: React.FC<DateFilterBarProps> = ({
           return (
             <button
               key={preset.value}
+              ref={preset.value === 'custom' ? customBtnRef : undefined}
+              type="button"
               onClick={() => onPresetChange(preset.value)}
-              className={`badge-pill ${isActive ? 'badge-active' : 'badge-inactive'}`}
+              className={`badge-pill shrink-0 ${isActive ? 'badge-active' : 'badge-inactive'}`}
             >
               {preset.label}
             </button>
@@ -54,34 +74,33 @@ export const DateFilterBar: React.FC<DateFilterBarProps> = ({
         })}
       </div>
 
-      {/* Custom Date Range Picker (Capsule Style — Left-aligned) */}
       {datePreset === 'custom' && (
-        <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-700/80 rounded-2xl p-2.5 shadow-xs flex flex-wrap sm:flex-nowrap items-center justify-start gap-2.5 w-full sm:w-fit animate-in fade-in-50 zoom-in-95 duration-150">
-          <div className="flex items-center gap-2 flex-1 sm:flex-initial min-w-[150px]">
-            <span className="text-card-sublabel shrink-0">
-              เริ่ม
-            </span>
+        <div
+          className="absolute top-0 z-20 flex h-10 items-center gap-2"
+          style={{ left: customOffset }}
+        >
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="text-card-sublabel shrink-0">เริ่ม</span>
             <DatePicker
               value={customStartDate}
               onChange={onCustomStartChange}
               placeholder="วันเริ่มต้น..."
-              className="w-full sm:w-44"
+              className="w-40 sm:w-44"
               align="auto"
             />
           </div>
 
-          <ArrowRight className="w-4 h-4 text-slate-400 dark:text-neutral-500 shrink-0 hidden sm:block mx-1" />
+          <ArrowRight className="h-4 w-4 shrink-0 text-slate-400 dark:text-neutral-500" />
 
-          <div className="flex items-center gap-2 flex-1 sm:flex-initial min-w-[150px]">
-            <span className="text-card-sublabel shrink-0">
-              ถึง
-            </span>
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="text-card-sublabel shrink-0">ถึง</span>
             <DatePicker
               value={customEndDate}
               onChange={onCustomEndChange}
               placeholder="วันสิ้นสุด..."
-              className="w-full sm:w-44"
+              className="w-40 sm:w-44"
               align="auto"
+              minDate={customStartDate || undefined}
             />
           </div>
         </div>

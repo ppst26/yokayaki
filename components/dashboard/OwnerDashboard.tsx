@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { TrendingUp, RefreshCw } from 'lucide-react';
 import { useDateFilter } from '@/lib/useDateFilter';
 import { useDashboardBundle } from '@/lib/useDashboardBundle';
+import { useRetentionAnalytics } from '@/lib/useRetentionAnalytics';
 import { DateFilterBar } from '@/components/dashboard/DateFilterBar';
 import { TopKPICards } from '@/components/dashboard/TopKPICards';
 import { BusinessSpotlight } from '@/components/dashboard/BusinessSpotlight';
@@ -11,6 +12,9 @@ import { SalesChart } from '@/components/dashboard/SalesChart';
 import { BusinessKPIs } from '@/components/dashboard/BusinessKPIs';
 import { PromoActivityStream } from '@/components/dashboard/PromoActivityStream';
 import { TopDishes } from '@/components/dashboard/TopDishes';
+import { MemberVsWalkinCard } from '@/components/dashboard/MemberVsWalkinCard';
+import { PromoRoiTable } from '@/components/dashboard/PromoRoiTable';
+import { SalesHeatmap } from '@/components/dashboard/SalesHeatmap';
 
 export const OwnerDashboard: React.FC = () => {
   const {
@@ -26,6 +30,7 @@ export const OwnerDashboard: React.FC = () => {
 
   const [refreshKey, setRefreshKey] = useState(0);
   const bundle = useDashboardBundle(startDate, endDate, refreshKey);
+  const retention = useRetentionAnalytics(startDate, endDate, refreshKey);
 
   const handleRefresh = () => setRefreshKey(k => k + 1);
 
@@ -82,6 +87,15 @@ export const OwnerDashboard: React.FC = () => {
         <div className="lg:col-span-2 h-full flex flex-col">
           <TopDishes bundle={bundle} />
         </div>
+      </div>
+
+      <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-5">
+        <MemberVsWalkinCard
+          data={retention.data.member_vs_walkin}
+          loading={retention.loading}
+        />
+        <PromoRoiTable rows={retention.data.promo_roi} loading={retention.loading} />
+        <SalesHeatmap heatmap={retention.data.heatmap} loading={retention.loading} />
       </div>
     </div>
   );
