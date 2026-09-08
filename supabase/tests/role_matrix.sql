@@ -141,7 +141,7 @@ BEGIN
   PERFORM pg_temp.expect_read('payments', 'zero');
   PERFORM pg_temp.expect_read('menu_items', 'zero');
   PERFORM pg_temp.expect_read('qr_sessions', 'zero');
-  PERFORM pg_temp.expect_read('void_logs', 'rows');
+  PERFORM pg_temp.expect_read('void_logs', 'zero');
 
   RESET ROLE;
 
@@ -155,6 +155,7 @@ BEGIN
 
   PERFORM pg_temp.set_role('kitchen');
   SET LOCAL ROLE authenticated;
+  PERFORM pg_temp.expect_read('void_logs', 'rows');
   PERFORM pg_temp.expect_rpc_ok(
     format($q$UPDATE order_items SET status = 'served' WHERE status = 'pending' AND id = %s$q$, v_serve));
   RESET ROLE;

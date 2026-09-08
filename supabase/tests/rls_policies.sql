@@ -216,7 +216,7 @@ DECLARE
     'employees', 'pin_attempts'];
   c_expect TEXT[] := ARRAY[
     'rows', 'rows', 'rows', 'rows', 'rows', 'rows',
-    'rows', 'zero', 'zero', 'zero',
+    'rows', 'zero', 'zero', 'rows',
     'rows', 'rows',
     'zero', 'zero', 'zero', 'zero',
     'denied', 'denied'];
@@ -240,7 +240,7 @@ BEGIN
     RAISE EXCEPTION 'A1 ไม่ผ่าน (cashier อ่าน): %', v_bad;
   END IF;
 
-  RAISE NOTICE 'PASS  A1 · cashier อ่านตารางปฏิบัติการได้ 9 ตาราง · การเงิน/หลังร้านมองไม่เห็น · employees/pin_attempts ถูกปฏิเสธ';
+  RAISE NOTICE 'PASS  A1 · cashier อ่านตารางปฏิบัติการได้ (รวม void_logs) · การเงิน/หลังร้านมองไม่เห็น · employees/pin_attempts ถูกปฏิเสธ';
 END
 $$;
 

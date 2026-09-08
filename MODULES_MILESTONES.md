@@ -5,7 +5,7 @@
 > ที่มาของรายการงาน: [`PosRestuarantSass.md`](PosRestuarantSass.md) (§4 Gap Analysis + §5 Roadmap)
 > ประวัติฟีเจอร์ที่ทำไปแล้ว: [`ROADMAP.md`](ROADMAP.md) · สเปกรายฟีเจอร์: `docs/superpowers/specs/`
 
-**Last Updated:** 2026-09-06 · **Milestone ปัจจุบัน:** `M6 Billing` (⛔ รอเริ่ม)
+**Last Updated:** 2026-09-09 · **Milestone ปัจจุบัน:** `M6 CRM & Customer Growth` (🟡 รอเริ่ม)
 
 ---
 
@@ -33,15 +33,15 @@
 | `P-AUTH` | Auth & RBAC | `context/AuthContext.tsx` · `components/PinPad.tsx` · `app/api/auth/*` | 🟢 | 5 roles + tab gating · Supabase Auth org login + PIN gate · session revoke + login audit | M5 |
 | `P-FLOOR` | Table Map / App Shell | `components/TableMap.tsx` · `SidebarNav.tsx` | 🟢 | — | M2 |
 | `P-POS` | POS Order (Staff) | `components/POSOrderScreen.tsx` | 🟢 | — | M2 |
-| `P-QR` | Customer QR Portal | `app/customer/[session_id]/page.tsx` · `app/api/customer/*` | 🟢 | ไฟล์ยาว 1,235 บรรทัด ควรแตก · polling 5 วิ แทน realtime | M2 / M7 |
+| `P-QR` | Customer QR Portal | `app/customer/[session_id]/page.tsx` · `app/api/customer/*` | 🟢 | ไฟล์ยาว 1,235 บรรทัด ควรแตก · polling 5 วิ แทน realtime | M2 / M8 |
 | `P-KDS` | Kitchen Display | `components/KitchenScreen.tsx` | 🟢 | L10 ปิดใน Sprint E | M2 |
 | `P-PAY` | Checkout & Payment | `components/checkout/CheckoutScreen.tsx` | 🟢 | ปิด A5 / A6 / L1 แล้ว · เหลือหนี้เชิงโครงสร้าง: เครื่องคิดโปรยังมี 2 ชุด (SQL ของจริง + JS สำหรับแสดงผล) ต้องแก้คู่กันเสมอ | M2 |
 | `P-MENU` | Menu Manager | `components/MenuManager.tsx` · `MenuItemModal.tsx` | 🟢 | L2/L4 ปิดใน Sprint C | M2 |
 | `P-STOCK` | Purchase Orders / Stock | `components/IngredientPurchaseManager.tsx` | 🟢 | L6/L16 ปิดใน Sprint D | M2 |
-| `P-PROMO` | Promo Manager | `components/PromoManager.tsx` | 🟢 | L3 ปิดใน Sprint D | M2 |
-| `P-REPORT` | Sales History | `components/SalesHistory.tsx` | 🟢 | join ด้วยมือ 4 ขั้น · paginate ใน JS | M2 / M8 |
-| `P-CRM` | Loyalty CRM | `components/LoyaltyManager.tsx` | 🟢 | L7 ปิดใน Sprint D · PK เป็นเบอร์โทร (ปัญหา PDPA) | M2 / M9 |
-| `P-DASH` | Owner Dashboard | `components/dashboard/*` | 🟢 | L11–L13 ปิดใน Sprint E · ~9 round-trip ยังเหลือ | M2 / M8 |
+| `P-PROMO` | Promo Manager | `components/PromoManager.tsx` | 🟢 | L3 ปิดใน Sprint D · win-back / segment โปร → M6 | M2 / M6 |
+| `P-REPORT` | Sales History | `components/SalesHistory.tsx` | 🟢 | join ด้วยมือ 4 ขั้น · paginate ใน JS | M2 / M9 |
+| `P-CRM` | Loyalty CRM | `components/LoyaltyManager.tsx` | 🟢 | L7 ปิดใน Sprint D · Customer 360 · RFM · dormant → M6 · PK เป็นเบอร์โทร (PDPA → M10) | M2 / M6 / M10 |
+| `P-DASH` | Owner Dashboard | `components/dashboard/*` | 🟢 | L11–L13 ปิดใน Sprint E · retention KPI / ROI / heatmap → M6 | M2 / M6 / M9 |
 | `P-EMP` | Employee Manager | `components/EmployeeManager.tsx` · `app/api/employees/*` | 🟢 | — (ปิด A3 แล้ว) | — |
 | `P-UI` | Design System | `app/globals.css` · shared components | ⚠️ | `alert()` ปนกับ toast · loading state ไม่เป็นมาตรฐาน · dep ที่ติดตั้งแล้วไม่ใช้ | M2 |
 
@@ -51,15 +51,16 @@
 |---|---|---|:--:|:--:|
 | `F-SEC` | Security & RLS | policy ทุกตาราง · grant/revoke · PIN · rate limit | 🟢 | M0 |
 | `F-API` | Server Tier | `app/api/*` · service-role · zod · transaction เดียวต่อออเดอร์ | 🟢 | operational mutations ผ่าน API แล้ว · owner menu/promo/loyalty/stock ยัง client+RLS |
-| `F-DATA` | Data Integrity & Scale | index · atomic · timezone · migration hygiene · aggregation | 🟢 | migration hygiene ยังไม่ idempotent ทั้งชุด (ไฟล์เก่าก่อน M0) | M2 / M8 |
+| `F-DATA` | Data Integrity & Scale | index · atomic · timezone · migration hygiene · aggregation | 🟢 | migration hygiene ยังไม่ idempotent ทั้งชุด (ไฟล์เก่าก่อน M0) | M2 / M9 |
 | `F-TEST` | Testing & CI | unit · integration (RPC/RLS) · E2E · GitHub Actions | 🟢 | Vitest PromptPay/แต้ม · `lib/database.types.ts` · CI `pnpm test:unit` | M3 |
 | `F-TENANT` | Multi-Tenancy | organizations / branches / memberships / org_settings | 🟢 | M4 |
 | `F-AUTHZ` | Auth & Permission Matrix | Supabase Auth · JWT claim · role 5 ระดับ | 🟢 | `can_*()` + RLS/RPC · `memberships` · `staff_sessions` + revoke API · `role_matrix.sql` + `staff_sessions.sql` | M5 |
-| `F-BILL` | Billing & Subscription | plans / subscriptions / usage / gateway / trial | ⬜ | M6 |
-| `F-OPS` | Reliability & Operations | offline queue · backup/PITR · staging · deploy | ⬜ | M7 |
-| `F-OBS` | Observability | Sentry · structured log · alerting · provider dashboard | ⬜ | M7 |
-| `F-ENT` | Enterprise Features | multi-branch report · BOM · ESC/POS · webhook · open API | ⬜ | M8 |
-| `F-LEGAL` | Compliance & Legal | PDPA · VAT / e-Tax · append-only audit · retention | ⬜ | M9 |
+| `F-GROWTH` | Customer Intelligence | RFM · segments · dormant/win-back · retention aggregates | ⬜ | materialized stats จาก payments · ไม่มี SMS/LINE ใน M6 | M6 |
+| `F-BILL` | Billing & Subscription | plans / subscriptions / usage / PromptPay·โอนตรง / trial · **ยังไม่ทำ payment gateway** | ⬜ | M7 |
+| `F-OPS` | Reliability & Operations | offline queue · backup/PITR · staging · deploy | ⬜ | M8 |
+| `F-OBS` | Observability | Sentry · structured log · alerting · provider dashboard | ⬜ | M8 |
+| `F-ENT` | Enterprise Features | multi-branch report · BOM · ESC/POS · webhook · open API | ⬜ | M9 |
+| `F-LEGAL` | Compliance & Legal | PDPA · VAT / e-Tax · append-only audit · retention | ⬜ | M10 |
 
 ---
 ---
@@ -74,12 +75,14 @@
 | **M3** | 🧪 Testing Foundation | `F-TEST` | E2E สั่ง→ครัว→เช็คบิลผ่านใน CI · integration test ครอบทุก RPC + RLS · CI บล็อก PR ที่ fail | 2–3 สัปดาห์ | 🟢 |
 | **M4** | 🏢 Multi-Tenancy | `F-TENANT` | 2 org ในฐานเดียวกันมองข้ามกันไม่ได้ (พิสูจน์ด้วย test) · ไม่มี config ร้านค้างใน env/hardcode | 6–10 สัปดาห์ | 🟢 |
 | **M5** | 🔑 Auth & RBAC | `F-AUTHZ` `P-AUTH` | Supabase Auth + JWT claim `org_id`/`role` · role 5 ระดับบังคับที่ DB · revoke session ได้ | 3–5 สัปดาห์ | 🟢 |
-| **M6** | 💰 Billing | `F-BILL` | สมัครเอง→ทดลอง→จ่ายเงิน→ตัดรอบ ครบวง · feature gating ตาม plan · dunning ทำงาน | 4–6 สัปดาห์ | ⛔ รอ M5 |
-| **M7** | 🔄 Reliability & Observability | `F-OPS` `F-OBS` | ขายต่อได้ตอนเน็ตหลุดแล้ว sync กลับถูก · PITR + ทดสอบ restore สำเร็จ · Sentry + alert ยิงจริง | 5–7 สัปดาห์ | ⛔ รอ M6 |
-| **M8** | 🏗️ Enterprise Features | `F-ENT` | multi-branch report · COGS รายจานจาก BOM · KOT ออกเครื่องพิมพ์จริง · payment webhook reconcile | 3–6 เดือน | ⛔ รอ M7 |
-| **M9** | ⚖️ Compliance | `F-LEGAL` | consent + export + delete ทำได้จริง · VAT / ใบกำกับเต็มรูป · audit log แก้ไม่ได้ | 2–3 เดือน | ⛔ รอ M8 |
+| **M6** | 📈 CRM & Customer Growth | `F-GROWTH` `P-CRM` `P-PROMO` `P-DASH` | Customer 360 + RFM/dormant · win-back promo · double points · retention KPI (member vs walk-in · promo ROI · heatmap) · **โฟกัส retention ก่อน billing** | 3–5 สัปดาห์ | ⬜ รอเริ่ม |
+| **M7** | 💰 Billing | `F-BILL` | สมัครเอง→ทดลอง→ชำระ (PromptPay/โอนตรง)→ตัดรอบ ครบวง · feature gating ตาม plan · dunning ทำงาน · **ตัด Omise/Stripe/2C2P ออกก่อน** | 4–6 สัปดาห์ | ⛔ รอ M6 |
+| **M8** | 🔄 Reliability & Observability | `F-OPS` `F-OBS` | ขายต่อได้ตอนเน็ตหลุดแล้ว sync กลับถูก · PITR + ทดสอบ restore สำเร็จ · Sentry + alert ยิงจริง | 5–7 สัปดาห์ | ⛔ รอ M7 |
+| **M9** | 🏗️ Enterprise Features | `F-ENT` | multi-branch report · COGS รายจานจาก BOM · KOT ออกเครื่องพิมพ์จริง · payment webhook reconcile | 3–6 เดือน | ⛔ รอ M8 |
+| **M10** | ⚖️ Compliance | `F-LEGAL` | consent + export + delete ทำได้จริง · VAT / ใบกำกับเต็มรูป · audit log แก้ไม่ได้ · PDPA เบอร์โทร | 2–3 เดือน | ⛔ รอ M9 |
 
-> **ถึง MVP ของ SaaS (M0–M7):** ~7–9 เดือน (1 คนเต็มเวลา) หรือ ~4–5 เดือน (ทีม 2–3 คน)
+> **ถึง MVP ของ SaaS (M0–M8):** ~8–10 เดือน (1 คนเต็มเวลา) หรือ ~5–6 เดือน (ทีม 2–3 คน)  
+> **หมายเหตุ (2026-09-09):** แทรก M6 CRM ก่อน Billing — เลื่อน M6 เดิม (Billing) เป็น M7 และเลื่อน M7–M9 เป็น M8–M10
 
 ---
 ---
@@ -125,7 +128,7 @@
 | D5 | Input validation ด้วย zod ทุก endpoint | 🟢 | `lib/api/schemas.ts` + `lib/api/parse.ts` · ครอบทุก route ใน `app/api/` ที่รับ body/params |
 | D6 | Rate limiting ฝั่ง server ที่ปลอม header ไม่ได้ | 🟢 | `lib/rateLimit.ts` · login · orders · customer order/state/check-bill · owner step-up PIN |
 | D7 | Audit log ผูกกับ identity จาก JWT | 🟢 | ปิดใน A7.6 (`jwt_emp_id/name` + void_logs) — M1 ไม่มี mutation ใหม่ที่รับชื่อจาก client |
-| D8 | Webhook receiver สำหรับ payment gateway | ⬜ | ของจริงไปโผล่ที่ M8 |
+| D8 | Webhook receiver สำหรับ payment gateway | ⬜ | ของจริงไปโผล่ที่ M9 |
 
 ## M2 — 🔧 Data Integrity & Bug Sweep `🟢`
 
@@ -234,9 +237,65 @@
 
 เกณฑ์ผ่าน M5 (ทั้ง milestone): 5 roles ที่ RLS ✅ · Supabase Auth + memberships ✅ · revoke session ✅
 
-## M6–M9 `⛔ รอ milestone ก่อนหน้า`
+## M6 — 📈 CRM & Customer Growth `⬜ รอเริ่ม`
 
-ขอบเขตงานละเอียดอยู่ใน [`PosRestuarantSass.md`](PosRestuarantSass.md) — §E (M6) · §F + §G (M7) · §J (M8) · §I (M9)
+> สเปก: [`docs/superpowers/specs/2026-09-09-m6-crm-retention-growth-design.md`](docs/superpowers/specs/2026-09-09-m6-crm-retention-growth-design.md)  
+> **เป้าหมายหลัก:** Retention / Win-back (เริ่มจาก A) — ก่อน Billing SaaS
+
+### Phase 6a — Customer 360 & Segments
+
+| ID | งาน | ยาก | สถานะ | หมายเหตุ |
+|---|---|:--:|:--:|---|
+| G1 | Customer 360 ใน LoyaltyManager (ยอดรวม · ครั้งมา · ล่าสุด · avg/bill · เมนูโปรด) | `M` | ⬜ | aggregate จาก `payments` + `order_items` |
+| G2 | แท็กอัตโนมัติ: ใหม่ / ประจำ / VIP / dormant (≥30 วัน) | `M` | ⬜ | `F-GROWTH` |
+| G3 | RFM ง่าย (1–5 + กลุ่ม A/B/C) — RPC หรือ view | `M` | ⬜ | refresh หลัง checkout หรือ nightly |
+| G4 | หน้า/แท็บรายชื่อ dormant + filter | `S` | ⬜ | `P-CRM` |
+
+### Phase 6b — Win-back & กระตุ้นยอด
+
+| ID | งาน | ยาก | สถานะ | หมายเหตุ |
+|---|---|:--:|:--:|---|
+| G5 | Win-back: เลือก dormant → สร้างคูปอง (pre-fill PromoManager) | `M` | ⬜ | ≤3 คลิก |
+| G6 | โปรเจาะกลุ่ม / คูปองผูก segment | `M` | ⬜ | รอบแรก manual export ได้ |
+| G7 | Double points day ใน `complete_checkout` | `M` | ⬜ | config ใน `org_settings` |
+
+### Phase 6c — Retention Analytics
+
+| ID | งาน | ยาก | สถานะ | หมายเหตุ |
+|---|---|:--:|:--:|---|
+| G8 | Dashboard: Member vs Walk-in | `M` | ✅ | `get_retention_analytics` |
+| G9 | Dashboard: Promo ROI | `M` | ✅ | จาก `payment_promotions` |
+| G10 | Dashboard: Heatmap ชั่วโมง / วันในสัปดาห์ | `M` | ✅ | `P-DASH` |
+| G11 | Integration tests RPC/view ใหม่ | `S` | ✅ | `supabase/tests/retention_analytics.sql` |
+
+### นอกขอบเขต M6 (เลื่อน)
+
+- [ ] SMS / LINE campaign — รอ M10 PDPA consent
+- [ ] Auto-campaign cron แบบเต็ม — หลัง M6 หรือร่วม M10
+- [ ] Member tier Silver/Gold — เฟสถัดไปหลัง G1–G11
+
+เกณฑ์ผ่าน M6: Customer 360 + dormant + win-back promo ใช้ได้ · Dashboard retention KPI 3 ชิ้น · `pnpm db:test` ผ่านหลัง migration
+
+## M7 — 💰 Billing `⛔ รอ M6`
+
+> ขอบเขตเต็ม: [`PosRestuarantSass.md`](PosRestuarantSass.md) §E  
+> **ตัดสินใจ (2026-09-08):** เก็บค่าบริการด้วย **PromptPay / โอนตรง** ก่อน — **ยังไม่ทำ payment gateway** (Omise / Stripe / 2C2P) เลื่อนไปภายหลังเมื่อพร้อม auto-reconcile
+
+เกณฑ์ผ่าน M7: สมัครเอง→ทดลอง→ชำระด้วย PromptPay/โอนตรง→ตัดรอบครบวง · feature gating ตาม plan · dunning (เตือน/ระงับเมื่อไม่จ่าย) ทำงาน · มี flow ยืนยันยอดชำระ (สลิป/มาร์กด้วยมือได้)
+
+### ขอบเขตที่ทำใน M7
+- [ ] ตาราง `plans` / `subscriptions` / `usage_records` / `invoices`
+- [ ] Trial + self-serve onboarding (สร้าง org + seed)
+- [ ] ชำระค่าบริการ: แสดง PromptPay / บัญชีโอนตรง + บันทึกหลักฐานการโอน
+- [ ] Feature gating ตาม plan
+- [ ] Dunning: เตือนก่อนหมดอายุ · ระงับ/ปลดระงับเมื่อค้างชำระ
+
+### นอกขอบเขต M7 (เลื่อน)
+- [ ] Payment gateway (Omise / 2C2P / Stripe) + webhook auto-charge — ไปรอบหลัง / เกี่ยว M9 webhook
+
+## M8–M10 `⛔ รอ milestone ก่อนหน้า`
+
+ขอบเขตงานละเอียดอยู่ใน [`PosRestuarantSass.md`](PosRestuarantSass.md) — §F + §G (M8 Reliability) · §J (M9 Enterprise) · §I (M10 Compliance)
 
 แตกเป็น task board เมื่อ milestone ก่อนหน้าผ่านเกณฑ์แล้วเท่านั้น — กันกระดานบวมด้วยงานที่ขอบเขตยังเปลี่ยนได้
 

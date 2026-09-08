@@ -450,7 +450,7 @@ PromoManager + promotion engine · MenuManager · EmployeeManager · Purchase Or
 | **Multi-Tenancy** | **0** | `grep tenant_id\|org_id\|branch_id\|store_id` ทั่ว 25 migrations = **0 hits** · `tables` seed id 1–4 hardcode · `tables.id` = เลขโต๊ะจริง · PromptPay ID เป็น env เดี่ยว |
 | **Security** | **0.5** | RLS เปิดครบ 15 ตาราง **แต่ทุก policy เป็น `USING (true)`** → anon key ที่อยู่ใน bundle หน้าลูกค้า = full DB credential · ราคาและยอดเงินเชื่อจาก client · `add_employee`/`update_employee` ไม่เช็คสิทธิ์ (ได้ 0.5 เพราะมี security headers + `delete_employee` เช็คสิทธิ์จริง) |
 | **Auth & Identity** | **1** | PIN 6 หลัก + lockout + auto-lock ใช้งานได้ดีในทางปฏิบัติ **แต่** hash เป็น SHA-256 ไม่ salt บน keyspace 10⁶ และ `pin_hash` อ่านได้จาก anon · ไม่ใช้ Supabase Auth · session ใน `localStorage` แก้ได้ |
-| **Billing / Subscription** | **0** | ไม่มีอะไรเลย — ไม่มีตาราง plan/subscription/usage, ไม่มี payment gateway สำหรับเก็บค่าบริการ |
+| **Billing / Subscription** | **0** | ไม่มีอะไรเลย — ไม่มีตาราง plan/subscription/usage · เก็บค่าบริการรอบ M6 ด้วย PromptPay/โอนตรง (ยังไม่ทำ payment gateway) |
 | **Data Integrity** | **1.5** | RPC ใช้ `FOR UPDATE` ป้องกัน race บนสต็อกได้ดี **แต่** ไม่มี idempotency ตอน checkout · non-atomic 3 จุด (ส่งออเดอร์ / แก้ PO / ปรับแต้ม) · ไม่มี `UNIQUE(payments.order_id)` · ไม่มี trigger · timezone ไม่สอดคล้อง |
 | **Reliability** | **0.5** | ไม่มี offline mode (เน็ตหลุด = ขายไม่ได้) · ไม่มี backup/DR plan · ไม่มี staging · migration มี bug ลำดับไฟล์ทำให้ `db reset` พัง |
 | **Observability** | **0** | ไม่มี error tracking, structured logging, uptime monitor, APM หรือ alerting — error ส่วนใหญ่จบที่ `console.error` |
@@ -632,10 +632,11 @@ DevOps/Testing  ▏          0.0 / 5
 | งาน | รายละเอียด |
 |---|---|
 | ตารางใหม่ | `plans` (Free/Starter/Pro/Enterprise + limit) · `subscriptions` (org ↔ plan + สถานะ + รอบบิล) · `usage_records` (จำนวนบิล/สาขา/ผู้ใช้ต่อเดือน) · `invoices` |
-| Payment gateway | **Omise** หรือ **2C2P** (ไทย, รองรับ PromptPay/บัตร) หรือ **Stripe** (ถ้าขายต่างประเทศด้วย) — เก็บค่าบริการรายเดือน |
+| ชำระค่าบริการ (M6) | **PromptPay / โอนตรง** — แสดง QR หรือเลขบัญชี · ร้านอัปโหลดสลิปหรือแอดมินมาร์กชำระแล้วด้วยมือ · **ยังไม่ต่อ payment gateway** |
+| Payment gateway (เลื่อน) | Omise / 2C2P / Stripe + webhook auto-charge — ทำทีหลังเมื่อพร้อม reconcile อัตโนมัติ |
 | Trial & onboarding | สมัครเอง → สร้าง org + สาขาแรก + seed เมนูตัวอย่าง → ทดลอง 14–30 วัน |
 | Feature gating | middleware/hook ตรวจ plan ก่อนเปิดโมดูล (เช่น multi-branch = Pro+, API = Enterprise) |
-| Dunning | เตือนก่อนหมดอายุ, retry การเก็บเงิน, ระงับ/ปลดระงับบัญชี |
+| Dunning | เตือนก่อนหมดอายุ · ระงับ/ปลดระงับบัญชีเมื่อค้างชำระ (ไม่มี auto-retry จาก gateway ในรอบนี้) |
 | Invoice | ออกใบแจ้งหนี้/ใบกำกับภาษีค่าบริการให้ร้านลูกค้า |
 
 ---
@@ -793,7 +794,7 @@ ALTER TABLE payments ADD CONSTRAINT uniq_payment_per_order UNIQUE (order_id);
 | **3** | 🧪 **Testing Foundation** | E2E ครอบ flow หลัก (สั่ง→ครัว→เช็คบิล) + integration test ของ RPC/RLS + CI | **ต้องมีก่อน Phase 4** เพราะ multi-tenancy คือ rewrite ที่แตะทุกไฟล์ — ไม่มี test = พังเงียบ | 2–3 สัปดาห์ |
 | **4** | 🏢 **Multi-Tenancy** | organizations / branches / memberships · `branch_id` ทั้ง 15 ตาราง · RLS ใหม่ · แก้ `tables.id` · ย้าย config เข้า DB | **หัวใจของ SaaS** — ไม่มีอันนี้ก็ไม่ใช่ SaaS | 6–10 สัปดาห์ |
 | **5** | 🔑 **Auth & RBAC** | Supabase Auth + JWT claim + bcrypt PIN + role 5 ระดับ + permission matrix | ต้องมี tenant ก่อนถึงจะออกแบบ role scope ได้ | 3–5 สัปดาห์ |
-| **6** | 💰 **Billing** | plans / subscriptions / usage / gateway (Omise หรือ Stripe) / trial / feature gating / self-serve onboarding | **จุดที่เริ่มมีรายได้** | 4–6 สัปดาห์ |
+| **6** | 💰 **Billing** | plans / subscriptions / usage / PromptPay·โอนตรง / trial / feature gating / self-serve onboarding · (gateway เลื่อน) | **จุดที่เริ่มมีรายได้** | 4–6 สัปดาห์ |
 | **7** | 🔄 **Reliability & Observability** | Offline queue · backup/PITR/DR · staging · Sentry · logging · alerting · deploy pipeline | ต้องมีก่อนรับลูกค้าจริงจำนวนมาก (โดยเฉพาะ offline สำหรับร้านอาหาร) | 5–7 สัปดาห์ |
 | **8** | 🏗️ **Enterprise Features** | Multi-branch report · Recipe BOM · ESC/POS + KOT · payment webhook · split bill · API · integrations | ปลดล็อก tier บนและราคาที่สูงขึ้น | 3–6 เดือน |
 | **9** | ⚖️ **Compliance** | PDPA (consent/export/delete + เปลี่ยน PK สมาชิก) · VAT + e-Tax Invoice · audit log ที่แก้ไม่ได้ · retention | ปลดล็อกลูกค้าองค์กร/เชนที่มีฝ่ายกฎหมาย | 2–3 เดือน |

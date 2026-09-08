@@ -276,18 +276,24 @@ export type Database = {
           promptpay_id: string | null
           receipt_merchant_name: string
           timezone: string
+          double_points_enabled: boolean
+          double_points_dates: Json
         }
         Insert: {
           org_id?: string
           promptpay_id?: string | null
           receipt_merchant_name?: string
           timezone?: string
+          double_points_enabled?: boolean
+          double_points_dates?: Json
         }
         Update: {
           org_id?: string
           promptpay_id?: string | null
           receipt_merchant_name?: string
           timezone?: string
+          double_points_enabled?: boolean
+          double_points_dates?: Json
         }
         Relationships: []
       }
@@ -825,6 +831,19 @@ export type Database = {
         }
         Returns: boolean
       }
+      get_retention_analytics: {
+        Args: {
+          p_start: string
+          p_end: string
+        }
+        Returns: Json
+      }
+      get_member_profile: {
+        Args: {
+          p_phone_number: string | null
+        }
+        Returns: Json
+      }
       is_owner: {
         Args: {}
         Returns: boolean
@@ -848,6 +867,16 @@ export type Database = {
       jwt_org_id: {
         Args: {}
         Returns: string
+      }
+      is_double_points_active: {
+        Args: {
+          p_org_id: string | null
+        }
+        Returns: boolean
+      }
+      list_member_summaries: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       menu_item_sale_price: {
         Args: {
@@ -880,6 +909,13 @@ export type Database = {
           p_notes: string | null
         }
         Returns: boolean
+      }
+      update_double_points_settings: {
+        Args: {
+          p_enabled: boolean | null
+          p_dates: Json | null
+        }
+        Returns: undefined
       }
       upsert_purchase_order: {
         Args: {
