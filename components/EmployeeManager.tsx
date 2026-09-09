@@ -273,8 +273,8 @@ export const EmployeeManager: React.FC = () => {
       )}
 
       {/* Header & Add Employee Button */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="w-[50%]">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-neutral-100 tracking-tight flex items-center gap-2">
             <Users className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />
             <span>จัดการพนักงาน</span>
@@ -286,10 +286,10 @@ export const EmployeeManager: React.FC = () => {
 
         <button
           onClick={() => openModal('add')}
-          className="btn-crimson flex items-center gap-2 px-5 py-2.5 text-white rounded-full text-sm font-extrabold cursor-pointer shrink-0 self-end md:self-auto"
+          className="btn-crimson flex items-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 text-white rounded-xl text-xs sm:text-sm font-extrabold cursor-pointer shrink-0"
         >
           <Plus className="w-4 h-4" />
-          เพิ่มพนักงานใหม่
+          <span>เพิ่มพนักงานใหม่</span>
         </button>
       </div>
 

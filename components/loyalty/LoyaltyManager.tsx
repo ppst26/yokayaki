@@ -391,8 +391,8 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
   return (
     <div className="w-full text-slate-800 dark:text-neutral-100 font-sans space-y-[var(--space-section)]">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-neutral-100 tracking-tight flex items-center gap-2">
             <Users className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />
             <span>สมาชิก CRM</span>
@@ -401,7 +401,7 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
             จัดการข้อมูลสมาชิก ค้นหาเบอร์โทร 
           </p>
         </div>
-        {!selectedMember && <DoublePointsDialog />}
+        {!selectedMember && <div className="shrink-0"><DoublePointsDialog /></div>}
       </div>
 
       {message && (

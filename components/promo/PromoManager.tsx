@@ -348,19 +348,20 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
 
   return (
     <div className="w-full text-slate-800 dark:text-neutral-100 font-sans space-y-[var(--space-section)]">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="w-[50%]">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-neutral-100 tracking-tight flex items-center gap-2">
             <Tag className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />
             <span>โปรโมชั่น</span>
           </h1>
           <p className="text-caption mt-0.5">
-            กำหนดส่วนลด คูปอง          </p>
+            กำหนดส่วนลด คูปอง
+          </p>
         </div>
 
         <button
           onClick={openAdd}
-          className="flex items-center gap-1.5 px-4 py-2.5 btn-crimson text-white rounded-xl text-xs font-extrabold transition active:scale-95 shadow-md shadow-red-600/20 cursor-pointer self-end md:self-auto"
+          className="flex items-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 btn-crimson text-white rounded-xl text-xs font-extrabold transition active:scale-95 shadow-md shadow-red-600/20 cursor-pointer shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>สร้างโปรโมชั่นใหม่</span>

@@ -373,17 +373,17 @@ export const SalesHistory: React.FC = () => {
   return (
     <div className="w-full text-slate-800 dark:text-neutral-100 font-sans space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div className="w-[50%]">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-neutral-100 tracking-tight">
             ประวัติการขาย
           </h1>
           <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
-            ตรวจสอบรายการที่เช็คบิลแล้ว  ({auditRange === 'today' ? 'ในวันนี้' : 'ของเมื่อวาน'})
+            ตรวจสอบรายการที่เช็คบิลแล้ว ({auditRange === 'today' ? 'ในวันนี้' : 'ของเมื่อวาน'})
           </p>
         </div>
 
-        <div className="flex items-center justify-between gap-2 w-full md:w-auto">
+        <div className="flex items-center gap-2 shrink-0">
           {/* Today / Yesterday Toggle Pills */}
           <div className="bg-slate-100 dark:bg-neutral-800/80 p-1 rounded-2xl flex items-center gap-1">
             <button

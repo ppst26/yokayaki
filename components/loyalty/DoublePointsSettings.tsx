@@ -263,14 +263,14 @@ export function DoublePointsDialog() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-extrabold text-slate-700 transition hover:bg-slate-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
+        className="inline-flex w-auto shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-2.5 py-1 text-xs font-bold text-slate-700 shadow-xs transition hover:bg-slate-50 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800 active:scale-95"
       >
         <span>วันแต้ม x2</span>
         {settings.statusLabel && (
           <span
-            className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+            className={`rounded-full px-1.5 py-0.5 text-[10px] font-black ${
               settings.activeToday
-                ? 'nav-active'
+                ? 'nav-active text-white'
                 : 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300'
             }`}
           >

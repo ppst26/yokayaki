@@ -36,8 +36,8 @@ export const OwnerDashboard: React.FC = () => {
 
   return (
     <div className="w-full text-slate-800 dark:text-neutral-100 font-sans space-y-6">
-      <div className="flex items-start sm:items-center justify-between gap-3">
-        <div className="w-[50%]">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-neutral-100 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-red-600 dark:text-red-400 shrink-0" />
             <span>แดชบอร์ด</span>

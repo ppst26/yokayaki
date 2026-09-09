@@ -312,8 +312,8 @@ export const TableMap: React.FC = () => {
         {canAccessTab(role, 'floor') && (
           <div className={activeTab === 'floor' ? 'block' : 'hidden'}>
             <div className="w-full space-y-6">
-              <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="w-[50%]">
+              <header className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
                   <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-neutral-100">
                     ผังโต๊ะ
                   </h1>
@@ -322,7 +322,7 @@ export const TableMap: React.FC = () => {
 
                 <button
                   onClick={fetchTables}
-                  className="flex items-center gap-1.5 px-4 py-2.5 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-200 rounded-xl text-caption font-semibold transition active:scale-95 shadow-xs cursor-pointer self-start md:self-auto"
+                  className="flex items-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-200 rounded-xl text-caption font-semibold transition active:scale-95 shadow-xs cursor-pointer shrink-0"
                 >
                   <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
                   <span>รีเฟรชผังโต๊ะ</span>
