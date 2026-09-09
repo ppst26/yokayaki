@@ -9,7 +9,6 @@ import {
   Minus, 
   ChefHat, 
   AlertCircle, 
-  RefreshCw, 
   ClipboardList, 
   X,
   Home,
@@ -417,7 +416,7 @@ export default function CustomerOrderPortal() {
       
       {/* Sticky Top Header */}
       <header className="app-surface-bar sticky top-0 z-40 flex items-center justify-between border-b px-4 py-3 shadow-xs backdrop-blur-md">
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="flex min-w-0 items-center">
           <Image
             src={PLATFORM_BRANDING.logo}
             alt="Yo-Yaki Izakaya"
@@ -426,17 +425,12 @@ export default function CustomerOrderPortal() {
             priority
             className="h-9 w-auto"
           />
-          <p className="whitespace-nowrap text-xs font-bold text-neutral-400 md:text-sm">
-            ประจำ <span className="text-sm font-black text-red-400 md:text-base">โต๊ะ {tableNumber ?? ''}</span>
+        </div>
+        <div className="flex items-center">
+          <p className="whitespace-nowrap text-sm font-bold text-neutral-400">
+            ประจำ <span className="text-lg sm:text-xl font-black text-red-500 dark:text-red-400">โต๊ะ {tableNumber ?? ''}</span>
           </p>
         </div>
-        <button 
-          onClick={verifySessionAndFetchData} 
-          className="app-surface-inset cursor-pointer rounded-xl p-2 text-neutral-400 transition hover:text-neutral-100 active:scale-95"
-          title="รีเฟรชข้อมูล"
-        >
-          <RefreshCw className="h-4 w-4" />
-        </button>
       </header>
 
       {/* Error Message Toast */}
@@ -456,10 +450,6 @@ export default function CustomerOrderPortal() {
             {/* Table Welcome Banner */}
             <div className="bg-gradient-to-br from-red-600 to-orange-600 text-white rounded-3xl p-5 shadow-sm relative overflow-hidden">
               <div className="relative z-10">
-                <span className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-[11px] font-bold tracking-wide text-white uppercase backdrop-blur-md">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  ยินดีต้อนรับสู่ Yokayaki
-                </span>
                 <h2 className="text-2xl font-black tracking-tight mb-1">สั่งอาหาร โต๊ะ {tableNumber ?? ''}</h2>
                 <p className="text-white/80 text-xs font-medium leading-relaxed">
                   เลือกเมนูที่ชอบและส่งสั่งครัวได้ทันทีจากมือถือของคุณ
@@ -478,31 +468,33 @@ export default function CustomerOrderPortal() {
 
             {/* Active Order Summary Status */}
             {orderedItems.length > 0 && (
-              <div className="app-card app-card--compact flex items-center justify-between p-4 shadow-xs">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
-                    <ClipboardList className="w-5 h-5" />
-                  </div>
+              <div 
+                onClick={() => setActiveTab('ordered')}
+                className="rounded-2xl bg-neutral-900/90 border border-neutral-800/80 px-4 py-3.5 flex items-center justify-between shadow-xs transition hover:bg-neutral-800/60 cursor-pointer group select-none"
+              >
+                <div className="flex items-center gap-3.5">
+                  <ClipboardList className="w-6 h-6 text-neutral-400 shrink-0" />
                   <div>
                     <h3 className="font-bold text-xs text-neutral-100">รายการสั่งอาหารของคุณ</h3>
-                    <p className="text-[11px] text-neutral-400 font-semibold mt-0.5">
+                    <div className="mt-0.5">
                       {pendingCount > 0 ? (
-                        <span className="text-amber-600 font-bold flex items-center gap-1">
-                          <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
-                          กำลังปรุงในครัว {pendingCount} รายการ
-                        </span>
+                        <p className="text-[11px] text-amber-400 font-medium flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0 animate-pulse" />
+                          <span>กำลังปรุงในครัว {pendingCount} รายการ</span>
+                        </p>
                       ) : (
-                        <span className="text-emerald-600 font-bold">เสิร์ฟครบทุกรายการแล้ว</span>
+                        <p className="text-[11px] text-emerald-400 font-medium flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                          <span>เสิร์ฟครบทุกรายการแล้ว</span>
+                        </p>
                       )}
-                    </p>
+                    </div>
                   </div>
                 </div>
-                <button
-                  onClick={() => setActiveTab('ordered')}
-                  className="text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 border border-red-100 px-3 py-1.5 rounded-xl cursor-pointer"
-                >
-                  ดูสถานะ
-                </button>
+                <div className="flex items-center gap-1 text-neutral-400 group-hover:text-neutral-200 transition-colors shrink-0">
+                  <span className="text-xs font-medium text-neutral-400 group-hover:text-neutral-200 transition-colors">ดูสถานะ</span>
+                  <ChevronRight className="w-3.5 h-3.5 text-neutral-400 group-hover:text-neutral-200 transition-colors" />
+                </div>
               </div>
             )}
 
@@ -522,14 +514,14 @@ export default function CustomerOrderPortal() {
                   </button>
                 </div>
 
-                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
+                <div className="flex gap-3.5 overflow-x-auto pb-2 scrollbar-none">
                   {promotions.slice(0, 3).map(promo => (
                     <div 
                       key={promo.id} 
                       onClick={() => setActiveTab('promotions')}
-                      className="app-card app-card--compact min-w-[210px] max-w-[230px] shrink-0 cursor-pointer p-3 shadow-xs transition hover:opacity-95 flex flex-col justify-between"
+                      className="min-w-[180px] max-w-[200px] shrink-0 cursor-pointer flex flex-col group select-none"
                     >
-                      <div className="w-full aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-800/80 relative mb-2.5 shrink-0 flex items-center justify-center">
+                      <div className="w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-800/80 relative mb-2 shadow-xs group-hover:scale-[1.02] transition-transform duration-200 flex items-center justify-center">
                         <div className="absolute inset-0 flex items-center justify-center text-neutral-600">
                           <Tag className="w-10 h-10 opacity-30 text-red-500" />
                         </div>
@@ -552,9 +544,11 @@ export default function CustomerOrderPortal() {
                         )}
                       </div>
 
-                      <div>
-                        <h4 className="font-bold text-xs text-neutral-100 truncate">{promo.name}</h4>
-                        <p className="text-[11px] text-neutral-400 mt-1 line-clamp-2 leading-relaxed">
+                      <div className="px-0.5">
+                        <h4 className="font-bold text-xs text-neutral-100 truncate group-hover:text-red-400 transition-colors">
+                          {promo.name}
+                        </h4>
+                        <p className="text-[11px] text-neutral-400 mt-0.5 line-clamp-2 leading-relaxed">
                           {getPromoShortDesc(promo)}
                         </p>
                       </div>
@@ -596,62 +590,75 @@ export default function CustomerOrderPortal() {
                   return (
                     <div 
                       key={item.id} 
-                      className={`flex flex-col justify-between gap-2.5 p-3 transition-all shadow-xs ${
-                        isSoldOut ? 'rounded-2xl border-2 border-rose-200 bg-rose-50/80 opacity-95' : 'app-card app-card--compact'
-                      }`}
+                      className="rounded-2xl bg-neutral-900/90 border border-neutral-800/80 overflow-hidden flex flex-col justify-between shadow-xs transition hover:border-neutral-700/80"
                     >
-                      <div className="flex flex-col gap-2">
-                        {item.image_url && (
-                          <div className="w-full aspect-square rounded-xl overflow-hidden bg-neutral-800 border border-neutral-800 relative">
-                            <img
-                              src={item.image_url}
-                              alt={item.name}
-                              className="w-full h-full object-cover"
-                              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-                            />
-                            {isSoldOut ? (
-                              <span className="absolute top-2 right-2 text-[9px] font-black tracking-wider bg-rose-600 text-white px-2 py-0.5 rounded-md shadow-xs">SOLD OUT</span>
-                            ) : isLowStock ? (
-                              <span className="absolute top-2 right-2 text-[9px] font-bold tracking-wider bg-amber-500 text-white px-2 py-0.5 rounded-md shadow-xs">เหลือ {item.stock} จาน</span>
-                            ) : null}
+                      {/* Top: 1:1 Image */}
+                      <div className="w-full aspect-square bg-neutral-800 relative overflow-hidden shrink-0 flex items-center justify-center">
+                        {item.image_url ? (
+                          <img
+                            src={item.image_url}
+                            alt={item.name}
+                            className={`w-full h-full object-cover transition-transform duration-200 ${isSoldOut ? 'opacity-45 grayscale-[30%]' : ''}`}
+                            onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-neutral-600 bg-neutral-900">
+                            <UtensilsCrossed className="w-8 h-8 opacity-30 text-neutral-500" />
                           </div>
                         )}
-                        <div>
-                          <div className="flex items-start justify-between gap-1">
-                            <h3 className="text-h3 text-neutral-100 line-clamp-2">{item.name}</h3>
-                            {!item.image_url && (
-                              isSoldOut ? (
-                                <span className="text-micro bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded shrink-0">SOLD OUT</span>
-                              ) : isLowStock ? (
-                                <span className="text-micro bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded shrink-0">เหลือ {item.stock}</span>
-                              ) : null
-                            )}
-                          </div>
-                          <p className="text-price text-body font-bold text-red-600 mt-1">฿{item.price.toLocaleString()}</p>
-                        </div>
+
+                        {/* Badges on the image */}
+                        {isSoldOut ? (
+                          <span className="absolute top-2 right-2 text-[10px] font-bold tracking-wider bg-black/75 backdrop-blur-xs text-rose-500 border border-rose-900/50 px-2 py-0.5 rounded-md shadow-xs">
+                            SOLD OUT
+                          </span>
+                        ) : isLowStock ? (
+                          <span className="absolute top-2 right-2 text-[10px] font-bold tracking-wider bg-amber-400 text-neutral-950 px-2 py-0.5 rounded-md shadow-xs">
+                            เหลือ {item.stock}
+                          </span>
+                        ) : null}
                       </div>
 
-                      {!isSoldOut && (
-                        <div className="flex items-center justify-between border-t border-white/10 pt-2.5 mt-1">
-                          <div className="app-surface-inset flex w-full items-center justify-between gap-2 rounded-xl p-1">
+                      {/* Bottom Info: Title, Price & Stepper */}
+                      <div className="p-3 flex flex-col justify-between flex-1 gap-2">
+                        <h3 className="font-bold text-xs sm:text-sm text-neutral-100 truncate" title={item.name}>
+                          {item.name}
+                        </h3>
+
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="text-sm sm:text-base font-black text-red-500">
+                            ฿{item.price.toLocaleString()}
+                          </span>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
                             <button
                               onClick={() => removeFromCart(item.id)}
-                              disabled={qty === 0}
-                              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg app-surface-inset text-neutral-300 transition active:scale-95 disabled:opacity-40"
+                              disabled={qty === 0 || isSoldOut}
+                              className="w-7 h-7 rounded-full bg-neutral-800 text-neutral-300 disabled:opacity-40 disabled:text-neutral-600 flex items-center justify-center transition active:scale-95 cursor-pointer disabled:cursor-not-allowed"
+                              title="ลดจำนวน"
                             >
                               <Minus className="w-3.5 h-3.5" />
                             </button>
-                            <span className="text-price text-body font-bold text-neutral-100">{qty}</span>
+
+                            <span className="text-xs font-bold text-neutral-100 min-w-[16px] text-center">
+                              {qty}
+                            </span>
+
                             <button
                               onClick={() => addToCart(item)}
-                              disabled={qty >= item.stock}
-                              className="w-7 h-7 flex items-center justify-center rounded-lg btn-crimson text-white disabled:opacity-40 transition active:scale-95 cursor-pointer shadow-xs"
+                              disabled={isSoldOut || qty >= item.stock}
+                              className={`w-7 h-7 rounded-full flex items-center justify-center transition active:scale-95 ${
+                                isSoldOut
+                                  ? 'bg-neutral-800 text-neutral-600 cursor-not-allowed'
+                                  : 'bg-red-600 hover:bg-red-700 text-white shadow-xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed'
+                              }`}
+                              title="เพิ่มจำนวน"
                             >
                               <Plus className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </div>
-                      )}
+                      </div>
                     </div>
                   );
                 })}
@@ -702,50 +709,55 @@ export default function CustomerOrderPortal() {
                   return (
                     <div 
                       key={item.id} 
-                      className={`p-3.5 rounded-2xl border text-xs flex justify-between items-start transition-all shadow-xs ${
+                      className={`rounded-2xl border px-4 py-3.5 flex items-center justify-between transition-all ${
                         isVoided 
-                          ? 'bg-rose-50/60 border-rose-200 text-neutral-500 line-through' 
-                          : isServed 
-                          ? 'bg-emerald-950/40 border-emerald-800 text-neutral-100' 
-                          : 'bg-amber-50/50 border-amber-200 text-neutral-100'
+                          ? 'bg-neutral-900/50 border-neutral-800/60 opacity-60' 
+                          : 'bg-neutral-900/90 border-neutral-800/80 shadow-xs'
                       }`}
                     >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-neutral-100">{item.menu_items?.name}</span>
-                          <span className="font-extrabold text-neutral-400">x{item.quantity}</span>
+                      {/* Left: Name + Quantity */}
+                      <div className="min-w-0 flex-1 pr-3">
+                        <div className="flex items-baseline gap-1.5">
+                          <span className={`font-bold text-sm text-neutral-100 truncate ${isVoided ? 'line-through text-neutral-500' : ''}`}>
+                            {item.menu_items?.name}
+                          </span>
+                          <span className="text-xs font-normal text-neutral-400 shrink-0">
+                            ×{item.quantity}
+                          </span>
                         </div>
 
                         {item.notes && (
-                          <div className="text-[11px] font-semibold text-red-600 bg-red-50 border border-red-100 px-2 py-0.5 rounded-md inline-block">
+                          <p className="text-[11px] text-red-400 font-medium mt-0.5 truncate">
                             โน้ต: {item.notes}
-                          </div>
+                          </p>
                         )}
-
-                        <div className="pt-0.5">
-                          {isPending && (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
-                              กำลังปรุงในครัว...
-                            </span>
-                          )}
-                          {isServed && (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
-                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                              เสิร์ฟแล้ว
-                            </span>
-                          )}
-                          {isVoided && (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600 bg-rose-100 px-2 py-0.5 rounded-md">
-                              ยกเลิกรายการแล้ว
-                            </span>
-                          )}
-                        </div>
                       </div>
 
-                      <span className="font-black text-sm text-neutral-100">
-                        ฿{(item.quantity * item.unit_price).toLocaleString()}
-                      </span>
+                      {/* Right: Status Pill + Price */}
+                      <div className="flex items-center gap-3.5 sm:gap-5 shrink-0">
+                        {isPending && (
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-950/40 border border-amber-800/40 px-3 py-1 text-xs font-medium text-amber-400">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+                            กำลังปรุง
+                          </span>
+                        )}
+                        {isServed && (
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-950/40 border border-emerald-800/40 px-3 py-1 text-xs font-medium text-emerald-400">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                            เสิร์ฟแล้ว
+                          </span>
+                        )}
+                        {isVoided && (
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-950/40 border border-rose-800/40 px-3 py-1 text-xs font-medium text-rose-400">
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0" />
+                            ยกเลิก
+                          </span>
+                        )}
+
+                        <span className={`font-bold text-sm text-neutral-100 min-w-[54px] text-right ${isVoided ? 'line-through text-neutral-500' : ''}`}>
+                          ฿{(item.quantity * item.unit_price).toLocaleString()}
+                        </span>
+                      </div>
                     </div>
                   );
                 })}
@@ -757,42 +769,43 @@ export default function CustomerOrderPortal() {
                   const totalAmt = activeItems.reduce((s, i) => s + (i.quantity * i.unit_price), 0);
 
                   return (
-                    <div className="space-y-3 mt-4">
-                      <div className="app-card app-card--compact flex items-center justify-between p-4 shadow-xs">
+                    <div className="space-y-2.5 mt-3">
+                      <div className="rounded-2xl bg-neutral-900/90 border border-neutral-800/80 p-4 flex items-center justify-between shadow-xs">
                         <div>
-                          <span className="text-neutral-400 text-xs font-bold block">ยอดรวมทั้งสิ้น</span>
-                          <span className="text-neutral-500 text-[11px] font-semibold">{totalQty} รายการ (ไม่รวมรายการที่ยกเลิก)</span>
+                          <span className="text-neutral-100 text-sm font-bold block">ยอดรวมทั้งสิ้น</span>
+                          <span className="text-neutral-400 text-[11px] font-normal mt-1 block">
+                            {totalQty} รายการ (ไม่รวมรายการที่ยกเลิก)
+                          </span>
                         </div>
-                        <span className="text-xl font-black text-red-600">฿{totalAmt.toLocaleString()}</span>
+                        <span className="text-2xl font-black text-red-500">
+                          ฿{totalAmt.toLocaleString()}
+                        </span>
                       </div>
 
                       {/* Check Bill Action Button / Status Banner */}
                       <div>
                         {tableStatus === 'checking_out' ? (
-                          <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 shadow-xs text-center space-y-2.5 animate-fade-in">
-                            <div className="flex items-center justify-center gap-2 text-rose-600 font-extrabold text-sm">
-                              <span className="w-2.5 h-2.5 rounded-full bg-rose-600 animate-ping" />
+                          <div className="rounded-2xl bg-neutral-900/90 border border-rose-800/50 p-4 shadow-xs text-center space-y-2.5 animate-fade-in">
+                            <div className="flex items-center justify-center gap-2 text-rose-500 font-extrabold text-sm">
+                              <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
                               <span>⏳ แจ้งเรียกพนักงานเช็คบิลแล้ว</span>
                             </div>
-                            <p className="text-neutral-400 text-xs font-semibold">
-                              พนักงานกำลังจัดเตรียมใบเสร็จและเดินทางมาที่ <span className="font-extrabold text-rose-600">โต๊ะ {tableNumber ?? ''}</span>
+                            <p className="text-neutral-400 text-xs font-medium">
+                              พนักงานกำลังจัดเตรียมใบเสร็จและเดินทางมาที่ <span className="font-extrabold text-rose-400">โต๊ะ {tableNumber ?? ''}</span>
                             </p>
                             <button
                               onClick={handleCancelCheckBill}
                               disabled={isUpdatingStatus}
-                              className="app-card app-card--compact cursor-pointer px-4 py-1.5 text-xs font-bold text-rose-400 transition active:scale-95 hover:opacity-90"
+                              className="cursor-pointer px-4 py-1.5 text-xs font-bold text-rose-400 border border-rose-800/60 rounded-xl transition active:scale-95 hover:bg-rose-950/40"
                             >
                               ยกเลิกการเรียกเช็คบิล
                             </button>
                           </div>
                         ) : pendingCount > 0 ? (
-                          <button
-                            disabled
-                            className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-2xl app-surface-inset py-3.5 text-xs font-extrabold text-neutral-500 shadow-none sm:text-sm"
-                          >
-                            <Clock className="w-4 h-4 text-neutral-500 shrink-0" />
-                            <span>กรุณารออาหารเสริฟครบ ก่อนเรียกเช็คบิล</span>
-                          </button>
+                          <div className="w-full rounded-2xl bg-neutral-900/90 border border-neutral-800/80 py-3.5 px-4 flex items-center justify-center gap-2 text-xs font-semibold text-neutral-400 select-none shadow-xs">
+                            <Clock className="w-4 h-4 text-neutral-400 shrink-0" />
+                            <span>กรุณารออาหารเสิร์ฟครบ ก่อนเรียกเช็คบิล</span>
+                          </div>
                         ) : (
                           <button
                             onClick={() => setShowCheckBillConfirm(true)}
@@ -808,13 +821,13 @@ export default function CustomerOrderPortal() {
                       {showCheckBillConfirm && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 app-dialog-backdrop animate-fade-in">
                           <div className="app-dialog w-full max-w-sm p-5 space-y-4 text-center">
-                            <div className="w-14 h-14 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto border border-red-200">
+                            <div className="w-14 h-14 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto border border-red-500/20">
                               <BellRing className="w-7 h-7" />
                             </div>
                             <div>
                               <h3 className="text-base font-black text-neutral-100">เรียกพนักงานเช็คบิล?</h3>
                               <p className="text-neutral-400 text-xs mt-1">
-                                โต๊ะ {tableNumber ?? ''} • ยอดรวมทั้งสิ้น <span className="font-extrabold text-red-600">฿{totalAmt.toLocaleString()} บาท</span>
+                                โต๊ะ {tableNumber ?? ''} • ยอดรวมทั้งสิ้น <span className="font-extrabold text-red-500">฿{totalAmt.toLocaleString()} บาท</span>
                               </p>
                             </div>
                             <div className="flex gap-2 border-t border-white/10 pt-2">
@@ -855,32 +868,17 @@ export default function CustomerOrderPortal() {
             </div>
 
             {promotions.length === 0 ? (
-              <div className="app-card space-y-2 p-8 text-center shadow-xs">
+              <div className="rounded-2xl bg-neutral-900/90 border border-neutral-800/80 space-y-2 p-8 text-center shadow-xs">
                 <Tag className="mx-auto h-10 w-10 text-neutral-600" />
                 <h3 className="font-bold text-neutral-200 text-sm">ยังไม่มีโปรโมชั่นใหม่ขณะนี้</h3>
                 <p className="text-neutral-500 text-xs">ติดตามส่วนลดและข้อเสนอพิเศษได้ที่นี่เร็วๆ นี้</p>
               </div>
             ) : (
-              <div className="space-y-3.5">
+              <div className="space-y-6">
                 {promotions.map(promo => (
-                  <div key={promo.id} className="app-card relative space-y-3 overflow-hidden p-4 shadow-xs">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="space-y-1">
-                        <span className="inline-block px-2.5 py-0.5 bg-red-50 border border-red-200 text-red-600 rounded-lg text-[10px] font-black">
-                          {promo.type === 'percentage' ? `ส่วนลด ${promo.discount_percent}%` : promo.type === 'fixed' ? `ส่วนลด ฿${promo.discount_amount}` : 'ซื้อ 2 แถม 1'}
-                        </span>
-                        <h3 className="font-extrabold text-sm text-neutral-100">{promo.name}</h3>
-                      </div>
-
-                      {promo.start_time && (
-                        <span className="app-surface-inset flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-bold text-neutral-400">
-                          <Clock className="w-3 h-3 text-neutral-500" />
-                          {promo.start_time.substring(0, 5)} - {promo.end_time?.substring(0, 5)} น.
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-800 relative flex items-center justify-center">
+                  <div key={promo.id} className="flex flex-col">
+                    {/* Standalone 1:1 Image with Overlaid Badges */}
+                    <div className="w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-800/80 relative shadow-xs flex items-center justify-center">
                       <div className="absolute inset-0 flex items-center justify-center text-neutral-600">
                         <Tag className="w-16 h-16 opacity-30 text-red-500" />
                       </div>
@@ -892,11 +890,26 @@ export default function CustomerOrderPortal() {
                           onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
                         />
                       )}
+                      {/* Discount Badge Overlay */}
+                      <span className="absolute top-3 left-3 z-2 px-2.5 py-1 bg-red-600/95 text-white rounded-lg text-xs font-black shadow-xs">
+                        {promo.type === 'percentage' ? `ส่วนลด ${promo.discount_percent}%` : promo.type === 'fixed' ? `ส่วนลด ฿${promo.discount_amount}` : 'ซื้อ 2 แถม 1'}
+                      </span>
+                      {/* Happy Hour Time Badge Overlay */}
+                      {promo.start_time && (
+                        <span className="absolute bottom-3 left-3 z-2 px-2.5 py-1 bg-black/75 backdrop-blur-xs text-[11px] text-neutral-200 font-semibold rounded-lg flex items-center gap-1.5 shadow-xs">
+                          <Clock className="w-3.5 h-3.5 text-neutral-300" />
+                          {promo.start_time.substring(0, 5)} - {promo.end_time?.substring(0, 5)} น.
+                        </span>
+                      )}
                     </div>
 
-                    <p className="app-card app-card--compact rounded-xl p-3 text-xs leading-relaxed text-neutral-300">
-                      {getPromoShortDesc(promo)}
-                    </p>
+                    {/* Details Placed Directly Below Image (No Card Wrapper) */}
+                    <div className="mt-2.5 px-0.5 space-y-1">
+                      <h3 className="font-black text-base text-neutral-100">{promo.name}</h3>
+                      <p className="text-xs text-neutral-400 leading-relaxed">
+                        {getPromoShortDesc(promo)}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>
