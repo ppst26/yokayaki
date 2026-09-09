@@ -519,9 +519,9 @@ export default function CustomerOrderPortal() {
                     <div 
                       key={promo.id} 
                       onClick={() => setActiveTab('promotions')}
-                      className="w-[72vw] max-w-[275px] min-w-[240px] shrink-0 cursor-pointer flex flex-col group select-none snap-start"
+                      className="w-[72vw] max-w-[275px] min-w-[240px] shrink-0 cursor-pointer rounded-2xl bg-neutral-900/90 border border-neutral-800/80 p-2.5 shadow-xs flex flex-col justify-between group select-none snap-start transition hover:border-neutral-700/80"
                     >
-                      <div className="w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-800/80 relative mb-2 shadow-xs group-hover:scale-[1.01] transition-transform duration-200 flex items-center justify-center">
+                      <div className="w-full aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-800/80 relative shadow-xs flex items-center justify-center">
                         <div className="absolute inset-0 flex items-center justify-center text-neutral-600">
                           <Tag className="w-12 h-12 opacity-30 text-red-500" />
                         </div>
@@ -544,11 +544,11 @@ export default function CustomerOrderPortal() {
                         )}
                       </div>
 
-                      <div className="px-0.5">
+                      <div className="px-1 pt-2 pb-0.5 space-y-0.5">
                         <h4 className="font-bold text-sm text-neutral-100 truncate group-hover:text-red-400 transition-colors">
                           {promo.name}
                         </h4>
-                        <p className="text-xs text-neutral-400 mt-0.5 line-clamp-2 leading-relaxed">
+                        <p className="text-xs text-neutral-400 line-clamp-2 leading-relaxed">
                           {getPromoShortDesc(promo)}
                         </p>
                       </div>
