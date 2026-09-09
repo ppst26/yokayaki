@@ -1,121 +1,142 @@
-### Task 3: JWT login — `org_id` claim
+## Task 3: Design Tokens - Card, Typography & Spacing
 
 **Files:**
-- Modify: `lib/authToken.ts`
-- Modify: `app/api/auth/login/route.ts`
-- Test: `lib/authToken.test.ts` (สร้างใหม่)
+- Modify: `app/globals.css:@layer base :root` (continue from Task 2)
 
 **Interfaces:**
+- Consumes: Existing tokens from Task 2
 - Produces:
-  - `StaffClaims.orgId: string`
-  - JWT payload `org_id: string` (UUID)
-  - `verifyStaffToken()` คืน `orgId` หรือ `null` ถ้าไม่มี claim
+  - Card tokens: `--card-padding`, `--card-padding-sm`, `--card-padding-lg`, `--card-radius`, `--card-radius-sm`, `--card-gap`
+  - Typography tokens: `--text-card-title`, `--text-card-value`, `--text-table-cell`
+  - Spacing tokens: `--space-section`, `--space-component`, `--space-element`
+  - Component tokens: `--pos-cart-width`, `--kitchen-cols`, `--manager-table-font`
 
-- [ ] **Step 1: เขียน failing test**
+**Duration:** 30 minutes
 
-สร้าง `lib/authToken.test.ts`:
+---
 
-```ts
-import { describe, expect, it, beforeAll } from 'vitest';
-import { signStaffToken, verifyStaffToken } from '@/lib/authToken';
+- [ ] **Step 1: Add card, typography & spacing tokens to mobile defaults**
 
-const ORG = '00000000-0000-4000-8000-000000000001';
-
-beforeAll(() => {
-  if (!process.env.SUPABASE_JWT_SECRET && !process.env.SUPABASE_JWT_SIGNING_JWK) {
-    process.env.SUPABASE_JWT_SECRET = 'test-secret-at-least-32-chars-long!!';
-  }
-});
-
-describe('signStaffToken', () => {
-  it('ใส่ org_id ใน JWT', async () => {
-    const token = await signStaffToken({
-      empId: 1,
-      empName: 'ทดสอบ',
-      empRole: 'owner',
-      orgId: ORG,
-    });
-    const claims = await verifyStaffToken(token);
-    expect(claims?.orgId).toBe(ORG);
-  });
-});
+```css
+    /* Card Tokens - Mobile */
+    --card-padding: 1rem;
+    --card-padding-sm: 0.75rem;
+    --card-padding-lg: 1.5rem;
+    --card-radius: 1rem;
+    --card-radius-sm: 0.75rem;
+    --card-gap: 0.75rem;
+    
+    /* Typography Tokens - Mobile */
+    --text-card-title: 0.875rem;
+    --text-card-value: 1.5rem;
+    --text-table-cell: 0.875rem;
+    
+    /* Spacing Tokens - Mobile */
+    --space-section: 1.5rem;
+    --space-component: 1rem;
+    --space-element: 0.5rem;
+    
+    /* Component-Specific Tokens - Mobile */
+    --pos-cart-width: 100%;
+    --kitchen-cols: 1;
+    --manager-table-font: 0.875rem;
+    --manager-form-width: 100%;
 ```
 
-- [ ] **Step 2: รันให้ล้ม**
+- [ ] **Step 2: Add card & spacing tokens to tablet breakpoint**
 
-```bash
-pnpm test:unit lib/authToken.test.ts
-```
-
-Expected: FAIL — `orgId` ไม่มีใน type หรือ verify คืน undefined
-
-- [ ] **Step 3: แก้ `lib/authToken.ts`**
-
-```ts
-export interface StaffClaims {
-  empId: number;
-  empName: string;
-  empRole: EmployeeRole;
-  orgId: string;
-}
-
-// ใน signStaffToken:
-  return new SignJWT({
-    role: 'authenticated',
-    emp_id: claims.empId,
-    emp_name: claims.empName,
-    emp_role: claims.empRole,
-    org_id: claims.orgId,
-  })
-
-// ใน verifyStaffToken:
-    const orgId = payload.org_id;
-    if (typeof orgId !== 'string' || !orgId) return null;
-
-    return {
-      empId,
-      empName: typeof empName === 'string' ? empName : '',
-      empRole,
-      orgId,
-    };
-```
-
-- [ ] **Step 4: แก้ `app/api/auth/login/route.ts`**
-
-หลัง verify_pin สำเร็จ อ่าน `org_id`:
-
-```ts
-    const { data: empRow, error: empError } = await supabaseAdmin
-      .from('employees')
-      .select('org_id')
-      .eq('id', row.emp_id)
-      .single();
-
-    if (empError || !empRow?.org_id) {
-      return Response.json({ error: 'ไม่พบข้อมูลองค์กรของพนักงาน' }, { status: 500 });
+```css
+  @media (--tablet) {
+    :root {
+      /* ... existing layout & grid tokens ... */
+      
+      /* Card */
+      --card-padding: 1.25rem;
+      --card-padding-sm: 1rem;
+      --card-padding-lg: 1.75rem;
+      --card-radius: 1.25rem;
+      --card-gap: 1rem;
+      
+      /* Spacing */
+      --space-section: 2rem;
+      --space-component: 1.25rem;
+      
+      /* Component-Specific */
+      --pos-cart-width: 380px;
+      --kitchen-cols: 2;
+      --manager-form-width: 600px;
     }
-
-    const token = await signStaffToken({
-      empId: employee.id,
-      empName: employee.name,
-      empRole: employee.role,
-      orgId: empRow.org_id,
-    });
+  }
 ```
 
-- [ ] **Step 5: รัน unit test**
+- [ ] **Step 3: Add tokens to tablet-xl breakpoint**
 
-```bash
-pnpm test:unit lib/authToken.test.ts
+```css
+  @media (--tablet-xl) {
+    :root {
+      /* ... existing tokens ... */
+      
+      /* Card */
+      --card-padding: 1.5rem;
+      --card-radius: 1.5rem;
+      
+      /* Component-Specific */
+      --kitchen-cols: 3;
+    }
+  }
 ```
 
-Expected: PASS
+- [ ] **Step 4: Add tokens to desktop breakpoint**
 
-- [ ] **Step 6: Commit**
+```css
+  @media (--desktop) {
+    :root {
+      /* ... existing tokens ... */
+      
+      /* Card */
+      --card-padding: 2rem;
+      
+      /* Typography */
+      --text-card-title: 1.125rem;
+      --text-card-value: 2rem;
+      --text-table-cell: 1rem;
+      
+      /* Spacing */
+      --space-section: 2.5rem;
+      --space-component: 1.5rem;
+    }
+  }
+```
+
+- [ ] **Step 5: Add shared tablet typography (all iPad sizes)**
+
+```css
+  /* Typography adjustments for all iPad sizes */
+  @media (--tablet-all) {
+    :root {
+      --text-card-title: 1rem;
+      --text-card-value: 1.75rem;
+      --text-table-cell: 0.9375rem;
+    }
+  }
+```
+
+- [ ] **Step 6: Verify token values at all breakpoints**
+
+DevTools → Computed → Check multiple tokens at each breakpoint
+Expected: Values change smoothly
+
+- [ ] **Step 7: Commit card, typography & spacing tokens**
 
 ```bash
-git add lib/authToken.ts lib/authToken.test.ts app/api/auth/login/route.ts
-git commit -m "feat(auth): add org_id to staff JWT at login"
+git add app/globals.css
+git commit -m "feat(tokens): add card, typography & spacing tokens
+
+- Card tokens: padding, radius variants
+- Typography tokens: card titles, values, table cells
+- Spacing tokens: section, component, element gaps
+- Component-specific tokens: POS cart, kitchen, manager pages
+- Complete token system for all components"
 ```
 
 ---

@@ -4,13 +4,28 @@ import Image from 'next/image';
 import { getLogoForTheme } from '@/lib/branding';
 
 type SidebarBrandProps = {
-  size?: 'sm' | 'md';
+  size?: 'sm' | 'md' | 'compact';
   showSubtitle?: boolean;
   theme: 'light' | 'dark';
 };
 
 export function SidebarBrand({ size = 'md', showSubtitle = false, theme }: SidebarBrandProps) {
   const logoSrc = getLogoForTheme(theme);
+
+  if (size === 'compact') {
+    return (
+      <div className="flex justify-center">
+        <Image
+          src={logoSrc}
+          alt="Yo-Yaki Izakaya"
+          width={40}
+          height={40}
+          priority
+          className="h-10 w-10 rounded-lg object-contain"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-w-0">

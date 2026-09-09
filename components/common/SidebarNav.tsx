@@ -18,7 +18,11 @@ import {
   X,
   Sun,
   Moon,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
+
+const SIDEBAR_COLLAPSED_KEY = 'yokayaki_sidebar_collapsed';
 
 export type NavTab =
   | 'floor'
@@ -43,6 +47,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [pendingTablesCount, setPendingTablesCount] = useState<number>(0);
   const [checkingOutCount, setCheckingOutCount] = useState<number>(0);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     const fetchPendingTables = async () => {
@@ -123,6 +128,21 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
       document.documentElement.classList.add('dark');
     }
   }, []);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
+    if (saved === 'true') {
+      setIsSidebarCollapsed(true);
+    }
+  }, []);
+
+  const toggleSidebarCollapsed = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next));
+      return next;
+    });
+  };
 
   const toggleTheme = () => {
     const nextTheme = theme === 'light' ? 'dark' : 'light';
@@ -486,133 +506,185 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
 
       {/* Desktop Left Sidebar Navigation */}
       <aside
-        className="relative z-20 hidden md:flex shrink-0 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 flex-col justify-between shadow-sm sticky top-0 h-screen"
+        data-sidebar-collapsed={isSidebarCollapsed || undefined}
+        className="relative z-20 hidden md:flex shrink-0 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 flex-col justify-between shadow-sm sticky top-0 h-screen transition-[width,padding] duration-200 ease-out"
         style={{
-          width: 'var(--sidebar-width)',
-          padding: 'var(--sidebar-padding)',
+          width: isSidebarCollapsed ? 'var(--sidebar-width-collapsed)' : 'var(--sidebar-width)',
+          padding: isSidebarCollapsed ? '0.75rem' : 'var(--sidebar-padding)',
         }}
       >
         <div>
-          <div className="mb-8 pb-4 border-b border-zinc-100 dark:border-zinc-800">
-            <SidebarBrand theme={theme} />
+          <div
+            className={`mb-6 pb-4 border-b border-zinc-100 dark:border-zinc-800 ${
+              isSidebarCollapsed ? 'flex flex-col items-center gap-2' : 'flex items-start justify-between gap-2'
+            }`}
+          >
+            <div className="sidebar-brand-full min-w-0 flex-1">
+              <SidebarBrand theme={theme} />
+            </div>
+            <div className="sidebar-brand-compact">
+              <SidebarBrand theme={theme} size="compact" />
+            </div>
+            <button
+              type="button"
+              onClick={toggleSidebarCollapsed}
+              className="shrink-0 rounded-lg p-1.5 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 cursor-pointer"
+              aria-label={isSidebarCollapsed ? 'ขยายเมนูด้านข้าง' : 'หุบเมนูด้านข้าง'}
+              title={isSidebarCollapsed ? 'ขยายเมนู' : 'หุบเมนู'}
+            >
+              {isSidebarCollapsed ? (
+                <PanelLeftOpen className="h-4.5 w-4.5" />
+              ) : (
+                <PanelLeftClose className="h-4.5 w-4.5" />
+              )}
+            </button>
           </div>
 
           <nav className="space-y-1">
             {canAccessTab(role, 'floor') && (
             <button
+              type="button"
               onClick={() => onSelectTab('floor')}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
+              title="แผนผังโต๊ะ"
+              className={`sidebar-nav-btn relative w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                 activeTab === 'floor'
                   ? 'nav-active font-extrabold'
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
               }`}
             >
-              <div className="flex items-center gap-3">
-                <Layers className="w-4.5 h-4.5" />
-                <span>แผนผังโต๊ะ</span>
+              <div className="sidebar-nav-btn-inner flex items-center gap-3">
+                <Layers className="w-4.5 h-4.5 shrink-0" />
+                <span className="sidebar-nav-label">แผนผังโต๊ะ</span>
               </div>
               {checkingOutCount > 0 && (
-                <span
-                  className={`px-2 py-0.5 rounded-full text-xs font-black transition-all ${
-                    activeTab === 'floor'
-                      ? 'bg-white text-red-600 shadow-xs'
-                      : 'bg-rose-500 text-white shadow-xs animate-bounce'
-                  }`}
-                >
-                  {checkingOutCount}
-                </span>
+                <>
+                  <span
+                    className={`sidebar-nav-badge-inline px-2 py-0.5 rounded-full text-xs font-black transition-all ${
+                      activeTab === 'floor'
+                        ? 'bg-white text-red-600 shadow-xs'
+                        : 'bg-rose-500 text-white shadow-xs animate-bounce'
+                    }`}
+                  >
+                    {checkingOutCount}
+                  </span>
+                  <span
+                    className={`sidebar-nav-badge-dot absolute top-1.5 right-1.5 h-2 w-2 rounded-full ${
+                      activeTab === 'floor' ? 'bg-white' : 'bg-rose-500 animate-bounce'
+                    }`}
+                    aria-hidden
+                  />
+                </>
               )}
             </button>
             )}
 
             {canAccessTab(role, 'kitchen') && (
             <button
+              type="button"
               onClick={() => onSelectTab('kitchen')}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
+              title="หน้าจอครัว"
+              className={`sidebar-nav-btn relative w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                 activeTab === 'kitchen'
                   ? 'nav-active font-extrabold'
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
               }`}
             >
-              <div className="flex items-center gap-3">
-                <ChefHat className="w-4.5 h-4.5" />
-                <span>หน้าจอครัว</span>
+              <div className="sidebar-nav-btn-inner flex items-center gap-3">
+                <ChefHat className="w-4.5 h-4.5 shrink-0" />
+                <span className="sidebar-nav-label">หน้าจอครัว</span>
               </div>
               {pendingTablesCount > 0 && (
-                <span
-                  className={`px-2 py-0.5 rounded-full text-xs font-black transition-all ${
-                    activeTab === 'kitchen'
-                      ? 'bg-white text-red-600 shadow-xs'
-                      : 'bg-red-600 text-white shadow-xs animate-pulse'
-                  }`}
-                >
-                  {pendingTablesCount}
-                </span>
+                <>
+                  <span
+                    className={`sidebar-nav-badge-inline px-2 py-0.5 rounded-full text-xs font-black transition-all ${
+                      activeTab === 'kitchen'
+                        ? 'bg-white text-red-600 shadow-xs'
+                        : 'bg-red-600 text-white shadow-xs animate-pulse'
+                    }`}
+                  >
+                    {pendingTablesCount}
+                  </span>
+                  <span
+                    className={`sidebar-nav-badge-dot absolute top-1.5 right-1.5 h-2 w-2 rounded-full ${
+                      activeTab === 'kitchen' ? 'bg-white' : 'bg-red-600 animate-pulse'
+                    }`}
+                    aria-hidden
+                  />
+                </>
               )}
             </button>
             )}
 
             {canAccessTab(role, 'history') && (
               <button
+                type="button"
                 onClick={() => onSelectTab('history')}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
+                title="ออเดอร์ประจำวัน"
+                className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                   activeTab === 'history'
                     ? 'nav-active font-extrabold'
                     : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                 }`}
               >
-                <History className="w-4.5 h-4.5" />
-                <span>ออเดอร์ประจำวัน</span>
+                <History className="w-4.5 h-4.5 shrink-0" />
+                <span className="sidebar-nav-label">ออเดอร์ประจำวัน</span>
               </button>
             )}
 
             {showCatalogSection && (
               <>
+                <div className="sidebar-section-divider border-t border-zinc-100 dark:border-zinc-800 pt-3 mt-2" />
                 <div className="pt-4 pb-1">
-                  <p className="text-xs font-extrabold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 px-3">
+                  <p className="sidebar-section-title text-xs font-extrabold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 px-3">
                     OWNER CONTROLS
                   </p>
                 </div>
 
                 {canAccessTab(role, 'menu') && (
                 <button
+                  type="button"
                   onClick={() => onSelectTab('menu')}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
+                  title="จัดการเมนู"
+                  className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                     activeTab === 'menu'
                       ? 'nav-active font-extrabold'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                   }`}
                 >
-                  <UtensilsCrossed className="w-4.5 h-4.5" />
-                  <span>จัดการเมนู</span>
+                  <UtensilsCrossed className="w-4.5 h-4.5 shrink-0" />
+                  <span className="sidebar-nav-label">จัดการเมนู</span>
                 </button>
                 )}
 
                 {canAccessTab(role, 'stock') && (
                 <button
+                  type="button"
                   onClick={() => onSelectTab('stock')}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
+                  title="ต้นทุนวัตถุดิบ"
+                  className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                     activeTab === 'stock'
                       ? 'nav-active font-extrabold'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                   }`}
                 >
-                  <Package className="w-4.5 h-4.5" />
-                  <span>ต้นทุนวัตถุดิบ</span>
+                  <Package className="w-4.5 h-4.5 shrink-0" />
+                  <span className="sidebar-nav-label">ต้นทุนวัตถุดิบ</span>
                 </button>
                 )}
 
                 {canAccessTab(role, 'promo') && (
                 <button
+                  type="button"
                   onClick={() => onSelectTab('promo')}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
+                  title="โปรโมชั่น"
+                  className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                     activeTab === 'promo'
                       ? 'nav-active font-extrabold'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                   }`}
                 >
-                  <Tag className="w-4.5 h-4.5" />
-                  <span>โปรโมชั่น</span>
+                  <Tag className="w-4.5 h-4.5 shrink-0" />
+                  <span className="sidebar-nav-label">โปรโมชั่น</span>
                 </button>
                 )}
               </>
@@ -620,51 +692,58 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
 
             {showManagementSection && (
               <>
+                <div className="sidebar-section-divider border-t border-zinc-100 dark:border-zinc-800 pt-3 mt-2" />
                 <div className="pt-3 pb-1 border-t border-zinc-100 dark:border-zinc-800 mt-2">
-                  <p className="text-xs font-extrabold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 px-3">
+                  <p className="sidebar-section-title text-xs font-extrabold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 px-3">
                     MANAGEMENT
                   </p>
                 </div>
 
                 {canAccessTab(role, 'dashboard') && (
                 <button
+                  type="button"
                   onClick={() => onSelectTab('dashboard')}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
+                  title="รายงาน / Dashboard"
+                  className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                     activeTab === 'dashboard'
                       ? 'nav-active font-extrabold'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                   }`}
                 >
-                  <LayoutDashboard className="w-4.5 h-4.5" />
-                  <span>รายงาน / Dashboard</span>
+                  <LayoutDashboard className="w-4.5 h-4.5 shrink-0" />
+                  <span className="sidebar-nav-label">รายงาน / Dashboard</span>
                 </button>
                 )}
 
                 {canAccessTab(role, 'loyalty') && (
                 <button
+                  type="button"
                   onClick={() => onSelectTab('loyalty')}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
+                  title="สมาชิก"
+                  className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                     activeTab === 'loyalty'
                       ? 'nav-active font-extrabold'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                   }`}
                 >
-                  <Users className="w-4.5 h-4.5" />
-                  <span>สมาชิก</span>
+                  <Users className="w-4.5 h-4.5 shrink-0" />
+                  <span className="sidebar-nav-label">สมาชิก</span>
                 </button>
                 )}
 
                 {canAccessTab(role, 'employees') && (
                 <button
+                  type="button"
                   onClick={() => onSelectTab('employees')}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
+                  title="จัดการพนักงาน"
+                  className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
                     activeTab === 'employees'
                       ? 'nav-active font-extrabold'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                   }`}
                 >
-                  <UserCog className="w-4.5 h-4.5" />
-                  <span>จัดการพนักงาน</span>
+                  <UserCog className="w-4.5 h-4.5 shrink-0" />
+                  <span className="sidebar-nav-label">จัดการพนักงาน</span>
                 </button>
                 )}
               </>
@@ -674,23 +753,25 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
 
         <div className="pt-6 border-t border-zinc-100 dark:border-zinc-800 space-y-3 mt-6">
           <button
+            type="button"
             onClick={toggleTheme}
-            className="w-full flex items-center gap-2.5 px-1 py-2 text-sm font-bold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer"
+            title={theme === 'light' ? 'สลับไปโหมดมืด' : 'สลับไปโหมดสว่าง'}
+            className="sidebar-nav-btn w-full flex items-center gap-2.5 px-1 py-2 text-sm font-bold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer"
           >
             {theme === 'light' ? (
               <>
                 <Moon className="w-4.5 h-4.5 shrink-0" />
-                <span>สลับไปโหมดมืด</span>
+                <span className="sidebar-footer-text">สลับไปโหมดมืด</span>
               </>
             ) : (
               <>
                 <Sun className="w-4.5 h-4.5 shrink-0" />
-                <span>สลับไปโหมดสว่าง</span>
+                <span className="sidebar-footer-text">สลับไปโหมดสว่าง</span>
               </>
             )}
           </button>
 
-          <div className="flex items-center justify-between gap-3 px-1 py-1">
+          <div className="sidebar-footer-meta flex items-center justify-between gap-3 px-1 py-1">
             <p className="min-w-0 truncate text-sm font-bold text-zinc-800 dark:text-zinc-100">{employee?.name}</p>
             <p className="shrink-0 text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
               {employee?.role}
@@ -698,11 +779,13 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
           </div>
 
           <button
+            type="button"
             onClick={logout}
-            className="w-full flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-sm font-bold text-zinc-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition duration-150 cursor-pointer"
+            title="ออกจากระบบ"
+            className="sidebar-nav-btn w-full flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-sm font-bold text-zinc-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition duration-150 cursor-pointer"
           >
-            <LogOut className="w-4.5 h-4.5" />
-            <span>ออกจากระบบ (Logout)</span>
+            <LogOut className="w-4.5 h-4.5 shrink-0" />
+            <span className="sidebar-footer-text">ออกจากระบบ (Logout)</span>
           </button>
         </div>
       </aside>

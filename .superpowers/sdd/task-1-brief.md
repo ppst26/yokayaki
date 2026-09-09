@@ -1,42 +1,81 @@
-### Task 1: Migration 5a — role enum (`staff` → `cashier`)
+## Task 1: Foundation - Tailwind Config & Custom Media Queries
 
 **Files:**
-- Create: `supabase/migrations/20260911_m5_roles_enum.sql`
+- Modify: `tailwind.config.ts`
+- Modify: `app/globals.css:1-50` (after `@theme inline`)
 
 **Interfaces:**
-- Produces: `employees.role` CHECK 5 ค่า · ไม่มีแถว `staff` · `admin_add_employee` / `admin_update_employee` รับ role ใหม่
+- Consumes: Existing Tailwind config
+- Produces: 
+  - `tablet` breakpoint (834px) for Tailwind classes
+  - `@custom-media` queries: `--mobile`, `--tablet`, `--tablet-xl`, `--tablet-all`, `--desktop`
 
-- [ ] **Step 1: สร้าง migration**
+**Duration:** 15 minutes
 
-```sql
-BEGIN;
+---
 
-UPDATE public.employees SET role = 'cashier' WHERE role = 'staff';
+- [ ] **Step 1: Add tablet breakpoint to Tailwind config**
 
-ALTER TABLE public.employees DROP CONSTRAINT IF EXISTS employees_role_check;
-ALTER TABLE public.employees ADD CONSTRAINT employees_role_check
-  CHECK (role IN ('owner', 'manager', 'cashier', 'kitchen', 'accountant'));
+```typescript
+// tailwind.config.ts
+import type { Config } from 'tailwindcss';
 
--- อัปเดต admin_add_employee / admin_update_employee (copy body จาก 20260909 แล้วแก้บรรทัด role check)
--- เปลี่ยนทุก: IF p_role NOT IN ('owner', 'staff')
--- เป็น:     IF p_role NOT IN ('owner', 'manager', 'cashier', 'kitchen', 'accountant')
+const config: Config = {
+  content: [
+    './pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  theme: {
+    extend: {
+      screens: {
+        'tablet': '834px',  // 🆕 iPad Pro 11" breakpoint
+      },
+    },
+  },
+  plugins: [],
+};
 
--- admin_update_employee: กันลด owner คนสุดท้าย — เปลี่ยนเงื่อนไข p_role = 'staff'
--- เป็น: p_role NOT IN ('owner', 'manager') เมื่อ v_current_role = 'owner'
-
-REVOKE EXECUTE ON FUNCTION public.admin_add_employee(TEXT,TEXT,TEXT,UUID) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.admin_add_employee(TEXT,TEXT,TEXT,UUID) TO service_role;
-
-COMMIT;
+export default config;
 ```
 
-- [ ] **Step 2: `pnpm db:reset`**
+- [ ] **Step 2: Add custom media queries to globals.css**
 
-- [ ] **Step 3: Commit**
+```css
+/* app/globals.css - add after @theme inline block */
+
+/* Custom Media Queries for iPad Responsive Design */
+@custom-media --mobile (width < 768px);
+@custom-media --tablet (768px <= width < 834px);
+@custom-media --tablet-xl (834px <= width < 1024px);
+@custom-media --tablet-all (768px <= width < 1024px);
+@custom-media --desktop (width >= 1024px);
+```
+
+- [ ] **Step 3: Verify Tailwind compilation**
+
+Run: `pnpm dev`
+Expected: No errors, `tablet:` prefix available in components
+
+- [ ] **Step 4: Test custom media queries**
+
+Add temporary test in any component:
+```css
+@media (--tablet) {
+  .test { background: red; }
+}
+```
+Open DevTools → Resize to 768-833px → Verify `.test` is red
+
+- [ ] **Step 5: Commit foundation**
 
 ```bash
-git add supabase/migrations/20260911_m5_roles_enum.sql
-git commit -m "feat(db): M5 5a migrate staff to cashier and five roles"
+git add tailwind.config.ts app/globals.css
+git commit -m "feat(tokens): add iPad breakpoint and custom media queries
+
+- Add tablet:834px breakpoint for Tailwind
+- Add 5 custom media queries for precise iPad targeting
+- Foundation for token-based responsive system"
 ```
 
 ---

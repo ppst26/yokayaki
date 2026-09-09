@@ -106,6 +106,7 @@
   @media (--tablet) {
     :root {
       /* Layout */
+      --sidebar-width-collapsed: 4.5rem;
       --sidebar-width: 240px;
       --content-padding: 1.5rem;
       --content-max-width: calc(100vw - 240px);
@@ -381,6 +382,55 @@ body {
 }
 
 /* มุมปุ่มมาตรฐานทั้งระบบ — 0.25rem (= rounded-sm จริง ไม่โดนสเกลธีม) */
+/* Collapsible desktop/tablet sidebar (icon-only mode) */
+@layer components {
+  [data-sidebar-collapsed] .sidebar-nav-label,
+  [data-sidebar-collapsed] .sidebar-section-title,
+  [data-sidebar-collapsed] .sidebar-brand-full,
+  [data-sidebar-collapsed] .sidebar-footer-text,
+  [data-sidebar-collapsed] .sidebar-footer-meta {
+    display: none;
+  }
+
+  .sidebar-brand-compact {
+    display: none;
+  }
+
+  [data-sidebar-collapsed] .sidebar-brand-compact {
+    display: block;
+  }
+
+  [data-sidebar-collapsed] .sidebar-nav-btn {
+    justify-content: center;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  [data-sidebar-collapsed] .sidebar-nav-btn-inner {
+    gap: 0;
+  }
+
+  [data-sidebar-collapsed] .sidebar-nav-badge-inline {
+    display: none;
+  }
+
+  .sidebar-nav-badge-dot {
+    display: none;
+  }
+
+  [data-sidebar-collapsed] .sidebar-nav-badge-dot {
+    display: block;
+  }
+
+  [data-sidebar-collapsed] .sidebar-section-divider {
+    display: block;
+  }
+
+  .sidebar-section-divider {
+    display: none;
+  }
+}
+
 @utility btn-radius {
   border-radius: 0.25rem;
 }
