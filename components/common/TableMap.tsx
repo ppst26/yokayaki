@@ -280,7 +280,7 @@ export const TableMap: React.FC = () => {
     return (
       <div className="flex flex-col md:flex-row h-dvh bg-gray-100 dark:bg-neutral-950 font-sans text-slate-800 dark:text-neutral-100 overflow-hidden">
         <SidebarNav activeTab={activeTab} onSelectTab={handleTabChange} />
-        <AppMainContent className="overflow-y-auto no-scrollbar" innerClassName="p-4 md:p-6 lg:p-8">
+        <AppMainContent className="overflow-y-auto no-scrollbar" innerClassName="p-[var(--page-margin)]">
           <CheckoutScreen
             tableId={checkoutTableId}
             tableNumber={checkoutTableNumber ?? undefined}
@@ -307,7 +307,7 @@ export const TableMap: React.FC = () => {
     <div className="flex flex-col md:flex-row h-dvh bg-gray-100 dark:bg-neutral-950 font-sans text-slate-800 dark:text-neutral-100 overflow-hidden">
       <SidebarNav activeTab={activeTab} onSelectTab={handleTabChange} />
 
-      <AppMainContent className="overflow-y-auto no-scrollbar" innerClassName="p-4 md:p-6 lg:p-8 pb-24 md:pb-8">
+      <AppMainContent className="overflow-y-auto no-scrollbar" innerClassName="p-[var(--page-margin)] pb-24 md:pb-8">
         {/* floor + kitchen: eager (ใช้บ่อย) */}
         {canAccessTab(role, 'floor') && (
           <div className={activeTab === 'floor' ? 'block' : 'hidden'}>
@@ -336,7 +336,13 @@ export const TableMap: React.FC = () => {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
+              <div
+                className="grid"
+                style={{
+                  gridTemplateColumns: 'repeat(var(--grid-cols-table), 1fr)',
+                  gap: 'var(--grid-gap-lg)',
+                }}
+              >
                 {tables.map(table => (
                   <TableCard
                     key={table.id}
