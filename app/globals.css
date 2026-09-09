@@ -65,6 +65,7 @@
   :root {
     /* Layout Tokens - Mobile (< 768px) */
     --sidebar-width: 0;
+    --current-sidebar-width: 0px;
     --sidebar-padding: 1.25rem;
     --content-padding: 1rem;
     --content-max-width: 100%;
@@ -108,6 +109,7 @@
       /* Layout */
       --sidebar-width-collapsed: 4.5rem;
       --sidebar-width: 240px;
+      --current-sidebar-width: var(--sidebar-width);
       --content-padding: 1.5rem;
       --content-max-width: calc(100vw - 240px);
       --page-margin: 1.5rem;

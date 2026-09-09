@@ -131,8 +131,12 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
 
   useEffect(() => {
     const saved = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
-    if (saved === 'true') {
+    const isCollapsed = saved === 'true';
+    if (isCollapsed) {
       setIsSidebarCollapsed(true);
+      document.documentElement.style.setProperty('--current-sidebar-width', 'var(--sidebar-width-collapsed)');
+    } else {
+      document.documentElement.style.setProperty('--current-sidebar-width', 'var(--sidebar-width)');
     }
   }, []);
 
@@ -140,6 +144,10 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
     setIsSidebarCollapsed((prev) => {
       const next = !prev;
       localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next));
+      document.documentElement.style.setProperty(
+        '--current-sidebar-width',
+        next ? 'var(--sidebar-width-collapsed)' : 'var(--sidebar-width)'
+      );
       return next;
     });
   };

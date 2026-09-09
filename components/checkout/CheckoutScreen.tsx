@@ -13,6 +13,7 @@ import { ReceiptPrintView } from './ReceiptPrintView';
 import { generatePromptPayQR } from '@/lib/promptPay';
 import { pointsEarnedFromNet } from '@/lib/loyaltyPoints';
 import { isDoublePointsActive, parseDoublePointsDates } from '@/lib/doublePoints';
+import { MinimalAlert } from '@/components/ui/minimal-alert';
 
 interface CheckoutScreenProps {
   tableId: string;
@@ -588,32 +589,32 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNu
           </div>
         </header>
 
-        {errorMsg && (
-          <div className="mb-6 p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-300 rounded-2xl text-xs font-semibold flex items-center gap-3">
-            <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
-            <span>{errorMsg}</span>
-          </div>
-        )}
+        {(errorMsg || pendingItemsCount > 0 || doublePointsActive) && (
+          <div className="mb-6 space-y-2.5">
+            {errorMsg && (
+              <MinimalAlert
+                variant="error"
+                title={errorMsg}
+                onClose={() => setErrorMsg(null)}
+              />
+            )}
 
-        {pendingItemsCount > 0 && (
-          <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 text-amber-800 dark:text-amber-300 rounded-2xl text-xs font-semibold flex items-center gap-3 animate-pulse">
-            <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
-            <div>
-              <p className="font-extrabold text-sm">
-                ยังไม่สามารถชำระเงินได้: มีออเดอร์ในครัวที่ยังไม่ได้เสิร์ฟ ({pendingItemsCount} รายการ)
-              </p>
-              <p className="text-amber-700 dark:text-amber-400 mt-0.5 font-normal">
-                กรุณาให้พนักงานครัวกดเสิร์ฟอาหารในหน้าจอครัวให้ครบก่อนทำการเช็คบิล
-              </p>
-            </div>
-          </div>
-        )}
+            {pendingItemsCount > 0 && (
+              <MinimalAlert
+                variant="warning"
+                title={`ยังไม่สามารถชำระเงินได้: มีออเดอร์ในครัวที่ยังไม่ได้เสิร์ฟ (${pendingItemsCount} รายการ)`}
+                description="กรุณาให้พนักงานครัวกดเสิร์ฟอาหารในหน้าจอครัวให้ครบก่อนทำการเช็คบิล"
+              />
+            )}
 
-        {doublePointsActive && (
-          <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-xs font-semibold text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
-            <p className="text-sm font-extrabold">
-              วันแต้ม x2 — สมาชิกจะได้แต้มสะสม 2 เท่าจากบิลนี้
-            </p>
+            {doublePointsActive && (
+              <MinimalAlert
+                variant="promotion"
+                title="วันแต้ม x2"
+                description="สมาชิกจะได้แต้มสะสม 2 เท่าจากบิลนี้"
+                badge="แต้ม x2"
+              />
+            )}
           </div>
         )}
 

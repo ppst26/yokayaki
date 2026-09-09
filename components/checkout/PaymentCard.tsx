@@ -31,16 +31,16 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({
   isProcessing,
 }) => {
   return (
-    <Card
-      data-card-shape="sheet"
-      className="fixed lg:relative bottom-0 left-0 right-0 z-40 lg:z-auto w-full p-4 sm:p-5 space-y-3 sm:space-y-4 transition-all"
-    >
-      {/* Cash Input */}
-      <div>
-        <h3 className="text-xs md:text-sm font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-400 mb-2 flex items-center gap-2">
-          <Banknote className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400" />
-          เงินสดรับ
-        </h3>
+    <div className="fixed lg:relative bottom-0 left-0 md:left-[var(--current-sidebar-width,0px)] right-0 z-40 lg:z-auto w-full lg:w-auto p-3 sm:p-4 lg:p-0 pointer-events-none lg:pointer-events-auto transition-[left] duration-200 ease-out">
+      <Card
+        className="w-full pointer-events-auto rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md shadow-xl lg:shadow-xs p-3.5 sm:p-4 md:p-5 space-y-2.5 sm:space-y-3 transition-all"
+      >
+        {/* Cash Input */}
+        <div>
+          <h3 className="text-xs md:text-sm font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-400 mb-2 flex items-center gap-2">
+            <Banknote className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span>เงินสดรับ</span>
+          </h3>
         <input
           type="number"
           min={0}
@@ -159,5 +159,6 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({
         </button>
       </div>
     </Card>
+  </div>
   );
 };
