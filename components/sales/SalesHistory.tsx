@@ -395,7 +395,7 @@ export const SalesHistory: React.FC = () => {
                   : 'text-slate-600  dark:text-neutral-300 hover:text-slate-900 dark:hover:text-neutral-100 border-none'
               }`}
             >
-              วันนี้ (Today)
+              วันนี้
             </button>
             <button
               type="button"
@@ -406,7 +406,7 @@ export const SalesHistory: React.FC = () => {
                   : 'text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-neutral-100 border-none'
               }`}
             >
-              เมื่อวาน (Yesterday)
+              เมื่อวาน
             </button>
           </div>
 

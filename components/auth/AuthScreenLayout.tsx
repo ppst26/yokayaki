@@ -12,9 +12,9 @@ type AuthScreenLayoutProps = {
 };
 
 const PANEL_SHELL_CLASS = {
-  default: 'w-full max-w-[400px] md:w-[38vw] md:min-w-[340px] md:max-w-[420px]',
+  default: 'w-full max-w-[400px] xl:w-[38vw] xl:min-w-[340px] xl:max-w-[420px]',
   pinpad:
-    'w-full max-w-[400px] md:w-[36vw] md:min-w-[360px] md:max-w-[480px] lg:max-w-[520px] xl:max-w-[540px]',
+    'w-full max-w-[400px] sm:max-w-[420px] md:max-w-[440px] xl:w-[36vw] xl:min-w-[360px] xl:max-w-[540px]',
 } as const;
 
 export function AuthScreenLayout({ children, branding, panel = 'default' }: AuthScreenLayoutProps) {
@@ -28,7 +28,7 @@ export function AuthScreenLayout({ children, branding, panel = 'default' }: Auth
         aria-hidden
       />
 
-      <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-6 md:justify-end md:pr-[7%] md:pl-8">
+      <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-6 xl:justify-end xl:pr-[7%] xl:pl-8">
         <div className={PANEL_SHELL_CLASS[panel]}>{children}</div>
       </div>
     </div>

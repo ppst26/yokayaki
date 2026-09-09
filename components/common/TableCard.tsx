@@ -89,7 +89,7 @@ export const TableCard: React.FC<TableCardProps> = ({ table, onClick, className 
   return (
     <button
       onClick={onClick}
-      className={`group relative p-4 sm:p-6 rounded-sm sm:rounded-md transition duration-200 text-left flex flex-col justify-between h-40 sm:h-48 cursor-pointer active:scale-95 overflow-hidden ${getCardStyle()} ${className}`}
+      className={`group relative p-4 sm:p-6 rounded-[24px] transition duration-200 text-left flex flex-col justify-between h-40 sm:h-48 cursor-pointer active:scale-95 overflow-hidden ${getCardStyle()} ${className}`}
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
         <span className={`text-h2 ${isOccupied || isCheckingOut ? 'text-white' : 'text-slate-900 dark:text-neutral-100'}`}>

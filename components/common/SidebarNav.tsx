@@ -769,11 +769,25 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
             )}
           </button>
 
-          <div className="sidebar-footer-meta flex items-center justify-between gap-3 px-1 py-1">
-            <p className="min-w-0 truncate text-sm font-bold text-zinc-800 dark:text-zinc-100">{employee?.name}</p>
-            <p className="shrink-0 text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-              {employee?.role}
-            </p>
+          {/* User Info (Expanded: Name + Role, Collapsed: User Name centered) */}
+          <div className="w-full px-1 py-1 overflow-hidden">
+            <div className="sidebar-footer-full flex items-center justify-between gap-2">
+              <p className="min-w-0 truncate text-sm font-bold text-zinc-800 dark:text-zinc-100" title={employee?.name}>
+                {employee?.name}
+              </p>
+              <p className="shrink-0 text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                {employee?.role}
+              </p>
+            </div>
+
+            <div className="sidebar-footer-compact w-full items-center justify-center">
+              <p
+                className="w-full text-center text-xs font-extrabold text-zinc-800 dark:text-zinc-100 truncate px-0.5"
+                title={employee?.name}
+              >
+                {employee?.name}
+              </p>
+            </div>
           </div>
 
           <button

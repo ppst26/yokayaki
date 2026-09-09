@@ -20,7 +20,7 @@ export const SalesSummaryCards: React.FC<SalesSummaryCardsProps> = ({
   totalVoidAmount,
 }) => {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
       {/* Revenue */}
       <Card className="p-3.5 md:p-5 space-y-1.5 md:space-y-2">
         <div className="flex items-center justify-between gap-1">

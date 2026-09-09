@@ -388,16 +388,22 @@ body {
   [data-sidebar-collapsed] .sidebar-section-title,
   [data-sidebar-collapsed] .sidebar-brand-full,
   [data-sidebar-collapsed] .sidebar-footer-text,
+  [data-sidebar-collapsed] .sidebar-footer-full,
   [data-sidebar-collapsed] .sidebar-footer-meta {
-    display: none;
+    display: none !important;
   }
 
-  .sidebar-brand-compact {
+  .sidebar-brand-compact,
+  .sidebar-footer-compact {
     display: none;
   }
 
   [data-sidebar-collapsed] .sidebar-brand-compact {
     display: block;
+  }
+
+  [data-sidebar-collapsed] .sidebar-footer-compact {
+    display: flex !important;
   }
 
   [data-sidebar-collapsed] .sidebar-nav-btn {
