@@ -1,181 +1,83 @@
-### Task 2: Migration 4b — `jwt_org_id()` + RLS rewrite
+### Task 2: Migration 5a — permission helpers
 
 **Files:**
-- Create: `supabase/migrations/20260906_m4_jwt_org_rls.sql`
+- Create: `supabase/migrations/20260912_m5_permission_helpers.sql`
 
 **Interfaces:**
-- Produces:
-  - `public.jwt_org_id() RETURNS UUID`
-  - policy ทุกตาราง operational ใช้ `org_id = public.jwt_org_id() AND public.is_staff()` (หรือ `is_owner()`)
-  - policy `organizations` / `org_settings` อ่านได้เฉพาะ org ของ JWT
+- Produces: `can_operate_pos()`, `can_kitchen()`, `can_read_sales()`, `can_write_catalog()`, `can_manage_stock()`, `can_manage_loyalty()`, `can_manage_employees()`, `can_read_org_settings()`
 
-- [ ] **Step 1: สร้าง migration 4b**
-
-สร้าง `supabase/migrations/20260906_m4_jwt_org_rls.sql` — ลบ policy เก่าทุกตัวใน `public` แล้วสร้างใหม่:
+- [ ] **Step 1: สร้าง helpers**
 
 ```sql
 BEGIN;
 
-CREATE OR REPLACE FUNCTION public.jwt_org_id()
-RETURNS UUID
-LANGUAGE sql STABLE
-SET search_path = public
-AS $fn$
-  SELECT NULLIF(
-    NULLIF(current_setting('request.jwt.claims', true), '')::jsonb ->> 'org_id', ''
-  )::UUID;
-$fn$;
+CREATE OR REPLACE FUNCTION public.can_operate_pos() RETURNS BOOLEAN
+LANGUAGE sql STABLE SET search_path = public AS $$
+  SELECT public.jwt_emp_role() IN ('owner', 'manager', 'cashier');
+$$;
 
-REVOKE EXECUTE ON FUNCTION public.jwt_org_id() FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.jwt_org_id() TO authenticated, service_role;
+CREATE OR REPLACE FUNCTION public.can_kitchen() RETURNS BOOLEAN
+LANGUAGE sql STABLE SET search_path = public AS $$
+  SELECT public.jwt_emp_role() IN ('owner', 'manager', 'cashier', 'kitchen');
+$$;
 
--- DROP policies เก่า (ชื่อจาก 20260824)
-DO $do$
-DECLARE r RECORD;
-BEGIN
-  FOR r IN
-    SELECT schemaname, tablename, policyname
-    FROM pg_policies WHERE schemaname = 'public'
-  LOOP
-    EXECUTE format('DROP POLICY IF EXISTS %I ON %I.%I', r.policyname, r.schemaname, r.tablename);
-  END LOOP;
-END
-$do$;
+CREATE OR REPLACE FUNCTION public.can_read_sales() RETURNS BOOLEAN
+LANGUAGE sql STABLE SET search_path = public AS $$
+  SELECT public.jwt_emp_role() IN ('owner', 'manager', 'accountant');
+$$;
 
--- organizations / org_settings
-CREATE POLICY org_read ON public.organizations
-  FOR SELECT TO authenticated
-  USING (id = public.jwt_org_id() AND public.is_staff());
+CREATE OR REPLACE FUNCTION public.can_write_catalog() RETURNS BOOLEAN
+LANGUAGE sql STABLE SET search_path = public AS $$
+  SELECT public.jwt_emp_role() IN ('owner', 'manager');
+$$;
 
-CREATE POLICY org_settings_read ON public.org_settings
-  FOR SELECT TO authenticated
-  USING (org_id = public.jwt_org_id() AND public.is_staff());
+CREATE OR REPLACE FUNCTION public.can_manage_stock() RETURNS BOOLEAN
+LANGUAGE sql STABLE SET search_path = public AS $$
+  SELECT public.jwt_emp_role() IN ('owner', 'manager');
+$$;
 
--- pattern สำหรับตารางที่มี org_id
-CREATE POLICY staff_read ON public.tables
-  FOR SELECT TO authenticated
-  USING (org_id = public.jwt_org_id() AND public.is_staff());
+CREATE OR REPLACE FUNCTION public.can_manage_loyalty() RETURNS BOOLEAN
+LANGUAGE sql STABLE SET search_path = public AS $$
+  SELECT public.jwt_emp_role() IN ('owner', 'manager');
+$$;
 
-CREATE POLICY staff_read ON public.orders
-  FOR SELECT TO authenticated
-  USING (org_id = public.jwt_org_id() AND public.is_staff());
+CREATE OR REPLACE FUNCTION public.can_manage_employees() RETURNS BOOLEAN
+LANGUAGE sql STABLE SET search_path = public AS $$
+  SELECT public.jwt_emp_role() IN ('owner', 'manager');
+$$;
 
-CREATE POLICY staff_read ON public.order_items
-  FOR SELECT TO authenticated
-  USING (org_id = public.jwt_org_id() AND public.is_staff());
+CREATE OR REPLACE FUNCTION public.can_read_org_settings() RETURNS BOOLEAN
+LANGUAGE sql STABLE SET search_path = public AS $$
+  SELECT public.can_operate_pos() OR public.can_read_sales() OR public.can_kitchen();
+$$;
 
-CREATE POLICY staff_serve ON public.order_items
-  FOR UPDATE TO authenticated
-  USING (org_id = public.jwt_org_id() AND public.is_staff())
-  WITH CHECK (org_id = public.jwt_org_id() AND public.is_staff());
+REVOKE EXECUTE ON FUNCTION
+  public.can_operate_pos(), public.can_kitchen(), public.can_read_sales(),
+  public.can_write_catalog(), public.can_manage_stock(), public.can_manage_loyalty(),
+  public.can_manage_employees(), public.can_read_org_settings()
+FROM PUBLIC, anon;
 
-CREATE POLICY staff_read ON public.menu_items
-  FOR SELECT TO authenticated
-  USING (org_id = public.jwt_org_id() AND public.is_staff());
+GRANT EXECUTE ON FUNCTION
+  public.can_operate_pos(), public.can_kitchen(), public.can_read_sales(),
+  public.can_write_catalog(), public.can_manage_stock(), public.can_manage_loyalty(),
+  public.can_manage_employees(), public.can_read_org_settings()
+TO authenticated, service_role;
 
-CREATE POLICY owner_write ON public.menu_items
-  FOR ALL TO authenticated
-  USING (org_id = public.jwt_org_id() AND public.is_owner())
-  WITH CHECK (org_id = public.jwt_org_id() AND public.is_owner());
+-- อัปเดต is_staff / is_owner ให้ delegate (ช่วงเปลี่ยนผ่าน — tests เก่าอาจเรียก)
+CREATE OR REPLACE FUNCTION public.is_staff() RETURNS BOOLEAN
+LANGUAGE sql STABLE SET search_path = public AS $$
+  SELECT public.can_operate_pos() OR public.can_kitchen() OR public.can_read_sales();
+$$;
 
-CREATE POLICY staff_read ON public.promotions
-  FOR SELECT TO authenticated
-  USING (org_id = public.jwt_org_id() AND public.is_staff());
-
-CREATE POLICY owner_write ON public.promotions
-  FOR ALL TO authenticated
-  USING (org_id = public.jwt_org_id() AND public.is_owner())
-  WITH CHECK (org_id = public.jwt_org_id() AND public.is_owner());
-
-CREATE POLICY staff_read ON public.qr_sessions
-  FOR SELECT TO authenticated
-  USING (org_id = public.jwt_org_id() AND public.is_staff());
-
-CREATE POLICY staff_create ON public.qr_sessions
-  FOR INSERT TO authenticated
-  WITH CHECK (org_id = public.jwt_org_id() AND public.is_staff());
-
-CREATE POLICY staff_read ON public.loyalty_members
-  FOR SELECT TO authenticated
-  USING (org_id = public.jwt_org_id() AND public.is_staff());
-
-CREATE POLICY staff_create ON public.loyalty_members
-  FOR INSERT TO authenticated
-  WITH CHECK (org_id = public.jwt_org_id() AND public.is_staff());
-
-CREATE POLICY owner_update ON public.loyalty_members
-  FOR UPDATE TO authenticated
-  USING (org_id = public.jwt_org_id() AND public.is_owner())
-  WITH CHECK (org_id = public.jwt_org_id() AND public.is_owner());
-
-CREATE POLICY owner_delete ON public.loyalty_members
-  FOR DELETE TO authenticated
-  USING (org_id = public.jwt_org_id() AND public.is_owner());
-
-CREATE POLICY staff_read ON public.payments
-  FOR SELECT TO authenticated
-  USING (org_id = public.jwt_org_id() AND public.is_staff());
-
-CREATE POLICY staff_read ON public.payment_promotions
-  FOR SELECT TO authenticated
-  USING (org_id = public.jwt_org_id() AND public.is_staff());
-
-CREATE POLICY staff_read ON public.void_logs
-  FOR SELECT TO authenticated
-  USING (org_id = public.jwt_org_id() AND public.is_staff());
-
-CREATE POLICY owner_read ON public.stock_logs
-  FOR SELECT TO authenticated
-  USING (org_id = public.jwt_org_id() AND public.is_owner());
-
-CREATE POLICY owner_read ON public.points_logs
-  FOR SELECT TO authenticated
-  USING (org_id = public.jwt_org_id() AND public.is_owner());
-
-CREATE POLICY owner_write ON public.points_logs
-  FOR INSERT TO authenticated
-  WITH CHECK (org_id = public.jwt_org_id() AND public.is_owner());
-
-CREATE POLICY owner_read ON public.item_ingredients
-  FOR SELECT TO authenticated
-  USING (org_id = public.jwt_org_id() AND public.is_owner());
-
-CREATE POLICY owner_write ON public.item_ingredients
-  FOR ALL TO authenticated
-  USING (org_id = public.jwt_org_id() AND public.is_owner())
-  WITH CHECK (org_id = public.jwt_org_id() AND public.is_owner());
-
-CREATE POLICY owner_read ON public.purchase_orders
-  FOR SELECT TO authenticated
-  USING (org_id = public.jwt_org_id() AND public.is_owner());
-
-CREATE POLICY owner_write ON public.purchase_orders
-  FOR ALL TO authenticated
-  USING (org_id = public.jwt_org_id() AND public.is_owner())
-  WITH CHECK (org_id = public.jwt_org_id() AND public.is_owner());
-
-CREATE POLICY staff_update ON public.tables
-  FOR UPDATE TO authenticated
-  USING (org_id = public.jwt_org_id() AND public.is_staff())
-  WITH CHECK (org_id = public.jwt_org_id() AND public.is_staff());
+CREATE OR REPLACE FUNCTION public.is_owner() RETURNS BOOLEAN
+LANGUAGE sql STABLE SET search_path = public AS $$
+  SELECT public.jwt_emp_role() IN ('owner', 'manager');
+$$;
 
 COMMIT;
 ```
 
-- [ ] **Step 2: รัน db:reset**
-
-```bash
-pnpm db:reset
-```
-
-Expected: ผ่าน (เทสต์ SQL ยังไม่ผ่านทั้งหมด — แก้ใน Task 7–8)
-
-- [ ] **Step 3: Commit**
-
-```bash
-git add supabase/migrations/20260906_m4_jwt_org_rls.sql
-git commit -m "feat(db): M4 4b jwt_org_id and tenant-scoped RLS"
-```
+- [ ] **Step 2: `pnpm db:reset` · Commit** `feat(db): M5 permission helper functions`
 
 ---
 

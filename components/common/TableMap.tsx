@@ -260,7 +260,7 @@ export const TableMap: React.FC = () => {
 
   if (selectedTableId !== null) {
     return (
-      <div className="flex flex-col md:flex-row h-screen bg-gray-100 dark:bg-neutral-950 font-sans text-slate-800 dark:text-neutral-100 overflow-hidden">
+      <div className="flex flex-col md:flex-row h-dvh bg-gray-100 dark:bg-neutral-950 font-sans text-slate-800 dark:text-neutral-100 overflow-hidden">
         <SidebarNav activeTab={activeTab} onSelectTab={handleTabChange} />
         <AppMainContent className="overflow-hidden" fillHeight>
           <POSOrderScreen
@@ -278,9 +278,9 @@ export const TableMap: React.FC = () => {
 
   if (checkoutTableId !== null) {
     return (
-      <div className="flex flex-col md:flex-row h-screen bg-gray-100 dark:bg-neutral-950 font-sans text-slate-800 dark:text-neutral-100 overflow-hidden">
+      <div className="flex flex-col md:flex-row h-dvh bg-gray-100 dark:bg-neutral-950 font-sans text-slate-800 dark:text-neutral-100 overflow-hidden">
         <SidebarNav activeTab={activeTab} onSelectTab={handleTabChange} />
-        <AppMainContent className="overflow-y-auto no-scrollbar" innerClassName="p-4 md:p-8">
+        <AppMainContent className="overflow-y-auto no-scrollbar" innerClassName="p-4 md:p-6 lg:p-8">
           <CheckoutScreen
             tableId={checkoutTableId}
             tableNumber={checkoutTableNumber ?? undefined}
@@ -304,10 +304,10 @@ export const TableMap: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-gray-100 dark:bg-neutral-950 font-sans text-slate-800 dark:text-neutral-100 overflow-hidden">
+    <div className="flex flex-col md:flex-row h-dvh bg-gray-100 dark:bg-neutral-950 font-sans text-slate-800 dark:text-neutral-100 overflow-hidden">
       <SidebarNav activeTab={activeTab} onSelectTab={handleTabChange} />
 
-      <AppMainContent className="overflow-y-auto no-scrollbar" innerClassName="p-4 md:p-8 pb-24 md:pb-8">
+      <AppMainContent className="overflow-y-auto no-scrollbar" innerClassName="p-4 md:p-6 lg:p-8 pb-24 md:pb-8">
         {/* floor + kitchen: eager (ใช้บ่อย) */}
         {canAccessTab(role, 'floor') && (
           <div className={activeTab === 'floor' ? 'block' : 'hidden'}>
@@ -336,7 +336,7 @@ export const TableMap: React.FC = () => {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
                 {tables.map(table => (
                   <TableCard
                     key={table.id}

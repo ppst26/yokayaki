@@ -485,7 +485,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
       </div>
 
       {/* Desktop Left Sidebar Navigation */}
-      <aside className="relative z-20 hidden md:flex w-72 shrink-0 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 p-5 flex-col justify-between shadow-sm sticky top-0 h-screen">
+      <aside className="relative z-20 hidden md:flex md:w-60 lg:w-72 shrink-0 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 p-5 flex-col justify-between shadow-sm sticky top-0 h-screen">
         <div>
           <div className="mb-8 pb-4 border-b border-zinc-100 dark:border-zinc-800">
             <SidebarBrand theme={theme} />

@@ -120,9 +120,9 @@ export const MemberDetailPanel: React.FC<MemberDetailPanelProps> = ({
 
   return (
     <Card className="overflow-hidden">
-      <div className="flex flex-col lg:flex-row lg:items-start">
+      <div className="flex flex-col md:flex-row md:items-start">
         {/* Sidebar — ข้อมูลลูกค้า */}
-        <aside className="lg:w-[40%] shrink-0 border-b lg:border-b-0 lg:border-r border-slate-200/60 dark:border-neutral-800/80 p-6 lg:p-7 flex flex-col">
+        <aside className="md:w-[45%] lg:w-[40%] xl:w-[35%] shrink-0 border-b md:border-b-0 md:border-r border-slate-200/60 dark:border-neutral-800/80 p-6 md:p-6 lg:p-7 flex flex-col">
           <p className="text-xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500 mb-5">
             ข้อมูลลูกค้า
           </p>
@@ -263,7 +263,7 @@ export const MemberDetailPanel: React.FC<MemberDetailPanelProps> = ({
         </aside>
 
         {/* Main — ภาพรวม + RFM + ประวัติ */}
-        <div className="lg:w-[60%] flex-1 min-w-0">
+        <div className="md:w-[55%] lg:w-[60%] xl:w-[65%] flex-1 min-w-0">
           {/* ภาพรวม */}
           <section className="border-b border-slate-200/60 dark:border-neutral-800/80 px-6 py-4">
             <p className="text-xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500 mb-4">

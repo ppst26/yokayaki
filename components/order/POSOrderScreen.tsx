@@ -371,7 +371,7 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, tableNu
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col overflow-hidden font-sans text-slate-800 dark:text-neutral-100 lg:flex-row">
       {/* LEFT AREA: Menu Grid & Category Tabs */}
-      <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar p-4 md:p-6 pb-[calc(4rem+3.5rem)] lg:pb-6">
+      <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar p-4 md:p-5 lg:p-6 pb-[calc(4rem+3.5rem)] lg:pb-6">
         {/* Header */}
         <header className="flex items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
