@@ -50,7 +50,7 @@ export const MenuGrid: React.FC<MenuGridProps> = ({
           <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : filteredMenuItems.length === 0 ? (
-        <div className="text-center py-16 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-3xl p-8">
+        <div className="text-center py-16 app-card app-card--compact p-8">
           <UtensilsCrossed className="w-12 h-12 text-slate-300 dark:text-neutral-600 mx-auto mb-3" />
           <p className="text-body font-bold text-slate-500 dark:text-neutral-400">
             ไม่พบรายการอาหารในหมวดหมู่นี้
@@ -71,10 +71,10 @@ export const MenuGrid: React.FC<MenuGridProps> = ({
                 key={item.id}
                 disabled={isOutOfStock}
                 onClick={() => addToCart(item)}
-                className={`group relative rounded-2xl overflow-hidden flex flex-col text-left transition duration-200 ${
+                className={`group relative overflow-hidden flex flex-col text-left transition duration-200 rounded-2xl ${
                   isOutOfStock
                     ? 'cursor-not-allowed bg-rose-50/80 dark:bg-rose-950/30 border-2 border-rose-200 dark:border-rose-900/60 shadow-none'
-                    : 'cursor-pointer bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs hover:border-slate-300 hover:shadow-md active:scale-[0.98]'
+                    : 'app-card app-card--compact cursor-pointer hover:shadow-md active:scale-[0.98]'
                 }`}
               >
                 {/* รูป 1:1 — เห็นสินค้าชัด · badge ทับมุมรูป */}
@@ -129,7 +129,7 @@ export const MenuGrid: React.FC<MenuGridProps> = ({
                     </h3>
                   </div>
 
-                  <div className="flex items-end justify-between gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
+                  <div className="flex items-end justify-between gap-2 pt-2.5 mt-1 border-t border-white/6 dark:border-white/6">
                     <div className="flex flex-col items-start gap-0.5 min-w-0">
                       {onHappyHour && (
                         <span className="text-micro text-amber-600 dark:text-amber-400 font-bold">
@@ -156,7 +156,7 @@ export const MenuGrid: React.FC<MenuGridProps> = ({
                         หมด
                       </span>
                     ) : (
-                      <div className="w-8 h-8 rounded-sm bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 group-hover:bg-red-600 group-hover:text-white flex items-center justify-center transition shrink-0">
+                      <div className="btn-crimson w-8 h-8 rounded-lg flex items-center justify-center shrink-0">
                         <Plus className="w-4 h-4" />
                       </div>
                     )}

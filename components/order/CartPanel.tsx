@@ -87,10 +87,12 @@ export const CartPanel: React.FC<CartPanelProps> = ({
   };
 
   const getContainerStyle = () => {
+    const base =
+      'app-card flex flex-col overflow-hidden transition-all duration-300 ease-out';
     if (isFullScreen) {
-      return 'fixed inset-0 z-50 w-full h-full max-h-screen rounded-none bg-white dark:bg-neutral-900 shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ease-out';
+      return `fixed inset-0 z-50 w-full h-full max-h-screen !rounded-none ${base}`;
     }
-    return 'fixed bottom-0 left-0 right-0 z-40 flex flex-col overflow-hidden rounded-t-3xl border-t border-slate-200/90 bg-white shadow-2xl transition-all duration-300 dark:border-neutral-800 dark:bg-neutral-900 lg:static lg:h-auto lg:min-h-0 lg:w-[380px] lg:shrink-0 lg:self-stretch lg:rounded-none lg:border-t-0 lg:border-l lg:shadow-none';
+    return `fixed bottom-0 left-0 right-0 z-40 rounded-t-3xl ${base} lg:static lg:h-auto lg:min-h-0 lg:w-[380px] lg:shrink-0 lg:self-stretch lg:!rounded-none lg:!border-t-0 lg:!border-r-0 lg:!border-b-0 lg:!shadow-none`;
   };
 
   return (
@@ -101,7 +103,7 @@ export const CartPanel: React.FC<CartPanelProps> = ({
           if (isFullScreen) return;
           setMobileCartExpanded(prev => !prev);
         }}
-        className="lg:hidden flex items-center justify-between px-4 sm:px-5 py-3.5 bg-slate-50 dark:bg-neutral-800/80 border-b border-slate-200/80 dark:border-neutral-800 cursor-pointer select-none shrink-0"
+        className="lg:hidden flex items-center justify-between px-4 sm:px-5 py-3.5 border-b border-white/8 dark:border-white/8 cursor-pointer select-none shrink-0"
       >
         <div className="flex items-center gap-2">
           <ShoppingBag className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0" />
@@ -159,17 +161,17 @@ export const CartPanel: React.FC<CartPanelProps> = ({
         } min-h-0 flex-1 flex-col ${mobileCartExpanded && !isFullScreen ? 'max-h-[65vh]' : ''}`}
       >
         <div className="shrink-0 px-4 pt-4 sm:px-5 sm:pt-5">
-          <h2 className="flex items-center justify-between text-xs font-black uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+          <h2 className="text-cart-section flex items-center justify-between">
             <span>ตะกร้าสินค้าใหม่</span>
-            <span className="font-bold text-slate-500">{totalCartItemsCount} รายการ</span>
+            <span className="font-bold text-slate-500 dark:text-neutral-400">{totalCartItemsCount} รายการ</span>
           </h2>
         </div>
 
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto no-scrollbar px-4 py-3 sm:px-5">
           {cart.length === 0 ? (
-            <div className="rounded-2xl border-2 border-dashed border-slate-200 p-4 py-6 text-center dark:border-neutral-800">
+            <div className="app-card app-card--compact border-2 border-dashed border-white/10 dark:border-white/10 p-4 py-6 text-center">
               <ShoppingBag className="mx-auto mb-2 h-8 w-8 text-slate-300 dark:text-neutral-600" />
-              <p className="text-xs font-bold text-slate-400 dark:text-neutral-500">
+              <p className="text-cart-empty">
                 ยังไม่มีสินค้าในตะกร้า
               </p>
             </div>
@@ -178,53 +180,53 @@ export const CartPanel: React.FC<CartPanelProps> = ({
               {cart.map((item, index) => (
                 <div
                   key={index}
-                  className="space-y-2 rounded-xl border border-slate-200/80 bg-slate-50 p-3 dark:border-neutral-700/60 dark:bg-neutral-800/80"
+                  className="app-card app-card--compact space-y-2 p-3"
                 >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="text-xs font-extrabold text-slate-900 dark:text-neutral-100">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-cart-item-name">
                         {item.name}
                       </h4>
-                      <p className="text-[11px] font-bold text-red-600 dark:text-red-400">
+                      <p className="text-cart-item-price mt-2">
                         {(item.price * item.quantity).toLocaleString()} ฿
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white p-0.5 dark:border-neutral-700 dark:bg-neutral-900">
+                    <div className="flex shrink-0 flex-col items-end gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 rounded-lg border border-white/10 bg-black/20 p-0.5 dark:border-white/10 dark:bg-black/30">
+                          <button
+                            onClick={() => updateCartQty(index, -1)}
+                            className="cursor-pointer rounded p-1 text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                          >
+                            <Minus className="h-3.5 w-3.5" />
+                          </button>
+                          <span className="px-1.5 text-cart-item-qty">
+                            {item.quantity}
+                          </span>
+                          <button
+                            onClick={() => updateCartQty(index, 1)}
+                            className="cursor-pointer rounded p-1 text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+
                         <button
-                          onClick={() => updateCartQty(index, -1)}
-                          className="cursor-pointer rounded p-1 text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                          onClick={() => removeFromCart(index)}
+                          className="cursor-pointer p-1.5 text-slate-400 transition hover:text-rose-600"
                         >
-                          <Minus className="h-3 w-3" />
-                        </button>
-                        <span className="px-1 text-xs font-extrabold text-slate-900 dark:text-neutral-100">
-                          {item.quantity}
-                        </span>
-                        <button
-                          onClick={() => updateCartQty(index, 1)}
-                          className="cursor-pointer rounded p-1 text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
-                        >
-                          <Plus className="h-3 w-3" />
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
 
                       <button
-                        onClick={() => removeFromCart(index)}
-                        className="cursor-pointer p-1.5 text-slate-400 transition hover:text-rose-600"
+                        onClick={() => openNoteModal(index)}
+                        className="text-cart-item-note flex cursor-pointer items-center justify-end gap-1 text-right hover:underline"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <span>📝 {item.notes || '+ เพิ่มโน้ตพิเศษ'}</span>
                       </button>
                     </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-[11px]">
-                    <button
-                      onClick={() => openNoteModal(index)}
-                      className="flex cursor-pointer items-center gap-1 font-semibold text-amber-700 hover:underline dark:text-amber-400"
-                    >
-                      <span>📝 {item.notes || '+ เพิ่มโน้ตพิเศษ'}</span>
-                    </button>
                   </div>
                 </div>
               ))}
@@ -232,10 +234,10 @@ export const CartPanel: React.FC<CartPanelProps> = ({
           )}
 
           {activeOrderItems.length > 0 && (
-            <div className="border-t border-slate-100 pt-4 dark:border-neutral-800">
-              <h2 className="mb-3 flex items-center justify-between text-xs font-black uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+            <div className="border-t border-white/8 pt-4 dark:border-white/8">
+              <h2 className="text-cart-section mb-3 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
-                  <ClipboardList className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <ClipboardList className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                   รายการที่ส่งครัวแล้ว
                 </span>
                 <span className="font-bold text-emerald-600 dark:text-emerald-400">
@@ -247,14 +249,14 @@ export const CartPanel: React.FC<CartPanelProps> = ({
                 {activeOrderItems.map(item => (
                   <div
                     key={item.id}
-                    className="space-y-1 rounded-xl border border-slate-200/80 bg-slate-50 p-3 text-xs dark:border-neutral-700/50 dark:bg-neutral-800/50"
+                    className="app-card app-card--compact space-y-1 p-3"
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <span className="font-extrabold text-slate-900 dark:text-neutral-100">
+                        <span className="text-cart-item-name">
                           {item.menu_items?.name}
                         </span>
-                        <span className="ml-2 font-bold text-slate-500 dark:text-neutral-400">
+                        <span className="ml-2 text-cart-item-meta">
                           x{item.quantity}
                         </span>
                       </div>
@@ -283,7 +285,7 @@ export const CartPanel: React.FC<CartPanelProps> = ({
                       </div>
                     </div>
                     {item.notes && (
-                      <p className="text-[11px] font-semibold text-amber-700 dark:text-amber-400">
+                      <p className="text-cart-item-note">
                         โน้ต: {item.notes}
                       </p>
                     )}
@@ -295,11 +297,11 @@ export const CartPanel: React.FC<CartPanelProps> = ({
         </div>
       </div>
 
-      <div className="mt-auto shrink-0 border-t border-slate-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="mt-auto shrink-0 border-t border-white/8 p-4 dark:border-white/8">
         <button
           onClick={submitOrder}
           disabled={isSubmitting || cart.length === 0}
-          className="w-full py-3.5 btn-crimson disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md shadow-red-600/20 transition active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-3.5 btn-crimson disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-sm sm:text-base rounded-xl shadow-md shadow-red-600/20 transition active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
         >
           {isSubmitting ? (
             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
