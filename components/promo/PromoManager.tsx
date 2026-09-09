@@ -347,7 +347,7 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
   };
 
   return (
-    <div className="w-full text-slate-800 dark:text-neutral-100 font-sans space-y-6">
+    <div className="w-full text-slate-800 dark:text-neutral-100 font-sans space-y-[var(--space-section)]">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="w-[50%]">
           <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-neutral-100 tracking-tight flex items-center gap-2">
@@ -394,7 +394,13 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div
+          className="grid"
+          style={{
+            gridTemplateColumns: 'repeat(var(--grid-cols-cards), 1fr)',
+            gap: 'var(--grid-gap)',
+          }}
+        >
           {promotions.map(p => {
             const targetMenu = menuItems.find(m => m.id === p.menu_item_id);
 
