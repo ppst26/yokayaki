@@ -1,6 +1,7 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Tag, Gift, User, Banknote, Smartphone } from 'lucide-react';
 
 interface PaymentPromo {
@@ -65,24 +66,53 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
   formatTime,
   auditMode = false,
 }) => {
-  if (!selectedOrder) return null;
+  const [mounted, setMounted] = useState(false);
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 app-dialog-backdrop">
-      <div className="app-dialog w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Modal Header */}
-        <div className="px-6 py-4 bg-neutral-800 text-white flex items-center justify-between">
-          <div className="space-y-0.5">
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Lock body scroll and handle ESC key when modal is open
+  useEffect(() => {
+    if (!selectedOrder) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSelectedOrder(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedOrder, setSelectedOrder]);
+
+  if (!mounted || !selectedOrder) return null;
+
+  return createPortal(
+    <div
+      onClick={() => setSelectedOrder(null)}
+      className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 md:p-6 app-dialog-backdrop animate-backdrop-in"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="app-dialog w-full max-w-lg overflow-hidden flex flex-col h-[82dvh] sm:h-[640px] max-h-[85dvh] sm:max-h-[85vh] my-auto shadow-2xl rounded-2xl border border-zinc-200/20 dark:border-zinc-700/40"
+      >
+        {/* Modal Header (Fixed at top of card) */}
+        <div className="px-5 py-3.5 sm:px-6 sm:py-4 bg-neutral-800 text-white flex items-center justify-between shrink-0 border-b border-neutral-700/50">
+          <div className="space-y-0.5 min-w-0 pr-3">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-lg md:text-xl font-black text-white">
+              <h3 className="text-base sm:text-lg md:text-xl font-black text-white">
                 รายละเอียดบิล ORD-{selectedOrder.id}
               </h3>
               {selectedOrder.payment?.member_name ? (
-                <span className="text-sm font-black text-emerald-400">
+                <span className="text-xs sm:text-sm font-black text-emerald-400">
                   ({selectedOrder.payment.member_name})
                 </span>
               ) : selectedOrder.payment?.phone_number ? (
-                <span className="text-sm font-black text-emerald-400">
+                <span className="text-xs sm:text-sm font-black text-emerald-400">
                   ({selectedOrder.payment.phone_number})
                 </span>
               ) : null}
@@ -94,15 +124,17 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
             </p>
           </div>
           <button
+            type="button"
             onClick={() => setSelectedOrder(null)}
             className="p-2 text-neutral-300 hover:text-white rounded-full cursor-pointer transition active:scale-95 shrink-0"
+            aria-label="ปิดหน้ารายละเอียดบิล"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Modal Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-5">
+        {/* Modal Content (Scrollable) */}
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 space-y-5 overscroll-contain">
           {detailLoading ? (
             <div className="flex justify-center py-12">
               <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
@@ -356,6 +388,7 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

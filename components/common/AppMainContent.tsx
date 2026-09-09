@@ -22,8 +22,11 @@ export function AppMainContent({
         fillHeight ? 'flex min-h-0 flex-col' : ''
       } ${className}`}
     >
+      {/* Fixed background layer — does not scroll with content across all screens */}
+      <div className="app-main__bg pointer-events-none fixed inset-0 z-0" aria-hidden="true" />
+
       <div
-        className={`app-main__canvas ${
+        className={`app-main__canvas relative z-10 ${
           fillHeight ? 'flex min-h-0 flex-1 flex-col' : 'min-h-full'
         }`}
       >

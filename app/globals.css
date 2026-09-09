@@ -341,25 +341,29 @@ body {
 /* ── App shell main content background ── */
 .app-main {
   isolation: isolate;
+  background: transparent;
 }
 
-.app-main__canvas {
-  position: relative;
+.app-main__bg {
+  position: fixed;
+  inset: 0;
   z-index: 0;
+  pointer-events: none;
   --app-bg-image: url('/branding/app-bg-light.webp');
   background-color: #f8fafc;
   background-image: var(--app-bg-image);
   background-size: cover;
   background-position: 50% 100%;
   background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
-.dark .app-main__canvas {
+.dark .app-main__bg {
   --app-bg-image: url('/branding/app-bg.webp');
   background-color: #0a0a09;
 }
 
-.dark .app-main__canvas::before {
+.dark .app-main__bg::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -371,6 +375,12 @@ body {
     rgba(10, 10, 9, 0.52) 42%,
     rgba(10, 10, 9, 0.12) 100%
   );
+}
+
+.app-main__canvas {
+  position: relative;
+  z-index: 1;
+  background: transparent;
 }
 
 @utility badge-pill {

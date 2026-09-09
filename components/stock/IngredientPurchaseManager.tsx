@@ -4,8 +4,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import {
-  Plus, X, ChevronDown, ChevronUp, ShoppingCart, Boxes,
-  Calendar, User, Trash2, PackagePlus, Receipt, Search, Filter, RefreshCw, Pencil
+  Plus, X, ChevronDown, ChevronUp, Boxes,
+  Calendar, User, Trash2, PackagePlus, Receipt, Search, Filter, Pencil
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -63,16 +63,20 @@ const DEFAULT_INGREDIENTS = [
   'ปลาซาบะ',
   'เบียร์สด',
   'เส้นโซบะ',
-  'กุ้งสด',
-  'เนื้อวัวสไลด์',
   'หมูสามชั้น',
-  'ไก่สะโพก',
-  'ข้าวสารญี่ปุ่น',
-  'ซอสโชยุ',
-  'สาเก',
-  'มิริน',
-  'ผักกาดหอม',
+  'ไก่คาราเกะ',
+  'กุ้งสด',
+  'ปลาหมึก',
   'ไข่ไก่',
+  'ซอสยากิโทริ',
+  'ซอสเทอริยากิ',
+  'น้ำมันงา',
+  'น้ำตาลทราย',
+  'แป้งทอดกรอบ',
+  'หอมหัวใหญ่',
+  'กระเทียมสด',
+  'ขิงสด',
+  'ต้นหอมญี่ปุ่น',
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -464,7 +468,7 @@ export const IngredientPurchaseManager: React.FC = () => {
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
-    return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
+    return d.toLocaleDateString('th-TH', { year: '2-digit', month: 'short', day: 'numeric' });
   };
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -526,16 +530,6 @@ export const IngredientPurchaseManager: React.FC = () => {
             searchable={false}
           />
         </div>
-
-        {/* Refresh */}
-        <button
-          type="button"
-          onClick={fetchOrders}
-          title="รีเฟรช"
-          className="h-10 w-10 shrink-0 flex items-center justify-center bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200 dark:hover:bg-zinc-700/80 text-zinc-600 dark:text-zinc-300 rounded-xl border border-transparent dark:border-zinc-700/40 transition active:scale-95 cursor-pointer"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-        </button>
       </div>
 
       {/* Custom Date Pickers */}
@@ -557,18 +551,12 @@ export const IngredientPurchaseManager: React.FC = () => {
         </div>
       )}
 
-      {/* 3. Section Title, Count Badge & Total Cost in One Line */}
+      {/* 3. Count Badge & Total Cost */}
       <div className="flex items-center justify-between gap-4 pt-1">
-        {/* Left: ShoppingCart + Title + Count Badge */}
-        <div className="flex items-center gap-2 sm:gap-2.5">
-          <ShoppingCart className="w-5 h-5 text-red-500 shrink-0" />
-          <h2 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100">
-            ประวัติการสั่งซื้อวัตถุดิบ
-          </h2>
-          <span className="bg-zinc-200/80 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs px-2.5 py-0.5 rounded-full font-semibold">
-            {filteredOrders.length} รายการ
-          </span>
-        </div>
+        {/* Left: Count Badge */}
+        <span className="bg-zinc-200/80 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs px-2.5 py-0.5 rounded-full font-semibold">
+          {filteredOrders.length} รายการ
+        </span>
 
         {/* Right: Total Cost */}
         <div className="flex items-baseline gap-2 text-sm">
@@ -598,95 +586,128 @@ export const IngredientPurchaseManager: React.FC = () => {
               key={order.id}
               className="rounded-2xl border border-zinc-200/60 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/80 overflow-hidden shadow-sm transition-all"
             >
-              {/* Card Header (Grid + Labels + Action Buttons) */}
+              {/* Card Header (Click to toggle expand) */}
               <div
                 onClick={() => toggleExpand(order.id)}
-                className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition select-none"
+                className="p-4 sm:p-5 cursor-pointer hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition select-none"
               >
-                {/* Data Grid with 4 columns */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-0 md:divide-x divide-zinc-200/80 dark:divide-zinc-800/80 flex-1 min-w-0">
-                  {/* Col 1: PO# */}
-                  <div className="md:pr-5">
-                    <span className="block text-[11px] font-medium text-zinc-400 dark:text-zinc-500 mb-1">
-                      เลขที่ PO
-                    </span>
-                    <span className="text-sm sm:text-base font-black text-zinc-900 dark:text-zinc-100 tracking-wide">
+                {/* 1. Tablet & Mobile Layout (< lg) — Matches user mockup */}
+                <div className="lg:hidden flex flex-col gap-2 w-full">
+                  {/* Top Row: PO# + Total Price */}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-base sm:text-lg font-black text-zinc-900 dark:text-zinc-100 tracking-wide">
                       PO-{String(order.id).padStart(4, '0')}
                     </span>
-                  </div>
 
-                  {/* Col 2: Date */}
-                  <div className="md:px-5">
-                    <span className="block text-[11px] font-medium text-zinc-400 dark:text-zinc-500 mb-1">
-                      วันที่สั่งซื้อ
-                    </span>
-                    <div className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-zinc-700 dark:text-zinc-200">
-                      <Calendar className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />
-                      <span className="truncate">{formatDate(order.purchase_date)}</span>
-                    </div>
-                  </div>
-
-                  {/* Col 3: Buyer */}
-                  <div className="md:px-5">
-                    <span className="block text-[11px] font-medium text-zinc-400 dark:text-zinc-500 mb-1">
-                      ผู้สั่งซื้อ
-                    </span>
-                    <div className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-zinc-800 dark:text-zinc-200">
-                      <User className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />
-                      <span className="truncate">{order.buyer_name}</span>
-                    </div>
-                  </div>
-
-                  {/* Col 4: Total */}
-                  <div className="md:px-5">
-                    <span className="block text-[11px] font-medium text-zinc-400 dark:text-zinc-500 mb-1">
-                      ยอดรวม
-                    </span>
-                    <span className="text-sm sm:text-base font-black text-red-500 dark:text-red-400 whitespace-nowrap">
+                    <span className="text-base sm:text-lg font-black text-red-500 whitespace-nowrap">
                       {order.total_cost.toLocaleString()} ฿
                     </span>
                   </div>
+
+                  {/* Bottom Row: Date & Expand / Collapse Toggle */}
+                  <div className="flex items-center justify-between gap-2 pt-0.5">
+                    <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 font-medium">
+                      <Calendar className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />
+                      <span>{formatDate(order.purchase_date)}</span>
+                    </div>
+
+                    <div className="flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-200 font-medium transition cursor-pointer">
+                      <span>{expandedId === order.id ? 'ย่อรายละเอียด' : 'รายละเอียด'}</span>
+                      {expandedId === order.id ? (
+                        <ChevronUp className="w-4 h-4 text-zinc-400" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-zinc-400" />
+                      )}
+                    </div>
+                  </div>
                 </div>
 
-                {/* Action Buttons: Edit, Delete, Chevron */}
-                <div className="flex items-center gap-1 shrink-0 self-end sm:self-center">
-                  <button
-                    type="button"
-                    title="แก้ไขรายการสั่งซื้อ"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditOrder(order);
-                    }}
-                    className="p-1.5 text-zinc-400 hover:text-amber-500 dark:hover:text-amber-400 transition cursor-pointer active:scale-95"
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    title="ลบรายการสั่งซื้อ"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDeletingOrder(order);
-                    }}
-                    className="p-1.5 text-zinc-400 hover:text-rose-500 dark:hover:text-rose-400 transition cursor-pointer active:scale-95"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    title={expandedId === order.id ? "ยุบรายละเอียด" : "ขยายรายละเอียด"}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleExpand(order.id);
-                    }}
-                    className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer active:scale-95"
-                  >
-                    {expandedId === order.id ? (
-                      <ChevronUp className="w-4 h-4" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4" />
-                    )}
-                  </button>
+                {/* 2. Desktop Layout (>= lg) */}
+                <div className="hidden lg:flex items-center justify-between gap-4 w-full">
+                  <div className="grid grid-cols-4 divide-x divide-zinc-200/80 dark:divide-zinc-800/80 flex-1 min-w-0">
+                    {/* Col 1: PO# */}
+                    <div className="pr-5">
+                      <span className="block text-[11px] font-medium text-zinc-400 dark:text-zinc-500 mb-1">
+                        เลขที่ PO
+                      </span>
+                      <span className="text-base font-black text-zinc-900 dark:text-zinc-100 tracking-wide">
+                        PO-{String(order.id).padStart(4, '0')}
+                      </span>
+                    </div>
+
+                    {/* Col 2: Date */}
+                    <div className="px-5">
+                      <span className="block text-[11px] font-medium text-zinc-400 dark:text-zinc-500 mb-1">
+                        วันที่สั่งซื้อ
+                      </span>
+                      <div className="flex items-center gap-1.5 text-sm font-semibold text-zinc-700 dark:text-zinc-200">
+                        <Calendar className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />
+                        <span className="truncate">{formatDate(order.purchase_date)}</span>
+                      </div>
+                    </div>
+
+                    {/* Col 3: Buyer */}
+                    <div className="px-5">
+                      <span className="block text-[11px] font-medium text-zinc-400 dark:text-zinc-500 mb-1">
+                        ผู้สั่งซื้อ
+                      </span>
+                      <div className="flex items-center gap-1.5 text-sm font-bold text-zinc-800 dark:text-zinc-200">
+                        <User className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />
+                        <span className="truncate">{order.buyer_name}</span>
+                      </div>
+                    </div>
+
+                    {/* Col 4: Total */}
+                    <div className="px-5">
+                      <span className="block text-[11px] font-medium text-zinc-400 dark:text-zinc-500 mb-1">
+                        ยอดรวม
+                      </span>
+                      <span className="text-base font-black text-red-500 dark:text-red-400 whitespace-nowrap">
+                        {order.total_cost.toLocaleString()} ฿
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons: Edit, Delete, Chevron */}
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      type="button"
+                      title="แก้ไขรายการสั่งซื้อ"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditOrder(order);
+                      }}
+                      className="p-1.5 text-zinc-400 hover:text-amber-500 dark:hover:text-amber-400 transition cursor-pointer active:scale-95"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      title="ลบรายการสั่งซื้อ"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeletingOrder(order);
+                      }}
+                      className="p-1.5 text-zinc-400 hover:text-rose-500 dark:hover:text-rose-400 transition cursor-pointer active:scale-95"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      title={expandedId === order.id ? "ยุบรายละเอียด" : "ขยายรายละเอียด"}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleExpand(order.id);
+                      }}
+                      className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer active:scale-95"
+                    >
+                      {expandedId === order.id ? (
+                        <ChevronUp className="w-4 h-4" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -699,14 +720,49 @@ export const IngredientPurchaseManager: React.FC = () => {
                     </div>
                   ) : (
                     <>
-                      {/* Ingredient Section Title & Badge */}
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                          รายการวัตถุดิบ
-                        </h3>
-                        <span className="bg-zinc-200/80 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs px-2.5 py-0.5 rounded-full font-semibold">
-                          {(expandedItems[order.id] || []).length} รายการ
-                        </span>
+                      {/* Buyer Info & Action Buttons (Edit / Delete) */}
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200/50 dark:border-zinc-700/50 flex items-center justify-center text-zinc-400 shrink-0">
+                            <User className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <span className="block text-[11px] font-medium text-zinc-400 dark:text-zinc-500 leading-none mb-1">
+                              ผู้สั่งซื้อ
+                            </span>
+                            <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                              {order.buyer_name}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons: Edit & Delete (visible on mobile/tablet) */}
+                        <div className="flex items-center gap-1.5 shrink-0 lg:hidden">
+                          <button
+                            type="button"
+                            title="แก้ไขรายการสั่งซื้อ"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditOrder(order);
+                            }}
+                            className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800/90 hover:bg-zinc-200 dark:hover:bg-zinc-700/80 border border-zinc-200/60 dark:border-zinc-700/60 flex items-center justify-center text-zinc-400 hover:text-amber-500 dark:hover:text-amber-400 transition cursor-pointer active:scale-95"
+                            aria-label="แก้ไขรายการสั่งซื้อ"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            title="ลบรายการสั่งซื้อ"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeletingOrder(order);
+                            }}
+                            className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800/90 hover:bg-zinc-200 dark:hover:bg-zinc-700/80 border border-zinc-200/60 dark:border-zinc-700/60 flex items-center justify-center text-zinc-400 hover:text-rose-500 dark:hover:text-rose-400 transition cursor-pointer active:scale-95"
+                            aria-label="ลบรายการสั่งซื้อ"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
 
                       {order.note && (
@@ -715,50 +771,62 @@ export const IngredientPurchaseManager: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Table of Ingredients */}
+                      {/* Ingredient Section Title */}
+                      <div className="flex items-center gap-2 pt-1">
+                        <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                          รายการวัตถุดิบ
+                        </h3>
+                      </div>
+
+                      {/* Table of Ingredients (Matches Image 2: วัตถุดิบ | จำนวน | ราคา/หน่วย | รวม) */}
                       <div className="overflow-x-auto">
                         <table className="w-full text-xs sm:text-sm">
                           <thead>
-                            <tr className="text-zinc-400 dark:text-zinc-500 text-xs font-semibold border-b border-zinc-100 dark:border-zinc-800/60">
-                              <th className="text-left py-2 font-semibold">ชื่อวัตถุดิบ</th>
-                              <th className="text-center py-2 font-semibold w-24">จำนวน</th>
-                              <th className="text-center py-2 font-semibold w-24">หน่วย</th>
-                              <th className="text-right py-2 font-semibold w-28">ราคารวม</th>
+                            <tr className="text-zinc-400 dark:text-zinc-500 text-xs font-semibold border-b border-zinc-200/60 dark:border-zinc-800/60">
+                              <th className="text-left py-2 font-medium">วัตถุดิบ</th>
+                              <th className="text-center py-2 font-medium">จำนวน</th>
+                              <th className="text-right py-2 font-medium">ราคา/หน่วย</th>
+                              <th className="text-right py-2 font-medium">รวม</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/40">
-                            {(expandedItems[order.id] || []).map(item => (
-                              <tr key={item.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition">
-                                <td className="py-3 font-bold text-zinc-900 dark:text-zinc-100">
-                                  {item.name}
-                                </td>
-                                <td className="py-3 text-center text-zinc-700 dark:text-zinc-300">
-                                  {item.quantity}
-                                </td>
-                                <td className="py-3 text-center text-zinc-500 dark:text-zinc-400">
-                                  {item.unit}
-                                </td>
-                                <td className="py-3 text-right font-bold text-red-500 dark:text-red-400">
-                                  {item.cost.toLocaleString()} ฿
-                                </td>
-                              </tr>
-                            ))}
+                            {(expandedItems[order.id] || []).map(item => {
+                              const unitPrice = item.price_per_unit != null
+                                ? item.price_per_unit
+                                : (item.quantity > 0 ? Math.round(item.cost / item.quantity) : item.cost);
+                              return (
+                                <tr key={item.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition">
+                                  <td className="py-2.5 font-bold text-zinc-900 dark:text-zinc-100">
+                                    {item.name}
+                                  </td>
+                                  <td className="py-2.5 text-center text-zinc-700 dark:text-zinc-300">
+                                    {item.quantity} {item.unit}
+                                  </td>
+                                  <td className="py-2.5 text-right text-zinc-600 dark:text-zinc-300">
+                                    {unitPrice.toLocaleString()} ฿
+                                  </td>
+                                  <td className="py-2.5 text-right font-bold text-zinc-900 dark:text-zinc-100">
+                                    {item.cost.toLocaleString()} ฿
+                                  </td>
+                                </tr>
+                              );
+                            })}
                           </tbody>
                         </table>
                       </div>
 
-                      {/* Footer: Total items & Net amount */}
-                      <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800/80 flex justify-between items-center text-xs sm:text-sm">
-                        <span className="text-zinc-500 dark:text-zinc-400 font-medium">
-                          รวมวัตถุดิบ {(expandedItems[order.id] || []).length} รายการ
+                      {/* Footer: Total items & Net amount (Matches Image 2) */}
+                      <div className="pt-3 border-t border-zinc-200/60 dark:border-zinc-800/80 flex items-center justify-between text-xs sm:text-sm">
+                        <span className="font-bold text-zinc-500 dark:text-zinc-400">
+                          รวม {(expandedItems[order.id] || []).length} รายการ
                         </span>
                         <div className="flex items-baseline gap-2">
-                          <span className="text-zinc-500 dark:text-zinc-400 font-medium">
+                          <span className="font-medium text-zinc-500 dark:text-zinc-400">
                             ยอดรวมสุทธิ
                           </span>
-                          <strong className="text-base sm:text-lg font-black text-red-500 dark:text-red-400">
+                          <span className="text-base sm:text-lg font-black text-red-500 dark:text-red-400">
                             {order.total_cost.toLocaleString()} ฿
-                          </strong>
+                          </span>
                         </div>
                       </div>
                     </>
