@@ -47,7 +47,15 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --breakpoint-tablet: 834px;
 }
+
+/* Custom Media Queries for iPad Responsive Design */
+@custom-media --mobile (width < 768px);
+@custom-media --tablet (768px <= width < 834px);
+@custom-media --tablet-xl (834px <= width < 1024px);
+@custom-media --tablet-all (768px <= width < 1024px);
+@custom-media --desktop (width >= 1024px);
 
 body {
   font-family: var(--font-noto-sans-thai), system-ui, sans-serif;
