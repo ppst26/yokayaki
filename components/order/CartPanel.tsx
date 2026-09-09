@@ -95,8 +95,12 @@ export const CartPanel: React.FC<CartPanelProps> = ({
       return `fixed inset-0 z-50 w-full h-full max-h-dvh !rounded-none ${base}`;
     }
     const mobileExpanded =
-      mobileCartExpanded ? 'z-50 max-h-[50dvh]' : 'z-40 max-h-none';
-    return `fixed bottom-16 left-0 right-0 w-full ${mobileExpanded} rounded-t-3xl ${base} md:static md:bottom-auto md:z-auto md:max-h-none md:h-auto md:min-h-0 md:w-full md:shrink-0 lg:w-[var(--pos-cart-width)] lg:shrink-0 lg:self-stretch md:!rounded-none md:!border-t-0 md:!border-r-0 md:!border-b-0 md:!shadow-none`;
+      mobileCartExpanded ? 'z-50 h-[40dvh] max-h-[40dvh]' : 'z-40 max-h-none';
+    // Tablet column layout: lock cart height ~40% viewport; list scrolls inside
+    const tabletHeight = showCartContent
+      ? 'md:h-[40dvh] md:max-h-[40dvh]'
+      : 'md:h-auto md:max-h-none';
+    return `fixed bottom-16 left-0 right-0 w-full ${mobileExpanded} rounded-t-3xl ${base} md:static md:bottom-auto md:z-auto md:min-h-0 ${tabletHeight} md:w-full md:shrink-0 lg:h-auto lg:max-h-none lg:w-[var(--pos-cart-width)] lg:shrink-0 lg:self-stretch md:!rounded-none md:!border-t-0 md:!border-r-0 md:!border-b-0 md:!shadow-none`;
   };
 
   return (
