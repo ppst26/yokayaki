@@ -57,6 +57,79 @@
 @custom-media --tablet-all (768px <= width < 1024px);
 @custom-media --desktop (width >= 1024px);
 
+@layer base {
+  /* ===================================
+     DESIGN TOKENS - iPad Responsive System
+     =================================== */
+
+  :root {
+    /* Layout Tokens - Mobile (< 768px) */
+    --sidebar-width: 0;
+    --sidebar-padding: 1.25rem;
+    --content-padding: 1rem;
+    --content-max-width: 100%;
+    --page-margin: 1rem;
+
+    /* Grid Tokens - Mobile */
+    --grid-cols-menu: 2;
+    --grid-cols-table: 2;
+    --grid-cols-cards: 1;
+    --grid-gap: 0.75rem;
+    --grid-gap-lg: 1rem;
+  }
+
+  /* Tablet (768-833px) - iPad standard, iPad Mini */
+  @media (--tablet) {
+    :root {
+      /* Layout */
+      --sidebar-width: 240px;
+      --content-padding: 1.5rem;
+      --content-max-width: calc(100vw - 240px);
+      --page-margin: 1.5rem;
+
+      /* Grid */
+      --grid-cols-menu: 2;        /* Keep 2 (sidebar takes space) */
+      --grid-cols-table: 3;       /* 3 table cards fit well */
+      --grid-cols-cards: 2;       /* 2-column stat cards */
+      --grid-gap: 1rem;
+      --grid-gap-lg: 1.25rem;
+    }
+  }
+
+  /* Tablet XL (834-1023px) - iPad Pro 11", iPad Air */
+  @media (--tablet-xl) {
+    :root {
+      /* Layout */
+      --sidebar-width: 256px;
+      --content-padding: 1.75rem;
+      --content-max-width: calc(100vw - 256px);
+
+      /* Grid */
+      --grid-cols-menu: 3;        /* 3 menu items per row */
+      --grid-cols-table: 3;       /* Keep 3 (good balance) */
+      --grid-cols-cards: 2;       /* Keep 2 (card width ideal) */
+      --grid-gap: 1.25rem;
+      --grid-gap-lg: 1.5rem;
+    }
+  }
+
+  /* Desktop (1024px+) - iPad Pro 12.9", Desktop monitors */
+  @media (--desktop) {
+    :root {
+      /* Layout */
+      --sidebar-width: 288px;
+      --content-padding: 2rem;
+      --content-max-width: calc(100vw - 288px);
+      --page-margin: 2rem;
+
+      /* Grid */
+      --grid-cols-menu: 4;        /* 4-column menu grid */
+      --grid-cols-table: 4;       /* 4 table cards */
+      --grid-cols-cards: 3;       /* 3-column stats */
+    }
+  }
+}
+
 body {
   font-family: var(--font-noto-sans-thai), system-ui, sans-serif;
   min-height: 100vh;
