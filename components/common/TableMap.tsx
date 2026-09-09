@@ -280,7 +280,7 @@ export const TableMap: React.FC = () => {
     return (
       <div className="flex flex-col md:flex-row h-dvh bg-gray-100 dark:bg-neutral-950 font-sans text-slate-800 dark:text-neutral-100 overflow-hidden">
         <SidebarNav activeTab={activeTab} onSelectTab={handleTabChange} />
-        <AppMainContent className="overflow-y-auto no-scrollbar" innerClassName="p-[var(--page-margin)]">
+        <AppMainContent className="overflow-hidden" fillHeight>
           <CheckoutScreen
             tableId={checkoutTableId}
             tableNumber={checkoutTableNumber ?? undefined}

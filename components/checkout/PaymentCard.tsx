@@ -15,6 +15,7 @@ interface PaymentCardProps {
   promptPayReady: boolean;
   processPayment: () => void;
   isProcessing: boolean;
+  isDocked?: boolean;
 }
 
 export const PaymentCard: React.FC<PaymentCardProps> = ({
@@ -29,9 +30,16 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({
   promptPayReady,
   processPayment,
   isProcessing,
+  isDocked = false,
 }) => {
   return (
-    <Card className="sticky bottom-16 md:bottom-3 lg:bottom-4 z-30 w-full rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md shadow-xl lg:shadow-xs p-3.5 sm:p-4 md:p-5 space-y-2.5 sm:space-y-3 transition-all">
+    <Card
+      className={
+        isDocked
+          ? "w-full rounded-t-2xl rounded-b-none border-t border-x-0 border-b-0 border-slate-200/90 dark:border-neutral-800 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md shadow-[0_-8px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_-8px_30px_rgba(0,0,0,0.5)] px-4 sm:px-6 py-3 space-y-2.5 transition-all"
+          : "w-full rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 sm:p-5 space-y-3 sm:space-y-4 shadow-xs"
+      }
+    >
       {/* Cash Input */}
       <div>
         <h3 className="text-xs md:text-sm font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-400 mb-2 flex items-center gap-2">

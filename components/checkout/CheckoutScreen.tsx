@@ -568,114 +568,139 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNu
   }
 
   return (
-    <div className="w-full text-slate-800 dark:text-neutral-100 font-sans pb-32 md:pb-16 lg:pb-8">
-      <div className="w-full">
-        {/* Header */}
-        <header className="flex items-center gap-4 mb-8">
-          <button
-            onClick={onBack}
-            className="p-2.5 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-xl hover:bg-slate-50 dark:hover:bg-neutral-800 transition active:scale-95 text-slate-700 dark:text-neutral-200 shadow-xs cursor-pointer"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div className="w-[50%]">
-            <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-neutral-100 tracking-tight flex items-center gap-2">
-              <Receipt className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />
-              <span>ชำระเงิน</span>
-            </h1>
-            <p className="text-xs text-slate-500 dark:text-neutral-400 font-semibold mt-0.5">
-              ประจำ <span className="text-red-600 dark:text-red-400 font-bold">โต๊ะ {tableNumber ?? tableId}</span> • ออเดอร์ #{orderId}
-            </p>
-          </div>
-        </header>
+    <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden font-sans text-slate-800 dark:text-neutral-100">
+      {/* Scrollable upper area (All devices) */}
+      <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar p-4 md:p-6 lg:p-8">
+        <div className="w-full max-w-7xl mx-auto space-y-6">
+          {/* Header */}
+          <header className="flex items-center gap-4">
+            <button
+              onClick={onBack}
+              className="p-2.5 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-xl hover:bg-slate-50 dark:hover:bg-neutral-800 transition active:scale-95 text-slate-700 dark:text-neutral-200 shadow-xs cursor-pointer"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div className="w-[50%]">
+              <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-neutral-100 tracking-tight flex items-center gap-2">
+                <Receipt className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />
+                <span>ชำระเงิน</span>
+              </h1>
+              <p className="text-xs text-slate-500 dark:text-neutral-400 font-semibold mt-0.5">
+                ประจำ <span className="text-red-600 dark:text-red-400 font-bold">โต๊ะ {tableNumber ?? tableId}</span> • ออเดอร์ #{orderId}
+              </p>
+            </div>
+          </header>
 
-        {(errorMsg || pendingItemsCount > 0 || doublePointsActive) && (
-          <div className="mb-6 space-y-2.5">
-            {errorMsg && (
-              <MinimalAlert
-                variant="error"
-                title={errorMsg}
-                onClose={() => setErrorMsg(null)}
-              />
-            )}
+          {(errorMsg || pendingItemsCount > 0 || doublePointsActive) && (
+            <div className="space-y-2.5">
+              {errorMsg && (
+                <MinimalAlert
+                  variant="error"
+                  title={errorMsg}
+                  onClose={() => setErrorMsg(null)}
+                />
+              )}
 
-            {pendingItemsCount > 0 && (
-              <MinimalAlert
-                variant="warning"
-                title={`ยังไม่สามารถชำระเงินได้: มีออเดอร์ในครัวที่ยังไม่ได้เสิร์ฟ (${pendingItemsCount} รายการ)`}
-                description="กรุณาให้พนักงานครัวกดเสิร์ฟอาหารในหน้าจอครัวให้ครบก่อนทำการเช็คบิล"
-              />
-            )}
+              {pendingItemsCount > 0 && (
+                <MinimalAlert
+                  variant="warning"
+                  title={`ยังไม่สามารถชำระเงินได้: มีออเดอร์ในครัวที่ยังไม่ได้เสิร์ฟ (${pendingItemsCount} รายการ)`}
+                  description="กรุณาให้พนักงานครัวกดเสิร์ฟอาหารในหน้าจอครัวให้ครบก่อนทำการเช็คบิล"
+                />
+              )}
 
-            {doublePointsActive && (
-              <MinimalAlert
-                variant="promotion"
-                title="วันแต้ม x2"
-                description="สมาชิกจะได้แต้มสะสม 2 เท่าจากบิลนี้"
-                badge="แต้ม x2"
-              />
-            )}
-          </div>
-        )}
+              {doublePointsActive && (
+                <MinimalAlert
+                  variant="promotion"
+                  title="วันแต้ม x2"
+                  description="สมาชิกจะได้แต้มสะสม 2 เท่าจากบิลนี้"
+                  badge="แต้ม x2"
+                />
+              )}
+            </div>
+          )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* LEFT: Order Summary */}
-          <OrderSummaryCard
-            activeItems={activeItems}
-            subtotal={subtotal}
-            appliedPromos={appliedPromos}
-            loyaltyDiscount={loyaltyDiscount}
-            netAmount={netAmount}
-            pointsEarned={pointsEarned}
-            member={member}
-            doublePointsActive={doublePointsActive}
-            cashNum={cashNum}
-            transferAmount={transferAmount}
-          />
-
-          {/* RIGHT: Payment Controls */}
-          <div className="space-y-5">
-            <CRMMemberCard
-              phoneInput={phoneInput}
-              setPhoneInput={setPhoneInput}
-              member={member}
-              isSearchingMember={isSearchingMember}
-              searchMember={searchMember}
-              pointsToRedeem={pointsToRedeem}
-              setPointsToRedeem={setPointsToRedeem}
-              showRegister={showRegister}
-              registerName={registerName}
-              setRegisterName={setRegisterName}
-              registerMember={registerMember}
-              amountAfterPromo={Math.max(0, subtotal - promoDiscount)}
-              onOpenAddMember={handleOpenAddMemberModal}
-            />
-
-            <CouponInputCard
-              couponApplied={couponApplied}
-              couponInput={couponInput}
-              setCouponInput={setCouponInput}
-              couponError={couponError}
-              setCouponError={setCouponError}
-              applyCoupon={applyCoupon}
-              removeCoupon={removeCoupon}
-            />
-
-            <PaymentCard
-              cashReceived={cashReceived}
-              setCashReceived={setCashReceived}
-              cashNum={cashNum}
-              changeAmount={changeAmount}
-              transferAmount={transferAmount}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* LEFT: Order Summary */}
+            <OrderSummaryCard
+              activeItems={activeItems}
+              subtotal={subtotal}
+              appliedPromos={appliedPromos}
+              loyaltyDiscount={loyaltyDiscount}
               netAmount={netAmount}
-              pendingItemsCount={pendingItemsCount}
-              setShowQrModal={setShowQrModal}
-              promptPayReady={promptPayReady}
-              processPayment={processPayment}
-              isProcessing={isProcessing}
+              pointsEarned={pointsEarned}
+              member={member}
+              doublePointsActive={doublePointsActive}
+              cashNum={cashNum}
+              transferAmount={transferAmount}
             />
+
+            {/* RIGHT: Payment Controls */}
+            <div className="space-y-5">
+              <CRMMemberCard
+                phoneInput={phoneInput}
+                setPhoneInput={setPhoneInput}
+                member={member}
+                isSearchingMember={isSearchingMember}
+                searchMember={searchMember}
+                pointsToRedeem={pointsToRedeem}
+                setPointsToRedeem={setPointsToRedeem}
+                showRegister={showRegister}
+                registerName={registerName}
+                setRegisterName={setRegisterName}
+                registerMember={registerMember}
+                amountAfterPromo={Math.max(0, subtotal - promoDiscount)}
+                onOpenAddMember={handleOpenAddMemberModal}
+              />
+
+              <CouponInputCard
+                couponApplied={couponApplied}
+                couponInput={couponInput}
+                setCouponInput={setCouponInput}
+                couponError={couponError}
+                setCouponError={setCouponError}
+                applyCoupon={applyCoupon}
+                removeCoupon={removeCoupon}
+              />
+
+              {/* Desktop PaymentCard: visible on lg+, hidden on mobile/tablet */}
+              <div className="hidden lg:block">
+                <PaymentCard
+                  cashReceived={cashReceived}
+                  setCashReceived={setCashReceived}
+                  cashNum={cashNum}
+                  changeAmount={changeAmount}
+                  transferAmount={transferAmount}
+                  netAmount={netAmount}
+                  pendingItemsCount={pendingItemsCount}
+                  setShowQrModal={setShowQrModal}
+                  promptPayReady={promptPayReady}
+                  processPayment={processPayment}
+                  isProcessing={isProcessing}
+                  isDocked={false}
+                />
+              </div>
+            </div>
           </div>
         </div>
+      </div>
+
+      {/* Docked bottom panel on Mobile & Tablet: visible on < lg, hidden on lg+ */}
+      <div className="lg:hidden shrink-0 w-full mb-16 md:mb-0 z-30">
+        <PaymentCard
+          cashReceived={cashReceived}
+          setCashReceived={setCashReceived}
+          cashNum={cashNum}
+          changeAmount={changeAmount}
+          transferAmount={transferAmount}
+          netAmount={netAmount}
+          pendingItemsCount={pendingItemsCount}
+          setShowQrModal={setShowQrModal}
+          promptPayReady={promptPayReady}
+          processPayment={processPayment}
+          isProcessing={isProcessing}
+          isDocked={true}
+        />
       </div>
 
       {/* Quick Add Member Modal */}
