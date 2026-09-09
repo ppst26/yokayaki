@@ -514,16 +514,16 @@ export default function CustomerOrderPortal() {
                   </button>
                 </div>
 
-                <div className="flex gap-3.5 overflow-x-auto pb-2 scrollbar-none">
-                  {promotions.slice(0, 3).map(promo => (
+                <div className="flex gap-3.5 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-none snap-x snap-mandatory">
+                  {promotions.map(promo => (
                     <div 
                       key={promo.id} 
                       onClick={() => setActiveTab('promotions')}
-                      className="min-w-[180px] max-w-[200px] shrink-0 cursor-pointer flex flex-col group select-none"
+                      className="w-[72vw] max-w-[275px] min-w-[240px] shrink-0 cursor-pointer flex flex-col group select-none snap-start"
                     >
-                      <div className="w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-800/80 relative mb-2 shadow-xs group-hover:scale-[1.02] transition-transform duration-200 flex items-center justify-center">
+                      <div className="w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-800/80 relative mb-2 shadow-xs group-hover:scale-[1.01] transition-transform duration-200 flex items-center justify-center">
                         <div className="absolute inset-0 flex items-center justify-center text-neutral-600">
-                          <Tag className="w-10 h-10 opacity-30 text-red-500" />
+                          <Tag className="w-12 h-12 opacity-30 text-red-500" />
                         </div>
                         {promo.image_url && (
                           <img 
@@ -533,22 +533,22 @@ export default function CustomerOrderPortal() {
                             onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
                           />
                         )}
-                        <span className="absolute top-2 left-2 z-2 px-2 py-0.5 bg-red-600/95 text-white rounded-md text-[10px] font-black shadow-xs">
+                        <span className="absolute top-2.5 left-2.5 z-2 px-2.5 py-1 bg-red-600/95 text-white rounded-lg text-xs font-black shadow-xs">
                           {promo.type === 'percentage' ? `ลด ${promo.discount_percent}%` : promo.type === 'fixed' ? `ลด ฿${promo.discount_amount}` : 'ซื้อ 2 แถม 1'}
                         </span>
                         {promo.start_time && (
-                          <span className="absolute bottom-2 left-2 z-2 px-1.5 py-0.5 bg-black/75 backdrop-blur-xs text-[9px] text-neutral-200 font-semibold rounded-md flex items-center gap-1 shadow-xs">
-                            <Clock className="w-2.5 h-2.5" />
+                          <span className="absolute bottom-2.5 left-2.5 z-2 px-2 py-0.5 bg-black/75 backdrop-blur-xs text-[10px] text-neutral-200 font-semibold rounded-lg flex items-center gap-1 shadow-xs">
+                            <Clock className="w-3 h-3 text-neutral-300" />
                             {promo.start_time.substring(0, 5)} - {promo.end_time?.substring(0, 5)}
                           </span>
                         )}
                       </div>
 
                       <div className="px-0.5">
-                        <h4 className="font-bold text-xs text-neutral-100 truncate group-hover:text-red-400 transition-colors">
+                        <h4 className="font-bold text-sm text-neutral-100 truncate group-hover:text-red-400 transition-colors">
                           {promo.name}
                         </h4>
-                        <p className="text-[11px] text-neutral-400 mt-0.5 line-clamp-2 leading-relaxed">
+                        <p className="text-xs text-neutral-400 mt-0.5 line-clamp-2 leading-relaxed">
                           {getPromoShortDesc(promo)}
                         </p>
                       </div>
@@ -874,11 +874,14 @@ export default function CustomerOrderPortal() {
                 <p className="text-neutral-500 text-xs">ติดตามส่วนลดและข้อเสนอพิเศษได้ที่นี่เร็วๆ นี้</p>
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-3.5">
                 {promotions.map(promo => (
-                  <div key={promo.id} className="flex flex-col">
-                    {/* Standalone 1:1 Image with Overlaid Badges */}
-                    <div className="w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-800/80 relative shadow-xs flex items-center justify-center">
+                  <div 
+                    key={promo.id} 
+                    className="rounded-2xl bg-neutral-900/90 border border-neutral-800/80 p-2.5 sm:p-3 shadow-xs space-y-2.5"
+                  >
+                    {/* 1:1 Image Container */}
+                    <div className="w-full aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-800/80 relative flex items-center justify-center">
                       <div className="absolute inset-0 flex items-center justify-center text-neutral-600">
                         <Tag className="w-16 h-16 opacity-30 text-red-500" />
                       </div>
@@ -891,21 +894,21 @@ export default function CustomerOrderPortal() {
                         />
                       )}
                       {/* Discount Badge Overlay */}
-                      <span className="absolute top-3 left-3 z-2 px-2.5 py-1 bg-red-600/95 text-white rounded-lg text-xs font-black shadow-xs">
+                      <span className="absolute top-2.5 left-2.5 z-2 px-2.5 py-1 bg-red-600/95 text-white rounded-lg text-xs font-black shadow-xs">
                         {promo.type === 'percentage' ? `ส่วนลด ${promo.discount_percent}%` : promo.type === 'fixed' ? `ส่วนลด ฿${promo.discount_amount}` : 'ซื้อ 2 แถม 1'}
                       </span>
                       {/* Happy Hour Time Badge Overlay */}
                       {promo.start_time && (
-                        <span className="absolute bottom-3 left-3 z-2 px-2.5 py-1 bg-black/75 backdrop-blur-xs text-[11px] text-neutral-200 font-semibold rounded-lg flex items-center gap-1.5 shadow-xs">
+                        <span className="absolute bottom-2.5 left-2.5 z-2 px-2.5 py-1 bg-black/75 backdrop-blur-xs text-[11px] text-neutral-200 font-semibold rounded-lg flex items-center gap-1.5 shadow-xs">
                           <Clock className="w-3.5 h-3.5 text-neutral-300" />
                           {promo.start_time.substring(0, 5)} - {promo.end_time?.substring(0, 5)} น.
                         </span>
                       )}
                     </div>
 
-                    {/* Details Placed Directly Below Image (No Card Wrapper) */}
-                    <div className="mt-2.5 px-0.5 space-y-1">
-                      <h3 className="font-black text-base text-neutral-100">{promo.name}</h3>
+                    {/* Details inside card */}
+                    <div className="px-1 pb-1 space-y-1">
+                      <h3 className="font-black text-sm sm:text-base text-neutral-100">{promo.name}</h3>
                       <p className="text-xs text-neutral-400 leading-relaxed">
                         {getPromoShortDesc(promo)}
                       </p>
