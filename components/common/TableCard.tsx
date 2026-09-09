@@ -28,30 +28,41 @@ export const TableCard: React.FC<TableCardProps> = ({ table, onClick, className 
     if (isOccupied) {
       return 'bg-gradient-to-br from-amber-400 via-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/20 border-transparent';
     }
-    return 'app-card text-slate-900 dark:text-neutral-100';
+    return 'app-card text-slate-900 dark:text-neutral-100 hover:border-slate-300 dark:hover:border-white/15';
   };
 
-  // Status Badge Styling & Text
-  const renderBadge = () => {
+  // Status Indicator (Dot + Label)
+  const renderStatus = () => {
     if (isCheckingOut) {
       return (
-        <span className="bg-white/30 backdrop-blur-xs text-white border border-white/40 text-micro px-2 sm:px-3 py-0.5 sm:py-1 rounded-full uppercase tracking-wider shrink-0 self-start sm:self-auto flex items-center gap-1">
-          <BellRing className="w-3 h-3 animate-bounce" />
-          <span>เรียกเช็คบิล</span>
-        </span>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span className="relative flex h-2 w-2 shrink-0">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+          </span>
+          <span className="text-xs sm:text-sm font-semibold text-white">
+            เรียกเช็คบิล
+          </span>
+        </div>
       );
     }
     if (isOccupied) {
       return (
-        <span className="bg-white/20 backdrop-blur-xs text-white border border-white/30 text-micro px-2 sm:px-3 py-0.5 sm:py-1 rounded-full uppercase tracking-wider shrink-0 self-start sm:self-auto">
-          มีลูกค้า
-        </span>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span className="w-2 h-2 rounded-full bg-white shrink-0" />
+          <span className="text-xs sm:text-sm font-semibold text-white">
+            มีลูกค้า
+          </span>
+        </div>
       );
     }
     return (
-      <span className="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50 text-micro px-2 sm:px-3 py-0.5 sm:py-1 rounded-full uppercase tracking-wider shrink-0 self-start sm:self-auto">
-        ว่าง (Vacant)
-      </span>
+      <div className="flex items-center gap-1.5 shrink-0">
+        <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 shrink-0" />
+        <span className="text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+          ว่าง
+        </span>
+      </div>
     );
   };
 
@@ -60,27 +71,23 @@ export const TableCard: React.FC<TableCardProps> = ({ table, onClick, className 
     if (isCheckingOut) {
       return {
         label: 'เช็คบิล / ชำระเงิน',
-        icon: <BellRing className="w-3.5 h-3.5 sm:w-4 sm:h-4" />,
-        labelColor: 'text-red-100 font-extrabold',
-        iconContainer: 'bg-white/20 text-white',
-        border: 'border-white/20'
+        labelColor: 'text-red-100 font-medium',
+        icon: <BellRing className="w-5 h-5 text-white/90 animate-bounce" />,
       };
     }
     if (isOccupied) {
       return {
         label: 'จัดการออเดอร์',
-        icon: <Receipt className="w-3.5 h-3.5 sm:w-4 sm:h-4" />,
-        labelColor: 'text-amber-100 font-extrabold',
-        iconContainer: 'bg-white/20 text-white',
-        border: 'border-white/20'
+        labelColor: 'text-amber-100 font-medium',
+        icon: <Receipt className="w-5 h-5 text-white/90" />,
       };
     }
     return {
       label: 'เปิดออเดอร์ใหม่',
-      icon: <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />,
-      labelColor: 'text-slate-500 dark:text-neutral-400',
-      iconContainer: 'bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-300 group-hover:bg-amber-500 group-hover:text-white',
-      border: 'border-slate-100 dark:border-neutral-800/80'
+      labelColor: 'text-slate-500 dark:text-neutral-400 font-normal',
+      icon: (
+        <ShoppingBag className="w-5 h-5 text-slate-400 dark:text-neutral-400 group-hover:text-slate-600 dark:group-hover:text-neutral-200 transition-colors" />
+      ),
     };
   };
 
@@ -88,21 +95,30 @@ export const TableCard: React.FC<TableCardProps> = ({ table, onClick, className 
 
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`group relative p-4 sm:p-6 rounded-[24px] transition duration-200 text-left flex flex-col justify-between h-40 sm:h-48 cursor-pointer active:scale-95 overflow-hidden ${getCardStyle()} ${className}`}
+      className={`group relative p-4 sm:p-5 rounded-[24px] transition-all duration-200 text-left flex flex-col justify-between h-32 sm:h-36 cursor-pointer active:scale-[0.98] outline-none focus:outline-none focus-visible:outline-none overflow-hidden ${getCardStyle()} ${className}`}
     >
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
-        <span className={`text-h2 ${isOccupied || isCheckingOut ? 'text-white' : 'text-slate-900 dark:text-neutral-100'}`}>
+      {/* Top Row: Table Name + Status */}
+      <div className="flex items-center justify-between gap-2">
+        <span
+          className={`text-lg sm:text-xl font-bold tracking-tight ${
+            isOccupied || isCheckingOut
+              ? 'text-white'
+              : 'text-slate-900 dark:text-white'
+          }`}
+        >
           โต๊ะ {table.table_number}
         </span>
-        {renderBadge()}
+        {renderStatus()}
       </div>
 
-      <div className={`flex items-center justify-between pt-2 sm:pt-4 border-t ${actionInfo.border}`}>
-        <span className={`text-body font-semibold line-clamp-1 ${actionInfo.labelColor}`}>
+      {/* Bottom Row: Action Prompt + Clean Icon */}
+      <div className="flex items-center justify-between gap-2">
+        <span className={`text-xs sm:text-sm line-clamp-1 ${actionInfo.labelColor}`}>
           {actionInfo.label}
         </span>
-        <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl flex items-center justify-center transition shrink-0 ${actionInfo.iconContainer}`}>
+        <div className="shrink-0 flex items-center justify-center">
           {actionInfo.icon}
         </div>
       </div>
