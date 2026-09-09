@@ -129,8 +129,7 @@
       --space-section: 2rem;
       --space-component: 1.25rem;
 
-      /* Component-Specific */
-      --pos-cart-width: 380px;
+      /* Component-Specific — cart stays 100% until lg side-panel layout */
       --kitchen-cols: 2;
       --manager-form-width: 600px;
     }
@@ -185,6 +184,9 @@
       /* Spacing */
       --space-section: 2.5rem;
       --space-component: 1.5rem;
+
+      /* Component-Specific — side cart only at lg+ (flex-row) */
+      --pos-cart-width: 380px;
     }
   }
 

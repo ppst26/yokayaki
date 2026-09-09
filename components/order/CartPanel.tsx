@@ -96,7 +96,7 @@ export const CartPanel: React.FC<CartPanelProps> = ({
     }
     const mobileExpanded =
       mobileCartExpanded ? 'z-50 max-h-[50dvh]' : 'z-40 max-h-none';
-    return `fixed bottom-16 left-0 right-0 ${mobileExpanded} rounded-t-3xl ${base} md:static md:bottom-auto md:z-auto md:max-h-none md:h-auto md:min-h-0 md:w-[var(--pos-cart-width)] md:shrink-0 md:self-stretch md:!rounded-none md:!border-t-0 md:!border-r-0 md:!border-b-0 md:!shadow-none`;
+    return `fixed bottom-16 left-0 right-0 w-full ${mobileExpanded} rounded-t-3xl ${base} md:static md:bottom-auto md:z-auto md:max-h-none md:h-auto md:min-h-0 md:w-full md:shrink-0 lg:w-[var(--pos-cart-width)] lg:shrink-0 lg:self-stretch md:!rounded-none md:!border-t-0 md:!border-r-0 md:!border-b-0 md:!shadow-none`;
   };
 
   return (
