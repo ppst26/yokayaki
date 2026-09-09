@@ -76,6 +76,30 @@
     --grid-cols-cards: 1;
     --grid-gap: 0.75rem;
     --grid-gap-lg: 1rem;
+
+    /* Card Tokens - Mobile */
+    --card-padding: 1rem;
+    --card-padding-sm: 0.75rem;
+    --card-padding-lg: 1.5rem;
+    --card-radius: 1rem;
+    --card-radius-sm: 0.75rem;
+    --card-gap: 0.75rem;
+
+    /* Typography Tokens - Mobile */
+    --text-card-title: 0.875rem;
+    --text-card-value: 1.5rem;
+    --text-table-cell: 0.875rem;
+
+    /* Spacing Tokens - Mobile */
+    --space-section: 1.5rem;
+    --space-component: 1rem;
+    --space-element: 0.5rem;
+
+    /* Component-Specific Tokens - Mobile */
+    --pos-cart-width: 100%;
+    --kitchen-cols: 1;
+    --manager-table-font: 0.875rem;
+    --manager-form-width: 100%;
   }
 
   /* Tablet (768-833px) - iPad standard, iPad Mini */
@@ -93,6 +117,22 @@
       --grid-cols-cards: 2;       /* 2-column stat cards */
       --grid-gap: 1rem;
       --grid-gap-lg: 1.25rem;
+
+      /* Card */
+      --card-padding: 1.25rem;
+      --card-padding-sm: 1rem;
+      --card-padding-lg: 1.75rem;
+      --card-radius: 1.25rem;
+      --card-gap: 1rem;
+
+      /* Spacing */
+      --space-section: 2rem;
+      --space-component: 1.25rem;
+
+      /* Component-Specific */
+      --pos-cart-width: 380px;
+      --kitchen-cols: 2;
+      --manager-form-width: 600px;
     }
   }
 
@@ -110,6 +150,13 @@
       --grid-cols-cards: 2;       /* Keep 2 (card width ideal) */
       --grid-gap: 1.25rem;
       --grid-gap-lg: 1.5rem;
+
+      /* Card */
+      --card-padding: 1.5rem;
+      --card-radius: 1.5rem;
+
+      /* Component-Specific */
+      --kitchen-cols: 3;
     }
   }
 
@@ -126,6 +173,27 @@
       --grid-cols-menu: 4;        /* 4-column menu grid */
       --grid-cols-table: 4;       /* 4 table cards */
       --grid-cols-cards: 3;       /* 3-column stats */
+
+      /* Card */
+      --card-padding: 2rem;
+
+      /* Typography */
+      --text-card-title: 1.125rem;
+      --text-card-value: 2rem;
+      --text-table-cell: 1rem;
+
+      /* Spacing */
+      --space-section: 2.5rem;
+      --space-component: 1.5rem;
+    }
+  }
+
+  /* Typography adjustments for all iPad sizes */
+  @media (--tablet-all) {
+    :root {
+      --text-card-title: 1rem;
+      --text-card-value: 1.75rem;
+      --text-table-cell: 0.9375rem;
     }
   }
 }
