@@ -7,14 +7,15 @@ type SidebarBrandProps = {
   size?: 'sm' | 'md' | 'compact';
   showSubtitle?: boolean;
   theme: 'light' | 'dark';
+  className?: string;
 };
 
-export function SidebarBrand({ size = 'md', showSubtitle = false, theme }: SidebarBrandProps) {
+export function SidebarBrand({ size = 'md', showSubtitle = false, theme, className = '' }: SidebarBrandProps) {
   const logoSrc = getLogoForTheme(theme);
 
   if (size === 'compact') {
     return (
-      <div className="flex justify-center">
+      <div className={`flex justify-center ${className}`}>
         <Image
           src={logoSrc}
           alt="Yo-Yaki Izakaya"
@@ -28,14 +29,16 @@ export function SidebarBrand({ size = 'md', showSubtitle = false, theme }: Sideb
   }
 
   return (
-    <div className="min-w-0">
+    <div className={`min-w-0 ${className}`}>
       <Image
         src={logoSrc}
         alt="Yo-Yaki Izakaya"
         width={1024}
         height={347}
         priority
-        className={`h-auto rounded-xl ${size === 'sm' ? 'max-w-[148px]' : 'w-full'}`}
+        className={`h-auto rounded-xl object-contain ${
+          size === 'sm' ? 'max-w-[126px] max-h-9 sm:max-w-[148px]' : 'w-full'
+        }`}
       />
       {showSubtitle ? (
         <p

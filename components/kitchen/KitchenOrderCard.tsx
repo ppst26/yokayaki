@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Clock, CheckCircle, Trash2, X, Loader2, ChevronDown } from 'lucide-react';
+import { Clock, CheckCircle, Check, Trash2, X, Loader2 } from 'lucide-react';
 import { VOID_REASONS, VOID_REASON_OTHER } from '@/lib/voidReasons';
 import { Card } from '@/components/ui/card';
 
@@ -153,77 +153,90 @@ export const KitchenOrderCard: React.FC<KitchenOrderCardProps> = ({
   const [openVoidId, setOpenVoidId] = useState<number | null>(null);
   const waitMinutes = getWaitTimeMinutes(group.oldest_created_at);
 
-  let cardHeaderStyle = 'bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white';
-  let badgeStyle = 'bg-white text-slate-900 dark:text-slate-900 font-black shadow-xs';
+  let barAccentStyle = 'bg-red-600 dark:bg-red-500';
+  let badgeStyle = 'bg-slate-100 dark:bg-neutral-800/90 text-slate-700 dark:text-neutral-300 border border-slate-200 dark:border-neutral-700/60';
 
   if (waitMinutes >= 15) {
-    cardHeaderStyle = 'bg-gradient-to-r from-rose-600 via-red-700 to-rose-800 text-white animate-pulse';
-    badgeStyle = 'bg-amber-300 text-slate-950 dark:text-slate-950 font-black shadow-md animate-bounce';
+    barAccentStyle = 'bg-rose-500 animate-pulse';
+    badgeStyle = 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60 animate-pulse';
   } else if (waitMinutes >= 8) {
-    cardHeaderStyle = 'bg-gradient-to-r from-amber-500 via-amber-600 to-red-600 text-white';
-    badgeStyle = 'bg-amber-100 text-amber-950 dark:text-amber-950 font-black shadow-xs';
+    barAccentStyle = 'bg-amber-500';
+    badgeStyle = 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900/60';
   }
 
   return (
-    <Card className="overflow-hidden flex flex-col justify-between">
+    <Card className="overflow-hidden flex flex-col justify-between border border-slate-200 dark:border-neutral-800/80 bg-white dark:bg-neutral-900/90 shadow-sm rounded-2xl">
       <div>
         {/* Card Header */}
-        <div className={`p-4 flex items-center justify-between transition ${cardHeaderStyle}`}>
-          <div>
-            <h3 className="text-h2 text-white">โต๊ะ {group.table_number || group.table_id}</h3>
-            <span className="text-xs text-white font-extrabold block mt-0.5 opacity-95">
-              รวม {group.items.reduce((s, i) => s + i.quantity, 0)} รายการ
-            </span>
+        <div className="p-4 pb-3 flex items-center justify-between border-b border-slate-100 dark:border-neutral-800/80">
+          <div className="flex items-center gap-2.5">
+            {/* Red accent bar */}
+            <div className={`w-1 h-6 sm:h-7 rounded-full shrink-0 ${barAccentStyle}`} />
+            <div>
+              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-neutral-100 leading-tight">
+                โต๊ะ {group.table_number || group.table_id}
+              </h3>
+              <span className="text-xs text-slate-500 dark:text-neutral-400 font-medium block mt-0.5">
+                รวม {group.items.reduce((s, i) => s + i.quantity, 0)} รายการ
+              </span>
+            </div>
           </div>
 
-          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black shadow-xs ${badgeStyle}`}>
-            <Clock className="w-3.5 h-3.5 stroke-[2.5] shrink-0" />
-            <span className="text-price">{waitMinutes} นาทีที่แล้ว</span>
+          {/* Dark Time Badge */}
+          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${badgeStyle}`}>
+            <Clock className="w-3.5 h-3.5 stroke-[2.2] shrink-0 opacity-80" />
+            <span>{waitMinutes} นาทีที่แล้ว</span>
           </div>
         </div>
 
         {/* Item Rows */}
-        <div className="px-4 divide-y divide-slate-100 dark:divide-neutral-800">
+        <div className="px-4 divide-y divide-slate-100 dark:divide-neutral-800/70">
           {group.items.map(item => (
             <div key={item.id} className="py-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-h3 text-slate-900 dark:text-neutral-100">
-                      {item.menu_items?.name}
-                    </span>
-                    <span className="text-xs font-black text-slate-700 dark:text-neutral-300 ml-1">
-                      x{item.quantity} {item.menu_items?.unit || 'จาน'}
-                    </span>
-                  </div>
+              <div className="flex items-center justify-between gap-2">
+                {/* Item Name & Notes */}
+                <div className="min-w-0 flex-1 pr-2">
+                  <span className="font-bold text-sm sm:text-base text-slate-900 dark:text-neutral-100 block truncate">
+                    {item.menu_items?.name}
+                  </span>
                   {item.notes && (
-                    <p className="text-caption text-red-600 dark:text-red-400 font-medium">
+                    <p className="text-xs text-red-600 dark:text-red-400 font-medium mt-0.5">
                       📝 {item.notes}
                     </p>
                   )}
                 </div>
 
-                <div className="flex items-center gap-1.5 shrink-0">
+                {/* Quantity & Unit (Separated, centered) */}
+                <div className="shrink-0 text-center px-2 min-w-[72px] sm:min-w-[84px]">
+                  <span className="text-xs sm:text-sm font-medium text-slate-400 dark:text-neutral-400 tabular-nums">
+                    ×{item.quantity} {item.menu_items?.unit || 'จาน'}
+                  </span>
+                </div>
+
+                {/* Action Buttons (Aligned, reduced shadow/glow) */}
+                <div className="flex items-center gap-2.5 shrink-0">
                   {/* Void button */}
                   <button
+                    type="button"
                     onClick={() => setOpenVoidId(openVoidId === item.id ? null : item.id)}
-                    className={`p-1.5 transition-all duration-200 cursor-pointer ${
+                    className={`p-1.5 transition-colors duration-150 rounded-lg cursor-pointer focus:outline-none focus-visible:outline-none ${
                       openVoidId === item.id
-                        ? 'text-rose-600 dark:text-rose-400 scale-110'
-                        : 'text-rose-400 hover:text-rose-600 dark:text-rose-500/80 dark:hover:text-rose-400 hover:scale-110 active:scale-95'
+                        ? 'text-rose-600 dark:text-rose-400 bg-rose-500/10'
+                        : 'text-rose-400/80 hover:text-rose-500 dark:text-rose-500/70 dark:hover:text-rose-400 hover:bg-rose-500/10 active:scale-95'
                     }`}
                     title="Void รายการนี้"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-4.5 h-4.5" />
                   </button>
 
-                  {/* Serve button */}
+                  {/* Serve button (Clean emerald rounded square, no heavy glow) */}
                   <button
+                    type="button"
                     onClick={() => markItemAsServed(item.id)}
-                    className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 via-emerald-600 to-green-600 text-white shadow-md shadow-emerald-500/30 hover:shadow-lg hover:shadow-emerald-500/40 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center border-none cursor-pointer shrink-0"
+                    className="w-9 h-9 rounded-xl bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white transition-colors duration-150 flex items-center justify-center cursor-pointer shrink-0 focus:outline-none focus-visible:outline-none shadow-xs"
                     title="กดเสิร์ฟรายการนี้"
                   >
-                    <CheckCircle className="w-5 h-5 stroke-[2.2]" />
+                    <Check className="w-5 h-5 stroke-[2.5]" />
                   </button>
                 </div>
               </div>
@@ -245,12 +258,13 @@ export const KitchenOrderCard: React.FC<KitchenOrderCardProps> = ({
       </div>
 
       {/* Serve All Button */}
-      <div className="p-4 pt-0">
+      <div className="p-4 pt-3">
         <button
+          type="button"
           onClick={() => markAllTableItemsAsServed(group.items)}
-          className="w-full py-3 btn-crimson text-white text-body font-bold rounded-xl shadow-md shadow-red-600/20 transition active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-3 bg-gradient-to-r from-red-600 via-red-700 to-red-800 hover:from-red-500 hover:to-red-700 text-white font-bold text-sm sm:text-base rounded-xl transition-all duration-150 active:scale-98 flex items-center justify-center gap-2 cursor-pointer shadow-xs focus:outline-none focus-visible:outline-none select-none"
         >
-          <CheckCircle className="w-4 h-4" />
+          <CheckCircle className="w-4.5 h-4.5" />
           <span>เสิร์ฟทั้งหมดของโต๊ะ {group.table_number || group.table_id}</span>
         </button>
       </div>

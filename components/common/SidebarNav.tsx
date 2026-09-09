@@ -185,17 +185,18 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
   return (
     <>
       {/* Mobile Sticky Top Header Bar */}
-      <div className="w-full shrink-0 md:hidden sticky top-0 z-30 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 p-4 flex items-center justify-between shadow-xs">
+      <header className="w-full shrink-0 md:hidden sticky top-0 z-30 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-b border-zinc-200/80 dark:border-zinc-800 px-4 py-2 flex items-center justify-between shadow-xs">
         <SidebarBrand size="sm" theme={theme} />
 
         <button
+          type="button"
           onClick={() => setIsMobileMenuOpen(true)}
-          className="p-1.5 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-all duration-200 active:scale-90 cursor-pointer"
+          className="p-1.5 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors duration-150 active:scale-95 cursor-pointer focus:outline-none focus-visible:outline-none select-none"
           aria-label="Open navigation menu"
         >
-          <Menu className="w-6 h-6 stroke-[2.5]" />
+          <Menu className="w-5.5 h-5.5 stroke-[2.2]" />
         </button>
-      </div>
+      </header>
 
       {/* Mobile SlideOver Navigation Drawer */}
       {isMobileMenuOpen && (
@@ -229,10 +230,10 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                 {canAccessTab(role, 'floor') && (
                 <button
                   onClick={() => handleTabClick('floor')}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                     activeTab === 'floor'
-                      ? 'nav-active font-extrabold'
-                      : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
+                      ? 'nav-active'
+                      : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -256,10 +257,10 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                 {canAccessTab(role, 'kitchen') && (
                 <button
                   onClick={() => handleTabClick('kitchen')}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                     activeTab === 'kitchen'
-                      ? 'nav-active font-extrabold'
-                      : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
+                      ? 'nav-active'
+                      : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -283,10 +284,10 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                 {canAccessTab(role, 'history') && (
                   <button
                     onClick={() => handleTabClick('history')}
-                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
+                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                       activeTab === 'history'
-                        ? 'nav-active font-extrabold'
-                        : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
+                        ? 'nav-active'
+                        : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                     }`}
                   >
                     <History className="w-4.5 h-4.5" />
@@ -305,10 +306,10 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                     {canAccessTab(role, 'menu') && (
                     <button
                       onClick={() => handleTabClick('menu')}
-                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
+                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                         activeTab === 'menu'
-                          ? 'nav-active font-extrabold'
-                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
+                          ? 'nav-active'
+                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                       }`}
                     >
                       <UtensilsCrossed className="w-4.5 h-4.5" />
@@ -319,10 +320,10 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                     {canAccessTab(role, 'stock') && (
                     <button
                       onClick={() => handleTabClick('stock')}
-                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
+                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                         activeTab === 'stock'
-                          ? 'nav-active font-extrabold'
-                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
+                          ? 'nav-active'
+                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                       }`}
                     >
                       <Package className="w-4.5 h-4.5" />
@@ -333,10 +334,10 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                     {canAccessTab(role, 'promo') && (
                     <button
                       onClick={() => handleTabClick('promo')}
-                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
+                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                         activeTab === 'promo'
-                          ? 'nav-active font-extrabold'
-                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
+                          ? 'nav-active'
+                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                       }`}
                     >
                       <Tag className="w-4.5 h-4.5" />
@@ -357,10 +358,10 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                     {canAccessTab(role, 'dashboard') && (
                     <button
                       onClick={() => handleTabClick('dashboard')}
-                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
+                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                         activeTab === 'dashboard'
-                          ? 'nav-active font-extrabold'
-                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
+                          ? 'nav-active'
+                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                       }`}
                     >
                       <LayoutDashboard className="w-4.5 h-4.5" />
@@ -371,10 +372,10 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                     {canAccessTab(role, 'loyalty') && (
                     <button
                       onClick={() => handleTabClick('loyalty')}
-                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
+                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                         activeTab === 'loyalty'
-                          ? 'nav-active font-extrabold'
-                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
+                          ? 'nav-active'
+                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                       }`}
                     >
                       <Users className="w-4.5 h-4.5" />
@@ -385,10 +386,10 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                     {canAccessTab(role, 'employees') && (
                     <button
                       onClick={() => handleTabClick('employees')}
-                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ease-out cursor-pointer ${
+                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                         activeTab === 'employees'
-                          ? 'nav-active font-extrabold'
-                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:translate-x-1.5'
+                          ? 'nav-active'
+                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                       }`}
                     >
                       <UserCog className="w-4.5 h-4.5" />
@@ -439,18 +440,34 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
 
       {/* Mobile Fixed Bottom Navigation Bar */}
       <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-zinc-200/80 dark:border-zinc-800 px-3 py-1.5 flex items-center justify-around shadow-lg">
+        {/* SVG Gradient Definition for Bottom Nav Active Icons */}
+        <svg width="0" height="0" className="absolute w-0 h-0 overflow-hidden pointer-events-none" aria-hidden="true">
+          <defs>
+            <linearGradient id="bottom-nav-icon-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#f87171" />
+              <stop offset="50%" stopColor="#ef4444" />
+              <stop offset="100%" stopColor="#b91c1c" />
+            </linearGradient>
+          </defs>
+        </svg>
+
         {/* 1. แผนผังโต๊ะ */}
         {canAccessTab(role, 'floor') && (
         <button
+          type="button"
           onClick={() => onSelectTab('floor')}
-          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all duration-200 cursor-pointer ${
+          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
             activeTab === 'floor'
-              ? 'text-red-600 dark:text-red-400 font-extrabold scale-105'
+              ? 'text-red-600 dark:text-red-400 font-bold'
               : 'text-zinc-500 dark:text-zinc-400 font-bold hover:text-zinc-800 dark:hover:text-zinc-200'
           }`}
         >
-          <div className={`p-1.5 rounded-xl transition-all relative ${activeTab === 'floor' ? 'nav-active' : ''}`}>
-            <Layers className="w-5 h-5 stroke-[2.2]" />
+          <div className="p-1.5 rounded-xl relative flex items-center justify-center">
+            <Layers
+              className="w-5 h-5 stroke-[2.2]"
+              stroke={activeTab === 'floor' ? 'url(#bottom-nav-icon-gradient)' : 'currentColor'}
+              style={{ stroke: activeTab === 'floor' ? 'url(#bottom-nav-icon-gradient)' : undefined }}
+            />
             {checkingOutCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-black min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-900 animate-bounce">
                 {checkingOutCount}
@@ -464,15 +481,20 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
         {/* 2. หน้าจอครัว */}
         {canAccessTab(role, 'kitchen') && (
         <button
+          type="button"
           onClick={() => onSelectTab('kitchen')}
-          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all duration-200 cursor-pointer ${
+          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
             activeTab === 'kitchen'
-              ? 'text-red-600 dark:text-red-400 font-extrabold scale-105'
+              ? 'text-red-600 dark:text-red-400 font-bold'
               : 'text-zinc-500 dark:text-zinc-400 font-bold hover:text-zinc-800 dark:hover:text-zinc-200'
           }`}
         >
-          <div className={`p-1.5 rounded-xl transition-all relative ${activeTab === 'kitchen' ? 'nav-active' : ''}`}>
-            <ChefHat className="w-5 h-5 stroke-[2.2]" />
+          <div className="p-1.5 rounded-xl relative flex items-center justify-center">
+            <ChefHat
+              className="w-5 h-5 stroke-[2.2]"
+              stroke={activeTab === 'kitchen' ? 'url(#bottom-nav-icon-gradient)' : 'currentColor'}
+              style={{ stroke: activeTab === 'kitchen' ? 'url(#bottom-nav-icon-gradient)' : undefined }}
+            />
             {pendingTablesCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-black min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-900 animate-pulse">
                 {pendingTablesCount}
@@ -486,30 +508,49 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
         {/* 3. ประวัติการขาย */}
         {canAccessTab(role, 'history') && (
           <button
+            type="button"
             onClick={() => onSelectTab('history')}
-            className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all duration-200 cursor-pointer ${
+            className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
               activeTab === 'history'
-                ? 'text-red-600 dark:text-red-400 font-extrabold scale-105'
+                ? 'text-red-600 dark:text-red-400 font-bold'
                 : 'text-zinc-500 dark:text-zinc-400 font-bold hover:text-zinc-800 dark:hover:text-zinc-200'
             }`}
           >
-            <div className={`p-1.5 rounded-xl transition-all ${activeTab === 'history' ? 'nav-active' : ''}`}>
-              <History className="w-5 h-5 stroke-[2.2]" />
+            <div className="p-1.5 rounded-xl relative flex items-center justify-center">
+              <History
+                className="w-5 h-5 stroke-[2.2]"
+                stroke={activeTab === 'history' ? 'url(#bottom-nav-icon-gradient)' : 'currentColor'}
+                style={{ stroke: activeTab === 'history' ? 'url(#bottom-nav-icon-gradient)' : undefined }}
+              />
             </div>
             <span className="text-xs mt-0.5 leading-none font-bold">ออเดอร์</span>
           </button>
         )}
 
         {/* 4. เมนูเพิ่มเติม (Open Drawer) */}
-        <button
-          onClick={() => setIsMobileMenuOpen(true)}
-          className="flex flex-col items-center justify-center py-1 px-3 rounded-xl text-zinc-500 dark:text-zinc-400 font-bold hover:text-zinc-800 dark:hover:text-zinc-200 transition-all cursor-pointer"
-        >
-          <div className="p-1.5">
-            <Menu className="w-5 h-5 stroke-[2.2]" />
-          </div>
-          <span className="text-xs mt-0.5 leading-none font-bold">เพิ่มเติม</span>
-        </button>
+        {(() => {
+          const isDrawerTabActive = !['floor', 'kitchen', 'history'].includes(activeTab);
+          return (
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(true)}
+              className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
+                isDrawerTabActive
+                  ? 'text-red-600 dark:text-red-400 font-bold'
+                  : 'text-zinc-500 dark:text-zinc-400 font-bold hover:text-zinc-800 dark:hover:text-zinc-200'
+              }`}
+            >
+              <div className="p-1.5 rounded-xl relative flex items-center justify-center">
+                <Menu
+                  className="w-5 h-5 stroke-[2.2]"
+                  stroke={isDrawerTabActive ? 'url(#bottom-nav-icon-gradient)' : 'currentColor'}
+                  style={{ stroke: isDrawerTabActive ? 'url(#bottom-nav-icon-gradient)' : undefined }}
+                />
+              </div>
+              <span className="text-xs mt-0.5 leading-none font-bold">เพิ่มเติม</span>
+            </button>
+          );
+        })()}
       </div>
 
       {/* Desktop Left Sidebar Navigation */}
@@ -552,9 +593,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
               type="button"
               onClick={() => onSelectTab('floor')}
               title="แผนผังโต๊ะ"
-              className={`sidebar-nav-btn relative w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
+              className={`sidebar-nav-btn relative w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                 activeTab === 'floor'
-                  ? 'nav-active font-extrabold'
+                  ? 'nav-active'
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
               }`}
             >
@@ -589,9 +630,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
               type="button"
               onClick={() => onSelectTab('kitchen')}
               title="หน้าจอครัว"
-              className={`sidebar-nav-btn relative w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
+              className={`sidebar-nav-btn relative w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                 activeTab === 'kitchen'
-                  ? 'nav-active font-extrabold'
+                  ? 'nav-active'
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
               }`}
             >
@@ -626,9 +667,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                 type="button"
                 onClick={() => onSelectTab('history')}
                 title="ออเดอร์ประจำวัน"
-                className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
+                className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                   activeTab === 'history'
-                    ? 'nav-active font-extrabold'
+                    ? 'nav-active'
                     : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                 }`}
               >
@@ -651,9 +692,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   type="button"
                   onClick={() => onSelectTab('menu')}
                   title="จัดการเมนู"
-                  className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
+                  className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                     activeTab === 'menu'
-                      ? 'nav-active font-extrabold'
+                      ? 'nav-active'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                   }`}
                 >
@@ -667,9 +708,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   type="button"
                   onClick={() => onSelectTab('stock')}
                   title="ต้นทุนวัตถุดิบ"
-                  className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
+                  className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                     activeTab === 'stock'
-                      ? 'nav-active font-extrabold'
+                      ? 'nav-active'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                   }`}
                 >
@@ -683,9 +724,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   type="button"
                   onClick={() => onSelectTab('promo')}
                   title="โปรโมชั่น"
-                  className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
+                  className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                     activeTab === 'promo'
-                      ? 'nav-active font-extrabold'
+                      ? 'nav-active'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                   }`}
                 >
@@ -710,9 +751,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   type="button"
                   onClick={() => onSelectTab('dashboard')}
                   title="รายงาน / Dashboard"
-                  className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
+                  className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                     activeTab === 'dashboard'
-                      ? 'nav-active font-extrabold'
+                      ? 'nav-active'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                   }`}
                 >
@@ -726,9 +767,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   type="button"
                   onClick={() => onSelectTab('loyalty')}
                   title="สมาชิก"
-                  className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
+                  className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                     activeTab === 'loyalty'
-                      ? 'nav-active font-extrabold'
+                      ? 'nav-active'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                   }`}
                 >
@@ -742,9 +783,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   type="button"
                   onClick={() => onSelectTab('employees')}
                   title="จัดการพนักงาน"
-                  className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 cursor-pointer ${
+                  className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                     activeTab === 'employees'
-                      ? 'nav-active font-extrabold'
+                      ? 'nav-active'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
                   }`}
                 >
@@ -762,7 +803,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
             type="button"
             onClick={toggleTheme}
             title={theme === 'light' ? 'สลับไปโหมดมืด' : 'สลับไปโหมดสว่าง'}
-            className="sidebar-nav-btn w-full flex items-center gap-2.5 px-1 py-2 text-sm font-bold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer"
+            className="sidebar-nav-btn w-full flex items-center gap-2.5 px-1 py-2 text-sm font-bold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none"
           >
             {theme === 'light' ? (
               <>
@@ -802,7 +843,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
             type="button"
             onClick={logout}
             title="ออกจากระบบ"
-            className="sidebar-nav-btn w-full flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-sm font-bold text-zinc-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition duration-150 cursor-pointer"
+            className="sidebar-nav-btn w-full flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-sm font-bold text-zinc-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none"
           >
             <LogOut className="w-4.5 h-4.5 shrink-0" />
             <span className="sidebar-footer-text">ออกจากระบบ (Logout)</span>

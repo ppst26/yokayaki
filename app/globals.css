@@ -408,6 +408,15 @@ body {
     display: flex !important;
   }
 
+  .sidebar-nav-btn {
+    outline: none !important;
+  }
+
+  .sidebar-nav-btn:focus,
+  .sidebar-nav-btn:focus-visible {
+    outline: none !important;
+  }
+
   [data-sidebar-collapsed] .sidebar-nav-btn {
     justify-content: center;
     padding-left: 0.5rem;
