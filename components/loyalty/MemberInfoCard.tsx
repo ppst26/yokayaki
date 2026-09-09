@@ -90,7 +90,7 @@ export const MemberInfoCard: React.FC<MemberInfoCardProps> = ({
             {/* ปุ่มลบ */}
             <button
               onClick={() => setShowDeleteModal(true)}
-              className="p-2.5 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 rounded-xl text-sm font-extrabold transition active:scale-95 cursor-pointer"
+              className="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition cursor-pointer active:scale-95"
               title="ลบสมาชิก"
             >
               <Trash2 className="w-4 h-4" />

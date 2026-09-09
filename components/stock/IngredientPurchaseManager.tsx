@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import {
-  Plus, X, ChevronDown, ChevronUp, ShoppingCart,
+  Plus, X, ChevronDown, ChevronUp, ShoppingCart, Boxes,
   Calendar, User, Trash2, PackagePlus, Receipt, Search, Filter, RefreshCw, Pencil
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -45,6 +45,16 @@ interface NewIngredientRow {
 }
 
 type DateFilterType = 'all' | 'today' | 'weekly' | 'monthly' | '3months' | '6months' | 'custom';
+
+const DATE_FILTER_OPTIONS: { label: string; value: DateFilterType }[] = [
+  { label: 'ช่วงเวลา: ทั้งหมด', value: 'all' },
+  { label: 'ช่วงเวลา: วันนี้', value: 'today' },
+  { label: 'ช่วงเวลา: 7 วันล่าสุด', value: 'weekly' },
+  { label: 'ช่วงเวลา: 30 วันล่าสุด', value: 'monthly' },
+  { label: 'ช่วงเวลา: 90 วันล่าสุด', value: '3months' },
+  { label: 'ช่วงเวลา: 180 วันล่าสุด', value: '6months' },
+  { label: 'ช่วงเวลา: กำหนดเอง', value: 'custom' },
+];
 
 const DEFAULT_UNITS = ['กก.', 'ขีด', 'กรัม', 'ถุง', 'แพ็ค', 'แผง', 'ขวด', 'กล่อง', 'ลัง', 'ชิ้น', 'ก้าน', 'ลิตร'];
 
@@ -460,232 +470,296 @@ export const IngredientPurchaseManager: React.FC = () => {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="space-y-5">
-      {/* Filter & Search Bar + Action Buttons */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white dark:bg-zinc-900 p-4 rounded-2xl border-none shadow-none">
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Dropdown Filter */}
-          <div className="flex items-center gap-1.5 min-w-[200px]">
-            <Filter className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />
-            <CustomSelect
-              value={dateFilter}
-              onChange={val => setDateFilter(val as DateFilterType)}
-              options={[
-                { label: 'ทั้งหมด (All Time)', value: 'all' },
-                { label: 'วันนี้ (Today)', value: 'today' },
-                { label: 'รายสัปดาห์ (7 วันล่าสุด)', value: 'weekly' },
-                { label: 'รายเดือน (30 วันล่าสุด)', value: 'monthly' },
-                { label: '3 เดือน (90 วันล่าสุด)', value: '3months' },
-                { label: '6 เดือน (180 วันล่าสุด)', value: '6months' },
-                { label: 'กำหนดเอง (Custom Range)', value: 'custom' },
-              ]}
-              searchable={false}
-            />
-          </div>
+    <div className="space-y-4 sm:space-y-5">
+      {/* 1. Page Header: Title & Action Button on the same level */}
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-base md:text-lg font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+            <Boxes className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />
+            <span>จัดการสต็อก</span>
+          </h1>
+          <p className="text-caption mt-0.5 text-zinc-500 dark:text-zinc-400">
+            บันทึกการจัดซื้อวัตถุดิบทำเมนู
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={openModal}
+          className="flex items-center gap-2 px-4 py-2.5 btn-crimson text-white rounded-xl text-sm font-semibold border-none shadow-sm transition active:scale-95 cursor-pointer shrink-0"
+        >
+          <PackagePlus className="w-4 h-4" />
+          <span>เพิ่มรายการสั่งซื้อ</span>
+        </button>
+      </div>
 
-          {/* Custom Date Range Pickers */}
-          {dateFilter === 'custom' && (
-            <div className="flex items-center gap-2">
-              <DatePicker
-                value={customStartDate}
-                onChange={setCustomStartDate}
-                placeholder="เริ่ม..."
-                className="w-36"
-              />
-              <span className="text-xs font-bold text-zinc-400">ถึง</span>
-              <DatePicker
-                value={customEndDate}
-                onChange={setCustomEndDate}
-                placeholder="ถึง..."
-                className="w-36"
-              />
-            </div>
+      {/* 2. Filter Bar: Search, Date Filter, Refresh (Single Row without Card) */}
+      <div className="flex items-center gap-2.5 w-full">
+        {/* Search */}
+        <div className="flex-1 min-w-[180px] relative flex items-center">
+          <Search className="w-4 h-4 text-zinc-400 dark:text-zinc-500 absolute left-3.5 pointer-events-none" />
+          <input
+            type="text"
+            placeholder="ค้นหา PO# หรือชื่อผู้สั่งซื้อ"
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className="w-full h-10 pl-9 pr-8 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl text-xs font-semibold text-zinc-800 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 border border-transparent dark:border-zinc-700/40 focus:outline-none focus:ring-1 focus:ring-red-500/50 transition"
+          />
+          {searchTerm && (
+            <button
+              type="button"
+              onClick={() => setSearchTerm('')}
+              className="absolute right-2.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-0.5 cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
           )}
         </div>
 
-        {/* Search input & Action Buttons */}
-        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
-          <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3.5 py-2 border-none flex-1 sm:w-64">
-            <Search className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />
-            <input
-              type="text"
-              placeholder="ค้นหา PO#, ชื่อผู้สั่งซื้อ..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="w-full bg-transparent border-none text-xs font-semibold text-zinc-800 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none"
-            />
-          </div>
-          <button
-            onClick={fetchOrders}
-            className="flex items-center gap-1.5 px-3 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-xl text-xs font-semibold border-none shadow-none transition active:scale-95 cursor-pointer shrink-0"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>รีเฟรช</span>
-          </button>
-          <button
-            onClick={openModal}
-            className="flex items-center gap-1.5 px-4 py-2 btn-crimson text-white rounded-xl text-sm font-extrabold border-none shadow-none transition active:scale-95 cursor-pointer shrink-0"
-          >
-            <PackagePlus className="w-4 h-4" />
-            <span>เพิ่มรายการสั่งซื้อ</span>
-          </button>
+        {/* Date Filter */}
+        <div className="w-[180px] sm:w-[220px] shrink-0">
+          <CustomSelect
+            value={dateFilter}
+            onChange={val => setDateFilter(val as DateFilterType)}
+            options={DATE_FILTER_OPTIONS}
+            icon={<Calendar className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />}
+            triggerClassName="h-10 w-full bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200/80 dark:hover:bg-zinc-700/80 rounded-xl px-3.5 text-xs font-semibold text-zinc-800 dark:text-zinc-200 border border-transparent dark:border-zinc-700/40 transition flex items-center justify-between cursor-pointer gap-2"
+            searchable={false}
+          />
         </div>
+
+        {/* Refresh */}
+        <button
+          type="button"
+          onClick={fetchOrders}
+          title="รีเฟรช"
+          className="h-10 w-10 shrink-0 flex items-center justify-center bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200 dark:hover:bg-zinc-700/80 text-zinc-600 dark:text-zinc-300 rounded-xl border border-transparent dark:border-zinc-700/40 transition active:scale-95 cursor-pointer"
+        >
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+        </button>
       </div>
 
-      {/* Section Title & Summary Stats Card */}
-      <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border-none shadow-none space-y-2">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <h2 className="text-base sm:text-lg font-black text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-            <ShoppingCart className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-red-600 dark:text-red-400 shrink-0" />
-            <span>ประวัติการสั่งซื้อวัตถุดิบ</span>
+      {/* Custom Date Pickers */}
+      {dateFilter === 'custom' && (
+        <div className="flex items-center gap-2 pt-0.5">
+          <DatePicker
+            value={customStartDate}
+            onChange={setCustomStartDate}
+            placeholder="เริ่ม..."
+            className="w-36"
+          />
+          <span className="text-xs font-bold text-zinc-400">ถึง</span>
+          <DatePicker
+            value={customEndDate}
+            onChange={setCustomEndDate}
+            placeholder="ถึง..."
+            className="w-36"
+          />
+        </div>
+      )}
+
+      {/* 3. Section Title, Count Badge & Total Cost in One Line */}
+      <div className="flex items-center justify-between gap-4 pt-1">
+        {/* Left: ShoppingCart + Title + Count Badge */}
+        <div className="flex items-center gap-2 sm:gap-2.5">
+          <ShoppingCart className="w-5 h-5 text-red-500 shrink-0" />
+          <h2 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100">
+            ประวัติการสั่งซื้อวัตถุดิบ
           </h2>
-          <div className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-zinc-600 dark:text-zinc-300 whitespace-nowrap self-start sm:self-auto">
-            <span>รวมค่าใช้จ่ายจัดซื้อ:</span>
-            <strong className="text-lg sm:text-xl font-black text-red-600 dark:text-red-400 whitespace-nowrap">
-              {filteredTotalCost.toLocaleString()} ฿
-            </strong>
-          </div>
+          <span className="bg-zinc-200/80 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs px-2.5 py-0.5 rounded-full font-semibold">
+            {filteredOrders.length} รายการ
+          </span>
         </div>
-        <p className="text-xs font-semibold text-zinc-400 dark:text-zinc-500">
-          แสดง {filteredOrders.length} รายการ (จากทั้งหมด {orders.length} รายการ)
-        </p>
+
+        {/* Right: Total Cost */}
+        <div className="flex items-baseline gap-2 text-sm">
+          <span className="text-zinc-500 dark:text-zinc-400 font-medium">ยอดสั่งซื้อรวม</span>
+          <span className="text-red-500 font-black text-lg">
+            {filteredTotalCost.toLocaleString()} ฿
+          </span>
+        </div>
       </div>
 
-      {/* Table */}
+      {/* 4. Orders List */}
       {loading ? (
         <div className="flex justify-center py-16">
           <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : filteredOrders.length === 0 ? (
-        <Card className="py-16 text-center space-y-2 border-none shadow-none bg-white dark:bg-zinc-900 rounded-2xl">
+        <Card className="py-16 text-center space-y-2 border border-zinc-200/50 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/80 rounded-2xl shadow-none">
           <Receipt className="w-8 h-8 text-zinc-300 dark:text-zinc-600 mx-auto" />
           <p className="text-sm font-bold text-zinc-400 dark:text-zinc-500">ไม่พบรายการสั่งซื้อวัตถุดิบตามเงื่อนไข</p>
           <p className="text-xs text-zinc-400 dark:text-zinc-600">ลองเปลี่ยนตัวกรองวันเวลา หรือค้นหาใหม่อีกครั้ง</p>
         </Card>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
+          {/* Table Data Rows */}
           {filteredOrders.map(order => (
-            <div key={order.id} className="rounded-2xl border-none shadow-none bg-white dark:bg-zinc-900 overflow-hidden">
-              {/* Order header row */}
-              <button
-                className="w-full flex items-center gap-2 sm:gap-4 px-3.5 sm:px-5 py-3 sm:py-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition cursor-pointer text-left"
+            <div
+              key={order.id}
+              className="rounded-2xl border border-zinc-200/60 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/80 overflow-hidden shadow-sm transition-all"
+            >
+              {/* Card Header (Grid + Labels + Action Buttons) */}
+              <div
                 onClick={() => toggleExpand(order.id)}
+                className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition select-none"
               >
-                {/* PO# */}
-                <span className="w-16 sm:w-20 shrink-0 text-xs sm:text-sm font-extrabold text-zinc-800 dark:text-zinc-200">
-                  PO-{String(order.id).padStart(4, '0')}
-                </span>
+                {/* Data Grid with 4 columns */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-0 md:divide-x divide-zinc-200/80 dark:divide-zinc-800/80 flex-1 min-w-0">
+                  {/* Col 1: PO# */}
+                  <div className="md:pr-5">
+                    <span className="block text-[11px] font-medium text-zinc-400 dark:text-zinc-500 mb-1">
+                      เลขที่ PO
+                    </span>
+                    <span className="text-sm sm:text-base font-black text-zinc-900 dark:text-zinc-100 tracking-wide">
+                      PO-{String(order.id).padStart(4, '0')}
+                    </span>
+                  </div>
 
-                {/* Date */}
-                <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-                  <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-400 dark:text-zinc-500" />
-                  <span className="text-xs sm:text-sm font-medium text-zinc-600 dark:text-zinc-300 whitespace-nowrap">
-                    {formatDate(order.purchase_date)}
-                  </span>
+                  {/* Col 2: Date */}
+                  <div className="md:px-5">
+                    <span className="block text-[11px] font-medium text-zinc-400 dark:text-zinc-500 mb-1">
+                      วันที่สั่งซื้อ
+                    </span>
+                    <div className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-zinc-700 dark:text-zinc-200">
+                      <Calendar className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />
+                      <span className="truncate">{formatDate(order.purchase_date)}</span>
+                    </div>
+                  </div>
+
+                  {/* Col 3: Buyer */}
+                  <div className="md:px-5">
+                    <span className="block text-[11px] font-medium text-zinc-400 dark:text-zinc-500 mb-1">
+                      ผู้สั่งซื้อ
+                    </span>
+                    <div className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-zinc-800 dark:text-zinc-200">
+                      <User className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />
+                      <span className="truncate">{order.buyer_name}</span>
+                    </div>
+                  </div>
+
+                  {/* Col 4: Total */}
+                  <div className="md:px-5">
+                    <span className="block text-[11px] font-medium text-zinc-400 dark:text-zinc-500 mb-1">
+                      ยอดรวม
+                    </span>
+                    <span className="text-sm sm:text-base font-black text-red-500 dark:text-red-400 whitespace-nowrap">
+                      {order.total_cost.toLocaleString()} ฿
+                    </span>
+                  </div>
                 </div>
 
-                {/* Buyer */}
-                <div className="flex items-center gap-1 sm:gap-1.5 flex-1 min-w-0">
-                  <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />
-                  <span className="text-xs sm:text-sm font-bold text-zinc-800 dark:text-zinc-200 truncate">
-                    {order.buyer_name}
-                  </span>
+                {/* Action Buttons: Edit, Delete, Chevron */}
+                <div className="flex items-center gap-1 shrink-0 self-end sm:self-center">
+                  <button
+                    type="button"
+                    title="แก้ไขรายการสั่งซื้อ"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditOrder(order);
+                    }}
+                    className="p-1.5 text-zinc-400 hover:text-amber-500 dark:hover:text-amber-400 transition cursor-pointer active:scale-95"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    title="ลบรายการสั่งซื้อ"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeletingOrder(order);
+                    }}
+                    className="p-1.5 text-zinc-400 hover:text-rose-500 dark:hover:text-rose-400 transition cursor-pointer active:scale-95"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    title={expandedId === order.id ? "ยุบรายละเอียด" : "ขยายรายละเอียด"}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleExpand(order.id);
+                    }}
+                    className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer active:scale-95"
+                  >
+                    {expandedId === order.id ? (
+                      <ChevronUp className="w-4 h-4" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4" />
+                    )}
+                  </button>
                 </div>
+              </div>
 
-                {/* Note (if any) */}
-                {order.note && (
-                  <span className="text-xs text-zinc-400 truncate max-w-[140px] hidden sm:block">
-                    {order.note}
-                  </span>
-                )}
-
-                {/* Total */}
-                <span className="text-xs sm:text-sm font-black text-red-600 dark:text-red-400 whitespace-nowrap shrink-0">
-                  {order.total_cost.toLocaleString()} ฿
-                </span>
-
-                {/* Chevron */}
-                {expandedId === order.id
-                  ? <ChevronUp className="w-4 h-4 text-zinc-400 shrink-0" />
-                  : <ChevronDown className="w-4 h-4 text-zinc-400 shrink-0" />
-                }
-              </button>
-
-              {/* Expanded detail */}
+              {/* Expanded Detail Section */}
               {expandedId === order.id && (
-                <div className="border-t border-zinc-100 dark:border-zinc-800/80 px-5 py-4">
+                <div className="border-t border-zinc-200/60 dark:border-zinc-800/80 px-4 sm:px-5 py-4 space-y-4">
                   {itemsLoading[order.id] ? (
                     <div className="flex justify-center py-6">
                       <div className="w-6 h-6 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
                     </div>
                   ) : (
                     <>
-                      <div className="flex items-center justify-between mb-3">
-                        <p className="text-card-label">
+                      {/* Ingredient Section Title & Badge */}
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
                           รายการวัตถุดิบ
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditOrder(order);
-                            }}
-                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 dark:text-amber-300 dark:bg-amber-950/50 dark:hover:bg-amber-900/60 rounded-xl transition active:scale-95 cursor-pointer"
-                          >
-                            <Pencil className="w-3.5 h-3.5" />
-                            <span>แก้ไข</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeletingOrder(order);
-                            }}
-                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 dark:text-rose-300 dark:bg-rose-950/50 dark:hover:bg-rose-900/60 rounded-xl transition active:scale-95 cursor-pointer"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                            <span>ลบ</span>
-                          </button>
-                        </div>
+                        </h3>
+                        <span className="bg-zinc-200/80 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs px-2.5 py-0.5 rounded-full font-semibold">
+                          {(expandedItems[order.id] || []).length} รายการ
+                        </span>
                       </div>
-                      <Table className="text-[length:var(--manager-table-font)]">
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>ชื่อวัตถุดิบ</TableHead>
-                            <TableHead className="text-center">จำนวน</TableHead>
-                            <TableHead className="text-center">หน่วย</TableHead>
-                            <TableHead className="text-right">ราคารวม</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {(expandedItems[order.id] || []).map(item => (
-                            <TableRow key={item.id}>
-                              <TableCell className="font-bold text-zinc-900 dark:text-zinc-100">
-                                {item.name}
-                              </TableCell>
-                              <TableCell className="text-center text-zinc-700 dark:text-zinc-300">
-                                {item.quantity}
-                              </TableCell>
-                              <TableCell className="text-center text-zinc-500 dark:text-zinc-400">
-                                {item.unit}
-                              </TableCell>
-                              <TableCell className="text-right text-table-value">
-                                {item.cost.toLocaleString()} ฿
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
 
-                      {/* Detail footer */}
-                      <div className="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800/80 flex justify-between items-center">
-                        <span className="text-table-meta">
-                          {(expandedItems[order.id] || []).length} รายการวัตถุดิบ
+                      {order.note && (
+                        <div className="text-xs text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800/40 p-2.5 rounded-xl border border-zinc-100 dark:border-zinc-800/50">
+                          <span className="font-semibold text-zinc-700 dark:text-zinc-300">หมายเหตุ:</span> {order.note}
+                        </div>
+                      )}
+
+                      {/* Table of Ingredients */}
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs sm:text-sm">
+                          <thead>
+                            <tr className="text-zinc-400 dark:text-zinc-500 text-xs font-semibold border-b border-zinc-100 dark:border-zinc-800/60">
+                              <th className="text-left py-2 font-semibold">ชื่อวัตถุดิบ</th>
+                              <th className="text-center py-2 font-semibold w-24">จำนวน</th>
+                              <th className="text-center py-2 font-semibold w-24">หน่วย</th>
+                              <th className="text-right py-2 font-semibold w-28">ราคารวม</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/40">
+                            {(expandedItems[order.id] || []).map(item => (
+                              <tr key={item.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition">
+                                <td className="py-3 font-bold text-zinc-900 dark:text-zinc-100">
+                                  {item.name}
+                                </td>
+                                <td className="py-3 text-center text-zinc-700 dark:text-zinc-300">
+                                  {item.quantity}
+                                </td>
+                                <td className="py-3 text-center text-zinc-500 dark:text-zinc-400">
+                                  {item.unit}
+                                </td>
+                                <td className="py-3 text-right font-bold text-red-500 dark:text-red-400">
+                                  {item.cost.toLocaleString()} ฿
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Footer: Total items & Net amount */}
+                      <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800/80 flex justify-between items-center text-xs sm:text-sm">
+                        <span className="text-zinc-500 dark:text-zinc-400 font-medium">
+                          รวมวัตถุดิบ {(expandedItems[order.id] || []).length} รายการ
                         </span>
-                        <span className="text-table-value text-base">
-                          รวม {order.total_cost.toLocaleString()} ฿
-                        </span>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-zinc-500 dark:text-zinc-400 font-medium">
+                            ยอดรวมสุทธิ
+                          </span>
+                          <strong className="text-base sm:text-lg font-black text-red-500 dark:text-red-400">
+                            {order.total_cost.toLocaleString()} ฿
+                          </strong>
+                        </div>
                       </div>
                     </>
                   )}
@@ -693,6 +767,11 @@ export const IngredientPurchaseManager: React.FC = () => {
               )}
             </div>
           ))}
+
+          {/* Footer Item Count */}
+          <p className="text-xs font-medium text-zinc-400 dark:text-zinc-500 pt-1">
+            แสดง {filteredOrders.length} จาก {orders.length} รายการ
+          </p>
         </div>
       )}
 
@@ -963,9 +1042,7 @@ export const IngredientPurchaseManager: React.FC = () => {
         <div className="fixed inset-0 z-60 flex items-center justify-center p-4 app-dialog-backdrop">
           <div className="app-dialog w-full max-w-md p-6 space-y-4">
             <div className="flex items-center gap-3 text-rose-600 dark:text-rose-400">
-              <div className="p-2.5 bg-rose-100 dark:bg-rose-950/60 rounded-xl shrink-0">
-                <Trash2 className="w-6 h-6" />
-              </div>
+              <Trash2 className="w-6 h-6 shrink-0" />
               <div>
                 <h4 className="text-base font-black text-zinc-900 dark:text-zinc-100">
                   ยืนยันการลบใบสั่งซื้อ PO-{String(deletingOrder.id).padStart(4, '0')}?

@@ -24,6 +24,8 @@ export interface CustomSelectProps {
   menuAnchorRef?: React.RefObject<HTMLElement | null>;
   /** ความกว้างขั้นต่ำของ dropdown */
   menuMinWidth?: number;
+  /** ไอคอนหน้า label */
+  icon?: React.ReactNode;
 }
 
 export const CustomSelect: React.FC<CustomSelectProps> = ({
@@ -39,6 +41,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   disabled = false,
   menuAnchorRef,
   menuMinWidth = 180,
+  icon,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -142,9 +145,12 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
           disabled ? 'opacity-50 cursor-not-allowed' : ''
         }`}
       >
-        <span className={`truncate text-left ${!value ? 'text-zinc-400 dark:text-zinc-500 font-normal' : ''}`}>
-          {displayLabel || placeholder}
-        </span>
+        <div className="flex items-center gap-2 min-w-0">
+          {icon}
+          <span className={`truncate text-left ${!value ? 'text-zinc-400 dark:text-zinc-500 font-normal' : ''}`}>
+            {displayLabel || placeholder}
+          </span>
+        </div>
         <ChevronDown className={`w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180 text-red-500' : ''}`} />
       </button>
 

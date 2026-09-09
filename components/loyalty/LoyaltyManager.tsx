@@ -809,9 +809,7 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
       {showDeleteModal && selectedMember && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 app-dialog-backdrop">
           <div className="app-dialog w-full max-w-sm p-6 shadow-xl space-y-4 text-center">
-            <div className="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 mx-auto flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6" />
-            </div>
+            <AlertTriangle className="w-8 h-8 text-rose-600 dark:text-rose-400 mx-auto" />
             <h3 className="text-base font-black text-slate-900 dark:text-neutral-100">
               ยืนยันการลบสมาชิก
             </h3>

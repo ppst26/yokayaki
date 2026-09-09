@@ -499,19 +499,17 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
                     <div className="ml-auto flex shrink-0 items-center gap-1">
                       <button
                         onClick={() => openEdit(p)}
-                        className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-700 transition hover:bg-slate-200 active:scale-95 cursor-pointer dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+                        className="p-1.5 text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 transition cursor-pointer active:scale-95"
                         title="แก้ไข"
                       >
-                        <Pencil className="size-3 text-slate-500 dark:text-neutral-400" />
-                        <span>แก้ไข</span>
+                        <Pencil className="size-4" />
                       </button>
                       <button
                         onClick={() => setDeleteTarget(p)}
-                        className="inline-flex items-center gap-1 rounded-lg bg-rose-50 px-2.5 py-1 text-[11px] font-bold text-rose-600 transition hover:bg-rose-100 active:scale-95 cursor-pointer dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-900/60"
+                        className="p-1.5 text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition cursor-pointer active:scale-95"
                         title="ลบ"
                       >
-                        <Trash2 className="size-3" />
-                        <span>ลบ</span>
+                        <Trash2 className="size-4" />
                       </button>
                     </div>
                   </div>
@@ -951,9 +949,7 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 app-dialog-backdrop">
           <div className="app-dialog w-full max-w-sm p-6 shadow-xl space-y-4 text-center">
-            <div className="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 mx-auto flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6" />
-            </div>
+            <AlertTriangle className="w-8 h-8 text-rose-600 dark:text-rose-400 mx-auto" />
             <h3 className="text-base font-black text-slate-900 dark:text-neutral-100">
               ยืนยันการลบโปรโมชั่น
             </h3>

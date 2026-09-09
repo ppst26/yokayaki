@@ -603,17 +603,17 @@ export const MenuManager: React.FC = () => {
                     {item.price.toLocaleString()} ฿
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center justify-center gap-2">
+                    <div className="flex items-center justify-center gap-1">
                       <button
                         onClick={() => openEditModal(item)}
-                        className="p-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 rounded-sm transition cursor-pointer border-none shadow-none"
+                        className="p-1.5 text-zinc-400 hover:text-amber-500 dark:hover:text-amber-400 transition cursor-pointer"
                         title="แก้ไข"
                       >
                         <Pencil className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => setDeleteTarget(item)}
-                        className="p-2 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 rounded-sm transition cursor-pointer border-none shadow-none"
+                        className="p-1.5 text-zinc-400 hover:text-rose-500 dark:hover:text-rose-400 transition cursor-pointer"
                         title="ลบ"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -653,9 +653,7 @@ export const MenuManager: React.FC = () => {
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 app-dialog-backdrop">
           <div className="app-dialog w-full max-w-sm p-6 shadow-xl space-y-4 text-center">
-            <div className="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 mx-auto flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6" />
-            </div>
+            <AlertTriangle className="w-8 h-8 text-rose-600 dark:text-rose-400 mx-auto" />
             <h3 className="text-base font-black text-slate-900 dark:text-neutral-100">
               ยืนยันการลบเมนูอาหาร
             </h3>
