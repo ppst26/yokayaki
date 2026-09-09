@@ -389,7 +389,7 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
   };
 
   return (
-    <div className="w-full text-slate-800 dark:text-neutral-100 font-sans space-y-6">
+    <div className="w-full text-slate-800 dark:text-neutral-100 font-sans space-y-[var(--space-section)]">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -423,7 +423,13 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
       {!selectedMember ? (
         <>
           {/* Summary Metric Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div
+            className="grid"
+            style={{
+              gridTemplateColumns: 'repeat(var(--grid-cols-cards), 1fr)',
+              gap: 'var(--grid-gap)',
+            }}
+          >
             <Card className="p-5 flex items-center justify-between">
               <div>
                 <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
@@ -612,7 +618,7 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
             </div>
           ) : (
             <div className="space-y-4">
-              <Table containerClassName="-mx-4 md:mx-0 w-[calc(100%+2rem)] md:w-full rounded-none md:rounded-sm border-x-0 md:border-x">
+              <Table className="text-[length:var(--manager-table-font)]" containerClassName="-mx-4 md:mx-0 w-[calc(100%+2rem)] md:w-full rounded-none md:rounded-sm border-x-0 md:border-x">
                 <TableHeader>
                   <TableRow>
                     <TableHead>สมาชิก</TableHead>
