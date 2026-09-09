@@ -69,6 +69,27 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
   const [rfmFilter, setRfmFilter] = useState<'all' | RfmSegment>('all');
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
+  const tagFilterOptions: { value: 'all' | MemberTagCode; label: string }[] = [
+    { value: 'all', label: 'ประเภท: ทั้งหมด' },
+    { value: 'new', label: 'ประเภท: ใหม่' },
+    { value: 'regular', label: 'ประเภท: ประจำ' },
+    { value: 'vip', label: 'ประเภท: VIP' },
+    { value: 'dormant', label: 'ประเภท: หายไป' },
+  ];
+
+  const rfmFilterOptions: { value: 'all' | RfmSegment; label: string }[] = [
+    { value: 'all', label: 'กลุ่ม: ทั้งหมด' },
+    { value: 'A', label: 'กลุ่ม: กลุ่ม A' },
+    { value: 'B', label: 'กลุ่ม: กลุ่ม B' },
+    { value: 'C', label: 'กลุ่ม: กลุ่ม C' },
+  ];
+
+  const dormantDaysOptions = [
+    { value: '30', label: 'หายไป: ≥30 วัน' },
+    { value: '60', label: 'หายไป: ≥60 วัน' },
+    { value: '90', label: 'หายไป: ≥90 วัน' },
+  ];
+
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -423,58 +444,70 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
       {/* Main List View vs Detail View */}
       {!selectedMember ? (
         <>
-          {/* Summary Metric Cards - Left aligned, not fullwidth */}
-          <div className="flex flex-wrap items-stretch gap-3 sm:gap-4">
-            <Card className="p-4 sm:p-5 flex items-center justify-between gap-4 w-full sm:w-60 md:w-64 shrink-0">
+          {/* Summary Metric Cards - 3 columns grid on mobile, flex-wrap on desktop */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 sm:flex sm:flex-wrap items-stretch">
+            <Card className="p-2.5 sm:p-5 flex flex-col justify-between sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4 w-full sm:w-60 md:w-64 shrink-0 rounded-2xl">
               <div>
-                <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-                  สมาชิกในระบบทั้งหมด
+                <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block min-h-[26px] sm:min-h-0 truncate">
+                  <span className="sm:hidden">สมาชิกทั้งหมด</span>
+                  <span className="hidden sm:inline">สมาชิกในระบบทั้งหมด</span>
                 </span>
-                <p className="text-2xl font-black text-slate-900 dark:text-neutral-100 mt-1">
+                <p className="text-base sm:text-2xl font-black text-slate-900 dark:text-neutral-100 mt-1 flex items-baseline gap-1">
                   {totalMembers}{' '}
-                  <span className="text-xs font-bold text-slate-500 dark:text-neutral-400">
+                  <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-neutral-400">
                     คน
                   </span>
                 </p>
               </div>
-              <Users className="w-6 h-6 text-slate-400 dark:text-neutral-500 shrink-0" />
+              <Users className="hidden sm:block w-6 h-6 text-slate-400 dark:text-neutral-500 shrink-0" />
             </Card>
 
-            <Card className="p-4 sm:p-5 flex items-center justify-between gap-4 w-full sm:w-60 md:w-64 shrink-0">
+            <Card className="p-2.5 sm:p-5 flex flex-col justify-between sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4 w-full sm:w-60 md:w-64 shrink-0 rounded-2xl">
               <div>
-                <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-                  แต้มสะสมคงเหลือรวมทั้งระบบ
+                <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block min-h-[26px] sm:min-h-0 truncate">
+                  <span className="sm:hidden">แต้มคงเหลือ</span>
+                  <span className="hidden sm:inline">แต้มสะสมคงเหลือรวมทั้งระบบ</span>
                 </span>
-                <p className="text-2xl font-black text-amber-500 dark:text-amber-400 mt-1">
+                <p className="text-base sm:text-2xl font-black text-amber-500 dark:text-amber-400 mt-1 flex items-baseline gap-1">
                   {totalPointsInSystem.toLocaleString()}{' '}
-                  <span className="text-xs font-bold text-slate-500 dark:text-neutral-400">แต้ม</span>
+                  <span className="text-[10px] sm:text-xs font-bold text-amber-500/80 sm:text-slate-500 sm:dark:text-neutral-400">
+                    แต้ม
+                  </span>
                 </p>
               </div>
-              <Database className="w-6 h-6 text-slate-400 dark:text-neutral-500 shrink-0" />
+              <Database className="hidden sm:block w-6 h-6 text-slate-400 dark:text-neutral-500 shrink-0" />
             </Card>
 
-            <Card className="p-4 sm:p-5 flex items-center justify-between gap-4 w-full sm:w-60 md:w-64 shrink-0">
+            <Card className="p-2.5 sm:p-5 flex flex-col justify-between sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4 w-full sm:w-60 md:w-64 shrink-0 rounded-2xl">
               <div>
-                <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-                  ลูกค้าหายไป (≥30 วัน)
+                <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block min-h-[26px] sm:min-h-0 leading-tight">
+                  <span className="sm:hidden">
+                    ลูกค้าหายไป
+                    <span className="block text-[9px] font-semibold text-slate-400/80 dark:text-neutral-500">
+                      (≥30 วัน)
+                    </span>
+                  </span>
+                  <span className="hidden sm:inline">ลูกค้าหายไป (≥30 วัน)</span>
                 </span>
-                <p className="text-2xl font-black text-slate-900 dark:text-neutral-100 mt-1">
+                <p className="text-base sm:text-2xl font-black text-slate-900 dark:text-neutral-100 mt-1 flex items-baseline gap-1">
                   {dormantCount}{' '}
-                  <span className="text-xs font-bold text-slate-500 dark:text-neutral-400">คน</span>
+                  <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-neutral-400">
+                    คน
+                  </span>
                 </p>
               </div>
-              <Clock className="w-6 h-6 text-slate-400 dark:text-neutral-500 shrink-0" />
+              <Clock className="hidden sm:block w-6 h-6 text-slate-400 dark:text-neutral-500 shrink-0" />
             </Card>
           </div>
 
-          {/* List tabs: ทั้งหมด / ลูกค้าหายไป (G4) */}
-          <div className="flex items-center gap-2 border-b border-slate-200/80 dark:border-neutral-800 pb-1">
+          {/* List tabs: ทั้งหมด / ลูกค้าหายไป (Pill style on mobile) */}
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setListTab('all')}
-              className={`px-4 py-2 text-xs font-extrabold rounded-t-xl transition cursor-pointer ${
+              className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs font-extrabold rounded-xl transition cursor-pointer ${
                 listTab === 'all'
-                  ? 'bg-white dark:bg-neutral-900 text-red-600 dark:text-red-400 border border-b-0 border-slate-200/80 dark:border-neutral-800'
+                  ? 'bg-white dark:bg-neutral-900 text-red-600 dark:text-red-400 border border-slate-200/80 dark:border-neutral-800 shadow-xs'
                   : 'text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-neutral-200'
               }`}
             >
@@ -483,9 +516,9 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
             <button
               type="button"
               onClick={() => setListTab('dormant')}
-              className={`px-4 py-2 text-xs font-extrabold rounded-t-xl transition cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs font-extrabold rounded-xl transition cursor-pointer flex items-center gap-1.5 ${
                 listTab === 'dormant'
-                  ? 'bg-white dark:bg-neutral-900 text-red-600 dark:text-red-400 border border-b-0 border-slate-200/80 dark:border-neutral-800'
+                  ? 'bg-white dark:bg-neutral-900 text-red-600 dark:text-red-400 border border-slate-200/80 dark:border-neutral-800 shadow-xs'
                   : 'text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-neutral-200'
               }`}
             >
@@ -495,71 +528,82 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
           </div>
 
           {/* Search + filters + export */}
-          <div className="flex flex-col lg:flex-row lg:items-center gap-3">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-1 min-w-0">
-          <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-xl px-3.5 py-2.5 shadow-xs flex items-center gap-2.5 max-w-xs w-full">
-            <Search className="w-4 h-4 text-slate-400 dark:text-neutral-500 shrink-0" />
-            <input
-              type="text"
-              placeholder="ค้นหาตามชื่อ หรือ เบอร์โทร..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="w-full bg-transparent border-none text-xs font-semibold text-slate-800 dark:text-neutral-100 placeholder:text-slate-400 focus:outline-none"
-            />
-            {searchTerm && (
+          <div className="flex flex-col lg:flex-row lg:items-center gap-2.5 sm:gap-3">
+            {/* Search Input + Mobile Export Button */}
+            <div className="flex items-center gap-2 flex-1 min-w-0 sm:max-w-xs">
+              <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-xl px-3.5 py-2 sm:py-2.5 shadow-xs flex items-center gap-2.5 flex-1 min-w-0">
+                <Search className="w-4 h-4 text-slate-400 dark:text-neutral-500 shrink-0" />
+                <input
+                  type="text"
+                  placeholder="ค้นหาชื่อหรือเบอร์โทร..."
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  className="w-full bg-transparent border-none text-xs font-semibold text-slate-800 dark:text-neutral-100 placeholder:text-slate-400 focus:outline-none"
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-300 cursor-pointer shrink-0"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Mobile Export Button (icon only next to search) */}
               <button
-                onClick={() => setSearchTerm('')}
-                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-300 cursor-pointer shrink-0"
+                type="button"
+                onClick={exportFilteredMembers}
+                disabled={filteredMembers.length === 0}
+                className="sm:hidden h-10 w-10 shrink-0 flex items-center justify-center bg-white dark:bg-neutral-900 hover:bg-slate-50 dark:hover:bg-neutral-800 border border-slate-200/80 dark:border-neutral-800 text-slate-700 dark:text-neutral-200 rounded-xl transition cursor-pointer shadow-xs active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
+                title={`ส่งออกรายชื่อ (${filteredMembers.length})`}
               >
-                <X className="w-3.5 h-3.5" />
+                <Download className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Filter Dropdowns (2 columns grid on mobile) */}
+            {listTab === 'dormant' ? (
+              <div className="w-full sm:w-44 shrink-0">
+                <CustomSelect
+                  value={String(dormantDaysMin)}
+                  onChange={val => setDormantDaysMin(Number(val) as 30 | 60 | 90)}
+                  options={dormantDaysOptions}
+                  placeholder="หายไป: ≥30 วัน"
+                />
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:w-auto">
+                <div className="w-full sm:w-40 shrink-0">
+                  <CustomSelect
+                    value={tagFilter}
+                    onChange={val => setTagFilter(val as 'all' | MemberTagCode)}
+                    options={tagFilterOptions}
+                    placeholder="ประเภท: ทั้งหมด"
+                  />
+                </div>
+                <div className="w-full sm:w-40 shrink-0">
+                  <CustomSelect
+                    value={rfmFilter}
+                    onChange={val => setRfmFilter(val as 'all' | RfmSegment)}
+                    options={rfmFilterOptions}
+                    placeholder="กลุ่ม: ทั้งหมด"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Desktop Export Button */}
+            {filteredMembers.length > 0 && (
+              <button
+                type="button"
+                onClick={exportFilteredMembers}
+                className="hidden sm:flex items-center justify-center gap-2 px-3.5 py-2.5 bg-white dark:bg-neutral-900 hover:bg-slate-50 dark:hover:bg-neutral-800 border border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-neutral-200 rounded-xl text-xs font-extrabold transition cursor-pointer shrink-0 lg:ml-auto shadow-xs active:scale-95"
+              >
+                <Download className="w-4 h-4" />
+                <span>ส่งออกรายชื่อ ({filteredMembers.length})</span>
               </button>
             )}
-          </div>
-
-          {listTab === 'dormant' ? (
-            <div className="w-full sm:w-40 shrink-0">
-              <CustomSelect
-                value={String(dormantDaysMin)}
-                onChange={val => setDormantDaysMin(Number(val) as 30 | 60 | 90)}
-                options={DORMANT_DAYS_OPTIONS.map(opt => ({
-                  value: String(opt.value),
-                  label: opt.label,
-                }))}
-                placeholder="หายไปกี่วัน"
-              />
-            </div>
-          ) : (
-            <>
-              <div className="w-full sm:w-40 shrink-0">
-                <CustomSelect
-                  value={tagFilter}
-                  onChange={val => setTagFilter(val as 'all' | MemberTagCode)}
-                  options={MEMBER_TAG_FILTER_OPTIONS}
-                  placeholder="ประเภทลูกค้า"
-                />
-              </div>
-              <div className="w-full sm:w-40 shrink-0">
-                <CustomSelect
-                  value={rfmFilter}
-                  onChange={val => setRfmFilter(val as 'all' | RfmSegment)}
-                  options={RFM_SEGMENT_FILTER_OPTIONS}
-                  placeholder="กลุ่มลูกค้า"
-                />
-              </div>
-            </>
-          )}
-          </div>
-
-          {filteredMembers.length > 0 && (
-            <button
-              type="button"
-              onClick={exportFilteredMembers}
-              className="flex items-center justify-center gap-2 px-3.5 py-2.5 bg-white dark:bg-neutral-900 hover:bg-slate-50 dark:hover:bg-neutral-800 border border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-neutral-200 rounded-xl text-xs font-extrabold transition cursor-pointer shrink-0 lg:ml-auto"
-            >
-              <Download className="w-4 h-4" />
-              ส่งออกรายชื่อ ({filteredMembers.length})
-            </button>
-          )}
           </div>
 
           {listTab === 'dormant' && onCreateWinbackPromo && (

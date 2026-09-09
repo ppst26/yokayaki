@@ -496,8 +496,8 @@ export const IngredientPurchaseManager: React.FC = () => {
         </button>
       </div>
 
-      {/* 2. Filter Bar: Search, Date Filter, Refresh (Single Row without Card) */}
-      <div className="flex items-center gap-2.5 w-full">
+      {/* 2. Filter Bar: Search, Date Filter (Single Row without Card) */}
+      <div className="flex items-center gap-2.5 w-full lg:w-[40%] lg:min-w-[340px]">
         {/* Search */}
         <div className="flex-1 min-w-[180px] relative flex items-center">
           <Search className="w-4 h-4 text-zinc-400 dark:text-zinc-500 absolute left-3.5 pointer-events-none" />

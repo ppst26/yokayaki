@@ -388,7 +388,7 @@ export const MenuManager: React.FC = () => {
       {/* Filters & Search */}
       <div className="flex flex-col gap-3">
         {/* Row 1: Search & Filter Dropdowns */}
-        <div className="flex w-full min-w-0 items-center gap-2 overflow-x-auto scrollbar-none">
+        <div className="flex w-full lg:w-[40%] lg:min-w-fit min-w-0 items-center gap-2 overflow-x-auto scrollbar-none">
           <div className="flex flex-1 min-w-[180px] shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
             <Search className="size-3.5 shrink-0 text-slate-400 dark:text-neutral-500" />
             <input

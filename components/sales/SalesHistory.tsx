@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { canReadSales } from '@/lib/permissions';
-import { RefreshCw, Banknote, CreditCard, ArrowLeftRight } from 'lucide-react';
+import { Banknote, CreditCard, ArrowLeftRight } from 'lucide-react';
 import { SalesSummaryCards } from './SalesSummaryCards';
 import { ClosedBillTable } from './ClosedBillTable';
 import { VoidLogsTable } from './VoidLogsTable';
@@ -284,14 +284,6 @@ export const SalesHistory: React.FC = () => {
     }
   };
 
-  const handleRefresh = async () => {
-    if (activeSubTab === 'sales') {
-      await fetchOrdersForRange(auditRange);
-    } else {
-      await fetchVoidLogsForRange(auditRange);
-    }
-  };
-
   const fetchOrderDetail = async (order: CompletedOrder) => {
     try {
       setDetailLoading(true);
@@ -409,14 +401,6 @@ export const SalesHistory: React.FC = () => {
               เมื่อวาน
             </button>
           </div>
-
-          <button
-            onClick={handleRefresh}
-            className="flex items-center gap-1.5 px-3 py-1.5 md:px-4 md:py-2 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-200 rounded-xl text-xs md:text-sm font-bold transition active:scale-95 shadow-xs cursor-pointer shrink-0"
-          >
-            <RefreshCw className="w-3.5 h-3.5 md:w-4 md:h-4" />
-            <span>รีเฟรชข้อมูล</span>
-          </button>
         </div>
       </div>
 
