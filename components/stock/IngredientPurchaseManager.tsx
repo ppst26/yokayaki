@@ -649,7 +649,7 @@ export const IngredientPurchaseManager: React.FC = () => {
                           </button>
                         </div>
                       </div>
-                      <Table>
+                      <Table className="text-[length:var(--manager-table-font)]">
                         <TableHeader>
                           <TableRow>
                             <TableHead>ชื่อวัตถุดิบ</TableHead>

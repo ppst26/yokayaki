@@ -6,7 +6,7 @@ import { IngredientPurchaseManager } from '@/components/stock/IngredientPurchase
 
 export const StockManager: React.FC = () => {
   return (
-    <div className="w-full text-zinc-800 dark:text-zinc-100 font-sans space-y-6">
+    <div className="w-full text-zinc-800 dark:text-zinc-100 font-sans space-y-[var(--space-section)]">
       {/* Page Title & Subtitle */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="w-[50%]">
