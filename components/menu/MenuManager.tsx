@@ -341,7 +341,7 @@ export const MenuManager: React.FC = () => {
   );
 
   return (
-    <div className="w-full text-slate-800 dark:text-neutral-100 font-sans space-y-6">
+    <div className="w-full text-slate-800 dark:text-neutral-100 font-sans space-y-[var(--space-section)]">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="w-[50%]">
@@ -502,7 +502,7 @@ export const MenuManager: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          <Table containerClassName="-mx-4 md:mx-0 w-[calc(100%+2rem)] md:w-full rounded-none md:rounded-sm border-x-0 md:border-x">
+          <Table className="text-[length:var(--manager-table-font)]" containerClassName="-mx-4 md:mx-0 w-[calc(100%+2rem)] md:w-full rounded-none md:rounded-sm border-x-0 md:border-x">
             <TableHeader>
               <TableRow>
                 <TableHead>รูปภาพ</TableHead>
