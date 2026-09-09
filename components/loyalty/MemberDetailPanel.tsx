@@ -120,9 +120,9 @@ export const MemberDetailPanel: React.FC<MemberDetailPanelProps> = ({
 
   return (
     <Card className="overflow-hidden">
-      <div className="flex flex-col md:flex-row md:items-start">
+      <div className="flex flex-col xl:flex-row xl:items-start">
         {/* Sidebar — ข้อมูลลูกค้า */}
-        <aside className="md:w-[45%] lg:w-[40%] xl:w-[35%] shrink-0 border-b md:border-b-0 md:border-r border-slate-200/60 dark:border-neutral-800/80 p-6 md:p-6 lg:p-7 flex flex-col">
+        <aside className="w-full xl:w-[360px] 2xl:w-[400px] shrink-0 border-b xl:border-b-0 xl:border-r border-slate-200/60 dark:border-neutral-800/80 p-5 sm:p-6 xl:p-7 flex flex-col">
           <p className="text-xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500 mb-5">
             ข้อมูลลูกค้า
           </p>
@@ -263,7 +263,7 @@ export const MemberDetailPanel: React.FC<MemberDetailPanelProps> = ({
         </aside>
 
         {/* Main — ภาพรวม + RFM + ประวัติ */}
-        <div className="md:w-[55%] lg:w-[60%] xl:w-[65%] flex-1 min-w-0">
+        <div className="w-full xl:flex-1 min-w-0">
           {/* ภาพรวม */}
           <section className="border-b border-slate-200/60 dark:border-neutral-800/80 px-6 py-4">
             <p className="text-xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500 mb-4">
@@ -272,26 +272,26 @@ export const MemberDetailPanel: React.FC<MemberDetailPanelProps> = ({
             {loading ? (
               <div className="h-14 rounded-xl bg-slate-100/80 dark:bg-neutral-800/50 animate-pulse" />
             ) : (
-              <div className="grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-slate-200/60 dark:divide-neutral-800/80">
-                <div className="pb-4 lg:pb-0 lg:pr-5">
+              <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-200/60 dark:divide-neutral-800/80">
+                <div className="pb-4 sm:pb-0 sm:pr-5">
                   <p className="text-[11px] font-semibold text-slate-400 dark:text-neutral-500">ยอดใช้จ่ายรวม</p>
                   <p className="mt-1 text-xl font-black text-slate-900 dark:text-neutral-100">
                     {stats.lifetime_spend.toLocaleString()} <span className="text-sm font-bold">฿</span>
                   </p>
                 </div>
-                <div className="pt-4 pb-4 lg:py-0 lg:px-5">
+                <div className="pt-4 pb-4 sm:py-0 sm:px-5">
                   <p className="text-[11px] font-semibold text-slate-400 dark:text-neutral-500">ความถี่การมาใช้บริการ</p>
                   <p className="mt-1 text-xl font-black text-slate-900 dark:text-neutral-100">
                     {stats.visit_count.toLocaleString()} <span className="text-sm font-bold">ครั้ง</span>
                   </p>
                 </div>
-                <div className="pt-4 pb-4 lg:py-0 lg:px-5">
+                <div className="pt-4 pb-4 sm:py-0 sm:px-5">
                   <p className="text-[11px] font-semibold text-slate-400 dark:text-neutral-500">เฉลี่ยต่อบิล</p>
                   <p className="mt-1 text-xl font-black text-slate-900 dark:text-neutral-100">
                     {stats.avg_per_bill.toLocaleString()} <span className="text-sm font-bold">฿</span>
                   </p>
                 </div>
-                <div className="pt-4 lg:py-0 lg:pl-5">
+                <div className="pt-4 sm:py-0 sm:pl-5">
                   <p className="text-[11px] font-semibold text-slate-400 dark:text-neutral-500">มาครั้งล่าสุด</p>
                   <p className="mt-1 text-xl font-black text-slate-900 dark:text-neutral-100 leading-tight">
                     {lastVisitLabel}

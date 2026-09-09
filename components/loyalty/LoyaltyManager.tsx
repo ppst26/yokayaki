@@ -19,6 +19,7 @@ import {
   ChevronRight,
   TicketPercent,
   Download,
+  Database,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -422,15 +423,9 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
       {/* Main List View vs Detail View */}
       {!selectedMember ? (
         <>
-          {/* Summary Metric Cards */}
-          <div
-            className="grid"
-            style={{
-              gridTemplateColumns: 'repeat(var(--grid-cols-cards), 1fr)',
-              gap: 'var(--grid-gap)',
-            }}
-          >
-            <Card className="p-5 flex items-center justify-between">
+          {/* Summary Metric Cards - Left aligned, not fullwidth */}
+          <div className="flex flex-wrap items-stretch gap-3 sm:gap-4">
+            <Card className="p-4 sm:p-5 flex items-center justify-between gap-4 w-full sm:w-60 md:w-64 shrink-0">
               <div>
                 <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
                   สมาชิกในระบบทั้งหมด
@@ -442,39 +437,33 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
                   </span>
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-200 flex items-center justify-center font-bold">
-                <Users className="w-6 h-6" />
-              </div>
+              <Users className="w-6 h-6 text-slate-400 dark:text-neutral-500 shrink-0" />
             </Card>
 
-            <Card className="p-5 flex items-center justify-between">
+            <Card className="p-4 sm:p-5 flex items-center justify-between gap-4 w-full sm:w-60 md:w-64 shrink-0">
               <div>
                 <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
                   แต้มสะสมคงเหลือรวมทั้งระบบ
                 </span>
-                <p className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">
+                <p className="text-2xl font-black text-amber-500 dark:text-amber-400 mt-1">
                   {totalPointsInSystem.toLocaleString()}{' '}
-                  <span className="text-xs font-bold">แต้ม</span>
+                  <span className="text-xs font-bold text-slate-500 dark:text-neutral-400">แต้ม</span>
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
-                <Users className="w-6 h-6" />
-              </div>
+              <Database className="w-6 h-6 text-slate-400 dark:text-neutral-500 shrink-0" />
             </Card>
 
-            <Card className="p-5 flex items-center justify-between">
+            <Card className="p-4 sm:p-5 flex items-center justify-between gap-4 w-full sm:w-60 md:w-64 shrink-0">
               <div>
                 <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
                   ลูกค้าหายไป (≥30 วัน)
                 </span>
-                <p className="text-2xl font-black text-slate-600 dark:text-neutral-300 mt-1">
+                <p className="text-2xl font-black text-slate-900 dark:text-neutral-100 mt-1">
                   {dormantCount}{' '}
                   <span className="text-xs font-bold text-slate-500 dark:text-neutral-400">คน</span>
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 flex items-center justify-center font-bold">
-                <Clock className="w-6 h-6" />
-              </div>
+              <Clock className="w-6 h-6 text-slate-400 dark:text-neutral-500 shrink-0" />
             </Card>
           </div>
 
@@ -642,8 +631,8 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
                       onClick={() => openDetail(m)}
                     >
                       <TableCell>
-                        <div className="space-y-1">
-                          <span className="font-bold text-slate-900 dark:text-neutral-100 block">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-slate-900 dark:text-neutral-100">
                             {m.name}
                           </span>
                           <MemberTagChips
