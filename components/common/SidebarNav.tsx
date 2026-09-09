@@ -18,8 +18,8 @@ import {
   X,
   Sun,
   Moon,
-  PanelLeftClose,
-  PanelLeftOpen,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 const SIDEBAR_COLLAPSED_KEY = 'yokayaki_sidebar_collapsed';
@@ -513,31 +513,29 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
           padding: isSidebarCollapsed ? '0.75rem' : 'var(--sidebar-padding)',
         }}
       >
+        {/* Toggle Button docked on the sidebar edge */}
+        <button
+          type="button"
+          onClick={toggleSidebarCollapsed}
+          aria-label={isSidebarCollapsed ? 'ขยายเมนูด้านข้าง' : 'หุบเมนูด้านข้าง'}
+          title={isSidebarCollapsed ? 'ขยายเมนู' : 'หุบเมนู'}
+          className="absolute -right-3.5 top-1/2 -translate-y-1/2 z-30 flex h-7 w-7 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-500 shadow-md transition-all hover:bg-zinc-50 hover:text-zinc-800 hover:scale-110 active:scale-95 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-zinc-100 cursor-pointer before:absolute before:-inset-2 before:content-['']"
+        >
+          {isSidebarCollapsed ? (
+            <ChevronRight className="h-4 w-4" />
+          ) : (
+            <ChevronLeft className="h-4 w-4" />
+          )}
+        </button>
+
         <div>
-          <div
-            className={`mb-6 pb-4 border-b border-zinc-100 dark:border-zinc-800 ${
-              isSidebarCollapsed ? 'flex flex-col items-center gap-2' : 'flex items-start justify-between gap-2'
-            }`}
-          >
-            <div className="sidebar-brand-full min-w-0 flex-1">
+          <div className="mb-6 pb-4 border-b border-zinc-100 dark:border-zinc-800">
+            <div className="sidebar-brand-full min-w-0">
               <SidebarBrand theme={theme} />
             </div>
             <div className="sidebar-brand-compact">
               <SidebarBrand theme={theme} size="compact" />
             </div>
-            <button
-              type="button"
-              onClick={toggleSidebarCollapsed}
-              className="shrink-0 rounded-lg p-1.5 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 cursor-pointer"
-              aria-label={isSidebarCollapsed ? 'ขยายเมนูด้านข้าง' : 'หุบเมนูด้านข้าง'}
-              title={isSidebarCollapsed ? 'ขยายเมนู' : 'หุบเมนู'}
-            >
-              {isSidebarCollapsed ? (
-                <PanelLeftOpen className="h-4.5 w-4.5" />
-              ) : (
-                <PanelLeftClose className="h-4.5 w-4.5" />
-              )}
-            </button>
           </div>
 
           <nav className="space-y-1">
