@@ -86,13 +86,17 @@ export const CartPanel: React.FC<CartPanelProps> = ({
     }
   };
 
+  const showCartContent = mobileCartExpanded || isFullScreen;
+
   const getContainerStyle = () => {
     const base =
       'app-card flex flex-col overflow-hidden transition-all duration-300 ease-out';
     if (isFullScreen) {
-      return `fixed inset-0 z-50 w-full h-full max-h-screen !rounded-none ${base}`;
+      return `fixed inset-0 z-50 w-full h-full max-h-dvh !rounded-none ${base}`;
     }
-    return `fixed bottom-0 left-0 right-0 z-40 rounded-t-3xl ${base} lg:static lg:h-auto lg:min-h-0 lg:w-[380px] lg:shrink-0 lg:self-stretch lg:!rounded-none lg:!border-t-0 lg:!border-r-0 lg:!border-b-0 lg:!shadow-none`;
+    const mobileExpanded =
+      mobileCartExpanded ? 'z-50 max-h-[50dvh]' : 'z-40 max-h-none';
+    return `fixed bottom-16 left-0 right-0 ${mobileExpanded} rounded-t-3xl ${base} lg:static lg:bottom-auto lg:z-auto lg:max-h-none lg:h-auto lg:min-h-0 lg:w-[380px] lg:shrink-0 lg:self-stretch lg:!rounded-none lg:!border-t-0 lg:!border-r-0 lg:!border-b-0 lg:!shadow-none`;
   };
 
   return (
@@ -154,11 +158,11 @@ export const CartPanel: React.FC<CartPanelProps> = ({
         </div>
       </div>
 
-      {/* Cart Body: header + list + footer ล็อกที่ขอบ */}
+      {/* Cart Body: header + list + footer ล็อกใน panel */}
       <div
         className={`${
-          mobileCartExpanded || isFullScreen ? 'flex' : 'hidden lg:flex'
-        } min-h-0 flex-1 flex-col ${mobileCartExpanded && !isFullScreen ? 'max-h-[65vh]' : ''}`}
+          showCartContent ? 'flex' : 'hidden lg:flex'
+        } min-h-0 flex-1 flex-col`}
       >
         <div className="shrink-0 px-4 pt-4 sm:px-5 sm:pt-5">
           <h2 className="text-cart-section flex items-center justify-between">
@@ -295,23 +299,23 @@ export const CartPanel: React.FC<CartPanelProps> = ({
             </div>
           )}
         </div>
-      </div>
 
-      <div className="mt-auto shrink-0 border-t border-white/8 p-4 dark:border-white/8">
-        <button
-          onClick={submitOrder}
-          disabled={isSubmitting || cart.length === 0}
-          className="w-full py-3.5 btn-crimson disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-sm sm:text-base rounded-xl shadow-md shadow-red-600/20 transition active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
-        >
-          {isSubmitting ? (
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <>
-              <ShoppingBag className="w-4 h-4" />
-              <span>ส่งเข้าครัว ({cartTotal.toLocaleString()} ฿)</span>
-            </>
-          )}
-        </button>
+        <div className="shrink-0 border-t border-white/8 p-4 dark:border-white/8">
+          <button
+            onClick={submitOrder}
+            disabled={isSubmitting || cart.length === 0}
+            className="w-full py-3.5 btn-crimson disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-sm sm:text-base rounded-xl shadow-md shadow-red-600/20 transition active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
+          >
+            {isSubmitting ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <ShoppingBag className="w-4 h-4" />
+                <span>ส่งเข้าครัว ({cartTotal.toLocaleString()} ฿)</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );
