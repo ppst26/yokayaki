@@ -293,25 +293,51 @@ export const EmployeeManager: React.FC = () => {
         </button>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-3 gap-4">
-        <Card className="p-4">
-          <p className="text-card-label">พนักงานทั้งหมด</p>
-          <p className="text-card-value mt-1">{employees.length}</p>
-        </Card>
-        <Card className="p-4">
-          <div className="flex items-center gap-1.5">
-            <Shield className="w-4 h-4 text-red-500" />
-            <p className="text-card-label">เจ้าของร้าน</p>
+      {/* Summary Cards - Left aligned, not fullwidth */}
+      <div className="flex flex-wrap items-stretch gap-3 sm:gap-4">
+        <Card className="p-4 sm:p-5 flex items-center justify-between gap-4 w-full sm:w-60 md:w-64 shrink-0">
+          <div>
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+              พนักงานทั้งหมด
+            </span>
+            <p className="text-2xl font-black text-slate-900 dark:text-neutral-100 mt-1">
+              {employees.length}{' '}
+              <span className="text-xs font-bold text-slate-500 dark:text-neutral-400">
+                คน
+              </span>
+            </p>
           </div>
-          <p className="text-2xl font-black text-red-600 dark:text-red-400 mt-1">{ownerCount}</p>
+          <Users className="w-6 h-6 text-slate-400 dark:text-neutral-500 shrink-0" />
         </Card>
-        <Card className="p-4">
-          <div className="flex items-center gap-1.5">
-            <User className="w-4 h-4 text-slate-400" />
-            <p className="text-card-label">ผู้จัดการ</p>
+
+        <Card className="p-4 sm:p-5 flex items-center justify-between gap-4 w-full sm:w-60 md:w-64 shrink-0">
+          <div>
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+              เจ้าของร้าน
+            </span>
+            <p className="text-2xl font-black text-red-500 dark:text-red-400 mt-1">
+              {ownerCount}{' '}
+              <span className="text-xs font-bold text-slate-500 dark:text-neutral-400">
+                คน
+              </span>
+            </p>
           </div>
-          <p className="text-2xl font-black text-slate-700 dark:text-neutral-300 mt-1">{managerCount}</p>
+          <Shield className="w-6 h-6 text-slate-400 dark:text-neutral-500 shrink-0" />
+        </Card>
+
+        <Card className="p-4 sm:p-5 flex items-center justify-between gap-4 w-full sm:w-60 md:w-64 shrink-0">
+          <div>
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+              ผู้จัดการ
+            </span>
+            <p className="text-2xl font-black text-slate-900 dark:text-neutral-100 mt-1">
+              {managerCount}{' '}
+              <span className="text-xs font-bold text-slate-500 dark:text-neutral-400">
+                คน
+              </span>
+            </p>
+          </div>
+          <User className="w-6 h-6 text-slate-400 dark:text-neutral-500 shrink-0" />
         </Card>
       </div>
 

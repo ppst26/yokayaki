@@ -527,23 +527,37 @@ export default function CustomerOrderPortal() {
                     <div 
                       key={promo.id} 
                       onClick={() => setActiveTab('promotions')}
-                      className="app-card app-card--compact min-w-[240px] max-w-[260px] shrink-0 cursor-pointer p-3.5 shadow-xs transition hover:opacity-95"
+                      className="app-card app-card--compact min-w-[210px] max-w-[230px] shrink-0 cursor-pointer p-3 shadow-xs transition hover:opacity-95 flex flex-col justify-between"
                     >
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="px-2 py-0.5 bg-red-50 border border-red-200 text-red-600 rounded-lg text-[10px] font-black">
+                      <div className="w-full aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-800/80 relative mb-2.5 shrink-0 flex items-center justify-center">
+                        <div className="absolute inset-0 flex items-center justify-center text-neutral-600">
+                          <Tag className="w-10 h-10 opacity-30 text-red-500" />
+                        </div>
+                        {promo.image_url && (
+                          <img 
+                            src={promo.image_url} 
+                            alt={promo.name} 
+                            className="w-full h-full object-cover relative z-1"
+                            onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                          />
+                        )}
+                        <span className="absolute top-2 left-2 z-2 px-2 py-0.5 bg-red-600/95 text-white rounded-md text-[10px] font-black shadow-xs">
                           {promo.type === 'percentage' ? `ลด ${promo.discount_percent}%` : promo.type === 'fixed' ? `ลด ฿${promo.discount_amount}` : 'ซื้อ 2 แถม 1'}
                         </span>
                         {promo.start_time && (
-                          <span className="text-[10px] text-neutral-500 font-semibold flex items-center gap-0.5">
-                            <Clock className="w-3 h-3" />
+                          <span className="absolute bottom-2 left-2 z-2 px-1.5 py-0.5 bg-black/75 backdrop-blur-xs text-[9px] text-neutral-200 font-semibold rounded-md flex items-center gap-1 shadow-xs">
+                            <Clock className="w-2.5 h-2.5" />
                             {promo.start_time.substring(0, 5)} - {promo.end_time?.substring(0, 5)}
                           </span>
                         )}
                       </div>
-                      <h4 className="font-bold text-xs text-neutral-100 truncate">{promo.name}</h4>
-                      <p className="text-[11px] text-neutral-400 mt-1 line-clamp-2 leading-relaxed">
-                        {getPromoShortDesc(promo)}
-                      </p>
+
+                      <div>
+                        <h4 className="font-bold text-xs text-neutral-100 truncate">{promo.name}</h4>
+                        <p className="text-[11px] text-neutral-400 mt-1 line-clamp-2 leading-relaxed">
+                          {getPromoShortDesc(promo)}
+                        </p>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -866,16 +880,19 @@ export default function CustomerOrderPortal() {
                       )}
                     </div>
 
-                    {promo.image_url && (
-                      <div className="w-full h-36 rounded-2xl overflow-hidden bg-neutral-800 border border-neutral-800">
+                    <div className="w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-800 relative flex items-center justify-center">
+                      <div className="absolute inset-0 flex items-center justify-center text-neutral-600">
+                        <Tag className="w-16 h-16 opacity-30 text-red-500" />
+                      </div>
+                      {promo.image_url && (
                         <img 
                           src={promo.image_url} 
                           alt={promo.name} 
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover relative z-1"
                           onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
                         />
-                      </div>
-                    )}
+                      )}
+                    </div>
 
                     <p className="app-card app-card--compact rounded-xl p-3 text-xs leading-relaxed text-neutral-300">
                       {getPromoShortDesc(promo)}
@@ -1082,7 +1099,17 @@ export default function CustomerOrderPortal() {
       )}
 
       {/* Fixed Bottom Navigation Bar */}
-      <nav className="app-surface-bar fixed bottom-0 inset-x-0 z-40 border-t px-3 py-2 shadow-lg backdrop-blur-md">
+      <nav className="app-surface-bar fixed bottom-0 inset-x-0 z-40 border-t border-zinc-200/80 dark:border-zinc-800 px-3 py-1.5 shadow-lg backdrop-blur-md">
+        {/* SVG Gradient Definition for Bottom Nav Active Icons */}
+        <svg width="0" height="0" className="absolute w-0 h-0 overflow-hidden pointer-events-none" aria-hidden="true">
+          <defs>
+            <linearGradient id="customer-bottom-nav-icon-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#f87171" />
+              <stop offset="50%" stopColor="#ef4444" />
+              <stop offset="100%" stopColor="#b91c1c" />
+            </linearGradient>
+          </defs>
+        </svg>
         <div className="max-w-md mx-auto flex items-center justify-around">
           {[
             { id: 'home', label: 'หน้าหลัก', icon: Home },
@@ -1095,20 +1122,27 @@ export default function CustomerOrderPortal() {
             return (
               <button
                 key={tab.id}
+                type="button"
                 onClick={() => setActiveTab(tab.id as CustomerTab)}
-                className={`relative flex cursor-pointer flex-col items-center justify-center rounded-xl px-3 py-1 transition-all ${
-                  isActive ? 'nav-active font-bold text-white' : 'font-medium text-neutral-500 hover:text-neutral-300'
+                className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
+                  isActive
+                    ? 'text-red-600 dark:text-red-400 font-bold'
+                    : 'text-zinc-500 dark:text-zinc-400 font-bold hover:text-zinc-800 dark:hover:text-zinc-200'
                 }`}
               >
-                <div className="relative">
-                  <Icon className={`w-5 h-5 ${isActive ? 'scale-110' : ''}`} />
-                  {tab.badge ? tab.badge > 0 ? (
-                    <span className="absolute -top-1.5 -right-2.5 bg-red-600 text-white text-[9px] font-black px-1 min-w-[16px] h-4 rounded-full flex items-center justify-center animate-pulse">
+                <div className="p-1.5 rounded-xl relative flex items-center justify-center">
+                  <Icon
+                    className="w-5 h-5 stroke-[2.2]"
+                    stroke={isActive ? 'url(#customer-bottom-nav-icon-gradient)' : 'currentColor'}
+                    style={{ stroke: isActive ? 'url(#customer-bottom-nav-icon-gradient)' : undefined }}
+                  />
+                  {tab.badge && tab.badge > 0 ? (
+                    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-black min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center animate-pulse">
                       {tab.badge}
                     </span>
-                  ) : null : null}
+                  ) : null}
                 </div>
-                <span className="text-[11px] mt-1 tracking-tight">{tab.label}</span>
+                <span className="text-xs mt-0.5 leading-none font-bold">{tab.label}</span>
               </button>
             );
           })}
