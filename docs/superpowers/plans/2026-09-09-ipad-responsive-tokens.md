@@ -161,7 +161,7 @@ git commit -m "feat(tokens): add iPad breakpoint and custom media queries
       
       /* Grid */
       --grid-cols-menu: 2;        /* Keep 2 (sidebar takes space) */
-      --grid-cols-table: 3;       /* 3 table cards fit well */
+      --grid-cols-table: 2;       /* 2 table cards fit well on tablet */
       --grid-cols-cards: 2;       /* 2-column stat cards */
       --grid-gap: 1rem;
       --grid-gap-lg: 1.25rem;
@@ -182,7 +182,7 @@ git commit -m "feat(tokens): add iPad breakpoint and custom media queries
       
       /* Grid */
       --grid-cols-menu: 3;        /* 3 menu items per row */
-      --grid-cols-table: 3;       /* Keep 3 (good balance) */
+      --grid-cols-table: 2;       /* 2 table cards on tablet */
       --grid-cols-cards: 2;       /* Keep 2 (card width ideal) */
       --grid-gap: 1.25rem;
       --grid-gap-lg: 1.5rem;
