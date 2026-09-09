@@ -568,7 +568,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNu
   }
 
   return (
-    <div className="w-full text-slate-800 dark:text-neutral-100 font-sans pb-8">
+    <div className="w-full text-slate-800 dark:text-neutral-100 font-sans pb-32 md:pb-16 lg:pb-8">
       <div className="w-full">
         {/* Header */}
         <header className="flex items-center gap-4 mb-8">
