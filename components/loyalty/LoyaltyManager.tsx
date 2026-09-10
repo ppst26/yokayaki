@@ -24,6 +24,7 @@ import {
 import { Card } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { CustomSelect } from '@/components/ui/select';
+import { SearchInput } from '@/components/ui/search-input';
 import { TablePagination } from '@/components/ui/pagination';
 import { MemberDetailPanel } from './MemberDetailPanel';
 import { PointsHistoryModal } from './PointsHistoryModal';
@@ -531,31 +532,19 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
           <div className="flex flex-col lg:flex-row lg:items-center gap-2.5 sm:gap-3">
             {/* Search Input + Mobile Export Button */}
             <div className="flex items-center gap-2 flex-1 min-w-0 sm:max-w-xs">
-              <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-xl px-3.5 py-2 sm:py-2.5 shadow-xs flex items-center gap-2.5 flex-1 min-w-0">
-                <Search className="w-4 h-4 text-slate-400 dark:text-neutral-500 shrink-0" />
-                <input
-                  type="text"
-                  placeholder="ค้นหาชื่อหรือเบอร์โทร..."
-                  value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
-                  className="w-full bg-transparent border-none text-xs font-semibold text-slate-800 dark:text-neutral-100 placeholder:text-slate-400 focus:outline-none"
-                />
-                {searchTerm && (
-                  <button
-                    onClick={() => setSearchTerm('')}
-                    className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-300 cursor-pointer shrink-0"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
+              <SearchInput
+                placeholder="ค้นหาชื่อหรือเบอร์โทร..."
+                value={searchTerm}
+                onChange={setSearchTerm}
+                className="flex-1 min-w-0"
+              />
 
               {/* Mobile Export Button (icon only next to search) */}
               <button
                 type="button"
                 onClick={exportFilteredMembers}
                 disabled={filteredMembers.length === 0}
-                className="sm:hidden h-10 w-10 shrink-0 flex items-center justify-center bg-white dark:bg-neutral-900 hover:bg-slate-50 dark:hover:bg-neutral-800 border border-slate-200/80 dark:border-neutral-800 text-slate-700 dark:text-neutral-200 rounded-xl transition cursor-pointer shadow-xs active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
+                className="sm:hidden h-10 w-10 shrink-0 flex items-center justify-center bg-white dark:bg-zinc-800/90 hover:bg-slate-50 dark:hover:bg-zinc-800 border border-slate-300 hover:border-slate-400 dark:border-zinc-700/80 dark:hover:border-zinc-600 text-slate-700 dark:text-zinc-200 rounded-xl transition cursor-pointer shadow-xs active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
                 title={`ส่งออกรายชื่อ (${filteredMembers.length})`}
               >
                 <Download className="w-4 h-4" />
@@ -598,7 +587,7 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
               <button
                 type="button"
                 onClick={exportFilteredMembers}
-                className="hidden sm:flex items-center justify-center gap-2 px-3.5 py-2.5 bg-white dark:bg-neutral-900 hover:bg-slate-50 dark:hover:bg-neutral-800 border border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-neutral-200 rounded-xl text-xs font-extrabold transition cursor-pointer shrink-0 lg:ml-auto shadow-xs active:scale-95"
+                className="hidden sm:flex items-center justify-center gap-2 h-10 px-3.5 bg-white dark:bg-zinc-800/90 hover:bg-slate-50 dark:hover:bg-zinc-800 border border-slate-300 hover:border-slate-400 dark:border-zinc-700/80 dark:hover:border-zinc-600 text-slate-700 dark:text-zinc-200 rounded-xl text-xs font-extrabold transition cursor-pointer shrink-0 lg:ml-auto shadow-xs active:scale-95"
               >
                 <Download className="w-4 h-4" />
                 <span>ส่งออกรายชื่อ ({filteredMembers.length})</span>
