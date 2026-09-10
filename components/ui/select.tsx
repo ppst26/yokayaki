@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown, Search, X, Check, Plus } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export interface SelectOption {
   label: string;
@@ -141,7 +142,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   );
 
   return (
-    <div ref={containerRef} className={`relative w-full ${className}`}>
+    <div ref={containerRef} className={cn("relative w-full", className)}>
       {/* Trigger Button */}
       <button
         ref={triggerRef}

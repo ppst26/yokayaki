@@ -385,12 +385,12 @@ export const MenuManager: React.FC = () => {
       {/* Filters & Search */}
       <div className="flex flex-col gap-3">
         {/* Row 1: Search & Filter Dropdowns */}
-        <div className="flex w-full lg:w-auto min-w-0 items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none">
+        <div className="flex w-full min-w-0 items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none">
           <SearchInput
             placeholder="ค้นหาชื่อเมนู..."
             value={searchTerm}
             onChange={setSearchTerm}
-            className="flex-1 min-w-[140px] sm:w-52 sm:flex-none shrink-0"
+            className="w-44 sm:w-52 shrink-0"
           />
 
           <CustomSelect
@@ -400,7 +400,7 @@ export const MenuManager: React.FC = () => {
             onChange={val => setFilterStock(val as StockFilter)}
             options={STOCK_FILTER_OPTIONS}
             searchable={false}
-            className="w-auto min-w-[95px] shrink-0"
+            className="w-28 shrink-0"
           />
 
           <CustomSelect
@@ -410,7 +410,7 @@ export const MenuManager: React.FC = () => {
             onChange={val => setSortBy(val as SortOption)}
             options={SORT_OPTIONS}
             searchable={false}
-            className="w-auto min-w-[105px] shrink-0"
+            className="w-32 shrink-0"
           />
 
           <CustomSelect
@@ -420,7 +420,7 @@ export const MenuManager: React.FC = () => {
             onChange={val => setFilterHappyHour(val as HappyHourFilter)}
             options={HAPPY_HOUR_FILTER_OPTIONS}
             searchable={false}
-            className="w-auto min-w-[78px] shrink-0"
+            className="w-24 shrink-0"
           />
 
           <CustomSelect
@@ -430,7 +430,7 @@ export const MenuManager: React.FC = () => {
             onChange={val => setFilterImage(val as ImageFilter)}
             options={IMAGE_FILTER_OPTIONS}
             searchable={false}
-            className="w-auto min-w-[78px] shrink-0"
+            className="w-24 shrink-0"
           />
 
           {hasActiveFilters && (
