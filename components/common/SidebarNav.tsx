@@ -126,6 +126,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
   }, []);
 
   useEffect(() => {
+    document.documentElement.dataset.staffShell = '';
     const saved = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
     const isCollapsed = saved === 'true';
     if (isCollapsed) {
@@ -134,6 +135,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
     } else {
       document.documentElement.style.setProperty('--current-sidebar-width', 'var(--sidebar-width)');
     }
+    return () => {
+      delete document.documentElement.dataset.staffShell;
+    };
   }, []);
 
   const toggleSidebarCollapsed = () => {

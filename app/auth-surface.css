@@ -82,6 +82,19 @@
   -webkit-backdrop-filter: blur(36px);
 }
 
+/* Tablet+ staff layout: backdrop จำกัดอยู่ใน content area ไม่ทับ sidebar */
+@media (min-width: 768px) {
+  html[data-staff-shell] .app-dialog-backdrop {
+    left: var(--current-sidebar-width, var(--sidebar-width));
+    transition: left 200ms ease-out;
+  }
+
+  html[data-staff-shell] .app-dialog-backdrop .app-dialog {
+    max-width: min(32rem, calc(100% - 2rem));
+    max-height: min(90dvh, calc(100dvh - 2rem));
+  }
+}
+
 .app-dialog--sheet,
 [data-slot="card"][data-card-shape="sheet"] {
   border-radius: 24px 24px 0 0;

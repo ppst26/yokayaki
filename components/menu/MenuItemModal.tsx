@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Loader2, ChevronDown } from 'lucide-react';
 import { CustomSelect } from '@/components/ui/select';
 import { ImageUploadField } from '@/components/ui/ImageUploadField';
@@ -127,9 +128,10 @@ export const MenuItemModal: React.FC<MenuItemModalProps> = ({
 }) => {
   if (!showFormModal) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 app-dialog-backdrop">
-      <div className="app-dialog w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto space-y-4">
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 py-6 app-dialog-backdrop">
+      <div className="app-dialog flex w-full max-w-lg max-h-full flex-col overflow-hidden p-6 shadow-xl">
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-black text-slate-900 dark:text-neutral-100">
             {editingItem ? 'แก้ไขเมนูอาหาร' : 'เพิ่มเมนูอาหารใหม่'}
@@ -283,7 +285,7 @@ export const MenuItemModal: React.FC<MenuItemModalProps> = ({
             />
           </div>
 
-          <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-neutral-800">
+          <div className="flex shrink-0 gap-3 border-t border-slate-100 pt-4 dark:border-neutral-800">
             <button
               type="button"
               onClick={() => setShowFormModal(false)}
@@ -304,7 +306,9 @@ export const MenuItemModal: React.FC<MenuItemModalProps> = ({
             </button>
           </div>
         </form>
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
