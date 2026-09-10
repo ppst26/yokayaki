@@ -85,7 +85,8 @@
 /* Tablet+ staff layout: backdrop จำกัดอยู่ใน content area ไม่ทับ sidebar */
 @media (min-width: 768px) {
   html[data-staff-shell] .app-dialog-backdrop {
-    left: var(--current-sidebar-width, var(--sidebar-width));
+    /* เว้นที่ปุ่ม collapse ที่ยื่นออกจาก sidebar (~0.875rem) */
+    left: calc(var(--current-sidebar-width, var(--sidebar-width)) + 0.875rem);
     transition: left 200ms ease-out;
   }
 

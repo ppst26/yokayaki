@@ -547,7 +547,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
       {/* Desktop Left Sidebar Navigation */}
       <aside
         data-sidebar-collapsed={isSidebarCollapsed || undefined}
-        className="relative z-20 hidden md:flex shrink-0 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 flex-col justify-between shadow-sm sticky top-0 h-screen transition-[width,padding] duration-200 ease-out"
+        className="relative z-[70] hidden md:flex shrink-0 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 flex-col justify-between shadow-sm sticky top-0 h-screen transition-[width,padding] duration-200 ease-out"
         style={{
           width: isSidebarCollapsed ? 'var(--sidebar-width-collapsed)' : 'var(--sidebar-width)',
           padding: isSidebarCollapsed ? '0.75rem' : 'var(--sidebar-padding)',
