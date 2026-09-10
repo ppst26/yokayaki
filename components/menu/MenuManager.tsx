@@ -20,6 +20,7 @@ import {
 import { Card } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { CustomSelect, SelectOption } from '@/components/ui/select';
+import { SearchInput } from '@/components/ui/search-input';
 import { TablePagination } from '@/components/ui/pagination';
 import { deleteOldImage } from '@/lib/deleteOldImage';
 import { MenuItemModal } from './MenuItemModal';
@@ -111,10 +112,6 @@ export const MenuManager: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [previousImageUrl, setPreviousImageUrl] = useState<string | null>(null);
 
-  const stockFilterAnchorRef = useRef<HTMLDivElement>(null);
-  const sortFilterAnchorRef = useRef<HTMLDivElement>(null);
-  const happyHourFilterAnchorRef = useRef<HTMLDivElement>(null);
-  const imageFilterAnchorRef = useRef<HTMLDivElement>(null);
   const categoryScrollRef = useRef<HTMLDivElement>(null);
 
   const handleScrollCategoryRight = () => {
@@ -389,87 +386,55 @@ export const MenuManager: React.FC = () => {
       <div className="flex flex-col gap-3">
         {/* Row 1: Search & Filter Dropdowns */}
         <div className="flex w-full lg:w-[40%] lg:min-w-fit min-w-0 items-center gap-2 overflow-x-auto scrollbar-none">
-          <div className="flex flex-1 min-w-[180px] shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
-            <Search className="size-3.5 shrink-0 text-slate-400 dark:text-neutral-500" />
-            <input
-              type="text"
-              placeholder="ค้นหาชื่อเมนู..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="min-w-0 w-full border-none bg-transparent text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none dark:text-neutral-100"
-            />
-          </div>
+          <SearchInput
+            placeholder="ค้นหาชื่อเมนู..."
+            value={searchTerm}
+            onChange={setSearchTerm}
+            className="flex-1 min-w-[180px] shrink-0"
+          />
 
-          <div
-            ref={stockFilterAnchorRef}
-            className="flex shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 dark:border-neutral-800 dark:bg-neutral-900"
-          >
-            <span className="shrink-0 text-xs font-extrabold text-slate-600 dark:text-neutral-300">สต็อก:</span>
-            <CustomSelect
-              value={filterStock}
-              onChange={val => setFilterStock(val as StockFilter)}
-              options={STOCK_FILTER_OPTIONS}
-              searchable={false}
-              menuAnchorRef={stockFilterAnchorRef}
-              className="w-27"
-              triggerClassName="flex w-full min-w-0 items-center justify-between gap-1 border-none bg-transparent px-0 py-0 text-xs font-semibold text-slate-800 shadow-none focus:outline-none dark:text-neutral-100 cursor-pointer"
-            />
-          </div>
+          <CustomSelect
+            prefixLabel="สต็อก:"
+            value={filterStock}
+            onChange={val => setFilterStock(val as StockFilter)}
+            options={STOCK_FILTER_OPTIONS}
+            searchable={false}
+            className="w-auto min-w-[130px] shrink-0"
+          />
 
-          <div
-            ref={sortFilterAnchorRef}
-            className="flex shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 dark:border-neutral-800 dark:bg-neutral-900"
-          >
-            <span className="shrink-0 text-xs font-extrabold text-slate-600 dark:text-neutral-300">จัดเรียง:</span>
-            <CustomSelect
-              value={sortBy}
-              onChange={val => setSortBy(val as SortOption)}
-              options={SORT_OPTIONS}
-              searchable={false}
-              menuAnchorRef={sortFilterAnchorRef}
-              className="w-30"
-              triggerClassName="flex w-full min-w-0 items-center justify-between gap-1 border-none bg-transparent px-0 py-0 text-xs font-semibold text-slate-800 shadow-none focus:outline-none dark:text-neutral-100 cursor-pointer"
-            />
-          </div>
+          <CustomSelect
+            prefixLabel="จัดเรียง:"
+            value={sortBy}
+            onChange={val => setSortBy(val as SortOption)}
+            options={SORT_OPTIONS}
+            searchable={false}
+            className="w-auto min-w-[155px] shrink-0"
+          />
 
-          <div
-            ref={happyHourFilterAnchorRef}
-            className="flex shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 dark:border-neutral-800 dark:bg-neutral-900"
-          >
-            <span className="shrink-0 text-xs font-extrabold text-slate-600 dark:text-neutral-300">HH:</span>
-            <CustomSelect
-              value={filterHappyHour}
-              onChange={val => setFilterHappyHour(val as HappyHourFilter)}
-              options={HAPPY_HOUR_FILTER_OPTIONS}
-              searchable={false}
-              menuAnchorRef={happyHourFilterAnchorRef}
-              className="w-25"
-              triggerClassName="flex w-full min-w-0 items-center justify-between gap-1 border-none bg-transparent px-0 py-0 text-xs font-semibold text-slate-800 shadow-none focus:outline-none dark:text-neutral-100 cursor-pointer"
-            />
-          </div>
+          <CustomSelect
+            prefixLabel="HH:"
+            value={filterHappyHour}
+            onChange={val => setFilterHappyHour(val as HappyHourFilter)}
+            options={HAPPY_HOUR_FILTER_OPTIONS}
+            searchable={false}
+            className="w-auto min-w-[115px] shrink-0"
+          />
 
-          <div
-            ref={imageFilterAnchorRef}
-            className="flex shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 dark:border-neutral-800 dark:bg-neutral-900"
-          >
-            <span className="shrink-0 text-xs font-extrabold text-slate-600 dark:text-neutral-300">รูป:</span>
-            <CustomSelect
-              value={filterImage}
-              onChange={val => setFilterImage(val as ImageFilter)}
-              options={IMAGE_FILTER_OPTIONS}
-              searchable={false}
-              menuAnchorRef={imageFilterAnchorRef}
-              className="w-24"
-              triggerClassName="flex w-full min-w-0 items-center justify-between gap-1 border-none bg-transparent px-0 py-0 text-xs font-semibold text-slate-800 shadow-none focus:outline-none dark:text-neutral-100 cursor-pointer"
-            />
-          </div>
+          <CustomSelect
+            prefixLabel="รูป:"
+            value={filterImage}
+            onChange={val => setFilterImage(val as ImageFilter)}
+            options={IMAGE_FILTER_OPTIONS}
+            searchable={false}
+            className="w-auto min-w-[115px] shrink-0"
+          />
 
           {hasActiveFilters && (
             <button
               onClick={clearAllFilters}
-              className="inline-flex shrink-0 items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-bold text-slate-600 transition hover:bg-slate-100 cursor-pointer dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+              className="inline-flex h-10 shrink-0 items-center gap-1 rounded-xl border border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 px-3 text-xs font-bold text-slate-700 transition cursor-pointer dark:border-zinc-700/80 dark:hover:border-zinc-600 dark:bg-zinc-800/90 dark:text-zinc-200 shadow-xs"
             >
-              <SlidersHorizontal className="size-3" />
+              <SlidersHorizontal className="size-3.5" />
               <span>ล้าง</span>
             </button>
           )}
