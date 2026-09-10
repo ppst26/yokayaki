@@ -48,15 +48,15 @@ type HappyHourFilter = 'all' | 'yes' | 'no';
 type ImageFilter = 'all' | 'yes' | 'no';
 
 const STOCK_FILTER_OPTIONS: SelectOption[] = [
-  { label: 'ทั้งหมด', value: 'all' },
-  { label: 'ติดตามสต็อก', value: 'tracked' },
-  { label: 'ไม่ติดตามสต็อก', value: 'untracked' },
-  { label: `สต็อกต่ำ (≤${STOCK_LOW_THRESHOLD})`, value: 'low' },
-  { label: 'หมดสต็อก', value: 'out' },
+  { label: 'ทั้งหมด', value: 'all', shortLabel: 'ทั้งหมด' },
+  { label: 'ติดตามสต็อก', value: 'tracked', shortLabel: 'ติดตาม' },
+  { label: 'ไม่ติดตามสต็อก', value: 'untracked', shortLabel: 'ไม่ติดตาม' },
+  { label: `สต็อกต่ำ (≤${STOCK_LOW_THRESHOLD})`, value: 'low', shortLabel: 'สต็อกต่ำ' },
+  { label: 'หมดสต็อก', value: 'out', shortLabel: 'หมด' },
 ];
 
 const SORT_OPTIONS: SelectOption[] = [
-  { label: 'ลำดับที่กำหนด', value: 'default' },
+  { label: 'ลำดับที่กำหนด (เริ่มต้น)', value: 'default', shortLabel: 'เริ่มต้น' },
   { label: 'ชื่อ A → Z', value: 'name_asc' },
   { label: 'ชื่อ Z → A', value: 'name_desc' },
   { label: 'ราคาต่ำ → สูง', value: 'price_asc' },
@@ -66,15 +66,15 @@ const SORT_OPTIONS: SelectOption[] = [
 ];
 
 const HAPPY_HOUR_FILTER_OPTIONS: SelectOption[] = [
-  { label: 'ทั้งหมด', value: 'all' },
-  { label: 'มี Happy Hour', value: 'yes' },
-  { label: 'ไม่มี Happy Hour', value: 'no' },
+  { label: 'ทั้งหมด', value: 'all', shortLabel: 'ทั้งหมด' },
+  { label: 'มี Happy Hour', value: 'yes', shortLabel: 'มี' },
+  { label: 'ไม่มี Happy Hour', value: 'no', shortLabel: 'ไม่มี' },
 ];
 
 const IMAGE_FILTER_OPTIONS: SelectOption[] = [
-  { label: 'ทั้งหมด', value: 'all' },
-  { label: 'มีรูปภาพ', value: 'yes' },
-  { label: 'ไม่มีรูปภาพ', value: 'no' },
+  { label: 'ทั้งหมด', value: 'all', shortLabel: 'ทั้งหมด' },
+  { label: 'มีรูปภาพ', value: 'yes', shortLabel: 'มี' },
+  { label: 'ไม่มีรูปภาพ', value: 'no', shortLabel: 'ไม่มี' },
 ];
 
 const EMPTY_FORM: Omit<MenuItem, 'id'> = {
@@ -385,54 +385,58 @@ export const MenuManager: React.FC = () => {
       {/* Filters & Search */}
       <div className="flex flex-col gap-3">
         {/* Row 1: Search & Filter Dropdowns */}
-        <div className="flex w-full lg:w-[40%] lg:min-w-fit min-w-0 items-center gap-2 overflow-x-auto scrollbar-none">
+        <div className="flex w-full lg:w-auto min-w-0 items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none">
           <SearchInput
             placeholder="ค้นหาชื่อเมนู..."
             value={searchTerm}
             onChange={setSearchTerm}
-            className="flex-1 min-w-[180px] shrink-0"
+            className="flex-1 min-w-[140px] sm:w-52 sm:flex-none shrink-0"
           />
 
           <CustomSelect
+            size="sm"
             prefixLabel="สต็อก:"
             value={filterStock}
             onChange={val => setFilterStock(val as StockFilter)}
             options={STOCK_FILTER_OPTIONS}
             searchable={false}
-            className="w-auto min-w-[130px] shrink-0"
+            className="w-auto min-w-[95px] shrink-0"
           />
 
           <CustomSelect
+            size="sm"
             prefixLabel="จัดเรียง:"
             value={sortBy}
             onChange={val => setSortBy(val as SortOption)}
             options={SORT_OPTIONS}
             searchable={false}
-            className="w-auto min-w-[155px] shrink-0"
+            className="w-auto min-w-[105px] shrink-0"
           />
 
           <CustomSelect
+            size="sm"
             prefixLabel="HH:"
             value={filterHappyHour}
             onChange={val => setFilterHappyHour(val as HappyHourFilter)}
             options={HAPPY_HOUR_FILTER_OPTIONS}
             searchable={false}
-            className="w-auto min-w-[115px] shrink-0"
+            className="w-auto min-w-[78px] shrink-0"
           />
 
           <CustomSelect
+            size="sm"
             prefixLabel="รูป:"
             value={filterImage}
             onChange={val => setFilterImage(val as ImageFilter)}
             options={IMAGE_FILTER_OPTIONS}
             searchable={false}
-            className="w-auto min-w-[115px] shrink-0"
+            className="w-auto min-w-[78px] shrink-0"
           />
 
           {hasActiveFilters && (
             <button
               onClick={clearAllFilters}
-              className="inline-flex h-10 shrink-0 items-center gap-1 rounded-xl border border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 px-3 text-xs font-bold text-slate-700 transition cursor-pointer dark:border-zinc-700/80 dark:hover:border-zinc-600 dark:bg-zinc-800/90 dark:text-zinc-200 shadow-xs"
+              className="inline-flex h-10 shrink-0 items-center gap-1 rounded-xl border border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 px-2.5 text-xs font-bold text-slate-700 transition cursor-pointer dark:border-zinc-700/80 dark:hover:border-zinc-600 dark:bg-zinc-800/90 dark:text-zinc-200 shadow-xs active:scale-95"
             >
               <SlidersHorizontal className="size-3.5" />
               <span>ล้าง</span>

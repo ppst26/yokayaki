@@ -7,6 +7,7 @@ import { ChevronDown, Search, X, Check, Plus } from 'lucide-react';
 export interface SelectOption {
   label: string;
   value: string;
+  shortLabel?: string;
 }
 
 export interface CustomSelectProps {
@@ -28,6 +29,8 @@ export interface CustomSelectProps {
   icon?: React.ReactNode;
   /** ป้ายชื่อหัวข้อด้านหน้า เช่น "สต็อก:", "จัดเรียง:", "HH:" */
   prefixLabel?: string;
+  /** ขนาดของ Select: 'md' (ปกติ) หรือ 'sm' (กะทัดรัด) */
+  size?: 'md' | 'sm';
 }
 
 export const CustomSelect: React.FC<CustomSelectProps> = ({
@@ -45,6 +48,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   menuMinWidth = 180,
   icon,
   prefixLabel,
+  size = 'md',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -67,7 +71,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   }, [options]);
 
   const selectedOption = normalizedOptions.find(opt => opt.value === value);
-  const displayLabel = selectedOption ? selectedOption.label : value;
+  const displayLabel = selectedOption ? (selectedOption.shortLabel || selectedOption.label) : value;
 
   const updateCoords = useCallback(() => {
     const anchor = menuAnchorRef?.current ?? triggerRef.current ?? containerRef.current;
@@ -146,7 +150,11 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         onClick={handleToggle}
         className={
           triggerClassName ||
-          `w-full h-10 bg-white dark:bg-zinc-800/90 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded-xl px-3.5 text-xs sm:text-sm font-semibold text-slate-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 border border-slate-300 hover:border-slate-400 dark:border-zinc-700/80 dark:hover:border-zinc-600 shadow-xs transition duration-150 flex items-center justify-between cursor-pointer gap-2 ${
+          `w-full h-10 bg-white dark:bg-zinc-800/90 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded-xl ${
+            size === 'sm'
+              ? 'px-2.5 text-xs gap-1.5'
+              : 'px-3.5 text-xs sm:text-sm gap-2'
+          } font-semibold text-slate-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 border border-slate-300 hover:border-slate-400 dark:border-zinc-700/80 dark:hover:border-zinc-600 shadow-xs transition duration-150 flex items-center justify-between cursor-pointer ${
             disabled ? 'opacity-50 cursor-not-allowed bg-slate-50 dark:bg-zinc-800/50' : ''
           } ${isOpen ? 'border-red-500 ring-2 ring-red-500/20' : ''}`
         }
@@ -163,7 +171,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
           </span>
         </div>
         <ChevronDown
-          className={`w-3.5 h-3.5 text-slate-400 dark:text-zinc-400 shrink-0 transition-transform duration-200 ${
+          className={`${size === 'sm' ? 'w-3 h-3' : 'w-3.5 h-3.5'} text-slate-400 dark:text-zinc-400 shrink-0 transition-transform duration-200 ${
             isOpen ? 'rotate-180 text-red-500' : ''
           }`}
         />
