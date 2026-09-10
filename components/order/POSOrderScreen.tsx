@@ -11,6 +11,7 @@ import { SpecialNoteModal } from './SpecialNoteModal';
 import { VoidItemModal } from './VoidItemModal';
 import { CustomerQRModal } from './CustomerQRModal';
 import { menuItemSalePrice, type MenuPriceFields } from '@/lib/menuPrice';
+import { useActionFeedback } from '@/context/ActionFeedbackContext';
 
 interface MenuItem extends MenuPriceFields {
   id: number;
@@ -44,6 +45,7 @@ interface POSOrderScreenProps {
 
 export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, tableNumber, onBack }) => {
   const { employee } = useAuth();
+  const { showActionFeedback } = useActionFeedback();
 
   // Data States
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -331,6 +333,12 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, tableNu
           prev.map(m => (stockById.has(m.id) ? { ...m, stock: stockById.get(m.id)! } : m)),
         );
       }
+
+      showActionFeedback({
+        variant: 'success',
+        title: 'ส่งออเดอร์สำเร็จ',
+        description: `ส่ง ${data?.placed ?? 0} รายการเข้าครัวแล้ว`,
+      });
     } catch (err: any) {
       console.error('Error submitting order:', err);
       setErrorMsg('ไม่สามารถสั่งอาหารได้: ' + (err.message || ''));
@@ -345,11 +353,19 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, tableNu
     const note = customReason.trim();
 
     if (!voidReason) {
-      alert('กรุณาเลือกเหตุผลในการ Void');
+      showActionFeedback({
+        variant: 'warning',
+        title: 'กรุณาเลือกเหตุผล',
+        description: 'เลือกเหตุผลในการ Void ก่อนดำเนินการ',
+      });
       return;
     }
     if (voidReason === VOID_REASON_OTHER && !note) {
-      alert('กรุณาระบุเหตุผลในการ Void');
+      showActionFeedback({
+        variant: 'warning',
+        title: 'กรุณาระบุเหตุผล',
+        description: 'กรอกรายละเอียดเหตุผลในการ Void',
+      });
       return;
     }
 
@@ -376,9 +392,19 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, tableNu
       setVoidTarget(null);
       // ขนานกัน — เดิมรอทีละอัน
       await Promise.all([fetchActiveOrder(true), fetchMenu()]);
+      showActionFeedback({
+        variant: 'success',
+        title: 'Void สำเร็จ',
+        description: 'ยกเลิกรายการเรียบร้อยแล้ว',
+      });
     } catch (err: any) {
       console.error('Error voiding item:', err);
       setErrorMsg('เกิดข้อผิดพลาดในการ Void: ' + (err.message || ''));
+      showActionFeedback({
+        variant: 'error',
+        title: 'Void ไม่สำเร็จ',
+        description: err.message || 'กรุณาลองใหม่อีกครั้ง',
+      });
     } finally {
       setIsVoiding(false);
     }

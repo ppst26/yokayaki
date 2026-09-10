@@ -537,26 +537,27 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 app-dialog-backdrop">
-          <div className="app-dialog w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto space-y-5">
+        <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center p-0 sm:p-4 app-dialog-backdrop">
+          <div className="app-dialog flex w-full max-w-lg flex-col shadow-xl sm:rounded-2xl rounded-t-2xl max-h-[min(82dvh,calc(100dvh-4.5rem))] sm:max-h-[min(90dvh,40rem)]">
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-neutral-800 pb-3">
-              <div>
-                <h3 className="text-lg font-black text-slate-900 dark:text-neutral-100">
+            <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-4 pb-3 pt-4 dark:border-neutral-800 sm:px-6 sm:pt-5">
+              <div className="min-w-0 pr-2">
+                <h3 className="text-base font-black text-slate-900 dark:text-neutral-100 sm:text-lg">
                   {editingPromo ? 'แก้ไขโปรโมชั่น' : 'สร้างโปรโมชั่นใหม่'}
                 </h3>
-                <p className="text-xs text-slate-400 dark:text-neutral-500 font-semibold">
+                <p className="text-[11px] text-slate-400 dark:text-neutral-500 font-semibold sm:text-xs">
                   เลือกประเภทและกำหนดเงื่อนไขโปรโมชั่น
                 </p>
               </div>
               <button
                 onClick={closeModal}
-                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-300 rounded-full cursor-pointer transition"
+                className="shrink-0 rounded-full p-1.5 text-slate-400 transition hover:text-slate-600 dark:hover:text-neutral-300 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 text-xs font-semibold sm:px-6">
             {winbackNote && (
               <div className="p-3 bg-violet-50 dark:bg-violet-950/40 border border-violet-200/80 dark:border-violet-900/50 text-violet-800 dark:text-violet-200 rounded-xl text-xs font-semibold flex items-start gap-2">
                 <TicketPercent className="w-4 h-4 shrink-0 mt-0.5" />
@@ -564,7 +565,7 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
               </div>
             )}
 
-            <div className="space-y-4 text-xs font-semibold">
+            <div className="space-y-4">
               {/* Category Selector: Grid 3 */}
               <div>
                 <label className="block text-slate-600 dark:text-neutral-300 mb-2 font-extrabold">
@@ -919,28 +920,30 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
                 </div>
               )}
 
-              {/* Action Buttons */}
-              <div className="flex gap-2 pt-3 border-t border-slate-100 dark:border-neutral-800">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="flex-1 py-2.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-300 rounded-xl font-bold transition cursor-pointer"
-                >
-                  ยกเลิก
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="flex-1 py-2.5 btn-crimson disabled:opacity-50 text-white rounded-xl font-bold transition shadow-md shadow-red-600/20 cursor-pointer flex items-center justify-center gap-1.5"
-                >
-                  {isSaving ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    'บันทึกโปรโมชั่น'
-                  )}
-                </button>
-              </div>
+            </div>
+            </div>
+
+            {/* Footer — คงที่ด้านล่าง ไม่เลื่อนตามฟอร์ม */}
+            <div className="flex shrink-0 gap-2 border-t border-slate-100 px-4 py-3 dark:border-neutral-800 sm:px-6 sm:py-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+              <button
+                type="button"
+                onClick={closeModal}
+                className="flex-1 rounded-xl bg-slate-100 py-2.5 font-bold text-slate-700 transition hover:bg-slate-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700 cursor-pointer"
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={isSaving}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2.5 font-bold text-white btn-crimson shadow-md shadow-red-600/20 transition disabled:opacity-50 cursor-pointer"
+              >
+                {isSaving ? (
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                ) : (
+                  'บันทึกโปรโมชั่น'
+                )}
+              </button>
             </div>
           </div>
         </div>

@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { menuItemSalePrice } from '@/lib/menuPrice';
 import { PLATFORM_BRANDING } from '@/lib/branding';
+import { useActionFeedback } from '@/context/ActionFeedbackContext';
 
 interface OrderedItem {
   id: number;
@@ -69,6 +70,7 @@ const POLL_INTERVAL_MS = 5000;
 export default function CustomerOrderPortal() {
   const params = useParams();
   const sessionId = params.session_id as string;
+  const { showActionFeedback } = useActionFeedback();
 
   const [activeTab, setActiveTab] = useState<CustomerTab>('home');
   const [tableId, setTableId] = useState<string | null>(null);
@@ -304,7 +306,11 @@ export default function CustomerOrderPortal() {
         setCart([]);
         await refresh();
         setActiveTab('ordered');
-        alert('ส่งรายการสั่งซื้อเข้าครัวสำเร็จ!');
+        showActionFeedback({
+          variant: 'success',
+          title: 'ส่งออเดอร์สำเร็จ',
+          description: 'รายการถูกส่งเข้าครัวแล้ว',
+        });
       } else {
         setErrorMsg(data?.error ?? 'ไม่สามารถส่งออเดอร์ได้');
         await refresh();

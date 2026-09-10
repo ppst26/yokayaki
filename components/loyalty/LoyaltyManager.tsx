@@ -53,6 +53,7 @@ import { buildWinbackPromoDraft, type WinbackPromoDraft } from '@/lib/winbackPro
 import { buildMemberSegmentCsv, downloadCsvFile } from '@/lib/exportMemberCsv';
 import type { SegmentMemberRow } from '@/lib/promoSegments';
 import { DoublePointsDialog } from './DoublePointsSettings';
+import { useActionFeedback } from '@/context/ActionFeedbackContext';
 
 interface LoyaltyManagerProps {
   onCreateWinbackPromo?: (draft: WinbackPromoDraft) => void;
@@ -61,6 +62,7 @@ interface LoyaltyManagerProps {
 export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
   onCreateWinbackPromo,
 }) => {
+  const { showActionFeedback } = useActionFeedback();
   const [members, setMembers] = useState<LoyaltyMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -254,11 +256,19 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
     if (!selectedMember) return;
     const amount = parseInt(pointsAdjustment, 10);
     if (isNaN(amount) || amount <= 0) {
-      alert('กรุณากรอกจำนวนแต้มให้ถูกต้อง');
+      showActionFeedback({
+        variant: 'warning',
+        title: 'จำนวนแต้มไม่ถูกต้อง',
+        description: 'กรุณากรอกจำนวนแต้มที่ต้องการปรับ',
+      });
       return;
     }
     if (!pointsReason.trim()) {
-      alert('กรุณาระบุเหตุผลในการปรับแต้ม');
+      showActionFeedback({
+        variant: 'warning',
+        title: 'กรุณาระบุเหตุผล',
+        description: 'ระบุเหตุผลในการปรับแต้มก่อนบันทึก',
+      });
       return;
     }
 
@@ -292,7 +302,11 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
         type: 'success',
       });
     } catch (err: any) {
-      alert('ไม่สามารถปรับแต้มได้: ' + (err.message || ''));
+      showActionFeedback({
+        variant: 'error',
+        title: 'ไม่สามารถปรับแต้มได้',
+        description: err.message || 'กรุณาลองใหม่อีกครั้ง',
+      });
     } finally {
       setIsAdjusting(false);
     }

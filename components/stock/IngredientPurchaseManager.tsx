@@ -12,6 +12,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { CustomSelect } from '@/components/ui/select';
 import { SearchInput } from '@/components/ui/search-input';
 import { DatePicker } from '@/components/ui/date-picker';
+import { useActionFeedback } from '@/context/ActionFeedbackContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -84,6 +85,7 @@ const DEFAULT_INGREDIENTS = [
 
 export const IngredientPurchaseManager: React.FC = () => {
   const { employee } = useAuth();
+  const { showActionFeedback } = useActionFeedback();
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -411,7 +413,11 @@ export const IngredientPurchaseManager: React.FC = () => {
       await fetchOrders();
     } catch (err: any) {
       console.error('handleDeleteOrder error:', err);
-      alert('เกิดข้อผิดพลาดในการลบรายการ: ' + (err.message || 'ลองใหม่อีกครั้ง'));
+      showActionFeedback({
+        variant: 'error',
+        title: 'ลบรายการไม่สำเร็จ',
+        description: err.message || 'กรุณาลองใหม่อีกครั้ง',
+      });
     } finally {
       setIsDeleting(false);
     }

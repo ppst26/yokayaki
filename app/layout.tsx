@@ -4,6 +4,7 @@ import { Noto_Sans_Thai, Geist_Mono, Geist } from "next/font/google";
 import "./globals.css";
 import "./auth-surface.css";
 import { AuthProvider } from "@/context/AuthContext";
+import { ActionFeedbackProvider } from "@/context/ActionFeedbackContext";
 import { cn } from "@/lib/utils";
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist' });
@@ -47,7 +48,9 @@ export default function RootLayout({
         <Script id="theme-boot" strategy="beforeInteractive">
           {`(function(){try{var t=localStorage.getItem('yokayaki_theme');if(t==='light')document.documentElement.classList.remove('dark');else document.documentElement.classList.add('dark');}catch(e){}})();`}
         </Script>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <ActionFeedbackProvider>{children}</ActionFeedbackProvider>
+        </AuthProvider>
       </body>
     </html>
   );

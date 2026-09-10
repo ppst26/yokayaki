@@ -14,6 +14,7 @@ import { generatePromptPayQR } from '@/lib/promptPay';
 import { pointsEarnedFromNet } from '@/lib/loyaltyPoints';
 import { isDoublePointsActive, parseDoublePointsDates } from '@/lib/doublePoints';
 import { MinimalAlert } from '@/components/ui/minimal-alert';
+import { useActionFeedback } from '@/context/ActionFeedbackContext';
 
 interface CheckoutScreenProps {
   tableId: string;
@@ -92,6 +93,7 @@ interface CheckoutResult {
 
 export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNumber, onBack }) => {
   const { employee } = useAuth();
+  const { showActionFeedback } = useActionFeedback();
 
   // Order Data
   const [orderId, setOrderId] = useState<number | null>(null);
@@ -403,7 +405,11 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNu
         setShowRegister(false);
       }
     } catch (err: any) {
-      alert('ไม่สามารถสมัครสมาชิกได้: ' + (err.message || ''));
+      showActionFeedback({
+        variant: 'error',
+        title: 'ไม่สามารถสมัครสมาชิกได้',
+        description: err.message || 'กรุณาลองใหม่อีกครั้ง',
+      });
     }
   };
 
@@ -439,7 +445,11 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNu
         setMember(data.member as LoyaltyMember);
         setPhoneInput(cleanPhone);
         setShowAddMemberModal(false);
-        alert(`เบอร์โทรศัพท์นี้เป็นสมาชิกอยู่แล้ว ระบบได้เลือกสมาชิกคุณ (${data.member.name}) ให้เรียบร้อยครับ`);
+        showActionFeedback({
+          variant: 'info',
+          title: 'พบสมาชิกในระบบแล้ว',
+          description: `เลือกสมาชิก ${data.member.name} ให้เรียบร้อย`,
+        });
         return;
       }
 
@@ -449,7 +459,11 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNu
         setShowAddMemberModal(false);
       }
     } catch (err: any) {
-      alert('เกิดข้อผิดพลาดในการสมัครสมาชิก: ' + (err?.message || ''));
+      showActionFeedback({
+        variant: 'error',
+        title: 'สมัครสมาชิกไม่สำเร็จ',
+        description: err?.message || 'กรุณาลองใหม่อีกครั้ง',
+      });
     } finally {
       setIsSubmittingMember(false);
     }
@@ -458,7 +472,11 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNu
   const processPayment = async () => {
     if (!orderId || netAmount <= 0) return;
     if (pendingItemsCount > 0) {
-      alert(`ไม่สามารถชำระเงินได้ เนื่องจากยังมีออเดอร์ในครัวที่ยังไม่ได้เสิร์ฟ ${pendingItemsCount} รายการ`);
+      showActionFeedback({
+        variant: 'warning',
+        title: 'ยังชำระเงินไม่ได้',
+        description: `มีออเดอร์ในครัวที่ยังไม่ได้เสิร์ฟ ${pendingItemsCount} รายการ`,
+      });
       return;
     }
 
@@ -495,20 +513,23 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNu
 
       // บิลนี้ถูกปิดไปแล้ว (ดับเบิลคลิก / เน็ตช้าแล้ว retry) — แสดงใบเดิม ไม่เก็บเงินซ้ำ (A6)
       if (result.status === 'already_completed') {
-        alert('บิลนี้ถูกปิดไปแล้ว ระบบแสดงใบเสร็จของรายการเดิม ไม่ได้บันทึกซ้ำ');
+        showActionFeedback({
+          variant: 'info',
+          title: 'บิลนี้ถูกปิดไปแล้ว',
+          description: 'แสดงใบเสร็จของรายการเดิม ไม่ได้บันทึกซ้ำ',
+        });
         setShowReceipt(true);
         return;
       }
 
       // ยอดที่ DB คำนวณได้ไม่ตรงกับที่หน้าจอแสดง = เก็บเงินไปผิดจำนวน ต้องบอกทันที
       if (Math.abs(Number(result.net_amount) - netAmount) > 0.01) {
-        alert(
-          'ยอดที่ระบบบันทึกจริงคือ ' +
-            Number(result.net_amount).toLocaleString() +
-            ' บาท (หน้าจอแสดง ' +
-            netAmount.toLocaleString() +
-            ' บาท) — ใบเสร็จจะพิมพ์ตามยอดที่บันทึกจริง กรุณาตรวจสอบเงินที่รับมา'
-        );
+        showActionFeedback({
+          variant: 'warning',
+          title: 'ยอดที่บันทึกไม่ตรงกับหน้าจอ',
+          description:
+            `ระบบบันทึก ${Number(result.net_amount).toLocaleString()} บาท (หน้าจอแสดง ${netAmount.toLocaleString()} บาท) — ใบเสร็จจะพิมพ์ตามยอดที่บันทึกจริง กรุณาตรวจสอบเงินที่รับมา`,
+        });
       }
 
       setShowReceipt(true);
