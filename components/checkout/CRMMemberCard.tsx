@@ -64,12 +64,12 @@ export const CRMMemberCard: React.FC<CRMMemberCardProps> = ({
           placeholder="เบอร์โทรศัพท์ 10 หลัก"
           value={phoneInput}
           onChange={e => setPhoneInput(e.target.value.replace(/\D/g, ''))}
-          className="flex-1 bg-slate-50 dark:bg-neutral-800 rounded-xl px-3.5 py-2 text-sm text-slate-800 dark:text-neutral-100 placeholder:text-slate-400 focus:outline-none transition font-semibold"
+          className="flex-1 h-10 bg-white dark:bg-zinc-800/90 border border-slate-300 hover:border-slate-400 dark:border-zinc-700/80 dark:hover:border-zinc-600 rounded-xl px-3.5 text-sm text-slate-800 dark:text-zinc-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition font-semibold shadow-xs"
         />
         <button
           onClick={searchMember}
           disabled={phoneInput.length !== 10 || isSearchingMember}
-          className="px-4 py-2 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 disabled:opacity-50 rounded-xl text-sm font-bold text-slate-700 dark:text-neutral-200 transition active:scale-95 cursor-pointer"
+          className="h-10 px-4 bg-white dark:bg-zinc-800/90 hover:bg-slate-50 dark:hover:bg-zinc-800 border border-slate-300 hover:border-slate-400 dark:border-zinc-700/80 dark:hover:border-zinc-600 disabled:opacity-50 rounded-xl text-sm font-bold text-slate-700 dark:text-zinc-200 transition active:scale-95 cursor-pointer shadow-xs flex items-center justify-center"
         >
           <Search className="w-4 h-4" />
         </button>
