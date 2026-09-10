@@ -538,7 +538,7 @@ export const DateFilterBar: React.FC<DateFilterBarProps> = ({
         ref={selectTriggerRef}
         type="button"
         onClick={handleToggleSelect}
-        className="h-10 px-3.5 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 dark:text-zinc-200 flex items-center justify-between gap-2.5 transition cursor-pointer shrink-0 min-w-[170px]"
+        className="h-10 px-3.5 bg-white dark:bg-zinc-800/90 border border-slate-300 hover:border-slate-400 dark:border-zinc-700/80 dark:hover:border-zinc-600 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 dark:text-zinc-100 flex items-center justify-between gap-2.5 transition shadow-xs cursor-pointer shrink-0 min-w-[170px]"
       >
         <span>เลือกช่วง: {PRESET_LABELS[datePreset] || 'เดือนนี้'}</span>
         <ChevronDown
@@ -553,10 +553,10 @@ export const DateFilterBar: React.FC<DateFilterBarProps> = ({
         ref={rangePickerTriggerRef}
         type="button"
         onClick={handleToggleRangePicker}
-        className={`h-10 px-3.5 rounded-xl border text-xs sm:text-sm font-semibold flex items-center gap-2 transition cursor-pointer shrink-0 ${
+        className={`h-10 px-3.5 rounded-xl border text-xs sm:text-sm font-semibold flex items-center gap-2 transition shadow-xs cursor-pointer shrink-0 ${
           isRangePickerOpen || datePreset === 'custom'
-            ? 'border-red-900/60 bg-red-950/20 text-red-400 font-bold'
-            : 'border-slate-200 bg-white hover:border-slate-300 text-slate-700 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:text-zinc-300'
+            ? 'border-red-500 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 font-bold ring-2 ring-red-500/20'
+            : 'border-slate-300 bg-white hover:border-slate-400 text-slate-800 dark:border-zinc-700/80 dark:bg-zinc-800/90 dark:hover:border-zinc-600 dark:text-zinc-100'
         }`}
       >
         <Calendar className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0" />
