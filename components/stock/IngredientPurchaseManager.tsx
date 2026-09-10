@@ -10,6 +10,7 @@ import {
 import { Card } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { CustomSelect } from '@/components/ui/select';
+import { SearchInput } from '@/components/ui/search-input';
 import { DatePicker } from '@/components/ui/date-picker';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -499,25 +500,12 @@ export const IngredientPurchaseManager: React.FC = () => {
       {/* 2. Filter Bar: Search, Date Filter (Single Row without Card) */}
       <div className="flex items-center gap-2.5 w-full lg:w-[40%] lg:min-w-[340px]">
         {/* Search */}
-        <div className="flex-1 min-w-[180px] relative flex items-center">
-          <Search className="w-4 h-4 text-zinc-400 dark:text-zinc-500 absolute left-3.5 pointer-events-none" />
-          <input
-            type="text"
-            placeholder="ค้นหา PO# หรือชื่อผู้สั่งซื้อ"
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className="w-full h-10 pl-9 pr-8 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl text-xs font-semibold text-zinc-800 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 border border-transparent dark:border-zinc-700/40 focus:outline-none focus:ring-1 focus:ring-red-500/50 transition"
-          />
-          {searchTerm && (
-            <button
-              type="button"
-              onClick={() => setSearchTerm('')}
-              className="absolute right-2.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-0.5 cursor-pointer"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
+        <SearchInput
+          placeholder="ค้นหา PO# หรือชื่อผู้สั่งซื้อ"
+          value={searchTerm}
+          onChange={setSearchTerm}
+          className="flex-1 min-w-[180px]"
+        />
 
         {/* Date Filter */}
         <div className="w-[180px] sm:w-[220px] shrink-0">
@@ -525,8 +513,7 @@ export const IngredientPurchaseManager: React.FC = () => {
             value={dateFilter}
             onChange={val => setDateFilter(val as DateFilterType)}
             options={DATE_FILTER_OPTIONS}
-            icon={<Calendar className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />}
-            triggerClassName="h-10 w-full bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200/80 dark:hover:bg-zinc-700/80 rounded-xl px-3.5 text-xs font-semibold text-zinc-800 dark:text-zinc-200 border border-transparent dark:border-zinc-700/40 transition flex items-center justify-between cursor-pointer gap-2"
+            icon={<Calendar className="w-4 h-4 text-slate-400 dark:text-zinc-400 shrink-0" />}
             searchable={false}
           />
         </div>
