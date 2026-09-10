@@ -622,8 +622,12 @@ body {
   --theme-ray-x: 50vw;
   --theme-ray-y: 50vh;
   --theme-ray-r: 100vmax;
-  --theme-ray-duration: 620ms;
-  --theme-ray-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --theme-ray-duration: 560ms;
+  /*
+    ห้ามใช้ easeOut แรงๆ (เช่น 0.22,1,0.36,1) — วงกลมโตครบ 99% ตั้งแต่เวลา 60%
+    ที่เหลือคือ "ช่วงค้าง" ที่ตามองไม่เห็นการขยับ — เส้นนี้เร่งกลางทางแล้วจบคม
+  */
+  --theme-ray-ease: cubic-bezier(0.35, 0, 0.2, 1);
 }
 
 /* ---- เส้นทางหลัก: View Transitions (Chrome/Edge/Safari 18+) ---- */
@@ -641,44 +645,31 @@ html.theme-switching::view-transition-old(root) {
 
 html.theme-switching::view-transition-new(root) {
   z-index: 1;
-  /* ขอบวงกลมไล่จางแทนขอบคม — ให้ดูเป็นแสงแผ่ ไม่ใช่กรรไกรตัด */
-  -webkit-mask-image: radial-gradient(
-    circle,
-    #000 0%,
-    #000 52%,
-    rgba(0, 0, 0, 0.55) 74%,
-    rgba(0, 0, 0, 0) 92%
-  );
-  mask-image: radial-gradient(
-    circle,
-    #000 0%,
-    #000 52%,
-    rgba(0, 0, 0, 0.55) 74%,
-    rgba(0, 0, 0, 0) 92%
-  );
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
+  /*
+    ใช้ clip-path ไม่ใช่ mask-size ด้วย 2 เหตุผล
+    1. clip-path วิ่งบน compositor ได้ ไม่ต้อง repaint radial-gradient เต็มจอทุกเฟรม
+       (mask-size ยิ่งวงโตยิ่งหนัก จนเฟรมตกช่วงท้าย = อาการค้างก่อนจบ)
+    2. ขอบทึบเต็ม 100% ⇒ พอ animation จบ จอสลับครบจริง ไม่เหลือมุมจอจางค้าง
+       แล้วมาสลับพรวดตอน snapshot ถูกถอด
+  */
   animation: themeRayReveal var(--theme-ray-duration) var(--theme-ray-ease) forwards;
 }
 
+/* กันจอเก่า/จอใหม่ blend ทับกันจนสีเพี้ยนกลางทาง */
+html.theme-switching::view-transition-image-pair(root) {
+  isolation: auto;
+}
+
 /*
-  ขยาย mask จากจุดกด: size ไต่จาก 0 → 2r พร้อม position ไต่จาก (x,y) → (x-r, y-r)
-  ทั้งคู่ interpolate เชิงเส้น ⇒ จุดกึ่งกลางวงกลมนิ่งอยู่ที่ (x,y) ตลอดทาง
+  วงกลมโตจาก 0 → รัศมีที่คลุมมุมจอไกลสุด โดยจุดกึ่งกลางตรึงอยู่ที่นิ้วตลอดทาง
+  (lib/theme.ts เผื่อรัศมีไว้เล็กน้อย กันเศษ sub-pixel ที่มุมจอ)
 */
 @keyframes themeRayReveal {
   from {
-    -webkit-mask-position: var(--theme-ray-x) var(--theme-ray-y);
-    mask-position: var(--theme-ray-x) var(--theme-ray-y);
-    -webkit-mask-size: 0px 0px;
-    mask-size: 0px 0px;
+    clip-path: circle(0px at var(--theme-ray-x) var(--theme-ray-y));
   }
   to {
-    -webkit-mask-position: calc(var(--theme-ray-x) - var(--theme-ray-r))
-      calc(var(--theme-ray-y) - var(--theme-ray-r));
-    mask-position: calc(var(--theme-ray-x) - var(--theme-ray-r))
-      calc(var(--theme-ray-y) - var(--theme-ray-r));
-    -webkit-mask-size: calc(var(--theme-ray-r) * 2) calc(var(--theme-ray-r) * 2);
-    mask-size: calc(var(--theme-ray-r) * 2) calc(var(--theme-ray-r) * 2);
+    clip-path: circle(var(--theme-ray-r) at var(--theme-ray-x) var(--theme-ray-y));
   }
 }
 
@@ -723,8 +714,7 @@ html.theme-fading *::after {
 @media (prefers-reduced-motion: reduce) {
   html.theme-switching::view-transition-new(root) {
     animation: none;
-    -webkit-mask-image: none;
-    mask-image: none;
+    clip-path: none;
   }
 
   html.theme-fading,
