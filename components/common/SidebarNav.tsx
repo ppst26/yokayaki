@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { flushSync } from 'react-dom';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { canAccessTab, type EmployeeRole } from '@/lib/permissions';
 import { SidebarBrand } from '@/components/common/SidebarBrand';
+import { ThemeToggleIcon } from '@/components/common/ThemeToggleIcon';
+import { applyTheme, readStoredTheme, switchTheme, type Theme } from '@/lib/theme';
 import {
   LogOut,
   ChefHat,
@@ -16,8 +19,6 @@ import {
   UserCog,
   Menu,
   X,
-  Sun,
-  Moon,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
@@ -44,7 +45,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
   const { employee, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDrawerClosing, setIsDrawerClosing] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [theme, setTheme] = useState<Theme>('dark');
   const [pendingTablesCount, setPendingTablesCount] = useState<number>(0);
   const [checkingOutCount, setCheckingOutCount] = useState<number>(0);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -119,14 +120,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
   }, []);
 
   useEffect(() => {
-    const saved = localStorage.getItem('yokayaki_theme');
-    if (saved === 'light') {
-      setTheme('light');
-      document.documentElement.classList.remove('dark');
-    } else {
-      setTheme('dark');
-      document.documentElement.classList.add('dark');
-    }
+    const saved = readStoredTheme();
+    setTheme(saved);
+    applyTheme(saved);
   }, []);
 
   useEffect(() => {
@@ -152,15 +148,15 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
     });
   };
 
-  const toggleTheme = () => {
-    const nextTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(nextTheme);
-    localStorage.setItem('yokayaki_theme', nextTheme);
-    if (nextTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+  /** สลับธีม — วงกลมแผ่ออกจากปุ่มที่กด (ดู lib/theme.ts) */
+  const toggleTheme = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const nextTheme: Theme = theme === 'light' ? 'dark' : 'light';
+    const rect = event.currentTarget.getBoundingClientRect();
+    switchTheme(nextTheme, {
+      origin: { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 },
+      // flush ทันทีเพื่อให้ไอคอน/ข้อความใหม่ติดไปกับ snapshot ของ view transition
+      apply: () => flushSync(() => setTheme(nextTheme)),
+    });
   };
 
   const role = (employee?.role ?? 'cashier') as EmployeeRole;
@@ -406,17 +402,8 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                 onClick={toggleTheme}
                 className="w-full flex items-center gap-2.5 px-1 py-2 text-xs font-bold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer"
               >
-                {theme === 'light' ? (
-                  <>
-                    <Moon className="w-4 h-4 shrink-0" />
-                    <span>สลับไปโหมดมืด</span>
-                  </>
-                ) : (
-                  <>
-                    <Sun className="w-4 h-4 shrink-0" />
-                    <span>สลับไปโหมดสว่าง</span>
-                  </>
-                )}
+                <ThemeToggleIcon theme={theme} className="w-4 h-4" />
+                <span>{theme === 'light' ? 'สลับไปโหมดมืด' : 'สลับไปโหมดสว่าง'}</span>
               </button>
 
               <div className="flex items-center justify-between gap-3 px-1 py-1">
@@ -805,17 +792,10 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
             title={theme === 'light' ? 'สลับไปโหมดมืด' : 'สลับไปโหมดสว่าง'}
             className="sidebar-nav-btn w-full flex items-center gap-2.5 px-1 py-2 text-sm font-bold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none"
           >
-            {theme === 'light' ? (
-              <>
-                <Moon className="w-4.5 h-4.5 shrink-0" />
-                <span className="sidebar-footer-text">สลับไปโหมดมืด</span>
-              </>
-            ) : (
-              <>
-                <Sun className="w-4.5 h-4.5 shrink-0" />
-                <span className="sidebar-footer-text">สลับไปโหมดสว่าง</span>
-              </>
-            )}
+            <ThemeToggleIcon theme={theme} className="w-4.5 h-4.5" />
+            <span className="sidebar-footer-text">
+              {theme === 'light' ? 'สลับไปโหมดมืด' : 'สลับไปโหมดสว่าง'}
+            </span>
           </button>
 
           {/* User Info (Expanded: Name + Role, Collapsed: User Name centered) */}
