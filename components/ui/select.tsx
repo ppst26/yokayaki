@@ -26,6 +26,8 @@ export interface CustomSelectProps {
   menuMinWidth?: number;
   /** ไอคอนหน้า label */
   icon?: React.ReactNode;
+  /** ป้ายชื่อหัวข้อด้านหน้า เช่น "สต็อก:", "จัดเรียง:", "HH:" */
+  prefixLabel?: string;
 }
 
 export const CustomSelect: React.FC<CustomSelectProps> = ({
@@ -42,6 +44,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   menuAnchorRef,
   menuMinWidth = 180,
   icon,
+  prefixLabel,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -141,17 +144,29 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         type="button"
         disabled={disabled}
         onClick={handleToggle}
-        className={triggerClassName || `w-full bg-slate-50 dark:bg-neutral-800 hover:bg-slate-100 dark:hover:bg-neutral-700/80 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 border border-slate-200 dark:border-neutral-700 transition flex items-center justify-between cursor-pointer gap-1.5 ${
-          disabled ? 'opacity-50 cursor-not-allowed' : ''
-        }`}
+        className={
+          triggerClassName ||
+          `w-full h-10 bg-white dark:bg-zinc-800/90 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded-xl px-3.5 text-xs sm:text-sm font-semibold text-slate-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 border border-slate-300 hover:border-slate-400 dark:border-zinc-700/80 dark:hover:border-zinc-600 shadow-xs transition duration-150 flex items-center justify-between cursor-pointer gap-2 ${
+            disabled ? 'opacity-50 cursor-not-allowed bg-slate-50 dark:bg-zinc-800/50' : ''
+          } ${isOpen ? 'border-red-500 ring-2 ring-red-500/20' : ''}`
+        }
       >
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center gap-1.5 min-w-0">
           {icon}
-          <span className={`truncate text-left ${!value ? 'text-zinc-400 dark:text-zinc-500 font-normal' : ''}`}>
+          {prefixLabel && (
+            <span className="shrink-0 text-xs font-extrabold text-slate-500 dark:text-zinc-400">
+              {prefixLabel}
+            </span>
+          )}
+          <span className={`truncate text-left ${!value ? 'text-slate-400 dark:text-zinc-500 font-normal' : ''}`}>
             {displayLabel || placeholder}
           </span>
         </div>
-        <ChevronDown className={`w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180 text-red-500' : ''}`} />
+        <ChevronDown
+          className={`w-3.5 h-3.5 text-slate-400 dark:text-zinc-400 shrink-0 transition-transform duration-200 ${
+            isOpen ? 'rotate-180 text-red-500' : ''
+          }`}
+        />
       </button>
 
       {/* Popover Dropdown (Portaled to document.body) */}
@@ -168,26 +183,26 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
             ),
             zIndex: 99999,
           }}
-          className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in-50 zoom-in-95 duration-150"
+          className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in-50 zoom-in-95 duration-150"
         >
           {/* Search Box - ONLY rendered if searchable prop is TRUE */}
           {searchable && (
-            <div className="p-1.5 border-b border-zinc-100 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/50 sticky top-0 z-10">
-              <div className="flex items-center gap-1.5 bg-white dark:bg-zinc-800 rounded-lg px-2.5 py-1.5 border border-zinc-200/60 dark:border-zinc-700/60">
-                <Search className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+            <div className="p-1.5 border-b border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/50 sticky top-0 z-10">
+              <div className="flex items-center gap-1.5 bg-white dark:bg-zinc-800 rounded-lg px-2.5 py-1.5 border border-slate-200 dark:border-zinc-700">
+                <Search className="w-3.5 h-3.5 text-slate-400 dark:text-zinc-400 shrink-0" />
                 <input
                   type="text"
                   autoFocus
                   placeholder="ค้นหา..."
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  className="w-full bg-transparent border-none text-xs text-zinc-800 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none"
+                  className="w-full bg-transparent border-none text-xs text-slate-800 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none"
                 />
                 {search && (
                   <button
                     type="button"
                     onClick={() => setSearch('')}
-                    className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+                    className="text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 cursor-pointer"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -197,9 +212,9 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
           )}
 
           {/* Options List (~10 items scrollable, ~260px max height) */}
-          <div className="max-h-[260px] overflow-y-auto divide-y divide-zinc-50 dark:divide-zinc-800/30 scrollbar-thin">
+          <div className="max-h-[260px] overflow-y-auto divide-y divide-slate-100 dark:divide-zinc-800/50 scrollbar-thin">
             {filteredOptions.length === 0 ? (
-              <div className="px-3 py-3 text-center text-xs text-zinc-400 dark:text-zinc-500 font-medium">
+              <div className="px-3 py-3 text-center text-xs text-slate-400 dark:text-zinc-500 font-medium">
                 ไม่พบรายการ
               </div>
             ) : (
@@ -216,8 +231,8 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                     }}
                     className={`w-full text-left px-3.5 py-2.5 text-xs font-semibold flex items-center justify-between transition cursor-pointer ${
                       isSelected
-                        ? 'bg-red-50/80 dark:bg-red-950/40 text-red-600 dark:text-red-400 font-bold'
-                        : 'text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                        ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 font-bold'
+                        : 'text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800'
                     }`}
                   >
                     <span className="truncate pr-2">{option.label}</span>
