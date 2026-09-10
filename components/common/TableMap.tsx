@@ -99,50 +99,51 @@ export const TableMap: React.FC = () => {
       return;
     }
 
-    const checkPendingItems = async () => {
+    // PERF/6 — เดิม orders → order_items เป็น waterfall 2 ชั้น
+    // ทำให้ปุ่ม "ชำระเงิน" ค้าง disabled อยู่ ~200 ms หลังกดโต๊ะ
+    // ตอนนี้ฝังรายการ pending มากับ orders ในคิวรีเดียว (เข้า idx_order_items_pending)
+    const checkPendingItems = async (silent = false) => {
       try {
-        setIsCheckingPending(true);
-        const { data: orderData } = await supabase
+        if (!silent) setIsCheckingPending(true);
+        const { data: orderData, error } = await supabase
           .from('orders')
-          .select('id')
+          .select('id, order_items(id)')
           .eq('table_id', actionSelectorTable.id)
           .eq('status', 'active')
+          .eq('order_items.status', 'pending')
           .maybeSingle();
 
-        if (!orderData) {
-          setPendingItemCount(0);
-          return;
-        }
-
-        const { count, error } = await supabase
-          .from('order_items')
-          .select('id', { count: 'exact', head: true })
-          .eq('order_id', orderData.id)
-          .eq('status', 'pending');
-
         if (error) throw error;
-        setPendingItemCount(count || 0);
+        setPendingItemCount(orderData?.order_items?.length ?? 0);
       } catch (err) {
         console.error('Error checking pending items:', err);
       } finally {
-        setIsCheckingPending(false);
+        if (!silent) setIsCheckingPending(false);
       }
     };
 
     checkPendingItems();
+
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleRecheck = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        timer = null;
+        checkPendingItems(true);
+      }, 400);
+    };
 
     const channel = supabase
       .channel(`realtime:order_items_modal_${actionSelectorTable.id}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'order_items' },
-        () => {
-          checkPendingItems();
-        }
+        scheduleRecheck
       )
       .subscribe();
 
     return () => {
+      if (timer) clearTimeout(timer);
       channel.unsubscribe();
     };
   }, [actionSelectorTable]);

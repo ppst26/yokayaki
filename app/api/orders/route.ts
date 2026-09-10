@@ -28,24 +28,26 @@ export async function POST(request: Request) {
 
     const staffDb = await requireStaffSupabase();
 
-    const { data: menuRows, error: menuError } = await staffDb
-      .from('menu_items')
-      .select('id, name')
-      .in('id', body.items.map(i => i.menuItemId));
-
-    if (menuError) throw menuError;
-
-    const nameById = new Map<number, string>();
-    for (const row of menuRows ?? []) {
-      nameById.set(row.id, row.name);
-    }
+    const menuItemIds = body.items.map(i => i.menuItemId);
 
     const { data, error } = await staffDb.rpc('place_order_batch', {
       p_table_id: body.tableId,
       p_items: orderLinesToRpcJson(body.items),
     });
 
+    // ชื่อเมนูใช้แค่ตอนประกอบข้อความ error — เดิมยิงไว้ก่อนทุกครั้ง
+    // เสีย round trip ฟรีในเส้นทางที่สำเร็จ ซึ่งเป็นเส้นทางปกติ (PERF/3)
     if (error) {
+      const { data: menuRows } = await staffDb
+        .from('menu_items')
+        .select('id, name')
+        .in('id', menuItemIds);
+
+      const nameById = new Map<number, string>();
+      for (const row of menuRows ?? []) {
+        nameById.set(row.id, row.name);
+      }
+
       return Response.json(
         { error: orderBatchErrorMessage(error, nameById) },
         { status: 409 }
@@ -53,10 +55,25 @@ export async function POST(request: Request) {
     }
 
     const batch = data as { order_id?: number; placed?: number } | null;
+    const orderId = batch?.order_id ?? null;
+
+    // คืนสถานะหลังสั่งมาให้เลย — client จะได้ไม่ต้องยิงตามอีก 3 รอบ (PERF/3)
+    const [itemsRes, stockRes] = await Promise.all([
+      orderId === null
+        ? Promise.resolve({ data: null })
+        : staffDb
+            .from('order_items')
+            .select('id, quantity, unit_price, status, notes, menu_items(name)')
+            .eq('order_id', orderId)
+            .order('id', { ascending: true }),
+      staffDb.from('menu_items').select('id, stock').in('id', menuItemIds),
+    ]);
 
     return Response.json({
-      orderId: batch?.order_id ?? null,
+      orderId,
       placed: batch?.placed ?? body.items.length,
+      orderedItems: itemsRes.data ?? [],
+      stockUpdates: stockRes.data ?? [],
     });
   } catch (err) {
     return errorResponse(err);

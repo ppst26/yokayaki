@@ -1,5 +1,10 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
-import { requireManageEmployees, clientKeyFrom, errorResponse } from '@/lib/session';
+import {
+  requireManageEmployees,
+  clientKeyFrom,
+  errorResponse,
+  invalidateStaffSession,
+} from '@/lib/session';
 
 // =============================================================
 // POST /api/auth/sessions/[id]/revoke — owner/manager force-logout
@@ -28,6 +33,8 @@ export async function POST(
     }
 
     if (!target.revoked_at) {
+      invalidateStaffSession(sessionId);
+
       const { error: revokeError } = await supabaseAdmin
         .from('staff_sessions')
         .update({ revoked_at: new Date().toISOString() })

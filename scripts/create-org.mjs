@@ -5,6 +5,7 @@
 //
 // ⚠️ PIN จะปรากฏใน shell history — ใช้สำหรับ test/staging เท่านั้น
 // =============================================================
+import { createHmac } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { loadEnv, requireEnv } from './_env.mjs';
 
@@ -73,11 +74,16 @@ if (tablesError) {
   process.exit(1);
 }
 
+// เดียวกับ lib/pinLookup.ts — ไม่ใส่ก็ยังใช้ได้ แค่ล็อกอินครั้งแรกจะไปทางเดินสำรอง
+const pepper = env.PIN_LOOKUP_PEPPER?.trim();
+const pinLookup = pepper ? createHmac('sha256', pepper).update(pin).digest('hex') : null;
+
 const { data: ownerId, error: ownerError } = await db.rpc('admin_add_employee', {
   p_name: orgName,
   p_pin: pin,
   p_role: 'owner',
   p_org_id: orgId,
+  p_pin_lookup: pinLookup,
 });
 
 if (ownerError) {

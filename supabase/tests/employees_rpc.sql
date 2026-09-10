@@ -21,11 +21,11 @@ DECLARE
 BEGIN
   FOREACH v_fn IN ARRAY ARRAY[
     'public.admin_list_employees()',
-    'public.admin_add_employee(text,text,text,uuid)',
-    'public.admin_update_employee(int,text,text,text)',
+    'public.admin_add_employee(text,text,text,uuid,text)',
+    'public.admin_update_employee(int,text,text,text,text)',
     'public.admin_delete_employee(int,int)',
-    'public.pin_taken(text,int)',
-    'public.verify_pin(text,text)'
+    'public.pin_taken(text,int,text)',
+    'public.verify_pin(text,text,text)'
   ]
   LOOP
     FOREACH v_role IN ARRAY ARRAY['anon', 'authenticated', 'public']

@@ -42,9 +42,11 @@ export async function GET(
         .eq('org_id', orgId)
         .eq('is_active', true)
         .order('created_at', { ascending: false }),
+      // PERF/6 — ฝัง order_items มาเลย เดิมต้องรอ orders เสร็จก่อนแล้วยิงอีกรอบ
+      // หน้านี้ poll ทุก 5 วิ จึงจ่ายค่า round trip ส่วนเกินนี้ตลอดเวลาที่ลูกค้าเปิดจออยู่
       supabaseAdmin
         .from('orders')
-        .select('id')
+        .select('id, order_items(id, quantity, unit_price, status, notes, menu_items(name))')
         .eq('table_id', tableId)
         .eq('status', 'active')
         .maybeSingle(),
@@ -52,23 +54,18 @@ export async function GET(
 
     if (menuRes.error) throw menuRes.error;
 
-    let orderedItems: unknown[] = [];
-    if (orderRes.data?.id) {
-      const { data: items, error } = await supabaseAdmin
-        .from('order_items')
-        .select('id, quantity, unit_price, status, notes, menu_items(name)')
-        .eq('order_id', orderRes.data.id)
-        .order('id', { ascending: true });
-      if (error) throw error;
-      orderedItems = items ?? [];
-    }
+    const orderRow = orderRes.data as
+      | { id: number; order_items?: { id: number }[] | null }
+      | null;
+
+    const orderedItems = [...(orderRow?.order_items ?? [])].sort((a, b) => a.id - b.id);
 
     return Response.json({
       sessionActive: true,
       tableId,
       tableNumber: tableRes.data?.table_number ?? null,
       tableStatus: tableRes.data?.status ?? 'occupied',
-      orderActive: Boolean(orderRes.data?.id),
+      orderActive: Boolean(orderRow?.id),
       menuItems: menuRes.data ?? [],
       promotions: promoRes.data ?? [],
       orderedItems,

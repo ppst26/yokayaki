@@ -3,6 +3,7 @@ import { requireManageEmployees, errorResponse, clientKeyFrom, HttpError } from 
 import type { StaffClaims } from '@/lib/authToken';
 import type { EmployeeRole } from '@/lib/permissions';
 import { enforceRateLimit } from '@/lib/rateLimit';
+import { pinLookupHash } from '@/lib/pinLookup';
 import { parseJsonBody, parseValue } from '@/lib/api/parse';
 import {
   employeeDeleteBodySchema,
@@ -35,6 +36,7 @@ async function assertStepUpPin(request: Request, pin: string, actor: StaffClaims
   const { data, error } = await db.rpc('verify_pin', {
     p_pin: pin,
     p_client_key: clientKeyFrom(request),
+    p_pin_lookup: pinLookupHash(pin),
   });
   if (error) throw error;
 
@@ -89,6 +91,7 @@ export async function PATCH(
       p_name: name,
       p_pin: pin,
       p_role: role,
+      p_pin_lookup: pin === null ? null : pinLookupHash(pin),
     });
     if (error) throw error;
 

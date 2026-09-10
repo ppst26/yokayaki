@@ -11,6 +11,33 @@ import type { EmployeeRole } from '@/lib/permissions';
 // ไม่ใช่ค่าที่ client ส่งมาใน body (เช่น employee_name เดิม)
 // =============================================================
 
+// =============================================================
+// Cache ผลตรวจ staff_sessions (PERF/2)
+//
+// เดิม requireStaff() ยิง DB ทุก request แม้ JWT ยังไม่หมดอายุ
+// → ทุก endpoint เสีย round trip ฟรี ~70-95 ms รวมถึงปุ่มเสิร์ฟในครัว
+//
+// เก็บเฉพาะผลลัพธ์ "ยังใช้ได้" ไว้ในหน่วยความจำของ process สั้นๆ
+// การถอนสิทธิ์ (logout / revoke) เรียก invalidateStaffSession() ให้มีผลทันที
+// ใน process นั้น และมีผลข้าม process ภายใน TTL อย่างช้าที่สุด
+// =============================================================
+const SESSION_CACHE_TTL_MS = 30_000;
+const SESSION_CACHE_MAX = 5_000;
+
+/** sessionId → เวลาที่ผลลัพธ์นี้หมดอายุ (epoch ms) */
+const verifiedSessions = new Map<string, number>();
+
+function sweepVerifiedSessions(now: number): void {
+  for (const [id, validUntil] of verifiedSessions) {
+    if (validUntil <= now) verifiedSessions.delete(id);
+  }
+}
+
+/** ลบ session ออกจาก cache — เรียกทันทีที่ revoke/logout */
+export function invalidateStaffSession(sessionId: string): void {
+  verifiedSessions.delete(sessionId);
+}
+
 export async function getStaffSession(): Promise<StaffClaims | null> {
   const store = await cookies();
   const token = store.get(SESSION_COOKIE)?.value;
@@ -19,15 +46,34 @@ export async function getStaffSession(): Promise<StaffClaims | null> {
   const claims = await verifyStaffToken(token);
   if (!claims) return null;
 
+  const now = Date.now();
+  const cachedUntil = verifiedSessions.get(claims.sessionId);
+  if (cachedUntil !== undefined && cachedUntil > now) return claims;
+
   const { data, error } = await supabaseAdmin
     .from('staff_sessions')
-    .select('id')
+    .select('id, expires_at')
     .eq('id', claims.sessionId)
     .is('revoked_at', null)
-    .gt('expires_at', new Date().toISOString())
+    .gt('expires_at', new Date(now).toISOString())
     .maybeSingle();
 
-  if (error || !data) return null;
+  if (error || !data) {
+    verifiedSessions.delete(claims.sessionId);
+    return null;
+  }
+
+  // ห้าม cache เลยเวลาหมดอายุจริงของ session
+  const expiresAtMs = data.expires_at ? Date.parse(data.expires_at) : NaN;
+  const validUntil = Number.isFinite(expiresAtMs)
+    ? Math.min(now + SESSION_CACHE_TTL_MS, expiresAtMs)
+    : now + SESSION_CACHE_TTL_MS;
+
+  if (validUntil > now) {
+    if (verifiedSessions.size >= SESSION_CACHE_MAX) sweepVerifiedSessions(now);
+    verifiedSessions.set(claims.sessionId, validUntil);
+  }
+
   return claims;
 }
 

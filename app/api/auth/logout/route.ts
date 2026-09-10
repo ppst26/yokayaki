@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { SESSION_COOKIE, verifyStaffToken } from '@/lib/authToken';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
-import { clientKeyFrom, errorResponse } from '@/lib/session';
+import { clientKeyFrom, errorResponse, invalidateStaffSession } from '@/lib/session';
 
 // =============================================================
 // POST /api/auth/logout — revoke session + clear cookie
@@ -16,6 +16,8 @@ export async function POST(request: Request) {
     if (token) {
       const claims = await verifyStaffToken(token);
       if (claims) {
+        invalidateStaffSession(claims.sessionId);
+
         const { error: revokeError } = await supabaseAdmin
           .from('staff_sessions')
           .update({ revoked_at: new Date().toISOString() })

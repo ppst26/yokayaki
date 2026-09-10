@@ -19,6 +19,7 @@ export type Database = {
           role: string
           created_at: string | null
           pin_bcrypt: string | null
+          pin_lookup: string | null
           org_id: string
           auth_user_id: string | null
         }
@@ -28,6 +29,7 @@ export type Database = {
           role: string
           created_at?: string | null
           pin_bcrypt?: string | null
+          pin_lookup?: string | null
           org_id?: string
           auth_user_id?: string | null
         }
@@ -37,6 +39,7 @@ export type Database = {
           role?: string
           created_at?: string | null
           pin_bcrypt?: string | null
+          pin_lookup?: string | null
           org_id?: string
           auth_user_id?: string | null
         }
@@ -730,6 +733,7 @@ export type Database = {
           p_pin: string | null
           p_role: string | null
           p_org_id: string | null
+          p_pin_lookup?: string | null
         }
         Returns: number
       }
@@ -756,6 +760,7 @@ export type Database = {
           p_name: string | null
           p_pin: string | null
           p_role: string | null
+          p_pin_lookup?: string | null
         }
         Returns: string
       }
@@ -890,7 +895,8 @@ export type Database = {
       pin_taken: {
         Args: {
           p_pin: string | null
-          p_exclude_id: number | null
+          p_exclude_id?: number | null
+          p_pin_lookup?: string | null
         }
         Returns: boolean
       }
@@ -931,6 +937,7 @@ export type Database = {
         Args: {
           p_pin: string | null
           p_client_key: string | null
+          p_pin_lookup?: string | null
         }
         Returns: {
             emp_id: number

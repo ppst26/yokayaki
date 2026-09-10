@@ -48,9 +48,11 @@ export const KitchenScreen: React.FC = () => {
   const [now, setNow] = useState<Date>(new Date());
   const prevItemsCountRef = useRef<number>(0);
 
-  const fetchPendingItems = async () => {
+  // PERF/4 — silent = ไม่โชว์ spinner เต็มจอ
+  // เดิม realtime ทุก event เรียกฟังก์ชันนี้แล้ว setLoading(true) → จอกระพริบทุกครั้งที่ร้านมีความเคลื่อนไหว
+  const fetchPendingItems = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const { data, error } = await supabase
         .from('order_items')
         .select(`
@@ -83,7 +85,7 @@ export const KitchenScreen: React.FC = () => {
     } catch (err) {
       console.error('Error fetching kitchen items:', err);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -119,7 +121,7 @@ export const KitchenScreen: React.FC = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error);
 
-      fetchPendingItems();
+      fetchPendingItems(true);
       return true;
     } catch (err) {
       console.error('Error voiding item from kitchen:', err);
@@ -151,6 +153,17 @@ export const KitchenScreen: React.FC = () => {
       setNow(new Date());
     }, 30000);
 
+    // PERF/4 — เสิร์ฟทั้งโต๊ะ 6 รายการ = 6 UPDATE event = เดิม refetch 6 รอบซ้อน
+    // รวบเป็นรอบเดียว และไม่โชว์ spinner เพราะรายการเดิมยังแสดงอยู่ระหว่างรอ
+    let refetchTimer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleRefetch = () => {
+      if (refetchTimer) clearTimeout(refetchTimer);
+      refetchTimer = setTimeout(() => {
+        refetchTimer = null;
+        fetchPendingItems(true);
+      }, 400);
+    };
+
     const channel = supabase
       .channel('realtime:kitchen_items')
       .on(
@@ -160,15 +173,13 @@ export const KitchenScreen: React.FC = () => {
           if (soundEnabledRef.current && payload.new && payload.new.status === 'pending') {
             playNewOrderSound();
           }
-          fetchPendingItems();
+          scheduleRefetch();
         }
       )
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'order_items' },
-        () => {
-          fetchPendingItems();
-        }
+        scheduleRefetch
       )
       .on(
         'postgres_changes',
@@ -188,6 +199,7 @@ export const KitchenScreen: React.FC = () => {
 
     return () => {
       clearInterval(timer);
+      if (refetchTimer) clearTimeout(refetchTimer);
       channel.unsubscribe();
     };
   }, []);
@@ -256,7 +268,7 @@ export const KitchenScreen: React.FC = () => {
           </button>
 
           <button
-            onClick={fetchPendingItems}
+            onClick={() => fetchPendingItems()}
             className="p-2 sm:p-2 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-200 rounded-xl transition active:scale-95 shadow-xs cursor-pointer"
             title="รีเฟรชข้อมูล"
           >

@@ -9,6 +9,7 @@
 //
 // ⚠️ PIN จะปรากฏใน shell history — เปลี่ยนผ่านหน้าจัดการพนักงานทีหลังถ้ากังวล
 // =============================================================
+import { createHmac } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { loadEnv, requireEnv } from './_env.mjs';
 
@@ -51,11 +52,21 @@ if (!/^\d{6}$/.test(arg2 ?? '')) {
   process.exit(1);
 }
 
+// เดียวกับ lib/pinLookup.ts — สคริปต์นี้เป็น .mjs จึง import โมดูล server-only ไม่ได้
+const pepper = env.PIN_LOOKUP_PEPPER?.trim();
+if (!pepper) {
+  console.warn('⚠ ไม่ได้ตั้ง PIN_LOOKUP_PEPPER — พนักงานคนนี้จะตกไปทางเดินสำรองที่ช้าตอนล็อกอิน');
+}
+const pinLookup = pepper
+  ? createHmac('sha256', pepper).update(arg2).digest('hex')
+  : null;
+
 const { data, error } = await db.rpc('admin_update_employee', {
   p_employee_id: employeeId,
   p_name: null,
   p_pin: arg2,
   p_role: null,
+  p_pin_lookup: pinLookup,
 });
 
 if (error) {

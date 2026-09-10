@@ -94,7 +94,9 @@ yokayaki/
 │   ├── 20260825_pin_lockout_hardening.sql # 🔴 A2 (หาง) — ตัด SHA-256 + DROP pin_hash + เพดานล็อกอินรวม
 │   ├── 20260826_order_price_server_side.sql # 🔴 A4 — ลบ p_unit_price ราคามาจาก menu_items ฝั่ง DB
 │   ├── 20260827_checkout_server_side.sql # 🔴 A5/A6 — ยอดบิลคำนวณใน DB + UNIQUE(payments.order_id)
-│   └── 20260828_audit_and_integrity.sql # 🔴 A7.4-A7.7 — unique active order · void ด้วยรหัส · audit จาก JWT · FK RESTRICT
+│   ├── 20260828_audit_and_integrity.sql # 🔴 A7.4-A7.7 — unique active order · void ด้วยรหัส · audit จาก JWT · FK RESTRICT
+│   ├── 20260924_pin_lookup_fast_path.sql # ⚡ PERF/1 — verify_pin เลิกสแกน bcrypt ทั้งตาราง (pin_lookup + index)
+│   └── 20260925_hot_path_indexes.sql    # ⚡ PERF/5 — index order_items(pending) + org_id ทุกตารางที่ RLS กรอง
 │
 ├── supabase/tests/                   # ทุกไฟล์รันใน transaction แล้ว ROLLBACK — รันซ้ำได้
 │   ├── security.sql                  # A1–A6 (สิทธิ์ anon · lockout PIN · ราคา · ยอดบิล · ปิดบิลซ้ำ)
@@ -121,7 +123,7 @@ yokayaki/
 │   ├── main.md                       #   Personality, Architecture, Feature Rules
 │   └── setting.md                    #   Communication, Naming, Commit conventions
 │
-├── .env.local                        # ⚠️ ต้องมี SUPABASE_SERVICE_ROLE_KEY + SUPABASE_JWT_SECRET ด้วย (ดู .env.example)
+├── .env.local                        # ⚠️ ต้องมี SUPABASE_SERVICE_ROLE_KEY + SUPABASE_JWT_SECRET + PIN_LOOKUP_PEPPER (ดู .env.example)
 ├── .env.example                      # รายการตัวแปรที่ต้องตั้ง (ไม่มีค่าจริง)
 ├── next.config.ts                    # ALLOWED_DEV_ORIGINS for LAN testing + security headers
 ├── tsconfig.json                     # TypeScript config (strict, @/* alias)
@@ -157,7 +159,8 @@ yokayaki/
 ```
 เปิดแอป → PinPad.tsx (กรอก PIN 6 หลัก)
   → POST /api/auth/login (PIN เป็น plaintext ผ่าน HTTPS — ไม่ hash ฝั่ง client แล้ว)
-  → RPC verify_pin() เทียบด้วย bcrypt ใน DB · hash ไม่เคยออกจากฐานข้อมูล
+  → server คำนวณ pin_lookup = HMAC(pin, PIN_LOOKUP_PEPPER) ส่งไปด้วย (ตัวช่วยหาแถว ไม่ใช่ตัวตัดสิน)
+  → RPC verify_pin() หาแถวด้วย pin_lookup แล้วเทียบ bcrypt ครั้งเดียว · hash ไม่เคยออกจากฐานข้อมูล
   → นับความพยายามที่ผิดฝั่ง server (pin_attempts) 2 ชั้น
      ต่อ IP: ผิด 5 ครั้งใน 15 นาที = ล็อก 3 นาที
      รวมทั้งระบบ: ผิด 20 ครั้งใน 5 นาที = ล็อก 1 นาที (กันคนสุ่ม x-forwarded-for หนี lockout)
@@ -285,10 +288,10 @@ KitchenScreen (Realtime subscription)
 | `void_order_item` | `(p_order_item_id, p_reason_code, p_reason_note, p_void_quantity)` | ยกเลิกรายการ — คืนสต็อกตาม**รหัส**เหตุผล (`lib/voidReasons.ts`) · ผู้ทำรายการมาจาก JWT | DEFINER · `authenticated` |
 | `customer_place_order_item` | `(p_session_id, p_menu_item_id, p_quantity, p_notes)` | ลูกค้าสั่งผ่าน QR + ตรวจ session — **ราคาอ่านจาก menu_items** | DEFINER · `service_role` |
 | `complete_checkout` | `(p_order_id, p_cash_received, p_coupon_code, p_phone_number, p_points_redeem)` | ปิดบิล — **คำนวณ subtotal/ส่วนลด/แต้ม/ยอดสุทธิเองใน DB** แล้วคืนค่าที่บันทึกจริงกลับไปให้ใบเสร็จ · ล็อก order + กันปิดซ้ำ | DEFINER · `authenticated` |
-| `verify_pin` | `(p_pin, p_client_key)` | ตรวจ PIN ด้วย bcrypt + lockout — **`service_role` เท่านั้น** | DEFINER |
+| `verify_pin` | `(p_pin, p_client_key, p_pin_lookup)` | ตรวจ PIN ด้วย bcrypt + lockout — หาแถวด้วย `p_pin_lookup` (indexed) แล้ว bcrypt **ครั้งเดียว** · **`service_role` เท่านั้น** | DEFINER |
 | `admin_list_employees` | `()` | รายชื่อพนักงาน (ไม่มี hash) — **`service_role` เท่านั้น** | DEFINER |
-| `admin_add_employee` | `(p_name, p_pin, p_role)` | เพิ่มพนักงาน + hash bcrypt ใน DB — **`service_role` เท่านั้น** | DEFINER |
-| `admin_update_employee` | `(p_employee_id, p_name, p_pin, p_role)` | แก้ไข + กันลดสิทธิ์ owner คนสุดท้าย — **`service_role` เท่านั้น** | DEFINER |
+| `admin_add_employee` | `(p_name, p_pin, p_role, p_org_id, p_pin_lookup)` | เพิ่มพนักงาน + hash bcrypt ใน DB — **`service_role` เท่านั้น** | DEFINER |
+| `admin_update_employee` | `(p_employee_id, p_name, p_pin, p_role, p_pin_lookup)` | แก้ไข + กันลดสิทธิ์ owner คนสุดท้าย — **`service_role` เท่านั้น** | DEFINER |
 | `admin_delete_employee` | `(p_employee_id, p_actor_id)` | ลบ + กันลบตัวเอง/owner คนสุดท้าย — **`service_role` เท่านั้น** | DEFINER |
 
 > ❌ `add_employee` / `update_employee` / `delete_employee` เดิม **ถูก DROP ทิ้งแล้ว** (A3 — เป็น SECURITY DEFINER ที่ไม่มี authorization check)

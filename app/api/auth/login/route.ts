@@ -2,6 +2,7 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { signStaffToken, SESSION_COOKIE, SESSION_TTL_SECONDS, type EmployeeRole } from '@/lib/authToken';
 import { readOrgAuthCookie } from '@/lib/orgAuthCookie';
 import { clientKeyFrom, errorResponse } from '@/lib/session';
+import { pinLookupHash } from '@/lib/pinLookup';
 import { enforceRateLimit } from '@/lib/rateLimit';
 import { parseJsonBody } from '@/lib/api/parse';
 import { loginBodySchema } from '@/lib/api/schemas';
@@ -52,6 +53,8 @@ export async function POST(request: Request) {
     const { data, error } = await supabaseAdmin.rpc('verify_pin', {
       p_pin: body.pin,
       p_client_key: ipHint,
+      // ให้ DB เข้า index หาแถวเดียวแทนการ bcrypt ทั้งตาราง (PERF/1)
+      p_pin_lookup: pinLookupHash(body.pin),
     });
 
     if (error) throw error;

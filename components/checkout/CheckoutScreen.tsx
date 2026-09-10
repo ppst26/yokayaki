@@ -330,9 +330,13 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNu
   const fetchOrderData = async () => {
     try {
       setIsLoading(true);
+      // PERF/6 — เดิม orders → order_items เป็น waterfall 2 ชั้น
+      // ฝัง order_items มากับ orders ในคิวรีเดียว
       const { data: orderData } = await supabase
         .from('orders')
-        .select('id')
+        .select(
+          'id, order_items(id, quantity, unit_price, status, notes, created_at, menu_items(id, name))'
+        )
         .eq('table_id', tableId)
         .eq('status', 'active')
         .maybeSingle();
@@ -344,13 +348,12 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNu
 
       setOrderId(orderData.id);
 
-      const { data: items } = await supabase
-        .from('order_items')
-        .select('id, quantity, unit_price, status, notes, created_at, menu_items(id, name)')
-        .eq('order_id', orderData.id)
-        .order('id', { ascending: true });
-
-      if (items) setOrderedItems(items as unknown as OrderedItem[]);
+      // Relationships ใน database.types.ts ว่างเปล่า supabase-js จึง infer embed ไม่ได้
+      // ใช้ cast แบบเดียวกับที่ KitchenScreen ใช้อยู่
+      const items = [
+        ...((orderData as unknown as { order_items?: OrderedItem[] | null }).order_items ?? []),
+      ].sort((a, b) => a.id - b.id);
+      setOrderedItems(items);
     } catch (err) {
       console.error('Error fetching order:', err);
       setErrorMsg('เกิดข้อผิดพลาดในการดึงข้อมูลออเดอร์');

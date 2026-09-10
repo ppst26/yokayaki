@@ -2,6 +2,7 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { requireManageEmployees, errorResponse } from '@/lib/session';
 import { parseJsonBody } from '@/lib/api/parse';
 import { employeeCreateBodySchema } from '@/lib/api/schemas';
+import { pinLookupHash } from '@/lib/pinLookup';
 
 export async function GET() {
   try {
@@ -28,6 +29,7 @@ export async function POST(request: Request) {
       p_pin: body.pin,
       p_role: body.role,
       p_org_id: actor.orgId,
+      p_pin_lookup: pinLookupHash(body.pin),
     });
     if (error) throw error;
 

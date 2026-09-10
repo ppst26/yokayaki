@@ -107,9 +107,10 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, tableNu
   const fetchMenu = async () => {
     try {
       setIsLoadingMenu(true);
+      // เลือกเฉพาะคอลัมน์ที่จอนี้ใช้จริง — เดิม select('*') ลากทุกคอลัมน์มาทุกครั้ง
       const { data, error } = await supabase
         .from('menu_items')
-        .select('*')
+        .select('id, name, price, stock, category, image_url, is_happy_hour, happy_hour_price')
         .order('id', { ascending: true });
 
       if (error) throw error;
@@ -122,46 +123,42 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, tableNu
     }
   };
 
-  const fetchActiveOrder = async (skipVacantCheck = false) => {
+  // PERF/3 — เดิมเป็น waterfall 3 ชั้น (tables → orders → order_items)
+  // ตอนนี้ดึงโต๊ะขนานไปกับออเดอร์ และฝัง order_items มากับ orders ในคิวรีเดียว
+  // → เหลือ round trip ชั้นเดียว
+  const fetchActiveOrder = async (skipVacantCheck = false, silent = false) => {
     try {
-      setIsLoadingOrder(true);
+      if (!silent) setIsLoadingOrder(true);
 
-      // ตรวจสอบสถานะโต๊ะเฉพาะตอน mount ครั้งแรก (skipVacantCheck=false)
-      // หลัง submitOrder ให้ skip เพราะ RPC เพิ่ง set table เป็น occupied
-      if (!skipVacantCheck) {
-        const { data: tableData } = await supabase
-          .from('tables')
-          .select('status')
-          .eq('id', tableId)
-          .single();
+      const [tableRes, orderRes] = await Promise.all([
+        // ตรวจสถานะโต๊ะเฉพาะตอน mount ครั้งแรก — หลังสั่งอาหาร RPC เพิ่ง set เป็น occupied แล้ว
+        skipVacantCheck
+          ? Promise.resolve(null)
+          : supabase.from('tables').select('status').eq('id', tableId).single(),
+        supabase
+          .from('orders')
+          .select('id, order_items(id, quantity, unit_price, status, notes, menu_items(name))')
+          .eq('table_id', tableId)
+          .eq('status', 'active')
+          .maybeSingle(),
+      ]);
 
-        if (tableData?.status === 'vacant') {
-          setActiveOrderId(null);
-          setOrderedItems([]);
-          setIsLoadingOrder(false);
-          return;
-        }
+      if (tableRes?.data?.status === 'vacant') {
+        setActiveOrderId(null);
+        setOrderedItems([]);
+        return;
       }
 
-      const { data: orderData, error: orderError } = await supabase
-        .from('orders')
-        .select('id')
-        .eq('table_id', tableId)
-        .eq('status', 'active')
-        .maybeSingle();
+      if (orderRes.error) throw orderRes.error;
 
-      if (orderError) throw orderError;
+      const orderData = orderRes.data as
+        | { id: number; order_items?: OrderedItem[] | null }
+        | null;
 
       if (orderData) {
         setActiveOrderId(orderData.id);
-        const { data: itemsData, error: itemsError } = await supabase
-          .from('order_items')
-          .select('id, quantity, unit_price, status, notes, menu_items(name)')
-          .eq('order_id', orderData.id)
-          .order('id', { ascending: true });
-
-        if (itemsError) throw itemsError;
-        if (itemsData) setOrderedItems(itemsData as unknown as OrderedItem[]);
+        const items = [...(orderData.order_items ?? [])].sort((a, b) => a.id - b.id);
+        setOrderedItems(items);
       } else {
         setActiveOrderId(null);
         setOrderedItems([]);
@@ -170,11 +167,12 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, tableNu
       console.error('Error fetching active order:', err);
       setErrorMsg('ไม่สามารถดึงข้อมูลออเดอร์เดิมได้');
     } finally {
-      setIsLoadingOrder(false);
+      if (!silent) setIsLoadingOrder(false);
     }
   };
 
   useEffect(() => {
+    // ขนานกันอยู่แล้ว (ไม่ await) — ปล่อยไว้แบบนี้โดยตั้งใจ
     fetchMenu();
     fetchActiveOrder();
   }, [tableId]);
@@ -183,29 +181,37 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, tableNu
   // เดิม subscribe order_items ทั้งตาราง = เครื่อง POS ทุกเครื่องตื่นทุกครั้งที่โต๊ะไหนก็ตามมีความเคลื่อนไหว
   // orders กรองด้วย table_id ได้ตรงๆ ส่วน order_items ต้องรอให้รู้ order id ก่อน
   useEffect(() => {
+    // PERF/3 — สั่ง 5 อย่างพร้อมกัน = 5 INSERT event = เดิม refetch 5 รอบซ้อน
+    // รวบให้เหลือรอบเดียว และไม่โชว์ spinner (silent) เพราะข้อมูลเดิมยังแสดงอยู่ได้
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleRefetch = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        timer = null;
+        fetchActiveOrder(true, true); // skip vacant check เพราะสถานะโต๊ะอัปเดตแยก
+      }, 400);
+    };
+
     const channel = supabase
       .channel(`realtime:pos_${tableId}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'orders', filter: `table_id=eq.${tableId}` },
-        () => {
-          fetchActiveOrder(true); // skip vacant check เพราะสถานะโต๊ะอัปเดตแยก
-        }
+        scheduleRefetch
       );
 
     if (activeOrderId) {
       channel.on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'order_items', filter: `order_id=eq.${activeOrderId}` },
-        () => {
-          fetchActiveOrder(true);
-        }
+        scheduleRefetch
       );
     }
 
     channel.subscribe();
 
     return () => {
+      if (timer) clearTimeout(timer);
       channel.unsubscribe();
     };
   }, [tableId, activeOrderId]);
@@ -310,8 +316,21 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, tableNu
       }
 
       setCart([]);
-      await fetchActiveOrder(true); // skip vacant check — RPC เพิ่ง set table เป็น occupied แล้ว
-      await fetchMenu();
+
+      // PERF/3 — ใช้สถานะที่ /api/orders ส่งกลับมาเลย
+      // เดิมยิงตามอีก 3 รอบ (orders → order_items → menu_items) หลังสั่งสำเร็จทุกครั้ง
+      if (data?.orderId != null) setActiveOrderId(data.orderId);
+      if (Array.isArray(data?.orderedItems)) {
+        setOrderedItems(data.orderedItems as OrderedItem[]);
+      }
+      if (Array.isArray(data?.stockUpdates) && data.stockUpdates.length > 0) {
+        const stockById = new Map<number, number>(
+          (data.stockUpdates as { id: number; stock: number }[]).map(r => [r.id, r.stock]),
+        );
+        setMenuItems(prev =>
+          prev.map(m => (stockById.has(m.id) ? { ...m, stock: stockById.get(m.id)! } : m)),
+        );
+      }
     } catch (err: any) {
       console.error('Error submitting order:', err);
       setErrorMsg('ไม่สามารถสั่งอาหารได้: ' + (err.message || ''));
@@ -355,8 +374,8 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, tableNu
       }
 
       setVoidTarget(null);
-      await fetchActiveOrder(true);
-      await fetchMenu();
+      // ขนานกัน — เดิมรอทีละอัน
+      await Promise.all([fetchActiveOrder(true), fetchMenu()]);
     } catch (err: any) {
       console.error('Error voiding item:', err);
       setErrorMsg('เกิดข้อผิดพลาดในการ Void: ' + (err.message || ''));
