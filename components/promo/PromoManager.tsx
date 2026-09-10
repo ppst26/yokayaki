@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import {
   Tag,
@@ -535,10 +536,13 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
         </div>
       )}
 
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center p-0 sm:p-4 app-dialog-backdrop">
-          <div className="app-dialog flex w-full max-w-lg flex-col shadow-xl sm:rounded-2xl rounded-t-2xl max-h-[min(82dvh,calc(100dvh-4.5rem))] sm:max-h-[min(90dvh,40rem)]">
+      {/* Modal — portal หลีก overflow-hidden ของ main + เว้น bottom nav (pb-24) */}
+      {showModal &&
+        createPortal(
+        <div
+          className="fixed inset-0 z-[60] flex flex-col px-3 pt-3 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] sm:flex-row sm:items-center sm:justify-center sm:p-4 sm:pb-4 app-dialog-backdrop"
+        >
+          <div className="app-dialog flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-2xl shadow-xl sm:flex-none sm:max-h-[min(90dvh,40rem)] sm:max-w-lg">
             {/* Header */}
             <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-4 pb-3 pt-4 dark:border-neutral-800 sm:px-6 sm:pt-5">
               <div className="min-w-0 pr-2">
@@ -924,7 +928,7 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
             </div>
 
             {/* Footer — คงที่ด้านล่าง ไม่เลื่อนตามฟอร์ม */}
-            <div className="flex shrink-0 gap-2 border-t border-slate-100 px-4 py-3 dark:border-neutral-800 sm:px-6 sm:py-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <div className="flex shrink-0 gap-2 border-t border-slate-100 px-4 py-3 dark:border-neutral-800 sm:px-6 sm:py-4">
               <button
                 type="button"
                 onClick={closeModal}
@@ -946,7 +950,8 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
 
       {/* Delete Modal */}
