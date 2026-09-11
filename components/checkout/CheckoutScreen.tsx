@@ -155,7 +155,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNu
   // เดิม fallback เป็น '0899999999' เงียบๆ = ลูกค้าโอนเงินเข้าเบอร์ของคนอื่นโดยไม่มีใครรู้ (A7.8)
   // ตอนนี้ถ้าไม่ได้ตั้งค่า จะปิดช่องทาง PromptPay ไปเลยและบอกให้ไปตั้งค่า
   const promptPayId = (orgSettings?.promptpay_id ?? '').replace(/[^0-9]/g, '');
-  const merchantName = orgSettings?.receipt_merchant_name ?? 'YOKAYAKI';
+  const merchantName = orgSettings?.receipt_merchant_name ?? 'Yoyaki';
   const promptPayReady = promptPayId.length === 10 || promptPayId.length === 13;
   const doublePointsActive = isDoublePointsActive(
     Boolean(orgSettings?.double_points_enabled),
@@ -567,6 +567,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNu
         tableNumber={tableNumber}
         now={new Date()}
         employeeName={employee?.name}
+        merchantName={merchantName}
         activeItems={activeItems}
         subtotal={r ? Number(r.subtotal) : subtotal}
         appliedPromos={receiptPromos}

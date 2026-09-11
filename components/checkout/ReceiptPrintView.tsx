@@ -45,6 +45,7 @@ interface ReceiptPrintViewProps {
   tableNumber?: number;
   now: Date;
   employeeName?: string;
+  merchantName?: string;
   activeItems: OrderedItem[];
   subtotal: number;
   appliedPromos: AppliedPromo[];
@@ -65,6 +66,7 @@ export const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
   tableNumber,
   now,
   employeeName,
+  merchantName = 'Yoyaki',
   activeItems,
   subtotal,
   appliedPromos,
@@ -79,15 +81,14 @@ export const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
   onBack,
 }) => {
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-neutral-950 text-slate-800 dark:text-neutral-200 flex flex-col items-center justify-center p-6">
-      {/* Print-only receipt */}
+    <div className="min-h-screen bg-gray-100 dark:bg-neutral-950 text-slate-800 dark:text-neutral-200 flex flex-col items-center justify-center p-6 print:min-h-0 print:bg-white print:p-0 print:block">
+      {/* Print-only receipt — #receipt ถูกจำกัดด้วย @media print ใน globals.css */}
       <div
         id="receipt"
-        className="bg-white text-black w-[320px] p-6 rounded-2xl shadow-xl border border-slate-200 font-mono text-xs print:shadow-none print:rounded-none print:w-[80mm] print:border-none"
+        className="bg-white text-black w-[320px] p-6 rounded-2xl shadow-xl border border-slate-200 font-mono text-xs print:shadow-none print:rounded-none print:w-[80mm] print:max-w-[80mm] print:border-none print:p-0"
       >
         <div className="text-center mb-3">
-          <h2 className="text-lg font-black tracking-wider">YOKAYAKI IZAKAYA</h2>
-          <p className="text-[10px] text-gray-500">(3-4 Tables Setup)</p>
+          <h2 className="text-lg font-black tracking-wider">{merchantName}</h2>
         </div>
         <div className="border-t border-dashed border-gray-400 my-2" />
         <div className="text-[11px] space-y-0.5">
