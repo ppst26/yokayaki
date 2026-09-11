@@ -2,6 +2,8 @@
 export const PLATFORM_BRANDING = {
   logo: '/branding/logo.png',
   logoDark: '/branding/logo-dark.webp',
+  /** โลโก้หัวใบเสร็จ (พื้นขาว / thermal) */
+  receiptLogo: '/branding/yoyaki-dark.webp',
   loginBackground: '/branding/login-bg.webp',
   loginBackgroundMobile: '/branding/login-bg.webp',
   appBackground: '/branding/app-bg.webp',

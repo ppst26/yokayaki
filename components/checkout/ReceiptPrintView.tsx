@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Printer } from 'lucide-react';
+import { PLATFORM_BRANDING } from '@/lib/branding';
 
 interface OrderedItem {
   id: number;
@@ -45,7 +46,6 @@ interface ReceiptPrintViewProps {
   tableNumber?: number;
   now: Date;
   employeeName?: string;
-  merchantName?: string;
   activeItems: OrderedItem[];
   subtotal: number;
   appliedPromos: AppliedPromo[];
@@ -66,7 +66,6 @@ export const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
   tableNumber,
   now,
   employeeName,
-  merchantName = 'Yoyaki',
   activeItems,
   subtotal,
   appliedPromos,
@@ -82,13 +81,18 @@ export const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
 }) => {
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-neutral-950 text-slate-800 dark:text-neutral-200 flex flex-col items-center justify-center p-6 print:min-h-0 print:bg-white print:p-0 print:block">
-      {/* #receipt — กว้าง 48mm (4.80cm) ตอนพิมพ์; ตัวอักษรใหญ่ขึ้นเพื่อความชัดบน thermal */}
+      {/* #receipt — กว้าง 48mm (4.80cm) ตอนพิมพ์; หัวใบเสร็จใช้โลโก้แทนชื่อร้าน */}
       <div
         id="receipt"
         className="bg-white text-black w-[280px] p-5 rounded-2xl shadow-xl border border-slate-200 font-sans text-sm font-semibold print:shadow-none print:rounded-none print:w-[48mm] print:max-w-[48mm] print:border-none print:p-0"
       >
-        <div className="text-center mb-3">
-          <h2 className="text-xl font-black tracking-wider">{merchantName}</h2>
+        <div className="mb-3 flex justify-center">
+          {/* eslint-disable-next-line @next/next/no-img-element -- thermal print ต้องเป็น <img> ธรรมดา */}
+          <img
+            src={PLATFORM_BRANDING.receiptLogo}
+            alt="Yoyaki"
+            className="receipt-logo h-auto w-[160px] max-w-[85%] object-contain"
+          />
         </div>
         <div className="border-t border-dashed border-gray-400 my-2" />
         <div className="receipt-meta space-y-0.5 text-[13px] font-semibold">

@@ -777,11 +777,13 @@ html.theme-fading *::after {
     letter-spacing: 0.01em !important;
   }
 
-  #receipt h2 {
-    font-size: 20px !important;
-    font-weight: 900 !important;
-    letter-spacing: 0.04em !important;
-    margin: 0 0 2mm !important;
+  #receipt .receipt-logo {
+    display: block !important;
+    width: 32mm !important;
+    max-width: 90% !important;
+    height: auto !important;
+    margin: 0 auto 2.5mm !important;
+    object-fit: contain !important;
   }
 
   #receipt .receipt-meta,

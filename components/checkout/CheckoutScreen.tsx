@@ -567,7 +567,6 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNu
         tableNumber={tableNumber}
         now={new Date()}
         employeeName={employee?.name}
-        merchantName={merchantName}
         activeItems={activeItems}
         subtotal={r ? Number(r.subtotal) : subtotal}
         appliedPromos={receiptPromos}
