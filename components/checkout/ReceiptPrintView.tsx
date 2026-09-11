@@ -82,16 +82,16 @@ export const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
 }) => {
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-neutral-950 text-slate-800 dark:text-neutral-200 flex flex-col items-center justify-center p-6 print:min-h-0 print:bg-white print:p-0 print:block">
-      {/* Print-only receipt — #receipt ถูกจำกัดด้วย @media print ใน globals.css */}
+      {/* #receipt — กว้าง 48mm (4.80cm) ตอนพิมพ์; ตัวอักษรใหญ่ขึ้นเพื่อความชัดบน thermal */}
       <div
         id="receipt"
-        className="bg-white text-black w-[320px] p-6 rounded-2xl shadow-xl border border-slate-200 font-mono text-xs print:shadow-none print:rounded-none print:w-[80mm] print:max-w-[80mm] print:border-none print:p-0"
+        className="bg-white text-black w-[280px] p-5 rounded-2xl shadow-xl border border-slate-200 font-sans text-sm font-semibold print:shadow-none print:rounded-none print:w-[48mm] print:max-w-[48mm] print:border-none print:p-0"
       >
         <div className="text-center mb-3">
-          <h2 className="text-lg font-black tracking-wider">{merchantName}</h2>
+          <h2 className="text-xl font-black tracking-wider">{merchantName}</h2>
         </div>
         <div className="border-t border-dashed border-gray-400 my-2" />
-        <div className="text-[11px] space-y-0.5">
+        <div className="receipt-meta space-y-0.5 text-[13px] font-semibold">
           <p>บิลเลขที่: ORD-{orderId}</p>
           <p>โต๊ะที่: Table {tableNumber ?? tableId}</p>
           <p>
@@ -102,60 +102,65 @@ export const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
         </div>
         <div className="border-t border-dashed border-gray-400 my-2" />
         {activeItems.map(item => (
-          <div key={item.id} className="py-0.5">
-            <div className="flex justify-between text-[11px]">
-              <span>
+          <div key={item.id} className="receipt-item py-0.5">
+            <div className="flex justify-between gap-2 text-[13px] font-semibold">
+              <span className="min-w-0 break-words">
                 - {item.menu_items?.name} x{item.quantity}
               </span>
-              <span>{(item.quantity * item.unit_price).toLocaleString()}</span>
+              <span className="shrink-0 tabular-nums">
+                {(item.quantity * item.unit_price).toLocaleString()}
+              </span>
             </div>
             {item.notes && (
-              <div className="text-[10px] text-gray-500 pl-3">*{item.notes}</div>
+              <div className="receipt-note pl-3 text-[12px] text-gray-500">*{item.notes}</div>
             )}
           </div>
         ))}
         <div className="border-t border-dashed border-gray-400 my-2" />
-        <div className="flex justify-between text-[11px]">
+        <div className="receipt-row flex justify-between text-[13px] font-semibold">
           <span>ยอดรวม:</span>
-          <span>{subtotal.toLocaleString()} บาท</span>
+          <span className="tabular-nums">{subtotal.toLocaleString()} บาท</span>
         </div>
         {appliedPromos.map(ap => (
           <div key={ap.promo.id} className="text-red-600">
-            <div className="flex justify-between text-[11px]">
-              <span>โปรโม: {ap.promo.name}</span>
-              <span>-{ap.discountValue.toLocaleString()} บาท</span>
+            <div className="receipt-row flex justify-between gap-2 text-[13px] font-semibold">
+              <span className="min-w-0 break-words">โปรโม: {ap.promo.name}</span>
+              <span className="shrink-0 tabular-nums">-{ap.discountValue.toLocaleString()} บาท</span>
             </div>
             {ap.freeItems &&
               ap.freeItems.map((fi, idx) => (
-                <div key={idx} className="text-[10px] pl-3 text-gray-500">
+                <div key={idx} className="receipt-note pl-3 text-[12px] text-gray-500">
                   └ ฟรี: {fi.name} x{fi.qty}
                 </div>
               ))}
           </div>
         ))}
         {loyaltyDiscount > 0 && (
-          <div className="flex justify-between text-[11px] text-red-600">
+          <div className="receipt-row flex justify-between text-[13px] font-semibold text-red-600">
             <span>ส่วนลดแต้ม:</span>
-            <span>-{loyaltyDiscount.toLocaleString()} บาท</span>
+            <span className="tabular-nums">-{loyaltyDiscount.toLocaleString()} บาท</span>
           </div>
         )}
-        <div className="flex justify-between font-bold text-sm mt-1">
+        <div className="receipt-total mt-1 flex justify-between text-base font-black">
           <span>รวมทั้งสิ้น:</span>
-          <span>{netAmount.toLocaleString()} บาท</span>
+          <span className="tabular-nums">{netAmount.toLocaleString()} บาท</span>
         </div>
         <div className="border-t border-dashed border-gray-400 my-2" />
-        <p className="text-[10px]">ชำระโดย:</p>
+        <p className="receipt-pay text-[13px] font-semibold">ชำระโดย:</p>
         {cashNum > 0 && (
-          <p className="text-[10px]"> * เงินสด: {cashNum.toLocaleString()} บาท</p>
+          <p className="receipt-pay text-[13px] font-semibold">
+            {' '}
+            * เงินสด: {cashNum.toLocaleString()} บาท
+          </p>
         )}
         {transferAmount > 0 && cashNum < netAmount && (
-          <p className="text-[10px]">
+          <p className="receipt-pay text-[13px] font-semibold">
             {' '}
             * โอนพร้อมเพย์: {transferAmount.toLocaleString()} บาท
           </p>
         )}
         {changeAmount > 0 && (
-          <p className="text-[10px]">
+          <p className="receipt-pay text-[13px] font-semibold">
             {' '}
             * เงินทอน: {changeAmount.toLocaleString()} บาท
           </p>
@@ -163,33 +168,37 @@ export const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
         {member && (
           <>
             <div className="border-t border-dashed border-gray-400 my-2" />
-            <p className="text-[10px]">
+            <p className="receipt-pay text-[13px] font-semibold">
               สมาชิก: {member.name} ({member.phone_number})
             </p>
             {pointsToRedeem > 0 && (
-              <p className="text-[10px]">แต้มที่ใช้: {pointsToRedeem} แต้ม</p>
+              <p className="receipt-pay text-[13px] font-semibold">
+                แต้มที่ใช้: {pointsToRedeem} แต้ม
+              </p>
             )}
-            <p className="text-[10px]">แต้มสะสมรอบนี้: +{pointsEarned} แต้ม</p>
+            <p className="receipt-pay text-[13px] font-semibold">
+              แต้มสะสมรอบนี้: +{pointsEarned} แต้ม
+            </p>
           </>
         )}
         <div className="border-t border-dashed border-gray-400 my-2" />
-        <p className="text-center text-[10px] text-gray-500">
+        <p className="receipt-footer text-center text-[12px] font-semibold text-gray-500">
           ขอบคุณที่ใช้บริการค่ะ!
         </p>
       </div>
 
       {/* Action Buttons (hidden in print) */}
-      <div className="flex gap-3 mt-6 print:hidden">
+      <div className="mt-6 flex gap-3 print:hidden">
         <button
           onClick={() => window.print()}
-          className="btn-crimson flex items-center gap-2 text-white px-6 py-3 rounded-xl font-bold text-sm active:scale-95 transition cursor-pointer"
+          className="btn-crimson flex cursor-pointer items-center gap-2 rounded-xl px-6 py-3 text-sm font-bold text-white transition active:scale-95"
         >
-          <Printer className="w-4 h-4" />
+          <Printer className="h-4 w-4" />
           พิมพ์ใบเสร็จ
         </button>
         <button
           onClick={onBack}
-          className="flex items-center gap-2 bg-white dark:bg-neutral-800 text-slate-700 dark:text-neutral-200 border border-slate-300 dark:border-neutral-700 shadow-xs px-6 py-3 rounded-xl font-bold text-sm hover:bg-slate-50 dark:hover:bg-neutral-700 active:scale-95 transition cursor-pointer"
+          className="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-bold text-slate-700 shadow-xs transition hover:bg-slate-50 active:scale-95 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
         >
           กลับหน้าผังโต๊ะ
         </button>

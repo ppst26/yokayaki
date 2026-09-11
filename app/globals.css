@@ -729,16 +729,16 @@ html.theme-fading *::after {
   }
 }
 
-/* ---- พิมพ์ใบเสร็จ thermal 80mm — แสดงเฉพาะ #receipt ---- */
+/* ---- พิมพ์ใบเสร็จ thermal 48mm (4.80cm) — แสดงเฉพาะ #receipt ---- */
 @media print {
   @page {
-    size: 80mm auto;
+    size: 48mm auto;
     margin: 0;
   }
 
   html,
   body {
-    width: 80mm !important;
+    width: 48mm !important;
     margin: 0 !important;
     padding: 0 !important;
     background: #fff !important;
@@ -760,16 +760,51 @@ html.theme-fading *::after {
     position: absolute !important;
     left: 0 !important;
     top: 0 !important;
-    width: 80mm !important;
-    max-width: 80mm !important;
+    width: 48mm !important;
+    max-width: 48mm !important;
     margin: 0 !important;
-    padding: 3mm 4mm !important;
+    padding: 2mm 1.5mm !important;
     border: none !important;
     border-radius: 0 !important;
     box-shadow: none !important;
     background: #fff !important;
     color: #000 !important;
+    /* ตัวอักษรใหญ่ + หนา ชัดบน thermal 48mm */
+    font-family: "Noto Sans Thai", Tahoma, sans-serif !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    line-height: 1.4 !important;
+    letter-spacing: 0.01em !important;
+  }
+
+  #receipt h2 {
+    font-size: 20px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.04em !important;
+    margin: 0 0 2mm !important;
+  }
+
+  #receipt .receipt-meta,
+  #receipt .receipt-item,
+  #receipt .receipt-row,
+  #receipt .receipt-pay {
+    font-size: 12px !important;
+    font-weight: 700 !important;
+  }
+
+  #receipt .receipt-note,
+  #receipt .receipt-footer {
     font-size: 11px !important;
-    line-height: 1.35 !important;
+    font-weight: 600 !important;
+  }
+
+  #receipt .receipt-total {
+    font-size: 15px !important;
+    font-weight: 900 !important;
+  }
+
+  #receipt .text-gray-500,
+  #receipt .text-red-600 {
+    color: #000 !important;
   }
 }
