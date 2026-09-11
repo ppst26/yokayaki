@@ -9,7 +9,6 @@ import {
   Trash2,
   X,
   Search,
-  CheckCircle,
   UtensilsCrossed,
   AlertTriangle,
   Image as ImageIcon,
@@ -23,6 +22,7 @@ import { CustomSelect, SelectOption } from '@/components/ui/select';
 import { SearchInput } from '@/components/ui/search-input';
 import { TablePagination } from '@/components/ui/pagination';
 import { deleteOldImage } from '@/lib/deleteOldImage';
+import { useActionFeedback } from '@/context/ActionFeedbackContext';
 import { MenuItemModal } from './MenuItemModal';
 
 interface MenuItem {
@@ -90,6 +90,7 @@ const EMPTY_FORM: Omit<MenuItem, 'id'> = {
 };
 
 export const MenuManager: React.FC = () => {
+  const { showActionFeedback } = useActionFeedback();
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -98,8 +99,6 @@ export const MenuManager: React.FC = () => {
   const [filterHappyHour, setFilterHappyHour] = useState<HappyHourFilter>('all');
   const [filterImage, setFilterImage] = useState<ImageFilter>('all');
   const [sortBy, setSortBy] = useState<SortOption>('default');
-  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
-
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -142,8 +141,7 @@ export const MenuManager: React.FC = () => {
   };
 
   const showMessage = (text: string, type: 'success' | 'error') => {
-    setMessage({ text, type });
-    setTimeout(() => setMessage(null), 3500);
+    showActionFeedback({ variant: type, title: text });
   };
 
   const fetchMenuItems = async () => {
@@ -366,21 +364,6 @@ export const MenuManager: React.FC = () => {
           <span>เพิ่มเมนูอาหารใหม่</span>
         </button>
       </div>
-
-      {message && (
-        <div
-          className={`p-4 rounded-2xl text-xs font-semibold flex items-center justify-between ${
-            message.type === 'success'
-              ? 'bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 text-emerald-800 dark:text-emerald-300'
-              : 'bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-800 dark:text-rose-300'
-          }`}
-        >
-          <span>{message.text}</span>
-          <button onClick={() => setMessage(null)} className="p-1 cursor-pointer">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
 
       {/* Filters & Search */}
       <div className="flex flex-col gap-3">

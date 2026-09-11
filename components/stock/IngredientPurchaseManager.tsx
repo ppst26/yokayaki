@@ -112,7 +112,6 @@ export const IngredientPurchaseManager: React.FC = () => {
   // Modal state
   const [showModal, setShowModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
   const [editingOrder, setEditingOrder] = useState<PurchaseOrder | null>(null);
   const [deletingOrder, setDeletingOrder] = useState<PurchaseOrder | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -331,7 +330,6 @@ export const IngredientPurchaseManager: React.FC = () => {
     setBuyerName(employee?.name || '');
     setNote('');
     setIngredients([{ name: '', unit: 'กก.', quantity: '', pricePerUnit: '' }]);
-    setFormError(null);
     setEditingOrder(null);
   };
 
@@ -343,7 +341,6 @@ export const IngredientPurchaseManager: React.FC = () => {
   // ── Edit purchase order handler ──────────────────────────────────────────
 
   const handleEditOrder = async (order: PurchaseOrder) => {
-    setFormError(null);
     let items = expandedItems[order.id];
     if (!items) {
       const { data, error } = await supabase
@@ -426,12 +423,17 @@ export const IngredientPurchaseManager: React.FC = () => {
   // ── Save purchase order ────────────────────────────────────────────────────
 
   const handleSave = async () => {
-    setFormError(null);
 
     // Validate
-    if (!buyerName.trim()) return setFormError('กรุณาระบุชื่อผู้สั่งซื้อ');
+    if (!buyerName.trim()) {
+      showActionFeedback({ variant: 'warning', title: 'กรุณาระบุชื่อผู้สั่งซื้อ' });
+      return;
+    }
     const validRows = ingredients.filter(r => r.name.trim() && parseFloat(r.quantity) > 0 && parseFloat(r.pricePerUnit) >= 0);
-    if (validRows.length === 0) return setFormError('กรุณาเพิ่มวัตถุดิบอย่างน้อย 1 รายการ');
+    if (validRows.length === 0) {
+      showActionFeedback({ variant: 'warning', title: 'กรุณาเพิ่มวัตถุดิบอย่างน้อย 1 รายการ' });
+      return;
+    }
 
     try {
       setIsSaving(true);
@@ -454,6 +456,7 @@ export const IngredientPurchaseManager: React.FC = () => {
 
       if (error) throw error;
 
+      const wasEditing = !!editingOrder;
       const purchaseOrderId = editingOrder?.id ?? (data as { order_id: number }).order_id;
 
       setShowModal(false);
@@ -463,9 +466,17 @@ export const IngredientPurchaseManager: React.FC = () => {
         await fetchOrderItems(purchaseOrderId);
         setExpandedId(purchaseOrderId);
       }
+      showActionFeedback({
+        variant: 'success',
+        title: wasEditing ? 'อัปเดตใบสั่งซื้อเรียบร้อยแล้ว' : 'บันทึกใบสั่งซื้อเรียบร้อยแล้ว',
+      });
     } catch (err: any) {
       console.error('handleSave error:', err);
-      setFormError('บันทึกไม่สำเร็จ: ' + (err.message || 'ลองใหม่อีกครั้ง'));
+      showActionFeedback({
+        variant: 'error',
+        title: 'บันทึกไม่สำเร็จ',
+        description: err.message || 'ลองใหม่อีกครั้ง',
+      });
     } finally {
       setIsSaving(false);
     }
@@ -865,13 +876,6 @@ export const IngredientPurchaseManager: React.FC = () => {
 
             {/* Modal Body */}
             <div className="flex-1 overflow-y-auto p-6 space-y-5">
-
-              {/* Error */}
-              {formError && (
-                <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-300 rounded-xl text-xs font-semibold">
-                  {formError}
-                </div>
-              )}
 
               {/* Row 1: Date + Buyer */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

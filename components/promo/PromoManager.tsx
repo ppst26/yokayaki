@@ -9,7 +9,6 @@ import {
   Pencil,
   Trash2,
   X,
-  CheckCircle,
   AlertTriangle,
   Gift,
   Clock,
@@ -20,6 +19,7 @@ import { CustomSelect } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { ImageUploadField } from '@/components/ui/ImageUploadField';
 import { deleteOldImage } from '@/lib/deleteOldImage';
+import { useActionFeedback } from '@/context/ActionFeedbackContext';
 import {
   type WinbackPromoDraft,
   formatWinbackNote,
@@ -73,10 +73,10 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
   winbackDraft = null,
   onWinbackDraftConsumed,
 }) => {
+  const { showActionFeedback } = useActionFeedback();
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
   const [showModal, setShowModal] = useState(false);
   const [editingPromo, setEditingPromo] = useState<Promotion | null>(null);
@@ -108,8 +108,7 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
   const [winbackNote, setWinbackNote] = useState<string | null>(null);
 
   const showMsg = (text: string, t: 'success' | 'error') => {
-    setMessage({ text, type: t });
-    setTimeout(() => setMessage(null), 3500);
+    showActionFeedback({ variant: t, title: text });
   };
 
   const fetchData = async () => {
@@ -368,21 +367,6 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
           <span>สร้างโปรโมชั่นใหม่</span>
         </button>
       </div>
-
-      {message && (
-        <div
-          className={`p-4 rounded-2xl text-xs font-semibold flex items-center justify-between ${
-            message.type === 'success'
-              ? 'bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 text-emerald-800 dark:text-emerald-300'
-              : 'bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-800 dark:text-rose-300'
-          }`}
-        >
-          <span>{message.text}</span>
-          <button onClick={() => setMessage(null)} className="p-1 cursor-pointer">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
 
       {loading ? (
         <div className="flex justify-center py-20">

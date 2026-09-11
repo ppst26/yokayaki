@@ -4,9 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import {
   Plus, Pencil,
-  Trash2, X, CheckCircle, AlertTriangle, Shield, User, Users,
+  Trash2, X, AlertTriangle, Shield, User, Users,
   Eye, EyeOff
 } from 'lucide-react';
+import { useActionFeedback } from '@/context/ActionFeedbackContext';
 import { Card } from '@/components/ui/card';
 import { CustomSelect } from '@/components/ui/select';
 import { canAccessTab, EMPLOYEE_ROLES, type EmployeeRole } from '@/lib/permissions';
@@ -44,11 +45,11 @@ type ModalType = 'add' | 'edit' | 'delete' | null;
 
 export const EmployeeManager: React.FC = () => {
   const { employee: currentUser } = useAuth();
+  const { showActionFeedback } = useActionFeedback();
 
   // รายชื่อพนักงาน
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
   // Modal state
   const [activeModal, setActiveModal] = useState<ModalType>(null);
@@ -99,8 +100,7 @@ export const EmployeeManager: React.FC = () => {
   // ========== Helpers ==========
 
   const showMessage = (text: string, type: 'success' | 'error') => {
-    setMessage({ text, type });
-    setTimeout(() => setMessage(null), 4000);
+    showActionFeedback({ variant: type, title: text });
   };
 
   const resetModal = () => {
@@ -257,21 +257,6 @@ export const EmployeeManager: React.FC = () => {
 
   return (
     <div className="w-full space-y-6">
-      {/* Toast Message */}
-      {message && (
-        <div className={`p-4 rounded-2xl text-xs font-semibold flex items-center gap-3 animate-fade-in ${
-          message.type === 'success'
-            ? 'bg-emerald-50 border border-emerald-200 text-emerald-700'
-            : 'bg-rose-50 border border-rose-200 text-rose-700'
-        }`}>
-          {message.type === 'success'
-            ? <CheckCircle className="w-4 h-4 shrink-0" />
-            : <AlertTriangle className="w-4 h-4 shrink-0" />
-          }
-          <span>{message.text}</span>
-        </div>
-      )}
-
       {/* Header & Add Employee Button */}
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">

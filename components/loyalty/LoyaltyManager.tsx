@@ -70,8 +70,6 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
   const [listTab, setListTab] = useState<'all' | 'dormant'>('all');
   const [dormantDaysMin, setDormantDaysMin] = useState<30 | 60 | 90>(30);
   const [rfmFilter, setRfmFilter] = useState<'all' | RfmSegment>('all');
-  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
-
   const tagFilterOptions: { value: 'all' | MemberTagCode; label: string }[] = [
     { value: 'all', label: 'ประเภท: ทั้งหมด' },
     { value: 'new', label: 'ประเภท: ใหม่' },
@@ -159,7 +157,7 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
       await fetchMemberSummaries();
     } catch (err: unknown) {
       console.error('Error fetching members:', err);
-      setMessage({ text: 'ไม่สามารถดึงข้อมูลสมาชิกได้', type: 'error' });
+      showActionFeedback({ variant: 'error', title: 'ไม่สามารถดึงข้อมูลสมาชิกได้' });
     } finally {
       setLoading(false);
     }
@@ -184,7 +182,7 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
       }
     } catch (err: unknown) {
       console.error('Error fetching member profile:', err);
-      setMessage({ text: 'ไม่สามารถดึงข้อมูล Customer 360 ได้', type: 'error' });
+      showActionFeedback({ variant: 'error', title: 'ไม่สามารถดึงข้อมูล Customer 360 ได้' });
     } finally {
       setDetailLoading(false);
     }
@@ -222,9 +220,13 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
       );
 
       setShowEditModal(false);
-      setMessage({ text: 'อัปเดตข้อมูลสมาชิกเรียบร้อยแล้ว', type: 'success' });
+      showActionFeedback({ variant: 'success', title: 'อัปเดตข้อมูลสมาชิกเรียบร้อยแล้ว' });
     } catch (err: any) {
-      setMessage({ text: 'ไม่สามารถอัปเดตข้อมูลได้: ' + (err.message || ''), type: 'error' });
+      showActionFeedback({
+        variant: 'error',
+        title: 'ไม่สามารถอัปเดตข้อมูลได้',
+        description: err.message || undefined,
+      });
     } finally {
       setIsSaving(false);
     }
@@ -244,9 +246,13 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
       setShowDeleteModal(false);
       closeDetail();
       fetchMembers();
-      setMessage({ text: 'ลบสมาชิกเรียบร้อยแล้ว', type: 'success' });
+      showActionFeedback({ variant: 'success', title: 'ลบสมาชิกเรียบร้อยแล้ว' });
     } catch (err: any) {
-      setMessage({ text: 'ไม่สามารถลบสมาชิกได้: ' + (err.message || ''), type: 'error' });
+      showActionFeedback({
+        variant: 'error',
+        title: 'ไม่สามารถลบสมาชิกได้',
+        description: err.message || undefined,
+      });
     } finally {
       setIsDeleting(false);
     }
@@ -297,9 +303,10 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
       setPointsReason('');
       await fetchMemberDetails(selectedMember.phone_number);
       await fetchMemberSummaries();
-      setMessage({
-        text: `ปรับแต้มเรียบร้อยแล้ว (${result.adjustment > 0 ? '+' : ''}${result.adjustment} แต้ม)`,
-        type: 'success',
+      showActionFeedback({
+        variant: 'success',
+        title: 'ปรับแต้มเรียบร้อยแล้ว',
+        description: `${result.adjustment > 0 ? '+' : ''}${result.adjustment} แต้ม`,
       });
     } catch (err: any) {
       showActionFeedback({
@@ -422,7 +429,10 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
       `members-${suffix}-${new Date().toISOString().slice(0, 10)}.csv`,
       buildMemberSegmentCsv(rows),
     );
-    setMessage({ text: `ส่งออก ${rows.length} รายชื่อแล้ว`, type: 'success' });
+    showActionFeedback({
+      variant: 'success',
+      title: `ส่งออก ${rows.length} รายชื่อแล้ว`,
+    });
   };
 
   return (
@@ -440,21 +450,6 @@ export const LoyaltyManager: React.FC<LoyaltyManagerProps> = ({
         </div>
         {!selectedMember && <div className="shrink-0"><DoublePointsDialog /></div>}
       </div>
-
-      {message && (
-        <div
-          className={`p-4 rounded-2xl text-xs font-semibold flex items-center justify-between ${
-            message.type === 'success'
-              ? 'bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 text-emerald-800 dark:text-emerald-300'
-              : 'bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-800 dark:text-rose-300'
-          }`}
-        >
-          <span>{message.text}</span>
-          <button onClick={() => setMessage(null)} className="p-1 cursor-pointer">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
 
       {/* Main List View vs Detail View */}
       {!selectedMember ? (
