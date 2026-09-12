@@ -729,7 +729,7 @@ html.theme-fading *::after {
   }
 }
 
-/* ---- พิมพ์ใบเสร็จ thermal 48mm (4.80cm) — แสดงเฉพาะ #receipt ---- */
+/* ---- พิมพ์ใบเสร็จ thermal 48mm (4.80cm) — แสดงเฉพาะ #receipt หรือ #customer-qr-print ---- */
 @media print {
   @page {
     size: 48mm auto;
@@ -751,12 +751,13 @@ html.theme-fading *::after {
     visibility: hidden !important;
   }
 
-  #receipt,
-  #receipt * {
+  /* ค่าเริ่มต้น: พิมพ์ใบเสร็จ — ยกเว้นตอนพิมพ์ QR โต๊ะ */
+  html:not(.print-customer-qr) #receipt,
+  html:not(.print-customer-qr) #receipt * {
     visibility: visible !important;
   }
 
-  #receipt {
+  html:not(.print-customer-qr) #receipt {
     position: absolute !important;
     left: 0 !important;
     top: 0 !important;
@@ -777,7 +778,7 @@ html.theme-fading *::after {
     letter-spacing: 0.01em !important;
   }
 
-  #receipt .receipt-logo {
+  html:not(.print-customer-qr) #receipt .receipt-logo {
     display: block !important;
     width: 32mm !important;
     max-width: 90% !important;
@@ -786,27 +787,79 @@ html.theme-fading *::after {
     object-fit: contain !important;
   }
 
-  #receipt .receipt-meta,
-  #receipt .receipt-item,
-  #receipt .receipt-row,
-  #receipt .receipt-pay {
+  html:not(.print-customer-qr) #receipt .receipt-meta,
+  html:not(.print-customer-qr) #receipt .receipt-item,
+  html:not(.print-customer-qr) #receipt .receipt-row,
+  html:not(.print-customer-qr) #receipt .receipt-pay {
     font-size: 12px !important;
     font-weight: 700 !important;
   }
 
-  #receipt .receipt-note,
-  #receipt .receipt-footer {
+  html:not(.print-customer-qr) #receipt .receipt-note,
+  html:not(.print-customer-qr) #receipt .receipt-footer {
     font-size: 11px !important;
     font-weight: 600 !important;
   }
 
-  #receipt .receipt-total {
+  html:not(.print-customer-qr) #receipt .receipt-total {
     font-size: 15px !important;
     font-weight: 900 !important;
   }
 
-  #receipt .text-gray-500,
-  #receipt .text-red-600 {
+  html:not(.print-customer-qr) #receipt .text-gray-500,
+  html:not(.print-customer-qr) #receipt .text-red-600 {
     color: #000 !important;
+  }
+
+  /* พิมพ์ QR สั่งอาหารของโต๊ะ */
+  html.print-customer-qr #customer-qr-print,
+  html.print-customer-qr #customer-qr-print * {
+    visibility: visible !important;
+  }
+
+  html.print-customer-qr #customer-qr-print {
+    display: block !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 48mm !important;
+    max-width: 48mm !important;
+    margin: 0 !important;
+    padding: 3mm 2mm !important;
+    background: #fff !important;
+    color: #000 !important;
+    text-align: center !important;
+    font-family: "Noto Sans Thai", Tahoma, sans-serif !important;
+  }
+
+  html.print-customer-qr #customer-qr-print .customer-qr-print-title {
+    margin: 0 0 1mm !important;
+    font-size: 16px !important;
+    font-weight: 900 !important;
+    line-height: 1.2 !important;
+  }
+
+  html.print-customer-qr #customer-qr-print .customer-qr-print-sub {
+    margin: 0 0 2.5mm !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+  }
+
+  html.print-customer-qr #customer-qr-print .customer-qr-print-code {
+    display: flex !important;
+    justify-content: center !important;
+    margin: 0 auto !important;
+  }
+
+  html.print-customer-qr #customer-qr-print .customer-qr-print-code svg {
+    width: 40mm !important;
+    height: 40mm !important;
+    max-width: 100% !important;
+  }
+
+  html.print-customer-qr #customer-qr-print .customer-qr-print-hint {
+    margin: 2.5mm 0 0 !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
   }
 }
