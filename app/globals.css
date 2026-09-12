@@ -825,13 +825,46 @@ html.theme-fading *::after {
     width: 48mm !important;
     max-width: 48mm !important;
     margin: 0 !important;
-    /* safe zone แนวตั้ง — เผื่อฉีกกระดาษ thermal */
-    padding: 8mm 2mm 14mm !important;
+    padding: 0 1.5mm !important;
     background: #fff !important;
     color: #000 !important;
     text-align: center !important;
     font-family: "Noto Sans Thai", Tahoma, sans-serif !important;
     box-sizing: border-box !important;
+  }
+
+  /* spacer จริงในเนื้อหา — thermal มักตัด CSS padding ทิ้ง */
+  html.print-customer-qr #customer-qr-print .customer-qr-print-safe {
+    display: block !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    background: #fff !important;
+  }
+
+  html.print-customer-qr #customer-qr-print .customer-qr-print-safe-top {
+    height: 10mm !important;
+    min-height: 10mm !important;
+  }
+
+  html.print-customer-qr #customer-qr-print .customer-qr-print-safe-bottom {
+    height: 18mm !important;
+    min-height: 18mm !important;
+    padding-top: 8mm !important;
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: center !important;
+  }
+
+  html.print-customer-qr #customer-qr-print .customer-qr-print-cut {
+    display: block !important;
+    width: 100% !important;
+    border-top: 0.35mm dashed #000 !important;
+    padding-top: 1.5mm !important;
+    font-size: 8px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.02em !important;
+    line-height: 1.2 !important;
+    color: #000 !important;
   }
 
   html.print-customer-qr #customer-qr-print .customer-qr-print-title {
@@ -842,7 +875,7 @@ html.theme-fading *::after {
   }
 
   html.print-customer-qr #customer-qr-print .customer-qr-print-sub {
-    margin: 0 0 2.5mm !important;
+    margin: 0 0 2mm !important;
     font-size: 11px !important;
     font-weight: 700 !important;
   }
@@ -853,14 +886,26 @@ html.theme-fading *::after {
     margin: 0 auto !important;
   }
 
-  html.print-customer-qr #customer-qr-print .customer-qr-print-code svg {
-    width: 40mm !important;
-    height: 40mm !important;
+  /* quiet zone รอบตัว QR — เป็นส่วนของภาพที่พิมพ์ */
+  html.print-customer-qr #customer-qr-print .customer-qr-print-quiet {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    padding: 3.5mm !important;
+    background: #fff !important;
+    border: 0.4mm solid #000 !important;
+  }
+
+  html.print-customer-qr #customer-qr-print .customer-qr-print-quiet svg {
+    width: 34mm !important;
+    height: 34mm !important;
     max-width: 100% !important;
+    display: block !important;
   }
 
   html.print-customer-qr #customer-qr-print .customer-qr-print-hint {
-    margin: 3mm 0 0 !important;
+    margin: 2.5mm 0 0 !important;
     font-size: 10px !important;
     font-weight: 600 !important;
   }

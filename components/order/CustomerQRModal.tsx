@@ -49,18 +49,25 @@ export const CustomerQRModal: React.FC<CustomerQRModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 app-dialog-backdrop">
-      {/* โซนพิมพ์ — นอกจอบนหน้าจอ โชว์ตอน print */}
+      {/* โซนพิมพ์ — นอกจอบนหน้าจอ โชว์ตอน print
+          ใช้ spacer จริง + quiet zone รอบ QR (thermal มักตัด padding ว่างทิ้ง) */}
       <div
         id="customer-qr-print"
         className="pointer-events-none absolute left-[-9999px] top-0 w-[48mm] bg-white text-black"
         aria-hidden="true"
       >
+        <div className="customer-qr-print-safe customer-qr-print-safe-top" />
         <p className="customer-qr-print-title">โต๊ะ {tableLabel}</p>
         <p className="customer-qr-print-sub">สแกนเพื่อสั่งอาหาร</p>
         <div className="customer-qr-print-code">
-          <QRCode value={customerOrderUrl} size={256} level="M" />
+          <div className="customer-qr-print-quiet">
+            <QRCode value={customerOrderUrl} size={256} level="M" />
+          </div>
         </div>
         <p className="customer-qr-print-hint">สแกนด้วยกล้องมือถือ</p>
+        <div className="customer-qr-print-safe customer-qr-print-safe-bottom">
+          <span className="customer-qr-print-cut">✂ ··· ฉีกตรงนี้ ···</span>
+        </div>
       </div>
 
       <div className="app-dialog relative flex w-full max-w-[280px] flex-col items-stretch overflow-hidden p-4 pt-5 shadow-xl sm:max-w-[300px]">
