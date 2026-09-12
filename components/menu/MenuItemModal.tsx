@@ -219,8 +219,14 @@ export const MenuItemModal: React.FC<MenuItemModalProps> = ({
                 type="number"
                 min={0}
                 required
-                value={formData.price}
-                onChange={e => setFormData({ ...formData, price: Number(e.target.value) })}
+                value={formData.price || ''}
+                onChange={e =>
+                  setFormData({
+                    ...formData,
+                    price: e.target.value === '' ? 0 : Number(e.target.value),
+                  })
+                }
+                placeholder="เช่น 120"
                 className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none"
               />
             </div>
