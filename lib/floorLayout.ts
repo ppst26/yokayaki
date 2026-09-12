@@ -15,17 +15,17 @@ export const FLOOR_TABLE_AREAS: Record<string, number> = {
 /**
  * ผังตามแบบร้าน:
  *   Kitchen (เต็มแถว)
- *   3 | 2 | 1
- *   4 | 7 (กว้าง 2 ช่อง)
- *   5 |
- *   6 |
+ *   2 | 1 (กว้าง 2 ช่อง)
+ *   3 |
+ *   4 |
+ *   5 | 6 | 7
  */
 export const FLOOR_GRID_TEMPLATE_AREAS = `
   "kitchen kitchen kitchen"
-  "t3 t2 t1"
-  "t4 t7 t7"
-  "t5 . ."
-  "t6 . ."
+  "t2 t1 t1"
+  "t3 . ."
+  "t4 . ."
+  "t5 t6 t7"
 `;
 
 export const FLOOR_TABLE_NUMBERS = [1, 2, 3, 4, 5, 6, 7] as const;
