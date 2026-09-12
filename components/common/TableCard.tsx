@@ -14,9 +14,10 @@ interface TableCardProps {
   table: Table;
   onClick: () => void;
   className?: string;
+  style?: React.CSSProperties;
 }
 
-export const TableCard: React.FC<TableCardProps> = ({ table, onClick, className = '' }) => {
+export const TableCard: React.FC<TableCardProps> = ({ table, onClick, className = '', style }) => {
   const isOccupied = table.status === 'occupied';
   const isCheckingOut = table.status === 'checking_out';
 
@@ -97,6 +98,7 @@ export const TableCard: React.FC<TableCardProps> = ({ table, onClick, className 
     <button
       type="button"
       onClick={onClick}
+      style={style}
       className={`group relative p-4 sm:p-5 rounded-[24px] transition-all duration-200 text-left flex flex-col justify-between h-32 sm:h-36 cursor-pointer active:scale-[0.98] outline-none focus:outline-none focus-visible:outline-none overflow-hidden ${getCardStyle()} ${className}`}
     >
       {/* Top Row: Table Name + Status */}

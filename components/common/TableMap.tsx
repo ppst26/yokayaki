@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback, Suspense, lazy } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { RefreshCw, ShoppingBag, Receipt, AlertTriangle, X } from 'lucide-react';
+import { RefreshCw, ShoppingBag, Receipt, AlertTriangle, X, ChefHat } from 'lucide-react';
 import { SidebarNav, NavTab } from '@/components/SidebarNav';
 import { POSOrderScreen } from '@/components/POSOrderScreen';
 import { CheckoutScreen } from '@/components/CheckoutScreen';
@@ -12,6 +12,11 @@ import { playNewOrderSound, playCheckBillSound } from '@/lib/audioNotifier';
 import { TableCard } from '@/components/TableCard';
 import { AppMainContent } from '@/components/common/AppMainContent';
 import { canAccessTab, type EmployeeRole } from '@/lib/permissions';
+import {
+  FLOOR_GRID_TEMPLATE_AREAS,
+  FLOOR_KITCHEN_AREA,
+  FLOOR_TABLE_AREAS,
+} from '@/lib/floorLayout';
 import type { WinbackPromoDraft } from '@/lib/winbackPromo';
 
 // แท็บหนัก — โหลดเมื่อเปิดครั้งแรก (ลดงานตอน login)
@@ -338,19 +343,50 @@ export const TableMap: React.FC = () => {
               )}
 
               <div
-                className="grid"
+                className="w-full max-w-3xl mx-auto grid"
                 style={{
-                  gridTemplateColumns: 'repeat(var(--grid-cols-table), 1fr)',
+                  gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                  gridTemplateAreas: FLOOR_GRID_TEMPLATE_AREAS,
                   gap: 'var(--grid-gap-lg)',
                 }}
               >
-                {tables.map(table => (
-                  <TableCard
-                    key={table.id}
-                    table={table}
-                    onClick={() => handleTableClick(table)}
-                  />
-                ))}
+                <div
+                  style={{ gridArea: FLOOR_KITCHEN_AREA }}
+                  className="pointer-events-none select-none rounded-[24px] border-2 border-dashed border-red-300/80 dark:border-red-500/40 bg-red-50/60 dark:bg-red-950/20 px-4 py-3 sm:py-4 flex items-center justify-center gap-2"
+                  aria-hidden="true"
+                >
+                  <ChefHat className="w-5 h-5 text-red-500 dark:text-red-400 shrink-0" />
+                  <span className="text-sm sm:text-base font-bold tracking-wide text-red-600 dark:text-red-400">
+                    Kitchen
+                  </span>
+                  <span className="text-xs font-medium text-red-400/80 dark:text-red-500/70 hidden sm:inline">
+                    (ทิศทาง · ไม่ใช่โต๊ะ)
+                  </span>
+                </div>
+
+                {Object.entries(FLOOR_TABLE_AREAS).map(([area, tableNumber]) => {
+                  const table = tables.find(t => t.table_number === tableNumber);
+                  if (!table) {
+                    return (
+                      <div
+                        key={area}
+                        style={{ gridArea: area }}
+                        className="rounded-[24px] border border-dashed border-slate-200 dark:border-neutral-800 bg-slate-50/50 dark:bg-neutral-900/40 min-h-32 sm:min-h-36 flex items-center justify-center"
+                      >
+                        <span className="text-caption text-slate-400">โต๊ะ {tableNumber}</span>
+                      </div>
+                    );
+                  }
+                  return (
+                    <TableCard
+                      key={table.id}
+                      table={table}
+                      onClick={() => handleTableClick(table)}
+                      className="h-full min-h-32 sm:min-h-36"
+                      style={{ gridArea: area }}
+                    />
+                  );
+                })}
               </div>
             </div>
           </div>

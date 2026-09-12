@@ -1,5 +1,5 @@
 // =============================================================
-// สร้าง organization ใหม่พร้อม seed ขั้นต่ำ (โต๊ะ 4 ใบ + เมนูจาก default org + owner)
+// สร้าง organization ใหม่พร้อม seed ขั้นต่ำ (โต๊ะ 7 ใบ + เมนูจาก default org + owner)
 //
 //   node scripts/create-org.mjs <name> <slug> <owner-pin>
 //
@@ -61,7 +61,7 @@ if (settingsError) {
   process.exit(1);
 }
 
-const tableRows = [1, 2, 3, 4].map((n) => ({
+const tableRows = [1, 2, 3, 4, 5, 6, 7].map((n) => ({
   org_id: orgId,
   table_number: n,
   status: 'vacant',
