@@ -15,6 +15,9 @@ import {
   ChevronLeft,
   ChevronRight,
   SlidersHorizontal,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -23,8 +26,17 @@ import { SearchInput } from '@/components/ui/search-input';
 import { TablePagination } from '@/components/ui/pagination';
 import { deleteOldImage } from '@/lib/deleteOldImage';
 import { useActionFeedback } from '@/context/ActionFeedbackContext';
-import { DEFAULT_MENU_CATEGORY, mergeMenuCategories, normalizeCategoryName, orderedPresentCategories, readCustomMenuCategories, saveCustomMenuCategory } from '@/lib/menuCategories';
+import {
+  DEFAULT_MENU_CATEGORY,
+  MENU_CATEGORIES,
+  mergeMenuCategories,
+  normalizeCategoryName,
+  orderedPresentCategories,
+  readCustomMenuCategories,
+  saveCustomMenuCategory,
+} from '@/lib/menuCategories';
 import { MenuItemModal } from './MenuItemModal';
+import { cn } from '@/lib/utils';
 
 interface MenuItem {
   id: number;
@@ -42,7 +54,17 @@ interface MenuItem {
 const STOCK_LOW_THRESHOLD = 5;
 
 type StockFilter = 'all' | 'tracked' | 'untracked' | 'low' | 'out';
-type SortOption = 'default' | 'name_asc' | 'name_desc' | 'price_asc' | 'price_desc' | 'stock_asc' | 'stock_desc';
+type SortColumn = 'name' | 'category' | 'stock' | 'price';
+type SortOption =
+  | 'default'
+  | 'name_asc'
+  | 'name_desc'
+  | 'category_asc'
+  | 'category_desc'
+  | 'price_asc'
+  | 'price_desc'
+  | 'stock_asc'
+  | 'stock_desc';
 type HappyHourFilter = 'all' | 'yes' | 'no';
 type ImageFilter = 'all' | 'yes' | 'no';
 
@@ -56,14 +78,90 @@ const STOCK_FILTER_OPTIONS: SelectOption[] = [
 
 const SORT_OPTIONS: SelectOption[] = [
   { label: 'ลำดับที่กำหนด (เริ่มต้น)', value: 'default', shortLabel: 'เริ่มต้น' },
-  { label: 'ชื่อ A → Z', value: 'name_asc' },
-  { label: 'ชื่อ Z → A', value: 'name_desc' },
+  { label: 'ชื่อ ก → ฮ', value: 'name_asc' },
+  { label: 'ชื่อ ฮ → ก', value: 'name_desc' },
+  { label: 'หมวดหมู่ตามลำดับ', value: 'category_asc' },
+  { label: 'หมวดหมู่ย้อนกลับ', value: 'category_desc' },
   { label: 'ราคาต่ำ → สูง', value: 'price_asc' },
   { label: 'ราคาสูง → ต่ำ', value: 'price_desc' },
   { label: 'สต็อกน้อย → มาก', value: 'stock_asc' },
   { label: 'สต็อกมาก → น้อย', value: 'stock_desc' },
 ];
 
+const CATEGORY_ORDER = new Map(
+  MENU_CATEGORIES.map((c, i) => [c.toLowerCase(), i]),
+);
+
+function categorySortIndex(category: string): number {
+  const key = normalizeCategoryName(category || '').toLowerCase();
+  return CATEGORY_ORDER.get(key) ?? 999;
+}
+
+function sortDirectionFor(sortBy: SortOption, column: SortColumn): 'asc' | 'desc' | null {
+  if (sortBy === `${column}_asc`) return 'asc';
+  if (sortBy === `${column}_desc`) return 'desc';
+  return null;
+}
+
+function cycleColumnSort(current: SortOption, column: SortColumn): SortOption {
+  const asc = `${column}_asc` as SortOption;
+  const desc = `${column}_desc` as SortOption;
+  if (current === asc) return desc;
+  if (current === desc) return 'default';
+  return asc;
+}
+
+function SortableHead({
+  label,
+  column,
+  sortBy,
+  onSort,
+  className,
+  align = 'left',
+}: {
+  label: string;
+  column: SortColumn;
+  sortBy: SortOption;
+  onSort: (next: SortOption) => void;
+  className?: string;
+  align?: 'left' | 'center' | 'right';
+}) {
+  const direction = sortDirectionFor(sortBy, column);
+  const Icon = direction === 'asc' ? ArrowUp : direction === 'desc' ? ArrowDown : ArrowUpDown;
+
+  return (
+    <TableHead className={className}>
+      <button
+        type="button"
+        onClick={() => onSort(cycleColumnSort(sortBy, column))}
+        className={cn(
+          'inline-flex items-center gap-1 font-black transition cursor-pointer select-none',
+          align === 'center' && 'justify-center w-full',
+          align === 'right' && 'justify-end w-full',
+          direction
+            ? 'text-red-600 dark:text-red-400'
+            : 'text-inherit hover:text-red-600 dark:hover:text-red-400',
+        )}
+        title={
+          direction === 'asc'
+            ? 'เรียงจากน้อย → มาก (คลิกเพื่อสลับ)'
+            : direction === 'desc'
+              ? 'เรียงจากมาก → น้อย (คลิกเพื่อล้าง)'
+              : 'คลิกเพื่อเรียง'
+        }
+      >
+        <span>{label}</span>
+        <Icon
+          className={cn(
+            'size-3.5 shrink-0',
+            direction ? 'opacity-100' : 'opacity-45',
+          )}
+          aria-hidden
+        />
+      </button>
+    </TableHead>
+  );
+}
 const HAPPY_HOUR_FILTER_OPTIONS: SelectOption[] = [
   { label: 'ทั้งหมด', value: 'all', shortLabel: 'ทั้งหมด' },
   { label: 'มี Happy Hour', value: 'yes', shortLabel: 'มี' },
@@ -348,6 +446,14 @@ export const MenuManager: React.FC = () => {
           return a.name.localeCompare(b.name, 'th');
         case 'name_desc':
           return b.name.localeCompare(a.name, 'th');
+        case 'category_asc': {
+          const byCat = categorySortIndex(a.category) - categorySortIndex(b.category);
+          return byCat !== 0 ? byCat : a.name.localeCompare(b.name, 'th');
+        }
+        case 'category_desc': {
+          const byCat = categorySortIndex(b.category) - categorySortIndex(a.category);
+          return byCat !== 0 ? byCat : a.name.localeCompare(b.name, 'th');
+        }
         case 'price_asc':
           return a.price - b.price;
         case 'price_desc':
@@ -512,10 +618,34 @@ export const MenuManager: React.FC = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>รูปภาพ</TableHead>
-                <TableHead>ชื่อเมนู</TableHead>
-                <TableHead>หมวดหมู่</TableHead>
-                <TableHead className="text-center">จำนวนสต็อกคงเหลือ</TableHead>
-                <TableHead className="text-right">ราคาปกติ</TableHead>
+                <SortableHead
+                  label="ชื่อเมนู"
+                  column="name"
+                  sortBy={sortBy}
+                  onSort={setSortBy}
+                />
+                <SortableHead
+                  label="หมวดหมู่"
+                  column="category"
+                  sortBy={sortBy}
+                  onSort={setSortBy}
+                />
+                <SortableHead
+                  label="จำนวนสต็อกคงเหลือ"
+                  column="stock"
+                  sortBy={sortBy}
+                  onSort={setSortBy}
+                  className="text-center"
+                  align="center"
+                />
+                <SortableHead
+                  label="ราคาปกติ"
+                  column="price"
+                  sortBy={sortBy}
+                  onSort={setSortBy}
+                  className="text-right"
+                  align="right"
+                />
                 <TableHead className="text-center">จัดการ</TableHead>
               </TableRow>
             </TableHeader>
