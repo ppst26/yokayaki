@@ -23,6 +23,7 @@ import { SearchInput } from '@/components/ui/search-input';
 import { TablePagination } from '@/components/ui/pagination';
 import { deleteOldImage } from '@/lib/deleteOldImage';
 import { useActionFeedback } from '@/context/ActionFeedbackContext';
+import { DEFAULT_MENU_CATEGORY, mergeMenuCategories, readCustomMenuCategories, saveCustomMenuCategory } from '@/lib/menuCategories';
 import { MenuItemModal } from './MenuItemModal';
 
 interface MenuItem {
@@ -37,8 +38,6 @@ interface MenuItem {
   category: string;
   image_url?: string | null;
 }
-
-const CATEGORIES = ['ยำ', 'ย่าง', 'เส้น', 'ซาซิมิ', 'ของทอด', 'ของหวาน', 'หม้อไฟ', 'เครื่องดื่ม', 'อื่นๆ'];
 
 const STOCK_LOW_THRESHOLD = 5;
 
@@ -85,7 +84,7 @@ const EMPTY_FORM: Omit<MenuItem, 'id'> = {
   is_stock_tracked: true,
   is_happy_hour: false,
   happy_hour_price: null,
-  category: 'ย่าง',
+  category: DEFAULT_MENU_CATEGORY,
   image_url: null,
 };
 
@@ -93,6 +92,7 @@ export const MenuManager: React.FC = () => {
   const { showActionFeedback } = useActionFeedback();
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [customCategories, setCustomCategories] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('ทั้งหมด');
   const [filterStock, setFilterStock] = useState<StockFilter>('all');
@@ -112,6 +112,24 @@ export const MenuManager: React.FC = () => {
   const [previousImageUrl, setPreviousImageUrl] = useState<string | null>(null);
 
   const categoryScrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setCustomCategories(readCustomMenuCategories());
+  }, []);
+
+  const categories = useMemo(
+    () =>
+      mergeMenuCategories(
+        items.map(i => i.category).filter(Boolean),
+        customCategories,
+      ),
+    [items, customCategories],
+  );
+
+  const handleAddCategory = (name: string) => {
+    const next = saveCustomMenuCategory(name);
+    setCustomCategories(next);
+  };
 
   const handleScrollCategoryRight = () => {
     if (categoryScrollRef.current) {
@@ -202,7 +220,7 @@ export const MenuManager: React.FC = () => {
       is_stock_tracked: item.is_stock_tracked,
       is_happy_hour: item.is_happy_hour,
       happy_hour_price: item.happy_hour_price,
-      category: item.category || 'ย่าง',
+      category: item.category || DEFAULT_MENU_CATEGORY,
       image_url: item.image_url ?? null,
     });
     setShowFormModal(true);
@@ -437,7 +455,7 @@ export const MenuManager: React.FC = () => {
               ref={categoryScrollRef}
               className="flex flex-1 items-center gap-2 overflow-x-auto scrollbar-none py-0.5"
             >
-              {['ทั้งหมด', ...CATEGORIES].map(cat => (
+              {['ทั้งหมด', ...categories].map(cat => (
                 <button
                   key={cat}
                   type="button"
@@ -596,7 +614,8 @@ export const MenuManager: React.FC = () => {
         editingItem={editingItem}
         formData={formData}
         setFormData={setFormData}
-        categories={CATEGORIES}
+        categories={categories}
+        onAddCategory={handleAddCategory}
         handleSave={handleSave}
         isSaving={isSaving}
       />

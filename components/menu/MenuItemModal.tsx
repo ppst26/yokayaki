@@ -28,6 +28,8 @@ interface MenuItemModalProps {
   formData: Omit<MenuItem, 'id'>;
   setFormData: React.Dispatch<React.SetStateAction<Omit<MenuItem, 'id'>>>;
   categories: string[];
+  /** เมื่อเพิ่มหมวดใหม่ — parent รวมเข้า list + persist */
+  onAddCategory?: (name: string) => void;
   handleSave: (e: React.FormEvent) => void;
   isSaving: boolean;
 }
@@ -123,12 +125,26 @@ export const MenuItemModal: React.FC<MenuItemModalProps> = ({
   formData,
   setFormData,
   categories,
+  onAddCategory,
   handleSave,
   isSaving,
 }) => {
+  const [showAddCategory, setShowAddCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+
   if (!showFormModal) return null;
 
+  const commitNewCategory = () => {
+    const trimmed = newCategoryName.trim();
+    if (!trimmed) return;
+    onAddCategory?.(trimmed);
+    setFormData(prev => ({ ...prev, category: trimmed }));
+    setNewCategoryName('');
+    setShowAddCategory(false);
+  };
+
   return createPortal(
+    <>
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 py-6 app-dialog-backdrop">
       <div className="app-dialog flex w-full max-w-lg max-h-full flex-col overflow-hidden p-6 shadow-xl">
         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto">
@@ -182,7 +198,16 @@ export const MenuItemModal: React.FC<MenuItemModalProps> = ({
                 onChange={val => setFormData({ ...formData, category: val })}
                 options={categories}
                 placeholder="เลือกหมวดหมู่"
-                searchable={false}
+                searchable
+                addNewLabel="+ เพิ่มหมวดหมู่ใหม่..."
+                onAddNew={
+                  onAddCategory
+                    ? () => {
+                        setNewCategoryName('');
+                        setShowAddCategory(true);
+                      }
+                    : undefined
+                }
               />
             </div>
 
@@ -308,7 +333,61 @@ export const MenuItemModal: React.FC<MenuItemModalProps> = ({
         </form>
         </div>
       </div>
-    </div>,
+    </div>
+
+    {showAddCategory && (
+      <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 app-dialog-backdrop">
+        <div
+          className="app-dialog w-full max-w-sm space-y-4 p-5 shadow-xl"
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-black text-slate-900 dark:text-neutral-100">
+              เพิ่มหมวดหมู่ใหม่
+            </h4>
+            <button
+              type="button"
+              onClick={() => setShowAddCategory(false)}
+              className="cursor-pointer rounded-sm p-1 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-300"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <input
+            type="text"
+            autoFocus
+            value={newCategoryName}
+            onChange={e => setNewCategoryName(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                commitNewCategory();
+              }
+            }}
+            placeholder="เช่น ของหวาน, หม้อไฟ"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs font-semibold text-slate-800 focus:border-red-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
+          />
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setShowAddCategory(false)}
+              className="flex-1 cursor-pointer rounded-sm bg-slate-100 py-2.5 text-xs font-bold text-slate-700 transition hover:bg-slate-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+            >
+              ยกเลิก
+            </button>
+            <button
+              type="button"
+              onClick={commitNewCategory}
+              disabled={!newCategoryName.trim()}
+              className="btn-crimson flex-1 cursor-pointer rounded-sm py-2.5 text-xs font-bold text-white transition disabled:opacity-50"
+            >
+              เพิ่มหมวดหมู่
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>,
     document.body,
   );
 };
