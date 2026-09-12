@@ -23,7 +23,7 @@ import { SearchInput } from '@/components/ui/search-input';
 import { TablePagination } from '@/components/ui/pagination';
 import { deleteOldImage } from '@/lib/deleteOldImage';
 import { useActionFeedback } from '@/context/ActionFeedbackContext';
-import { DEFAULT_MENU_CATEGORY, mergeMenuCategories, normalizeCategoryName, readCustomMenuCategories, saveCustomMenuCategory } from '@/lib/menuCategories';
+import { DEFAULT_MENU_CATEGORY, mergeMenuCategories, normalizeCategoryName, orderedPresentCategories, readCustomMenuCategories, saveCustomMenuCategory } from '@/lib/menuCategories';
 import { MenuItemModal } from './MenuItemModal';
 
 interface MenuItem {
@@ -120,10 +120,16 @@ export const MenuManager: React.FC = () => {
   const categories = useMemo(
     () =>
       mergeMenuCategories(
-        items.map(i => i.category).filter(Boolean),
+        items.map(i => i.category).filter(Boolean) as string[],
         customCategories,
       ),
     [items, customCategories],
+  );
+
+  /** แถบฟิลเตอร์ — โชว์เฉพาะหมวดที่มีเมนู เรียงตามมาตรฐาน */
+  const filterCategories = useMemo(
+    () => orderedPresentCategories(items.map(i => i.category).filter(Boolean) as string[]),
+    [items],
   );
 
   const handleAddCategory = (name: string) => {
@@ -457,7 +463,7 @@ export const MenuManager: React.FC = () => {
               ref={categoryScrollRef}
               className="flex flex-1 items-center gap-2 overflow-x-auto scrollbar-none py-0.5"
             >
-              {['ทั้งหมด', ...categories].map(cat => (
+              {['ทั้งหมด', ...filterCategories].map(cat => (
                 <button
                   key={cat}
                   type="button"

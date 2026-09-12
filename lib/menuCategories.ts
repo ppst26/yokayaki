@@ -1,23 +1,16 @@
-/** หมวดหมู่เมนูมาตรฐาน — ลำดับตามที่แสดงใน POS / ลูกค้า */
+/** หมวดหมู่เมนูมาตรฐาน — ลำดับตามที่แสดงใน POS / ลูกค้า / จัดการเมนู */
 export const MENU_CATEGORIES = [
   'Recommend',
-  'ทานเล่น',
-  'ยำ',
+  'Appetizer',
+  'ยำไทย',
   'อิ่มท้อง',
   'สลัด',
   'จานหลัก',
   'ซูชิ',
   'โรล',
   'มากิ',
-  // หมวดอื่น — คงลำดับเดิมหลังกลุ่มหลัก
-  'เสียบไม้ย่าง',
-  'ข้าว',
   'เครื่องดื่ม',
   'อื่นๆ',
-  'ย่าง',
-  'ซาซิมิ',
-  'เส้น',
-  'หม้อไฟ',
 ] as const;
 
 export type MenuCategory = (typeof MENU_CATEGORIES)[number];
@@ -29,11 +22,29 @@ export const HIDDEN_MENU_CATEGORIES = new Set(['ทดสอบ']);
 
 const CUSTOM_CATEGORIES_KEY = 'yokayaki_custom_menu_categories';
 
-/** แปลงชื่อหมวดเก่า → ใหม่ */
+/** แปลงชื่อหมวดเก่า → ใหม่ (ให้ลำดับ chip ตรงกับมาตรฐาน) */
 export function normalizeCategoryName(name: string): string {
   const trimmed = name.trim();
-  if (trimmed === 'กินเล่น') return 'ทานเล่น';
-  return trimmed;
+  switch (trimmed) {
+    case 'กินเล่น':
+    case 'ทานเล่น':
+    case 'ย่าง':
+    case 'เสียบไม้ย่าง':
+    case 'เสียบไม้/ย่าง':
+      return 'Appetizer';
+    case 'ยำ':
+      return 'ยำไทย';
+    case 'ต้ม/แกง':
+    case 'เส้น':
+    case 'หม้อไฟ':
+    case 'ข้าว':
+      return 'อิ่มท้อง';
+    case 'ซาซิมิ':
+    case 'ซาชิมิ':
+      return 'ซูชิ';
+    default:
+      return trimmed;
+  }
 }
 
 /** อ่านหมวดที่เจ้าของร้านเพิ่มเอง (เก็บใน localStorage) */
@@ -49,7 +60,6 @@ export function readCustomMenuCategories(): string[] {
       .filter(Boolean)
       .filter(c => !HIDDEN_MENU_CATEGORIES.has(c));
 
-    // เขียนกลับถ้ามีการ rename/ลบ
     localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify([...new Set(cleaned)]));
     return [...new Set(cleaned)];
   } catch {
@@ -101,7 +111,7 @@ export function mergeMenuCategories(
   return result;
 }
 
-/** เรียงหมวดที่มีเมนูจริงตามลำดับมาตรฐาน — ใช้ใน POS / ลูกค้า */
+/** เรียงหมวดที่มีเมนูจริงตามลำดับมาตรฐาน — ใช้ใน POS / ลูกค้า / ฟิลเตอร์ */
 export function orderedPresentCategories(fromItems: string[] = []): string[] {
   const present = new Set(
     fromItems
