@@ -825,11 +825,13 @@ html.theme-fading *::after {
     width: 48mm !important;
     max-width: 48mm !important;
     margin: 0 !important;
-    padding: 3mm 2mm !important;
+    /* safe zone แนวตั้ง — เผื่อฉีกกระดาษ thermal */
+    padding: 8mm 2mm 14mm !important;
     background: #fff !important;
     color: #000 !important;
     text-align: center !important;
     font-family: "Noto Sans Thai", Tahoma, sans-serif !important;
+    box-sizing: border-box !important;
   }
 
   html.print-customer-qr #customer-qr-print .customer-qr-print-title {
@@ -858,7 +860,7 @@ html.theme-fading *::after {
   }
 
   html.print-customer-qr #customer-qr-print .customer-qr-print-hint {
-    margin: 2.5mm 0 0 !important;
+    margin: 3mm 0 0 !important;
     font-size: 10px !important;
     font-weight: 600 !important;
   }
