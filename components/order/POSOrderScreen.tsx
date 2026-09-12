@@ -12,6 +12,7 @@ import { VoidItemModal } from './VoidItemModal';
 import { CustomerQRModal } from './CustomerQRModal';
 import { menuItemSalePrice, type MenuPriceFields } from '@/lib/menuPrice';
 import { useActionFeedback } from '@/context/ActionFeedbackContext';
+import { normalizeCategoryName, orderedPresentCategories } from '@/lib/menuCategories';
 
 interface MenuItem extends MenuPriceFields {
   id: number;
@@ -218,12 +219,17 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, tableNu
     };
   }, [tableId, activeOrderId]);
 
-  const categories = ['ทั้งหมด', ...Array.from(new Set(menuItems.map(m => m.category || 'ทั่วไป')))];
+  const categories = [
+    'ทั้งหมด',
+    ...orderedPresentCategories(menuItems.map(m => m.category || 'ทั่วไป')),
+  ];
 
   const filteredMenuItems =
     selectedCategory === 'ทั้งหมด'
       ? menuItems
-      : menuItems.filter(m => (m.category || 'ทั่วไป') === selectedCategory);
+      : menuItems.filter(
+          m => normalizeCategoryName(m.category || 'ทั่วไป') === selectedCategory,
+        );
 
   const addToCart = (item: MenuItem) => {
     const salePrice = menuItemSalePrice(item);

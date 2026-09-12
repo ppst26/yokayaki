@@ -1,23 +1,40 @@
-/** หมวดหมู่เมนูมาตรฐานของร้าน (ลำดับตามที่แสดงในตัวกรอง) */
+/** หมวดหมู่เมนูมาตรฐาน — ลำดับตามที่แสดงใน POS / ลูกค้า */
 export const MENU_CATEGORIES = [
-  'เสียบไม้ย่าง',
-  'กินเล่น',
+  'Recommend',
+  'ทานเล่น',
   'ยำ',
-  'ข้าว',
+  'อิ่มท้อง',
   'สลัด',
   'จานหลัก',
   'ซูชิ',
   'โรล',
   'มากิ',
+  // หมวดอื่น — คงลำดับเดิมหลังกลุ่มหลัก
+  'เสียบไม้ย่าง',
+  'ข้าว',
   'เครื่องดื่ม',
   'อื่นๆ',
+  'ย่าง',
+  'ซาซิมิ',
+  'เส้น',
+  'หม้อไฟ',
 ] as const;
 
 export type MenuCategory = (typeof MENU_CATEGORIES)[number];
 
-export const DEFAULT_MENU_CATEGORY: MenuCategory = 'เสียบไม้ย่าง';
+export const DEFAULT_MENU_CATEGORY: MenuCategory = 'Recommend';
+
+/** หมวดที่ซ่อน/ลบออกจาก UI */
+export const HIDDEN_MENU_CATEGORIES = new Set(['ทดสอบ']);
 
 const CUSTOM_CATEGORIES_KEY = 'yokayaki_custom_menu_categories';
+
+/** แปลงชื่อหมวดเก่า → ใหม่ */
+export function normalizeCategoryName(name: string): string {
+  const trimmed = name.trim();
+  if (trimmed === 'กินเล่น') return 'ทานเล่น';
+  return trimmed;
+}
 
 /** อ่านหมวดที่เจ้าของร้านเพิ่มเอง (เก็บใน localStorage) */
 export function readCustomMenuCategories(): string[] {
@@ -27,9 +44,14 @@ export function readCustomMenuCategories(): string[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return [];
-    return parsed
-      .map(v => String(v).trim())
-      .filter(Boolean);
+    const cleaned = parsed
+      .map(v => normalizeCategoryName(String(v)))
+      .filter(Boolean)
+      .filter(c => !HIDDEN_MENU_CATEGORIES.has(c));
+
+    // เขียนกลับถ้ามีการ rename/ลบ
+    localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify([...new Set(cleaned)]));
+    return [...new Set(cleaned)];
   } catch {
     return [];
   }
@@ -37,8 +59,10 @@ export function readCustomMenuCategories(): string[] {
 
 /** บันทึกหมวดที่เพิ่มเอง (ไม่ซ้ำกับมาตรฐาน) */
 export function saveCustomMenuCategory(name: string): string[] {
-  const trimmed = name.trim();
-  if (!trimmed) return readCustomMenuCategories();
+  const trimmed = normalizeCategoryName(name);
+  if (!trimmed || HIDDEN_MENU_CATEGORIES.has(trimmed)) {
+    return readCustomMenuCategories();
+  }
 
   const defaults = new Set(MENU_CATEGORIES.map(c => c.toLowerCase()));
   const existing = readCustomMenuCategories();
@@ -52,7 +76,7 @@ export function saveCustomMenuCategory(name: string): string[] {
 
 /**
  * รวมหมวดมาตรฐาน + หมวดจากเมนูจริง + หมวดที่เพิ่มเอง
- * คงลำดับมาตรฐานไว้ด้านหน้า แล้วตามด้วยของใหม่อย่างมีระเบียบ
+ * คงลำดับมาตรฐานไว้ด้านหน้า แล้วตามด้วยของใหม่
  */
 export function mergeMenuCategories(
   fromItems: string[] = [],
@@ -62,8 +86,8 @@ export function mergeMenuCategories(
   const result: string[] = [];
 
   const push = (name: string) => {
-    const trimmed = name.trim();
-    if (!trimmed) return;
+    const trimmed = normalizeCategoryName(name);
+    if (!trimmed || HIDDEN_MENU_CATEGORIES.has(trimmed)) return;
     const key = trimmed.toLowerCase();
     if (seen.has(key)) return;
     seen.add(key);
@@ -75,4 +99,15 @@ export function mergeMenuCategories(
   for (const c of fromItems) push(c);
 
   return result;
+}
+
+/** เรียงหมวดที่มีเมนูจริงตามลำดับมาตรฐาน — ใช้ใน POS / ลูกค้า */
+export function orderedPresentCategories(fromItems: string[] = []): string[] {
+  const present = new Set(
+    fromItems
+      .map(normalizeCategoryName)
+      .filter(c => c && !HIDDEN_MENU_CATEGORIES.has(c))
+      .map(c => c.toLowerCase()),
+  );
+  return mergeMenuCategories(fromItems).filter(c => present.has(c.toLowerCase()));
 }

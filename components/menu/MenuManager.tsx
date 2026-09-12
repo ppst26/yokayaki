@@ -23,7 +23,7 @@ import { SearchInput } from '@/components/ui/search-input';
 import { TablePagination } from '@/components/ui/pagination';
 import { deleteOldImage } from '@/lib/deleteOldImage';
 import { useActionFeedback } from '@/context/ActionFeedbackContext';
-import { DEFAULT_MENU_CATEGORY, mergeMenuCategories, readCustomMenuCategories, saveCustomMenuCategory } from '@/lib/menuCategories';
+import { DEFAULT_MENU_CATEGORY, mergeMenuCategories, normalizeCategoryName, readCustomMenuCategories, saveCustomMenuCategory } from '@/lib/menuCategories';
 import { MenuItemModal } from './MenuItemModal';
 
 interface MenuItem {
@@ -303,7 +303,9 @@ export const MenuManager: React.FC = () => {
   const filteredItems = useMemo(() => {
     const result = items.filter(i => {
       const matchSearch = i.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchCategory = filterCategory === 'ทั้งหมด' || i.category === filterCategory;
+      const matchCategory =
+        filterCategory === 'ทั้งหมด' ||
+        normalizeCategoryName(i.category || '') === filterCategory;
 
       let matchStock = true;
       switch (filterStock) {

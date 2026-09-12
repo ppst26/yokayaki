@@ -23,6 +23,7 @@ import {
 import { menuItemSalePrice } from '@/lib/menuPrice';
 import { PLATFORM_BRANDING } from '@/lib/branding';
 import { useActionFeedback } from '@/context/ActionFeedbackContext';
+import { normalizeCategoryName, orderedPresentCategories } from '@/lib/menuCategories';
 
 interface OrderedItem {
   id: number;
@@ -571,7 +572,7 @@ export default function CustomerOrderPortal() {
           <div className="space-y-4 animate-fade-in">
             {/* Category Filter Chips */}
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-              {['ทั้งหมด', ...Array.from(new Set(menuItems.map(item => item.category).filter(Boolean)))].map(cat => (
+              {['ทั้งหมด', ...orderedPresentCategories(menuItems.map(item => item.category).filter(Boolean) as string[])].map(cat => (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
@@ -587,7 +588,10 @@ export default function CustomerOrderPortal() {
             {/* Menu Grid */}
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
               {menuItems
-                .filter(item => selectedCategory === 'ทั้งหมด' || item.category === selectedCategory)
+                .filter(item =>
+                  selectedCategory === 'ทั้งหมด' ||
+                  normalizeCategoryName(item.category) === selectedCategory,
+                )
                 .map(item => {
                   const qty = getCartQuantity(item.id);
                   const isSoldOut = item.stock <= 0;
