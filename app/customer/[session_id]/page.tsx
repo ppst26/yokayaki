@@ -24,7 +24,7 @@ import { menuItemSalePrice } from '@/lib/menuPrice';
 import { PLATFORM_BRANDING } from '@/lib/branding';
 import { useActionFeedback } from '@/context/ActionFeedbackContext';
 import { normalizeCategoryName, orderedPresentCategories } from '@/lib/menuCategories';
-
+import { CustomSelect } from '@/components/ui/select';
 interface OrderedItem {
   id: number;
   quantity: number;
@@ -85,6 +85,7 @@ export default function CustomerOrderPortal() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [priceSort, setPriceSort] = useState<'asc' | 'desc'>('asc');
   const [showCartDrawer, setShowCartDrawer] = useState(false);
   const [noteEditTarget, setNoteEditTarget] = useState<{ index: number; notes: string } | null>(null);
 
@@ -107,6 +108,19 @@ export default function CustomerOrderPortal() {
       prev && menuCategories.includes(prev) ? prev : menuCategories[0],
     );
   }, [menuCategories]);
+
+  const visibleMenuItems = useMemo(() => {
+    const filtered = menuItems.filter(
+      item =>
+        !!selectedCategory &&
+        normalizeCategoryName(item.category) === selectedCategory,
+    );
+    return [...filtered].sort((a, b) => {
+      const pa = menuItemSalePrice(a);
+      const pb = menuItemSalePrice(b);
+      return priceSort === 'asc' ? pa - pb : pb - pa;
+    });
+  }, [menuItems, selectedCategory, priceSort]);
 
   // =============================================================
   // ข้อมูลทั้งหมดของหน้านี้มาจาก /api/customer/[session_id]/state ทางเดียว
@@ -585,30 +599,40 @@ export default function CustomerOrderPortal() {
         {/* TAB 2: 🍱 สั่งอาหาร (Order Food View) */}
         {activeTab === 'order' && (
           <div className="space-y-4 animate-fade-in">
-            {/* Category Filter Chips — แยกหมวด ไม่มีปุ่มทั้งหมด */}
-            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-              {menuCategories.map(cat => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`badge-pill px-4 py-2 text-xs font-bold ${
-                    selectedCategory === cat ? 'badge-active' : 'badge-inactive'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
+            {/* หมวดหมู่ (ซ้าย) + เรียงราคา (ขวา) */}
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1 scrollbar-none">
+                {menuCategories.map(cat => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`badge-pill shrink-0 px-4 py-2 text-xs font-bold ${
+                      selectedCategory === cat ? 'badge-active' : 'badge-inactive'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+
+              <CustomSelect
+                size="sm"
+                prefixLabel="ราคา"
+                value={priceSort}
+                onChange={val => setPriceSort(val as 'asc' | 'desc')}
+                options={[
+                  { label: 'น้อย ไป มาก', value: 'asc', shortLabel: 'น้อย→มาก' },
+                  { label: 'มาก ไป น้อย', value: 'desc', shortLabel: 'มาก→น้อย' },
+                ]}
+                searchable={false}
+                className="w-[9.5rem] shrink-0"
+              />
             </div>
 
             {/* Menu Grid */}
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              {menuItems
-                .filter(
-                  item =>
-                    !!selectedCategory &&
-                    normalizeCategoryName(item.category) === selectedCategory,
-                )
-                .map(item => {
+              {visibleMenuItems.map(item => {
                   const qty = getCartQuantity(item.id);
                   const isSoldOut = item.stock <= 0;
                   const isLowStock = item.stock > 0 && item.stock <= 3;
