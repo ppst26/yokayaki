@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { 
@@ -84,7 +84,7 @@ export default function CustomerOrderPortal() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>('ทั้งหมด');
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [showCartDrawer, setShowCartDrawer] = useState(false);
   const [noteEditTarget, setNoteEditTarget] = useState<{ index: number; notes: string } | null>(null);
 
@@ -92,6 +92,21 @@ export default function CustomerOrderPortal() {
   const [isCheckoutCompleted, setIsCheckoutCompleted] = useState(false);
   const [showCheckBillConfirm, setShowCheckBillConfirm] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
+  const menuCategories = useMemo(
+    () =>
+      orderedPresentCategories(
+        menuItems.map(item => item.category).filter(Boolean) as string[],
+      ),
+    [menuItems],
+  );
+
+  useEffect(() => {
+    if (menuCategories.length === 0) return;
+    setSelectedCategory(prev =>
+      prev && menuCategories.includes(prev) ? prev : menuCategories[0],
+    );
+  }, [menuCategories]);
 
   // =============================================================
   // ข้อมูลทั้งหมดของหน้านี้มาจาก /api/customer/[session_id]/state ทางเดียว
@@ -570,9 +585,9 @@ export default function CustomerOrderPortal() {
         {/* TAB 2: 🍱 สั่งอาหาร (Order Food View) */}
         {activeTab === 'order' && (
           <div className="space-y-4 animate-fade-in">
-            {/* Category Filter Chips */}
+            {/* Category Filter Chips — แยกหมวด ไม่มีปุ่มทั้งหมด */}
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-              {['ทั้งหมด', ...orderedPresentCategories(menuItems.map(item => item.category).filter(Boolean) as string[])].map(cat => (
+              {menuCategories.map(cat => (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
@@ -588,9 +603,10 @@ export default function CustomerOrderPortal() {
             {/* Menu Grid */}
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
               {menuItems
-                .filter(item =>
-                  selectedCategory === 'ทั้งหมด' ||
-                  normalizeCategoryName(item.category) === selectedCategory,
+                .filter(
+                  item =>
+                    !!selectedCategory &&
+                    normalizeCategoryName(item.category) === selectedCategory,
                 )
                 .map(item => {
                   const qty = getCartQuantity(item.id);

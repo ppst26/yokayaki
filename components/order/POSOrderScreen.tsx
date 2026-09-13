@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { VOID_REASON_OTHER } from '@/lib/voidReasons';
@@ -59,7 +59,7 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, tableNu
   const [isLoadingOrder, setIsLoadingOrder] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>('ทั้งหมด');
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [noteEditTarget, setNoteEditTarget] = useState<{ index: number; notes: string } | null>(null);
 
   // Void Modal States
@@ -219,17 +219,23 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, tableNu
     };
   }, [tableId, activeOrderId]);
 
-  const categories = [
-    'ทั้งหมด',
-    ...orderedPresentCategories(menuItems.map(m => m.category || 'ทั่วไป')),
-  ];
+  const categories = useMemo(
+    () => orderedPresentCategories(menuItems.map(m => m.category || 'ทั่วไป')),
+    [menuItems],
+  );
 
-  const filteredMenuItems =
-    selectedCategory === 'ทั้งหมด'
-      ? menuItems
-      : menuItems.filter(
-          m => normalizeCategoryName(m.category || 'ทั่วไป') === selectedCategory,
-        );
+  useEffect(() => {
+    if (categories.length === 0) return;
+    setSelectedCategory(prev =>
+      prev && categories.includes(prev) ? prev : categories[0],
+    );
+  }, [categories]);
+
+  const filteredMenuItems = selectedCategory
+    ? menuItems.filter(
+        m => normalizeCategoryName(m.category || 'ทั่วไป') === selectedCategory,
+      )
+    : [];
 
   const addToCart = (item: MenuItem) => {
     const salePrice = menuItemSalePrice(item);

@@ -192,7 +192,7 @@ export const MenuManager: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [customCategories, setCustomCategories] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterCategory, setFilterCategory] = useState<string>('ทั้งหมด');
+  const [filterCategory, setFilterCategory] = useState<string>('');
   const [filterStock, setFilterStock] = useState<StockFilter>('all');
   const [filterHappyHour, setFilterHappyHour] = useState<HappyHourFilter>('all');
   const [filterImage, setFilterImage] = useState<ImageFilter>('all');
@@ -230,6 +230,13 @@ export const MenuManager: React.FC = () => {
     [items],
   );
 
+  useEffect(() => {
+    if (filterCategories.length === 0) return;
+    setFilterCategory(prev =>
+      prev && filterCategories.includes(prev) ? prev : filterCategories[0],
+    );
+  }, [filterCategories]);
+
   const handleAddCategory = (name: string) => {
     const next = saveCustomMenuCategory(name);
     setCustomCategories(next);
@@ -247,7 +254,6 @@ export const MenuManager: React.FC = () => {
 
   const hasActiveFilters =
     searchTerm !== '' ||
-    filterCategory !== 'ทั้งหมด' ||
     filterStock !== 'all' ||
     filterHappyHour !== 'all' ||
     filterImage !== 'all' ||
@@ -255,7 +261,7 @@ export const MenuManager: React.FC = () => {
 
   const clearAllFilters = () => {
     setSearchTerm('');
-    setFilterCategory('ทั้งหมด');
+    setFilterCategory(filterCategories[0] ?? '');
     setFilterStock('all');
     setFilterHappyHour('all');
     setFilterImage('all');
@@ -408,7 +414,7 @@ export const MenuManager: React.FC = () => {
     const result = items.filter(i => {
       const matchSearch = i.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchCategory =
-        filterCategory === 'ทั้งหมด' ||
+        !!filterCategory &&
         normalizeCategoryName(i.category || '') === filterCategory;
 
       let matchStock = true;
@@ -569,7 +575,7 @@ export const MenuManager: React.FC = () => {
               ref={categoryScrollRef}
               className="flex flex-1 items-center gap-2 overflow-x-auto scrollbar-none py-0.5"
             >
-              {['ทั้งหมด', ...filterCategories].map(cat => (
+              {filterCategories.map(cat => (
                 <button
                   key={cat}
                   type="button"
