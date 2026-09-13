@@ -2,10 +2,12 @@
 export const MENU_CATEGORIES = [
   'Recommend',
   'Appetizer',
+  'ของย่าง',
   'ยำไทย',
   'อิ่มท้อง',
   'สลัด',
   'จานหลัก',
+  'ซาชิมิ',
   'ซูชิ',
   'โรล',
   'มากิ',
@@ -28,10 +30,11 @@ export function normalizeCategoryName(name: string): string {
   switch (trimmed) {
     case 'กินเล่น':
     case 'ทานเล่น':
+      return 'Appetizer';
     case 'ย่าง':
     case 'เสียบไม้ย่าง':
     case 'เสียบไม้/ย่าง':
-      return 'Appetizer';
+      return 'ของย่าง';
     case 'ยำ':
       return 'ยำไทย';
     case 'ต้ม/แกง':
@@ -40,8 +43,7 @@ export function normalizeCategoryName(name: string): string {
     case 'ข้าว':
       return 'อิ่มท้อง';
     case 'ซาซิมิ':
-    case 'ซาชิมิ':
-      return 'ซูชิ';
+      return 'ซาชิมิ';
     default:
       return trimmed;
   }
