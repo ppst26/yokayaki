@@ -729,7 +729,7 @@ html.theme-fading *::after {
   }
 }
 
-/* ---- พิมพ์ใบเสร็จ thermal 48mm (4.80cm) — แสดงเฉพาะ #receipt หรือ #customer-qr-print ---- */
+/* ---- พิมพ์ใบเสร็จ / QR / สลิปครัว thermal 48mm ---- */
 @media print {
   @page {
     size: 48mm auto;
@@ -751,13 +751,13 @@ html.theme-fading *::after {
     visibility: hidden !important;
   }
 
-  /* ค่าเริ่มต้น: พิมพ์ใบเสร็จ — ยกเว้นตอนพิมพ์ QR โต๊ะ */
-  html:not(.print-customer-qr) #receipt,
-  html:not(.print-customer-qr) #receipt * {
+  /* ค่าเริ่มต้น: พิมพ์ใบเสร็จ — ยกเว้นตอนพิมพ์ QR / สลิปครัว */
+  html:not(.print-customer-qr):not(.print-kitchen-ticket) #receipt,
+  html:not(.print-customer-qr):not(.print-kitchen-ticket) #receipt * {
     visibility: visible !important;
   }
 
-  html:not(.print-customer-qr) #receipt {
+  html:not(.print-customer-qr):not(.print-kitchen-ticket) #receipt {
     position: absolute !important;
     left: 0 !important;
     top: 0 !important;
@@ -770,7 +770,6 @@ html.theme-fading *::after {
     box-shadow: none !important;
     background: #fff !important;
     color: #000 !important;
-    /* ตัวอักษรใหญ่ + หนา ชัดบน thermal 48mm */
     font-family: "Noto Sans Thai", Tahoma, sans-serif !important;
     font-size: 13px !important;
     font-weight: 700 !important;
@@ -778,7 +777,7 @@ html.theme-fading *::after {
     letter-spacing: 0.01em !important;
   }
 
-  html:not(.print-customer-qr) #receipt .receipt-logo {
+  html:not(.print-customer-qr):not(.print-kitchen-ticket) #receipt .receipt-logo {
     display: block !important;
     width: 32mm !important;
     max-width: 90% !important;
@@ -787,27 +786,27 @@ html.theme-fading *::after {
     object-fit: contain !important;
   }
 
-  html:not(.print-customer-qr) #receipt .receipt-meta,
-  html:not(.print-customer-qr) #receipt .receipt-item,
-  html:not(.print-customer-qr) #receipt .receipt-row,
-  html:not(.print-customer-qr) #receipt .receipt-pay {
+  html:not(.print-customer-qr):not(.print-kitchen-ticket) #receipt .receipt-meta,
+  html:not(.print-customer-qr):not(.print-kitchen-ticket) #receipt .receipt-item,
+  html:not(.print-customer-qr):not(.print-kitchen-ticket) #receipt .receipt-row,
+  html:not(.print-customer-qr):not(.print-kitchen-ticket) #receipt .receipt-pay {
     font-size: 12px !important;
     font-weight: 700 !important;
   }
 
-  html:not(.print-customer-qr) #receipt .receipt-note,
-  html:not(.print-customer-qr) #receipt .receipt-footer {
+  html:not(.print-customer-qr):not(.print-kitchen-ticket) #receipt .receipt-note,
+  html:not(.print-customer-qr):not(.print-kitchen-ticket) #receipt .receipt-footer {
     font-size: 11px !important;
     font-weight: 600 !important;
   }
 
-  html:not(.print-customer-qr) #receipt .receipt-total {
+  html:not(.print-customer-qr):not(.print-kitchen-ticket) #receipt .receipt-total {
     font-size: 15px !important;
     font-weight: 900 !important;
   }
 
-  html:not(.print-customer-qr) #receipt .text-gray-500,
-  html:not(.print-customer-qr) #receipt .text-red-600 {
+  html:not(.print-customer-qr):not(.print-kitchen-ticket) #receipt .text-gray-500,
+  html:not(.print-customer-qr):not(.print-kitchen-ticket) #receipt .text-red-600 {
     color: #000 !important;
   }
 
@@ -908,5 +907,71 @@ html.theme-fading *::after {
     margin: 2.5mm 0 0 !important;
     font-size: 10px !important;
     font-weight: 600 !important;
+  }
+
+  /* พิมพ์สลิปครัว — รายการ pending เท่านั้น */
+  html.print-kitchen-ticket #kitchen-ticket-print,
+  html.print-kitchen-ticket #kitchen-ticket-print * {
+    visibility: visible !important;
+  }
+
+  html.print-kitchen-ticket #kitchen-ticket-print {
+    display: block !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 48mm !important;
+    max-width: 48mm !important;
+    margin: 0 !important;
+    padding: 3mm 2mm 10mm !important;
+    background: #fff !important;
+    color: #000 !important;
+    text-align: left !important;
+    font-family: "Noto Sans Thai", Tahoma, sans-serif !important;
+    box-sizing: border-box !important;
+  }
+
+  html.print-kitchen-ticket #kitchen-ticket-print .kitchen-ticket-title {
+    margin: 0 0 1mm !important;
+    font-size: 16px !important;
+    font-weight: 900 !important;
+    line-height: 1.2 !important;
+    text-align: center !important;
+  }
+
+  html.print-kitchen-ticket #kitchen-ticket-print .kitchen-ticket-time {
+    margin: 0 0 2mm !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+  }
+
+  html.print-kitchen-ticket #kitchen-ticket-print .kitchen-ticket-rule {
+    border-top: 0.35mm dashed #000 !important;
+    margin: 1.5mm 0 !important;
+  }
+
+  html.print-kitchen-ticket #kitchen-ticket-print .kitchen-ticket-line {
+    margin: 0 0 1.5mm !important;
+  }
+
+  html.print-kitchen-ticket #kitchen-ticket-print .kitchen-ticket-item {
+    margin: 0 !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    line-height: 1.3 !important;
+  }
+
+  html.print-kitchen-ticket #kitchen-ticket-print .kitchen-ticket-note {
+    margin: 0.5mm 0 0 !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+  }
+
+  html.print-kitchen-ticket #kitchen-ticket-print .kitchen-ticket-footer {
+    margin: 0 !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    text-align: center !important;
   }
 }
