@@ -1,6 +1,6 @@
 /** หมวดหมู่เมนูมาตรฐาน — ลำดับตามที่แสดงใน POS / ลูกค้า / จัดการเมนู */
 export const MENU_CATEGORIES = [
-  'Recommend',
+  'Today’s Special',
   'Appetizer',
   'ของย่าง',
   'ยำไทย',
@@ -17,7 +17,7 @@ export const MENU_CATEGORIES = [
 
 export type MenuCategory = (typeof MENU_CATEGORIES)[number];
 
-export const DEFAULT_MENU_CATEGORY: MenuCategory = 'Recommend';
+export const DEFAULT_MENU_CATEGORY: MenuCategory = 'Today’s Special';
 
 /** หมวดที่ซ่อน/ลบออกจาก UI */
 export const HIDDEN_MENU_CATEGORIES = new Set(['ทดสอบ']);
@@ -28,6 +28,16 @@ const CUSTOM_CATEGORIES_KEY = 'yokayaki_custom_menu_categories';
 export function normalizeCategoryName(name: string): string {
   const trimmed = name.trim();
   switch (trimmed) {
+    case 'Recommend':
+    case 'recommend':
+    case 'recoommend':
+    case 'Recommed':
+    case 'แนะนำ':
+    case "Today's Special":
+    case 'Today’s Special':
+    case "today's special":
+    case 'today’s special':
+      return 'Today’s Special';
     case 'กินเล่น':
     case 'ทานเล่น':
       return 'Appetizer';
