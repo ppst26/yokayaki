@@ -101,6 +101,8 @@ export const MenuGrid: React.FC<MenuGridProps> = ({
                     <img
                       src={item.image_url}
                       alt={item.name}
+                      loading="lazy"
+                      decoding="async"
                       className={`absolute inset-0 h-full w-full object-cover transition-transform duration-300 ${
                         isOutOfStock ? 'grayscale opacity-55' : 'group-hover:scale-105'
                       }`}

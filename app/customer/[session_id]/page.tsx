@@ -25,6 +25,7 @@ import { PLATFORM_BRANDING } from '@/lib/branding';
 import { useActionFeedback } from '@/context/ActionFeedbackContext';
 import { normalizeCategoryName, orderedPresentCategories } from '@/lib/menuCategories';
 import { CustomSelect } from '@/components/ui/select';
+import { CustomerImage } from '@/components/customer/CustomerImage';
 interface OrderedItem {
   id: number;
   quantity: number;
@@ -200,6 +201,35 @@ export default function CustomerOrderPortal() {
       document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [sessionId, refresh, isCheckoutCompleted, sessionValid]);
+
+  // Preload first batch of menu images in background when on 'home' tab
+  useEffect(() => {
+    if (activeTab !== 'home' || menuItems.length === 0 || menuCategories.length === 0) return;
+
+    const firstCategory = menuCategories[0];
+    const topItems = menuItems
+      .filter(item => normalizeCategoryName(item.category) === firstCategory && item.image_url)
+      .slice(0, 8);
+
+    if (typeof window === 'undefined') return;
+
+    const preloadImages = () => {
+      topItems.forEach(item => {
+        if (item.image_url) {
+          const img = new window.Image();
+          img.src = item.image_url;
+        }
+      });
+    };
+
+    if ('requestIdleCallback' in window) {
+      const handle = (window as Window & { requestIdleCallback: (cb: () => void) => number }).requestIdleCallback(preloadImages);
+      return () => (window as Window & { cancelIdleCallback: (id: number) => void }).cancelIdleCallback(handle);
+    } else {
+      const timer = setTimeout(preloadImages, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [activeTab, menuItems, menuCategories]);
 
 
   const addToCart = (item: MenuItem, notes?: string) => {
@@ -557,23 +587,17 @@ export default function CustomerOrderPortal() {
                       onClick={() => setActiveTab('promotions')}
                       className="w-[72vw] max-w-[275px] min-w-[240px] shrink-0 cursor-pointer rounded-2xl bg-neutral-900/90 border border-neutral-800/80 p-2.5 shadow-xs flex flex-col justify-between group select-none snap-start transition hover:border-neutral-700/80"
                     >
-                      <div className="w-full aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-800/80 relative shadow-xs flex items-center justify-center">
-                        <div className="absolute inset-0 flex items-center justify-center text-neutral-600">
-                          <Tag className="w-12 h-12 opacity-30 text-red-500" />
-                        </div>
-                        {promo.image_url && (
-                          <img 
-                            src={promo.image_url} 
-                            alt={promo.name} 
-                            className="w-full h-full object-cover relative z-1"
-                            onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-                          />
-                        )}
-                        <span className="absolute top-2.5 left-2.5 z-2 px-2.5 py-1 bg-red-600/95 text-white rounded-lg text-xs font-black shadow-xs">
+                      <div className="w-full aspect-square rounded-xl overflow-hidden relative shadow-xs flex items-center justify-center">
+                        <CustomerImage
+                          src={promo.image_url}
+                          alt={promo.name}
+                          fallbackIcon={<Tag className="w-12 h-12 opacity-30 text-red-500" />}
+                        />
+                        <span className="absolute top-2.5 left-2.5 z-10 px-2.5 py-1 bg-red-600/95 text-white rounded-lg text-xs font-black shadow-xs">
                           {promo.type === 'percentage' ? `ลด ${promo.discount_percent}%` : promo.type === 'fixed' ? `ลด ฿${promo.discount_amount}` : 'ซื้อ 2 แถม 1'}
                         </span>
                         {promo.start_time && (
-                          <span className="absolute bottom-2.5 left-2.5 z-2 px-2 py-0.5 bg-black/75 backdrop-blur-xs text-[10px] text-neutral-200 font-semibold rounded-lg flex items-center gap-1 shadow-xs">
+                          <span className="absolute bottom-2.5 left-2.5 z-10 px-2 py-0.5 bg-black/75 backdrop-blur-xs text-[10px] text-neutral-200 font-semibold rounded-lg flex items-center gap-1 shadow-xs">
                             <Clock className="w-3 h-3 text-neutral-300" />
                             {promo.start_time.substring(0, 5)} - {promo.end_time?.substring(0, 5)}
                           </span>
@@ -643,27 +667,20 @@ export default function CustomerOrderPortal() {
                       className="rounded-2xl bg-neutral-900/90 border border-neutral-800/80 overflow-hidden flex flex-col justify-between shadow-xs transition hover:border-neutral-700/80"
                     >
                       {/* Top: 1:1 Image */}
-                      <div className="w-full aspect-square bg-neutral-800 relative overflow-hidden shrink-0 flex items-center justify-center">
-                        {item.image_url ? (
-                          <img
-                            src={item.image_url}
-                            alt={item.name}
-                            className={`w-full h-full object-cover transition-transform duration-200 ${isSoldOut ? 'opacity-45 grayscale-[30%]' : ''}`}
-                            onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-neutral-600 bg-neutral-900">
-                            <UtensilsCrossed className="w-8 h-8 opacity-30 text-neutral-500" />
-                          </div>
-                        )}
+                      <div className="w-full aspect-square relative overflow-hidden shrink-0 flex items-center justify-center">
+                        <CustomerImage
+                          src={item.image_url}
+                          alt={item.name}
+                          isSoldOut={isSoldOut}
+                        />
 
                         {/* Badges on the image */}
                         {isSoldOut ? (
-                          <span className="absolute top-2 right-2 text-[10px] font-bold tracking-wider bg-black/75 backdrop-blur-xs text-rose-500 border border-rose-900/50 px-2 py-0.5 rounded-md shadow-xs">
+                          <span className="absolute top-2 right-2 text-[10px] font-bold tracking-wider bg-black/75 backdrop-blur-xs text-rose-500 border border-rose-900/50 px-2 py-0.5 rounded-md shadow-xs z-10">
                             SOLD OUT
                           </span>
                         ) : isLowStock ? (
-                          <span className="absolute top-2 right-2 text-[10px] font-bold tracking-wider bg-amber-400 text-neutral-950 px-2 py-0.5 rounded-md shadow-xs">
+                          <span className="absolute top-2 right-2 text-[10px] font-bold tracking-wider bg-amber-400 text-neutral-950 px-2 py-0.5 rounded-md shadow-xs z-10">
                             เหลือ {item.stock}
                           </span>
                         ) : null}
