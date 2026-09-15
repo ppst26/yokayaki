@@ -38,6 +38,7 @@ interface OrderedItem {
 interface MenuItem {
   id: number;
   name: string;
+  name_en?: string | null;
   price: number;
   stock: number;
   category: string;
@@ -688,9 +689,16 @@ export default function CustomerOrderPortal() {
 
                       {/* Bottom Info: Title, Price & Stepper */}
                       <div className="p-3 flex flex-col justify-between flex-1 gap-2">
-                        <h3 className="font-bold text-xs sm:text-sm text-neutral-100 truncate" title={item.name}>
-                          {item.name}
-                        </h3>
+                        <div className="min-w-0">
+                          <h3 className="font-bold text-xs sm:text-sm text-neutral-100 truncate" title={item.name}>
+                            {item.name}
+                          </h3>
+                          {item.name_en && (
+                            <p className="text-[11px] text-neutral-400 font-medium truncate mt-0.5 leading-tight" title={item.name_en}>
+                              {item.name_en}
+                            </p>
+                          )}
+                        </div>
 
                         <div className="flex items-center justify-between gap-1">
                           <span className="text-sm sm:text-base font-black text-red-500">

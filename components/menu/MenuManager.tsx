@@ -41,6 +41,7 @@ import { cn } from '@/lib/utils';
 interface MenuItem {
   id: number;
   name: string;
+  name_en?: string | null;
   unit: string;
   price: number;
   stock: number;
@@ -176,6 +177,7 @@ const IMAGE_FILTER_OPTIONS: SelectOption[] = [
 
 const EMPTY_FORM: Omit<MenuItem, 'id'> = {
   name: '',
+  name_en: '',
   unit: 'จาน',
   price: 0,
   stock: 20,
@@ -324,6 +326,7 @@ export const MenuManager: React.FC = () => {
     setPreviousImageUrl(item.image_url ?? null);
     setFormData({
       name: item.name,
+      name_en: item.name_en ?? '',
       unit: item.unit || 'จาน',
       price: item.price,
       stock: item.stock,
@@ -344,6 +347,7 @@ export const MenuManager: React.FC = () => {
       setIsSaving(true);
       const payload = {
         name: formData.name.trim(),
+        name_en: formData.name_en?.trim() || null,
         unit: formData.unit.trim() || 'จาน',
         price: formData.price,
         stock: formData.stock,
@@ -672,9 +676,16 @@ export const MenuManager: React.FC = () => {
                     )}
                   </TableCell>
                   <TableCell className="font-extrabold text-zinc-900 dark:text-zinc-100 text-table-cell">
-                    <span>{item.name}</span>
-                    {item.unit && (
-                      <span className="ml-1.5 text-[10px] font-semibold text-zinc-400 dark:text-zinc-500">/ {item.unit}</span>
+                    <div>
+                      <span>{item.name}</span>
+                      {item.unit && (
+                        <span className="ml-1.5 text-[10px] font-semibold text-zinc-400 dark:text-zinc-500">/ {item.unit}</span>
+                      )}
+                    </div>
+                    {item.name_en && (
+                      <div className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 truncate mt-0.5 leading-tight">
+                        {item.name_en}
+                      </div>
                     )}
                   </TableCell>
                   <TableCell>

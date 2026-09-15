@@ -33,7 +33,7 @@ export async function GET(
       supabaseAdmin.from('tables').select('status, table_number').eq('id', tableId).maybeSingle(),
       supabaseAdmin
         .from('menu_items')
-        .select('id, name, price, stock, category, image_url, is_happy_hour, happy_hour_price')
+        .select('id, name, name_en, price, stock, category, image_url, is_happy_hour, happy_hour_price')
         .eq('org_id', orgId)
         .order('id', { ascending: true }),
       supabaseAdmin

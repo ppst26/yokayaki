@@ -17,6 +17,7 @@ import { normalizeCategoryName, orderedPresentCategories } from '@/lib/menuCateg
 interface MenuItem extends MenuPriceFields {
   id: number;
   name: string;
+  name_en?: string | null;
   stock: number;
   category: string;
   image_url?: string | null;
@@ -113,7 +114,7 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, tableNu
       // เลือกเฉพาะคอลัมน์ที่จอนี้ใช้จริง — เดิม select('*') ลากทุกคอลัมน์มาทุกครั้ง
       const { data, error } = await supabase
         .from('menu_items')
-        .select('id, name, price, stock, category, image_url, is_happy_hour, happy_hour_price')
+        .select('id, name, name_en, price, stock, category, image_url, is_happy_hour, happy_hour_price')
         .order('id', { ascending: true });
 
       if (error) throw error;

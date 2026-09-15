@@ -169,6 +169,7 @@ export type Database = {
         Row: {
           id: number
           name: string
+          name_en: string | null
           price: number
           stock: number
           is_happy_hour: boolean
@@ -183,6 +184,7 @@ export type Database = {
         Insert: {
           id?: number
           name: string
+          name_en?: string | null
           price: number
           stock?: number
           is_happy_hour?: boolean
@@ -197,6 +199,7 @@ export type Database = {
         Update: {
           id?: number
           name?: string
+          name_en?: string | null
           price?: number
           stock?: number
           is_happy_hour?: boolean

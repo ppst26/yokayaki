@@ -11,6 +11,7 @@ const UNIT_SUGGESTIONS = ['จาน', 'ชิ้น', 'แก้ว', 'ขว�
 interface MenuItem {
   id: number;
   name: string;
+  name_en?: string | null;
   unit: string;
   price: number;
   stock: number;
@@ -186,6 +187,19 @@ export const MenuItemModal: React.FC<MenuItemModalProps> = ({
                 onChange={val => setFormData({ ...formData, unit: val })}
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-slate-500 dark:text-neutral-400 mb-1">
+              ชื่อภาษาอังกฤษ (English Name)
+            </label>
+            <input
+              type="text"
+              value={formData.name_en || ''}
+              onChange={e => setFormData({ ...formData, name_en: e.target.value })}
+              className="w-full bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-xs text-slate-800 dark:text-neutral-100 focus:border-red-500 focus:outline-none"
+              placeholder="e.g. Beef Yakiniku, Salmon Sashimi (ไม่บังคับ)"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">

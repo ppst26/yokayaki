@@ -7,6 +7,7 @@ import { isHappyHourNow, menuItemSalePrice, type MenuPriceFields } from '@/lib/m
 interface MenuItem extends MenuPriceFields {
   id: number;
   name: string;
+  name_en?: string | null;
   stock: number;
   category: string;
   image_url?: string | null;
@@ -135,6 +136,17 @@ export const MenuGrid: React.FC<MenuGridProps> = ({
                     >
                       {item.name}
                     </h3>
+                    {item.name_en && (
+                      <p
+                        className={`text-[11px] font-medium leading-tight truncate ${
+                          isOutOfStock
+                            ? 'text-zinc-400/60 dark:text-zinc-500/60'
+                            : 'text-zinc-400 dark:text-zinc-500'
+                        }`}
+                      >
+                        {item.name_en}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex items-end justify-between gap-2 pt-2.5 mt-1 border-t border-white/6 dark:border-white/6">
