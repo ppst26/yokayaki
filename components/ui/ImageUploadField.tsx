@@ -5,8 +5,9 @@ import { ImageIcon, Loader2 } from 'lucide-react';
 import {
   UPLOAD_ACCEPT,
   UPLOAD_HELPER_TEXT,
-  validateUploadFile,
+  validateRawSelectionFile,
 } from '@/lib/uploadLimits';
+import { compressImage } from '@/lib/imageCompression';
 
 type Props = {
   value: string | null;
@@ -22,30 +23,44 @@ export function ImageUploadField({
   disabled = false,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [compressing, setCompressing] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isDisabled = disabled || uploading;
+  const isDisabled = disabled || uploading || compressing;
   const hasImage = Boolean(value);
 
-  const statusLabel = uploading
-    ? 'กำลังอัปโหลด...'
-    : hasImage
-      ? 'อัปโหลดแล้ว'
-      : 'ยังไม่มีรูป';
+  const statusLabel = compressing
+    ? 'กำลังปรับแต่งขนาดรูป...'
+    : uploading
+      ? 'กำลังอัปโหลด...'
+      : hasImage
+        ? 'อัปโหลดแล้ว'
+        : 'ยังไม่มีรูป';
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const rawFile = e.target.files?.[0];
     e.target.value = '';
-    if (!file) return;
+    if (!rawFile) return;
 
-    const validationError = validateUploadFile(file);
+    const validationError = validateRawSelectionFile(rawFile);
     if (validationError) {
       setError(validationError);
       return;
     }
 
     setError(null);
+    setCompressing(true);
+
+    let fileToUpload: File;
+    try {
+      fileToUpload = await compressImage(rawFile);
+    } catch {
+      fileToUpload = rawFile;
+    } finally {
+      setCompressing(false);
+    }
+
     setUploading(true);
 
     try {
@@ -55,8 +70,8 @@ export function ImageUploadField({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           folder,
-          contentType: file.type,
-          contentLength: file.size,
+          contentType: fileToUpload.type,
+          contentLength: fileToUpload.size,
         }),
       });
 
@@ -74,8 +89,11 @@ export function ImageUploadField({
 
       const putRes = await fetch(uploadUrl, {
         method: 'PUT',
-        headers: { 'Content-Type': file.type },
-        body: file,
+        headers: {
+          'Content-Type': fileToUpload.type,
+          'Cache-Control': 'public, max-age=31536000, immutable',
+        },
+        body: fileToUpload,
       });
 
       if (!putRes.ok) {
