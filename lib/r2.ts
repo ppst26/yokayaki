@@ -76,6 +76,8 @@ export function isOurPublicUrl(url: string): boolean {
   return publicUrlToKey(url) !== null;
 }
 
+export const R2_CACHE_CONTROL = 'public, max-age=31536000, immutable';
+
 export async function presignPut(params: {
   folder: R2Folder;
   key: string;
@@ -91,11 +93,12 @@ export async function presignPut(params: {
     Bucket: bucket,
     Key: params.key,
     ContentType: params.contentType,
+    CacheControl: R2_CACHE_CONTROL,
   });
 
   const uploadUrl = await getSignedUrl(s3, command, {
     expiresIn: 60,
-    signableHeaders: new Set(['content-type']),
+    signableHeaders: new Set(['content-type', 'cache-control']),
   });
   const publicUrl = `${base}/${params.key}`;
 
