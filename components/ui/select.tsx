@@ -83,11 +83,16 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
     const dropdownHeight = 300;
     const placeAbove = spaceBelow < dropdownHeight && rect.top > dropdownHeight;
 
+    const dropdownWidth = Math.max(rect.width, menuMinWidth);
+    // Clamp left so the dropdown never overflows the right edge of the viewport
+    const maxLeft = window.innerWidth - dropdownWidth - 8;
+    const clampedLeft = Math.min(rect.left, maxLeft);
+
     const newCoords = {
       top: placeAbove ? 0 : rect.bottom + 4,
       bottom: placeAbove ? window.innerHeight - rect.top + 4 : undefined,
-      left: rect.left,
-      width: Math.max(rect.width, menuMinWidth),
+      left: Math.max(4, clampedLeft),
+      width: dropdownWidth,
       placeAbove,
     };
     setCoords(newCoords);
