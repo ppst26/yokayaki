@@ -625,20 +625,24 @@ export default function CustomerOrderPortal() {
         {activeTab === 'order' && (
           <div className="space-y-4 animate-fade-in">
             {/* หมวดหมู่ (ซ้าย) + เรียงราคา (ขวา) */}
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1 scrollbar-none">
-                {menuCategories.map(cat => (
-                  <button
-                    key={cat}
-                    type="button"
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`badge-pill shrink-0 px-4 py-2 text-xs font-bold ${
-                      selectedCategory === cat ? 'badge-active' : 'badge-inactive'
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
+            <div className="flex items-center gap-1.5 min-w-0">
+              <div className="relative flex-1 min-w-0">
+                <div className="flex min-w-0 gap-1.5 overflow-x-auto pb-1 scrollbar-none pr-4">
+                  {menuCategories.map(cat => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setSelectedCategory(cat)}
+                      className={`badge-pill shrink-0 px-3.5 py-2 text-xs font-bold ${
+                        selectedCategory === cat ? 'badge-active' : 'badge-inactive'
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+                {/* Black fade edge on right */}
+                <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-neutral-950 to-transparent" />
               </div>
 
               <CustomSelect
@@ -647,11 +651,11 @@ export default function CustomerOrderPortal() {
                 value={priceSort}
                 onChange={val => setPriceSort(val as 'asc' | 'desc')}
                 options={[
-                  { label: 'น้อย ไป มาก', value: 'asc', shortLabel: 'น้อย→มาก' },
-                  { label: 'มาก ไป น้อย', value: 'desc', shortLabel: 'มาก→น้อย' },
+                  { label: 'น้อย→มาก', value: 'asc', shortLabel: 'น้อย→มาก' },
+                  { label: 'มาก→น้อย', value: 'desc', shortLabel: 'มาก→น้อย' },
                 ]}
                 searchable={false}
-                className="w-[9.5rem] shrink-0"
+                className="w-[7rem] shrink-0 text-[10px]"
               />
             </div>
 
