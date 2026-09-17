@@ -115,6 +115,7 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, tableNu
       const { data, error } = await supabase
         .from('menu_items')
         .select('id, name, name_en, price, stock, category, image_url, is_happy_hour, happy_hour_price')
+        .eq('is_available', true)
         .order('id', { ascending: true });
 
       if (error) throw error;

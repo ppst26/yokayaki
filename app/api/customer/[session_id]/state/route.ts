@@ -35,6 +35,7 @@ export async function GET(
         .from('menu_items')
         .select('id, name, name_en, price, stock, category, image_url, is_happy_hour, happy_hour_price')
         .eq('org_id', orgId)
+        .eq('is_available', true)
         .order('id', { ascending: true }),
       supabaseAdmin
         .from('promotions')

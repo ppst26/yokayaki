@@ -8,7 +8,7 @@ import { ImageUploadField } from '@/components/ui/ImageUploadField';
 
 const UNIT_SUGGESTIONS = ['จาน', 'ชิ้น', 'แก้ว', 'ขวด', 'ถ้วย', 'ชุด', 'อัน', 'กก.', 'ลิตร'];
 
-interface MenuItem {
+export interface MenuItem {
   id: number;
   name: string;
   name_en?: string | null;
@@ -20,6 +20,7 @@ interface MenuItem {
   happy_hour_price: number | null;
   category: string;
   image_url?: string | null;
+  is_available: boolean;
 }
 
 interface MenuItemModalProps {

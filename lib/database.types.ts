@@ -180,6 +180,7 @@ export type Database = {
           image_url: string | null
           unit: string
           org_id: string
+          is_available: boolean
         }
         Insert: {
           id?: number
@@ -195,6 +196,7 @@ export type Database = {
           image_url?: string | null
           unit?: string
           org_id?: string
+          is_available?: boolean
         }
         Update: {
           id?: number
@@ -210,6 +212,7 @@ export type Database = {
           image_url?: string | null
           unit?: string
           org_id?: string
+          is_available?: boolean
         }
         Relationships: []
       }

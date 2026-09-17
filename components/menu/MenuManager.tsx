@@ -6,11 +6,11 @@ import {
   Plus,
   Minus,
   Pencil,
-  Trash2,
+  Eye,
+  EyeOff,
   X,
   Search,
   UtensilsCrossed,
-  AlertTriangle,
   Image as ImageIcon,
   ChevronLeft,
   ChevronRight,
@@ -35,22 +35,8 @@ import {
   readCustomMenuCategories,
   saveCustomMenuCategory,
 } from '@/lib/menuCategories';
-import { MenuItemModal } from './MenuItemModal';
+import { MenuItemModal, MenuItem } from './MenuItemModal';
 import { cn } from '@/lib/utils';
-
-interface MenuItem {
-  id: number;
-  name: string;
-  name_en?: string | null;
-  unit: string;
-  price: number;
-  stock: number;
-  is_stock_tracked: boolean;
-  is_happy_hour: boolean;
-  happy_hour_price: number | null;
-  category: string;
-  image_url?: string | null;
-}
 
 const STOCK_LOW_THRESHOLD = 5;
 
@@ -68,6 +54,7 @@ type SortOption =
   | 'stock_desc';
 type HappyHourFilter = 'all' | 'yes' | 'no';
 type ImageFilter = 'all' | 'yes' | 'no';
+type AvailabilityFilter = 'available' | 'hidden' | 'all';
 
 const STOCK_FILTER_OPTIONS: SelectOption[] = [
   { label: 'ทั้งหมด', value: 'all', shortLabel: 'ทั้งหมด' },
@@ -175,6 +162,12 @@ const IMAGE_FILTER_OPTIONS: SelectOption[] = [
   { label: 'ไม่มีรูปภาพ', value: 'no', shortLabel: 'ไม่มี' },
 ];
 
+const AVAILABILITY_FILTER_OPTIONS: SelectOption[] = [
+  { label: 'กำลังขาย', value: 'available', shortLabel: 'ขายอยู่' },
+  { label: 'ซ่อนอยู่', value: 'hidden', shortLabel: 'ซ่อน' },
+  { label: 'ทั้งหมด', value: 'all', shortLabel: 'ทั้งหมด' },
+];
+
 const EMPTY_FORM: Omit<MenuItem, 'id'> = {
   name: '',
   name_en: '',
@@ -186,6 +179,7 @@ const EMPTY_FORM: Omit<MenuItem, 'id'> = {
   happy_hour_price: null,
   category: DEFAULT_MENU_CATEGORY,
   image_url: null,
+  is_available: true,
 };
 
 export const MenuManager: React.FC = () => {
@@ -198,6 +192,7 @@ export const MenuManager: React.FC = () => {
   const [filterStock, setFilterStock] = useState<StockFilter>('all');
   const [filterHappyHour, setFilterHappyHour] = useState<HappyHourFilter>('all');
   const [filterImage, setFilterImage] = useState<ImageFilter>('all');
+  const [filterAvailability, setFilterAvailability] = useState<AvailabilityFilter>('available');
   const [sortBy, setSortBy] = useState<SortOption>('default');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -207,8 +202,8 @@ export const MenuManager: React.FC = () => {
   const [formData, setFormData] = useState<Omit<MenuItem, 'id'>>(EMPTY_FORM);
   const [isSaving, setIsSaving] = useState(false);
 
-  const [deleteTarget, setDeleteTarget] = useState<MenuItem | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [toggleTarget, setToggleTarget] = useState<MenuItem | null>(null);
+  const [isToggling, setIsToggling] = useState(false);
   const [previousImageUrl, setPreviousImageUrl] = useState<string | null>(null);
 
   const categoryScrollRef = useRef<HTMLDivElement>(null);
@@ -252,13 +247,14 @@ export const MenuManager: React.FC = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, filterCategory, filterStock, filterHappyHour, filterImage, sortBy, pageSize]);
+  }, [searchTerm, filterCategory, filterStock, filterHappyHour, filterImage, filterAvailability, sortBy, pageSize]);
 
   const hasActiveFilters =
     searchTerm !== '' ||
     filterStock !== 'all' ||
     filterHappyHour !== 'all' ||
     filterImage !== 'all' ||
+    filterAvailability !== 'available' ||
     sortBy !== 'default';
 
   const clearAllFilters = () => {
@@ -267,6 +263,7 @@ export const MenuManager: React.FC = () => {
     setFilterStock('all');
     setFilterHappyHour('all');
     setFilterImage('all');
+    setFilterAvailability('available');
     setSortBy('default');
   };
 
@@ -335,6 +332,7 @@ export const MenuManager: React.FC = () => {
       happy_hour_price: item.happy_hour_price,
       category: item.category || DEFAULT_MENU_CATEGORY,
       image_url: item.image_url ?? null,
+      is_available: item.is_available,
     });
     setShowFormModal(true);
   };
@@ -386,31 +384,32 @@ export const MenuManager: React.FC = () => {
     }
   };
 
-  const handleDelete = async () => {
-    if (!deleteTarget) return;
+  const handleToggleAvailability = async () => {
+    if (!toggleTarget) return;
 
+    const nextAvailable = !toggleTarget.is_available;
     try {
-      setIsDeleting(true);
+      setIsToggling(true);
       const { error } = await supabase
         .from('menu_items')
-        .delete()
-        .eq('id', deleteTarget.id);
+        .update({ is_available: nextAvailable })
+        .eq('id', toggleTarget.id);
 
       if (error) throw error;
 
-      const imageUrl = deleteTarget.image_url;
-      if (imageUrl) {
-        await deleteOldImage(imageUrl);
-      }
-
-      showMessage(`ลบเมนู "${deleteTarget.name}" เรียบร้อยแล้ว`, 'success');
-      setDeleteTarget(null);
+      showMessage(
+        nextAvailable
+          ? `เปิดขายเมนู "${toggleTarget.name}" อีกครั้ง`
+          : `ซ่อนเมนู "${toggleTarget.name}" เรียบร้อยแล้ว`,
+        'success',
+      );
+      setToggleTarget(null);
       fetchMenuItems();
     } catch (err: any) {
-      console.error('Error deleting menu item:', err);
-      showMessage('ไม่สามารถลบเมนูได้ เนื่องจากมีออเดอร์ผูกกับเมนูนี้', 'error');
+      console.error('Error toggling menu availability:', err);
+      showMessage('ไม่สามารถเปลี่ยนสถานะเมนูได้', 'error');
     } finally {
-      setIsDeleting(false);
+      setIsToggling(false);
     }
   };
 
@@ -447,7 +446,12 @@ export const MenuManager: React.FC = () => {
         (filterImage === 'yes' && !!i.image_url) ||
         (filterImage === 'no' && !i.image_url);
 
-      return matchSearch && matchCategory && matchStock && matchHappyHour && matchImage;
+      const matchAvailability =
+        filterAvailability === 'all' ||
+        (filterAvailability === 'available' && i.is_available) ||
+        (filterAvailability === 'hidden' && !i.is_available);
+
+      return matchSearch && matchCategory && matchStock && matchHappyHour && matchImage && matchAvailability;
     });
 
     return [...result].sort((a, b) => {
@@ -476,7 +480,7 @@ export const MenuManager: React.FC = () => {
           return a.id - b.id;
       }
     });
-  }, [items, searchTerm, filterCategory, filterStock, filterHappyHour, filterImage, sortBy]);
+  }, [items, searchTerm, filterCategory, filterStock, filterHappyHour, filterImage, filterAvailability, sortBy]);
 
   const totalPages = Math.ceil(filteredItems.length / pageSize) || 1;
   const paginatedItems = filteredItems.slice(
@@ -546,6 +550,16 @@ export const MenuManager: React.FC = () => {
             options={HAPPY_HOUR_FILTER_OPTIONS}
             searchable={false}
             className="w-24 shrink-0"
+          />
+
+          <CustomSelect
+            size="sm"
+            prefixLabel="สถานะ:"
+            value={filterAvailability}
+            onChange={val => setFilterAvailability(val as AvailabilityFilter)}
+            options={AVAILABILITY_FILTER_OPTIONS}
+            searchable={false}
+            className="w-28 shrink-0"
           />
 
           <CustomSelect
@@ -661,13 +675,13 @@ export const MenuManager: React.FC = () => {
             </TableHeader>
             <TableBody>
               {paginatedItems.map(item => (
-                <TableRow key={item.id}>
+                <TableRow key={item.id} className={cn(!item.is_available && 'opacity-50')}>
                   <TableCell>
                     {item.image_url ? (
                       <img
                         src={item.image_url}
                         alt={item.name}
-                        className="w-10 h-10 object-cover rounded-xl border-none"
+                        className={cn('w-10 h-10 object-cover rounded-xl border-none', !item.is_available && 'grayscale')}
                       />
                     ) : (
                       <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 border-none flex items-center justify-center text-zinc-400 dark:text-zinc-500">
@@ -676,10 +690,16 @@ export const MenuManager: React.FC = () => {
                     )}
                   </TableCell>
                   <TableCell className="font-extrabold text-zinc-900 dark:text-zinc-100 text-table-cell">
-                    <div>
+                    <div className="flex items-center gap-1.5">
                       <span>{item.name}</span>
                       {item.unit && (
-                        <span className="ml-1.5 text-[10px] font-semibold text-zinc-400 dark:text-zinc-500">/ {item.unit}</span>
+                        <span className="text-[10px] font-semibold text-zinc-400 dark:text-zinc-500">/ {item.unit}</span>
+                      )}
+                      {!item.is_available && (
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 text-[10px] font-bold leading-none">
+                          <EyeOff className="w-2.5 h-2.5" />
+                          ซ่อน
+                        </span>
                       )}
                     </div>
                     {item.name_en && (
@@ -737,11 +757,16 @@ export const MenuManager: React.FC = () => {
                         <Pencil className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => setDeleteTarget(item)}
-                        className="p-1.5 text-zinc-400 hover:text-rose-500 dark:hover:text-rose-400 transition cursor-pointer"
-                        title="ลบ"
+                        onClick={() => setToggleTarget(item)}
+                        className={cn(
+                          'p-1.5 transition cursor-pointer',
+                          item.is_available
+                            ? 'text-zinc-400 hover:text-amber-500 dark:hover:text-amber-400'
+                            : 'text-emerald-500 hover:text-emerald-600 dark:text-emerald-400 dark:hover:text-emerald-300',
+                        )}
+                        title={item.is_available ? 'ซ่อนเมนู' : 'แสดงเมนูอีกครั้ง'}
                       >
-                        <Trash2 className="w-4 h-4" />
+                        {item.is_available ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
                   </TableCell>
@@ -775,33 +800,46 @@ export const MenuManager: React.FC = () => {
         isSaving={isSaving}
       />
 
-      {/* Delete Confirmation Modal */}
-      {deleteTarget && (
+      {/* Toggle Availability Confirmation Modal */}
+      {toggleTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 app-dialog-backdrop">
           <div className="app-dialog w-full max-w-sm p-6 shadow-xl space-y-4 text-center">
-            <AlertTriangle className="w-8 h-8 text-rose-600 dark:text-rose-400 mx-auto" />
+            {toggleTarget.is_available ? (
+              <EyeOff className="w-8 h-8 text-amber-600 dark:text-amber-400 mx-auto" />
+            ) : (
+              <Eye className="w-8 h-8 text-emerald-600 dark:text-emerald-400 mx-auto" />
+            )}
             <h3 className="text-base font-black text-slate-900 dark:text-neutral-100">
-              ยืนยันการลบเมนูอาหาร
+              {toggleTarget.is_available ? 'ซ่อนเมนูอาหาร' : 'เปิดขายเมนูอีกครั้ง'}
             </h3>
             <p className="text-xs text-slate-500 dark:text-neutral-400 font-semibold">
-              คุณต้องการลบเมนู <span className="font-bold text-slate-800 dark:text-neutral-200">"{deleteTarget.name}"</span> หรือไม่?
+              {toggleTarget.is_available
+                ? <>เมนู <span className="font-bold text-slate-800 dark:text-neutral-200">"{toggleTarget.name}"</span> จะถูกซ่อนจากหน้าสั่งอาหาร แต่ข้อมูลยังอยู่ครบ</>
+                : <>เปิดขายเมนู <span className="font-bold text-slate-800 dark:text-neutral-200">"{toggleTarget.name}"</span> อีกครั้ง?</>}
             </p>
             <div className="flex gap-2 pt-2">
               <button
-                onClick={() => setDeleteTarget(null)}
+                onClick={() => setToggleTarget(null)}
                 className="flex-1 py-2.5 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-300 rounded-sm text-xs font-bold transition cursor-pointer"
               >
                 ยกเลิก
               </button>
               <button
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white rounded-sm text-xs font-bold transition shadow-md shadow-rose-600/20 cursor-pointer flex items-center justify-center gap-1.5"
+                onClick={handleToggleAvailability}
+                disabled={isToggling}
+                className={cn(
+                  'flex-1 py-2.5 disabled:opacity-50 text-white rounded-sm text-xs font-bold transition shadow-md cursor-pointer flex items-center justify-center gap-1.5',
+                  toggleTarget.is_available
+                    ? 'bg-amber-600 hover:bg-amber-700 shadow-amber-600/20'
+                    : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20',
+                )}
               >
-                {isDeleting ? (
+                {isToggling ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : toggleTarget.is_available ? (
+                  'ซ่อนเมนู'
                 ) : (
-                  'ลบเมนู'
+                  'เปิดขายอีกครั้ง'
                 )}
               </button>
             </div>
