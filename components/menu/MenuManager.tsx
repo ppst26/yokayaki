@@ -6,8 +6,8 @@ import {
   Plus,
   Minus,
   Pencil,
-  Eye,
-  EyeOff,
+  Trash2,
+  RotateCcw,
   X,
   Search,
   UtensilsCrossed,
@@ -164,7 +164,7 @@ const IMAGE_FILTER_OPTIONS: SelectOption[] = [
 
 const AVAILABILITY_FILTER_OPTIONS: SelectOption[] = [
   { label: 'กำลังขาย', value: 'available', shortLabel: 'ขายอยู่' },
-  { label: 'ซ่อนอยู่', value: 'hidden', shortLabel: 'ซ่อน' },
+  { label: 'ลบแล้ว', value: 'hidden', shortLabel: 'ลบแล้ว' },
   { label: 'ทั้งหมด', value: 'all', shortLabel: 'ทั้งหมด' },
 ];
 
@@ -399,8 +399,8 @@ export const MenuManager: React.FC = () => {
 
       showMessage(
         nextAvailable
-          ? `เปิดขายเมนู "${toggleTarget.name}" อีกครั้ง`
-          : `ซ่อนเมนู "${toggleTarget.name}" เรียบร้อยแล้ว`,
+          ? `กู้คืนเมนู "${toggleTarget.name}" เรียบร้อยแล้ว`
+          : `ลบเมนู "${toggleTarget.name}" เรียบร้อยแล้ว`,
         'success',
       );
       setToggleTarget(null);
@@ -696,9 +696,9 @@ export const MenuManager: React.FC = () => {
                         <span className="text-[10px] font-semibold text-zinc-400 dark:text-zinc-500">/ {item.unit}</span>
                       )}
                       {!item.is_available && (
-                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 text-[10px] font-bold leading-none">
-                          <EyeOff className="w-2.5 h-2.5" />
-                          ซ่อน
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-400 text-[10px] font-bold leading-none">
+                          <Trash2 className="w-2.5 h-2.5" />
+                          ลบแล้ว
                         </span>
                       )}
                     </div>
@@ -761,12 +761,12 @@ export const MenuManager: React.FC = () => {
                         className={cn(
                           'p-1.5 transition cursor-pointer',
                           item.is_available
-                            ? 'text-zinc-400 hover:text-amber-500 dark:hover:text-amber-400'
+                            ? 'text-zinc-400 hover:text-rose-500 dark:hover:text-rose-400'
                             : 'text-emerald-500 hover:text-emerald-600 dark:text-emerald-400 dark:hover:text-emerald-300',
                         )}
-                        title={item.is_available ? 'ซ่อนเมนู' : 'แสดงเมนูอีกครั้ง'}
+                        title={item.is_available ? 'ลบเมนู' : 'กู้คืนเมนู'}
                       >
-                        {item.is_available ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {item.is_available ? <Trash2 className="w-4 h-4" /> : <RotateCcw className="w-4 h-4" />}
                       </button>
                     </div>
                   </TableCell>
@@ -800,22 +800,22 @@ export const MenuManager: React.FC = () => {
         isSaving={isSaving}
       />
 
-      {/* Toggle Availability Confirmation Modal */}
+      {/* Delete / Restore Confirmation Modal */}
       {toggleTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 app-dialog-backdrop">
           <div className="app-dialog w-full max-w-sm p-6 shadow-xl space-y-4 text-center">
             {toggleTarget.is_available ? (
-              <EyeOff className="w-8 h-8 text-amber-600 dark:text-amber-400 mx-auto" />
+              <Trash2 className="w-8 h-8 text-rose-600 dark:text-rose-400 mx-auto" />
             ) : (
-              <Eye className="w-8 h-8 text-emerald-600 dark:text-emerald-400 mx-auto" />
+              <RotateCcw className="w-8 h-8 text-emerald-600 dark:text-emerald-400 mx-auto" />
             )}
             <h3 className="text-base font-black text-slate-900 dark:text-neutral-100">
-              {toggleTarget.is_available ? 'ซ่อนเมนูอาหาร' : 'เปิดขายเมนูอีกครั้ง'}
+              {toggleTarget.is_available ? 'ยืนยันการลบเมนูอาหาร' : 'กู้คืนเมนูอาหาร'}
             </h3>
             <p className="text-xs text-slate-500 dark:text-neutral-400 font-semibold">
               {toggleTarget.is_available
-                ? <>เมนู <span className="font-bold text-slate-800 dark:text-neutral-200">"{toggleTarget.name}"</span> จะถูกซ่อนจากหน้าสั่งอาหาร แต่ข้อมูลยังอยู่ครบ</>
-                : <>เปิดขายเมนู <span className="font-bold text-slate-800 dark:text-neutral-200">"{toggleTarget.name}"</span> อีกครั้ง?</>}
+                ? <>คุณต้องการลบเมนู <span className="font-bold text-slate-800 dark:text-neutral-200">"{toggleTarget.name}"</span> หรือไม่?</>
+                : <>ต้องการกู้คืนเมนู <span className="font-bold text-slate-800 dark:text-neutral-200">"{toggleTarget.name}"</span> กลับมาขายอีกครั้ง?</>}
             </p>
             <div className="flex gap-2 pt-2">
               <button
@@ -830,16 +830,16 @@ export const MenuManager: React.FC = () => {
                 className={cn(
                   'flex-1 py-2.5 disabled:opacity-50 text-white rounded-sm text-xs font-bold transition shadow-md cursor-pointer flex items-center justify-center gap-1.5',
                   toggleTarget.is_available
-                    ? 'bg-amber-600 hover:bg-amber-700 shadow-amber-600/20'
+                    ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20'
                     : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20',
                 )}
               >
                 {isToggling ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : toggleTarget.is_available ? (
-                  'ซ่อนเมนู'
+                  'ลบเมนู'
                 ) : (
-                  'เปิดขายอีกครั้ง'
+                  'กู้คืนเมนู'
                 )}
               </button>
             </div>
