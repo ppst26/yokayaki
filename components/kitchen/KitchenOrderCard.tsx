@@ -163,16 +163,17 @@ export const KitchenOrderCard: React.FC<KitchenOrderCardProps> = ({
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
-            <button
-              type="button"
-              onClick={() => onPrintTicket(group)}
-              disabled={!hasPending}
-              className="inline-flex items-center gap-1 rounded-xl border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2.5 py-1.5 text-xs font-bold text-slate-700 dark:text-neutral-200 transition hover:bg-slate-50 dark:hover:bg-neutral-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-              title={hasPending ? 'พิมพ์รายการที่ยังไม่เสิร์ฟ' : 'ไม่มีรายการค้างให้พิมพ์'}
-            >
-              <Printer className="w-3.5 h-3.5" />
-              <span>พิมพ์</span>
-            </button>
+            {hasPending && (
+              <button
+                type="button"
+                onClick={() => onPrintTicket(group)}
+                className="inline-flex items-center gap-1 rounded-xl border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2.5 py-1.5 text-xs font-bold text-slate-700 dark:text-neutral-200 transition hover:bg-slate-50 dark:hover:bg-neutral-700 cursor-pointer"
+                title="พิมพ์รายการที่ยังไม่เสิร์ฟ"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>พิมพ์</span>
+              </button>
+            )}
 
             <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${badgeStyle}`}>
               <Clock className="w-3.5 h-3.5 stroke-[2.2] shrink-0 opacity-80" />
