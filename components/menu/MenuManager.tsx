@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import {
   Plus,
@@ -18,6 +18,7 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
+  Settings,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -29,13 +30,15 @@ import { useActionFeedback } from '@/context/ActionFeedbackContext';
 import {
   DEFAULT_MENU_CATEGORY,
   MENU_CATEGORIES,
-  mergeMenuCategories,
+  MenuCategoryRow,
+  mergeMenuCategoriesFromDB,
   normalizeCategoryName,
-  orderedPresentCategories,
-  readCustomMenuCategories,
-  saveCustomMenuCategory,
+  orderedPresentCategoriesFromDB,
+  fetchMenuCategories,
+  addMenuCategory,
 } from '@/lib/menuCategories';
 import { MenuItemModal, MenuItem } from './MenuItemModal';
+import { CategoryManagerModal } from './CategoryManagerModal';
 import { cn } from '@/lib/utils';
 
 const STOCK_LOW_THRESHOLD = 5;
@@ -76,13 +79,12 @@ const SORT_OPTIONS: SelectOption[] = [
   { label: 'สต็อกมาก → น้อย', value: 'stock_desc' },
 ];
 
-const CATEGORY_ORDER = new Map(
-  MENU_CATEGORIES.map((c, i) => [c.toLowerCase(), i]),
-);
-
-function categorySortIndex(category: string): number {
+// categorySortIndex จะถูก override ใน component ด้วย dbCategories
+// fallback สำหรับ scope นอก component
+function _fallbackCategorySortIndex(category: string): number {
   const key = normalizeCategoryName(category || '').toLowerCase();
-  return CATEGORY_ORDER.get(key) ?? 999;
+  const idx = MENU_CATEGORIES.findIndex(c => c.toLowerCase() === key);
+  return idx >= 0 ? idx : 999;
 }
 
 function sortDirectionFor(sortBy: SortOption, column: SortColumn): 'asc' | 'desc' | null {
@@ -186,7 +188,7 @@ export const MenuManager: React.FC = () => {
   const { showActionFeedback } = useActionFeedback();
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [customCategories, setCustomCategories] = useState<string[]>([]);
+  const [dbCategories, setDbCategories] = useState<MenuCategoryRow[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('');
   const [filterStock, setFilterStock] = useState<StockFilter>('all');
@@ -205,27 +207,50 @@ export const MenuManager: React.FC = () => {
   const [toggleTarget, setToggleTarget] = useState<MenuItem | null>(null);
   const [isToggling, setIsToggling] = useState(false);
   const [previousImageUrl, setPreviousImageUrl] = useState<string | null>(null);
+  const [showCategoryManager, setShowCategoryManager] = useState(false);
 
   const categoryScrollRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    setCustomCategories(readCustomMenuCategories());
+  // ดึงหมวดหมู่จาก DB
+  const loadCategories = useCallback(async () => {
+    const rows = await fetchMenuCategories();
+    setDbCategories(rows);
   }, []);
 
+  useEffect(() => {
+    loadCategories();
+  }, [loadCategories]);
+
+  /** หมวดหมู่สำหรับ dropdown ใน form (DB order + fallback จากเมนู) */
   const categories = useMemo(
     () =>
-      mergeMenuCategories(
+      mergeMenuCategoriesFromDB(
+        dbCategories,
         items.map(i => i.category).filter(Boolean) as string[],
-        customCategories,
       ),
-    [items, customCategories],
+    [items, dbCategories],
   );
 
-  /** แถบฟิลเตอร์ — โชว์เฉพาะหมวดที่มีเมนู เรียงตามมาตรฐาน */
+  /** แถบฟิลเตอร์ — โชว์เฉพาะหมวดที่มีเมนู เรียงตาม DB order */
   const filterCategories = useMemo(
-    () => orderedPresentCategories(items.map(i => i.category).filter(Boolean) as string[]),
-    [items],
+    () => orderedPresentCategoriesFromDB(
+      dbCategories,
+      items.map(i => i.category).filter(Boolean) as string[],
+    ),
+    [items, dbCategories],
   );
+
+  /** ลำดับ sort ของหมวดหมู่ — มาจาก DB sort_order */
+  const categoryOrderMap = useMemo(() => {
+    const map = new Map<string, number>();
+    dbCategories.forEach(c => map.set(c.name.toLowerCase(), c.sort_order));
+    return map;
+  }, [dbCategories]);
+
+  const categorySortIndex = useCallback((category: string): number => {
+    const key = normalizeCategoryName(category || '').toLowerCase();
+    return categoryOrderMap.get(key) ?? 999;
+  }, [categoryOrderMap]);
 
   useEffect(() => {
     if (filterCategories.length === 0) return;
@@ -234,9 +259,13 @@ export const MenuManager: React.FC = () => {
     );
   }, [filterCategories]);
 
-  const handleAddCategory = (name: string) => {
-    const next = saveCustomMenuCategory(name);
-    setCustomCategories(next);
+  const handleAddCategory = async (name: string) => {
+    const { error } = await addMenuCategory(name);
+    if (error) {
+      showMessage(error, 'error');
+      return;
+    }
+    await loadCategories();
   };
 
   const handleScrollCategoryRight = () => {
@@ -480,7 +509,7 @@ export const MenuManager: React.FC = () => {
           return a.id - b.id;
       }
     });
-  }, [items, searchTerm, filterCategory, filterStock, filterHappyHour, filterImage, filterAvailability, sortBy]);
+  }, [items, searchTerm, filterCategory, filterStock, filterHappyHour, filterImage, filterAvailability, sortBy, categorySortIndex]);
 
   const totalPages = Math.ceil(filteredItems.length / pageSize) || 1;
   const paginatedItems = filteredItems.slice(
@@ -585,9 +614,20 @@ export const MenuManager: React.FC = () => {
 
         {/* Row 2: Category Filter Group */}
         <div className="space-y-1.5">
-          <p className="text-xs font-extrabold text-slate-400 dark:text-neutral-500">
-            หมวดหมู่
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-extrabold text-slate-400 dark:text-neutral-500">
+              หมวดหมู่
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowCategoryManager(true)}
+              className="flex items-center gap-1 px-2 py-1 text-[11px] font-bold text-slate-500 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 rounded-lg hover:bg-slate-100 dark:hover:bg-neutral-800 transition cursor-pointer"
+              title="จัดการหมวดหมู่"
+            >
+              <Settings className="w-3.5 h-3.5" />
+              <span>จัดการหมวดหมู่</span>
+            </button>
+          </div>
           <div className="flex items-center gap-2">
             <div
               ref={categoryScrollRef}
@@ -798,6 +838,17 @@ export const MenuManager: React.FC = () => {
         onAddCategory={handleAddCategory}
         handleSave={handleSave}
         isSaving={isSaving}
+      />
+
+      {/* Category Manager Modal */}
+      <CategoryManagerModal
+        open={showCategoryManager}
+        onClose={() => setShowCategoryManager(false)}
+        categories={dbCategories}
+        onChanged={() => {
+          loadCategories();
+          fetchMenuItems();
+        }}
       />
 
       {/* Delete / Restore Confirmation Modal */}
