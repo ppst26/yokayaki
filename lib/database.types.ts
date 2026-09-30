@@ -165,6 +165,30 @@ export type Database = {
         }
         Relationships: []
       }
+      menu_categories: {
+        Row: {
+          id: number
+          org_id: string
+          name: string
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          org_id?: string
+          name: string
+          sort_order?: number
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          org_id?: string
+          name?: string
+          sort_order?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
       menu_items: {
         Row: {
           id: number
