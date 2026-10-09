@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { canReadSales } from '@/lib/permissions';
-import { Banknote, CreditCard, ArrowLeftRight } from 'lucide-react';
+import { Banknote, CreditCard, ArrowLeftRight, Printer } from 'lucide-react';
+import { PLATFORM_BRANDING } from '@/lib/branding';
 import { SalesSummaryCards } from './SalesSummaryCards';
 import { ClosedBillTable } from './ClosedBillTable';
 import { VoidLogsTable } from './VoidLogsTable';
@@ -471,6 +472,120 @@ export const SalesHistory: React.FC = () => {
         formatTime={formatTime}
         auditMode={!showKpi}
       />
+
+      {/* ===== FAB ปริ้นสรุปออเดอร์ประจำวัน ===== */}
+      {orders.length > 0 && (
+        <button
+          type="button"
+          onClick={() => {
+            // จะใช้ hidden div #receipt เพื่อ print สรุปประจำวัน
+            const el = document.getElementById('sales-daily-receipt');
+            if (el) el.id = 'receipt'; // swap id ให้ CSS print จับได้
+            window.print();
+            // restore id กลับ
+            const el2 = document.querySelector('[data-sales-daily-receipt]');
+            if (el2) el2.id = 'sales-daily-receipt';
+          }}
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full bg-red-600 hover:bg-red-700 text-white pl-4 pr-5 py-3 shadow-lg shadow-red-600/30 transition active:scale-95 cursor-pointer print:hidden"
+          aria-label="พิมพ์สรุปออเดอร์ประจำวัน"
+        >
+          <Printer className="w-5 h-5" />
+          <span className="text-sm font-bold">พิมพ์สรุปวัน</span>
+        </button>
+      )}
+
+      {/* ===== Hidden receipt สำหรับปริ้นสรุปประจำวัน ===== */}
+      <div
+        id="sales-daily-receipt"
+        data-sales-daily-receipt
+        className="hidden print:block"
+        style={{ display: 'none' }}
+      >
+        <div className="bg-white text-black w-[280px] p-5 font-sans text-sm font-semibold print:shadow-none print:rounded-none print:w-[48mm] print:max-w-[48mm] print:border-none print:p-0">
+          <div className="mb-3 flex justify-center">
+            {/* eslint-disable-next-line @next/next/no-img-element -- thermal print */}
+            <img
+              src={PLATFORM_BRANDING.receiptLogo}
+              alt="Yoyaki"
+              className="receipt-logo h-auto w-[160px] max-w-[85%] object-contain"
+            />
+          </div>
+          <div className="border-t border-dashed border-gray-400 my-2" />
+          <div className="receipt-meta text-center space-y-0.5 text-[13px] font-semibold">
+            <p className="text-[14px] font-black">สรุปยอดขายประจำวัน</p>
+            <p>{auditRange === 'today' ? 'วันนี้' : 'เมื่อวาน'} — {new Date().toLocaleDateString('th-TH')}</p>
+          </div>
+          <div className="border-t border-dashed border-gray-400 my-2" />
+
+          <div className="receipt-row flex justify-between text-[13px] font-semibold">
+            <span>จำนวนบิล:</span>
+            <span className="tabular-nums">{totalBills} บิล</span>
+          </div>
+          {showKpi && (
+            <>
+              <div className="receipt-row flex justify-between text-[13px] font-semibold">
+                <span>ยอดขายสุทธิ:</span>
+                <span className="tabular-nums">{totalRevenue.toLocaleString()} บาท</span>
+              </div>
+              {totalDiscount > 0 && (
+                <div className="receipt-row flex justify-between text-[13px] font-semibold text-red-600">
+                  <span>ส่วนลดรวม:</span>
+                  <span className="tabular-nums">-{totalDiscount.toLocaleString()} บาท</span>
+                </div>
+              )}
+              {totalVoidCount > 0 && (
+                <div className="receipt-row flex justify-between text-[13px] font-semibold text-red-600">
+                  <span>Void ({totalVoidCount}):</span>
+                  <span className="tabular-nums">-{totalVoidAmount.toLocaleString()} บาท</span>
+                </div>
+              )}
+            </>
+          )}
+
+          <div className="border-t border-dashed border-gray-400 my-2" />
+          <p className="text-[12px] font-bold text-center mb-1">รายการบิล</p>
+
+          {orders.map(order => (
+            <div key={order.id} className="receipt-item py-0.5">
+              <div className="flex justify-between gap-2 text-[12px] font-semibold">
+                <span className="min-w-0">
+                  ORD-{order.id} T{order.table_number ?? order.table_id}{' '}
+                  {formatTime(order.payment?.created_at || order.created_at)}
+                </span>
+                <span className="shrink-0 tabular-nums">
+                  {(showKpi
+                    ? (order.payment?.net_amount ?? 0)
+                    : (order.auditSubtotal ?? order.payment?.net_amount ?? 0)
+                  ).toLocaleString()}
+                </span>
+              </div>
+              {!showKpi ? null : order.payment ? (
+                <div className="receipt-note pl-2 text-[11px] text-gray-500">
+                  {getPaymentLabel(order.payment.payment_method)}
+                  {order.payment.discount_amount > 0
+                    ? ` | ลด ${order.payment.discount_amount.toLocaleString()}`
+                    : ''}
+                </div>
+              ) : null}
+            </div>
+          ))}
+
+          {showKpi && (
+            <>
+              <div className="border-t border-dashed border-gray-400 my-2" />
+              <div className="receipt-total flex justify-between text-[14px] font-black">
+                <span>รวมทั้งสิ้น:</span>
+                <span className="tabular-nums">{totalRevenue.toLocaleString()} บาท</span>
+              </div>
+            </>
+          )}
+
+          <div className="border-t border-dashed border-gray-400 my-2" />
+          <p className="receipt-footer text-center text-[11px] font-medium text-gray-400">
+            พิมพ์เวลา {new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.
+          </p>
+        </div>
+      </div>
     </div>
   );
 };

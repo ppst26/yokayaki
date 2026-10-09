@@ -1,8 +1,9 @@
 "use client";
 
-import React from 'react';
-import { Receipt, ChevronRight, Tag } from 'lucide-react';
+import React, { useState } from 'react';
+import { Receipt, ChevronRight, Tag, Printer } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { SalesReceiptPrint } from './SalesReceiptPrint';
 
 interface PaymentPromo {
   id: number;
@@ -55,6 +56,7 @@ export const ClosedBillTable: React.FC<ClosedBillTableProps> = ({
   formatTime,
   auditMode = false,
 }) => {
+  const [receiptOrder, setReceiptOrder] = useState<CompletedOrder | null>(null);
   if (loading) {
     return (
       <div className="flex justify-center py-20">
@@ -113,6 +115,21 @@ export const ClosedBillTable: React.FC<ClosedBillTableProps> = ({
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* ปุ่มพิมพ์ใบเสร็จ */}
+            {!auditMode && order.payment && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setReceiptOrder(order);
+                }}
+                className="p-2 rounded-xl border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 hover:border-red-200 dark:hover:border-red-800 transition cursor-pointer active:scale-95 shrink-0"
+                aria-label={`พิมพ์ใบเสร็จ ORD-${order.id}`}
+                title="พิมพ์ใบเสร็จ"
+              >
+                <Printer className="w-4 h-4" />
+              </button>
+            )}
             <div className="text-right whitespace-nowrap">
               <span className="text-sm sm:text-base font-black text-slate-900 dark:text-neutral-100 block whitespace-nowrap">
                 {(auditMode
@@ -131,6 +148,14 @@ export const ClosedBillTable: React.FC<ClosedBillTableProps> = ({
           </div>
         </Card>
       ))}
+
+      {/* Receipt Print Modal */}
+      {receiptOrder && (
+        <SalesReceiptPrint
+          order={receiptOrder}
+          onClose={() => setReceiptOrder(null)}
+        />
+      )}
     </div>
   );
 };
