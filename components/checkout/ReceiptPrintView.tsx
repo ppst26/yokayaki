@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Printer } from 'lucide-react';
+import QRCode from 'react-qr-code';
 import { PLATFORM_BRANDING } from '@/lib/branding';
 
 interface OrderedItem {
@@ -58,6 +59,9 @@ interface ReceiptPrintViewProps {
   pointsToRedeem: number;
   pointsEarned: number;
   onBack: () => void;
+  promptPayId?: string;
+  merchantName?: string;
+  generatePromptPayQR?: (id: string, amount: number, merchantName?: string) => string;
 }
 
 export const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
@@ -78,7 +82,15 @@ export const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
   pointsToRedeem,
   pointsEarned,
   onBack,
+  promptPayId,
+  merchantName = 'YOKAYAKI',
+  generatePromptPayQR,
 }) => {
+  const showPromptPayQR =
+    transferAmount > 0 &&
+    promptPayId &&
+    (promptPayId.length === 10 || promptPayId.length === 13) &&
+    generatePromptPayQR;
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-neutral-950 text-slate-800 dark:text-neutral-200 flex flex-col items-center justify-center p-6 print:min-h-0 print:bg-white print:p-0 print:block">
       {/* #receipt — กว้าง 48mm (4.80cm) ตอนพิมพ์; หัวใบเสร็จใช้โลโก้แทนชื่อร้าน */}
@@ -183,6 +195,23 @@ export const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
             <p className="receipt-pay text-[13px] font-semibold">
               แต้มสะสมรอบนี้: +{pointsEarned} แต้ม
             </p>
+          </>
+        )}
+        {showPromptPayQR && (
+          <>
+            <div className="border-t border-dashed border-gray-400 my-2" />
+            <div className="text-center space-y-1">
+              <p className="text-[12px] font-bold text-gray-700">สแกนชำระเงิน PromptPay</p>
+              <p className="text-[11px] font-semibold text-gray-500">{transferAmount.toLocaleString()} บาท</p>
+              <div className="flex justify-center py-1">
+                <QRCode
+                  value={generatePromptPayQR(promptPayId, transferAmount, merchantName)}
+                  size={140}
+                  level="H"
+                  className="print:!w-[36mm] print:!h-[36mm]"
+                />
+              </div>
+            </div>
           </>
         )}
         <div className="border-t border-dashed border-gray-400 my-2" />

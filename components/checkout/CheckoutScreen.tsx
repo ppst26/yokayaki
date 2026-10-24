@@ -579,6 +579,9 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNu
         pointsToRedeem={r ? r.points_redeemed : pointsToRedeem}
         pointsEarned={r ? r.points_earned : pointsEarned}
         onBack={onBack}
+        promptPayId={promptPayId}
+        merchantName={merchantName}
+        generatePromptPayQR={generatePromptPayQR}
       />
     );
   }
