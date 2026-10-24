@@ -2,12 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { generatePromptPayQR } from '@/lib/promptPay';
 
 describe('generatePromptPayQR', () => {
-  it('แปลงเบอร์ 10 หลักขึ้นต้น 0 เป็น 0066… และมี CRC คงที่', () => {
+  it('แปลงเบอร์ 10 หลักขึ้นต้น 0 เป็น 0066… พร้อม tag 01 (Mobile Number) และมี CRC คงที่', () => {
     const payload = generatePromptPayQR('0812345678', 100);
     expect(payload).toBe(
-      '00020101021229370016A0000006770101110213006681234567853037645406100.005802TH5908YOKAYAKI630429B5'
+      '00020101021229370016A0000006770101110113006681234567853037645406100.005802TH5908YOKAYAKI630446EA'
     );
     expect(payload.slice(-4)).toMatch(/^[0-9A-F]{4}$/);
+    expect(payload).toContain('01130066812345678');
   });
 
   it('เลข 13 หลักไม่ใส่ 0066', () => {

@@ -3,11 +3,18 @@ export function generatePromptPayQR(
   amount: number,
   merchantName = 'YOKAYAKI',
 ): string {
-  let target = targetId.replace(/[^0-9]/g, '');
-  if (target.length === 10 && target.startsWith('0')) {
-    target = '0066' + target.substring(1);
+  const cleanId = targetId.replace(/[^0-9]/g, '');
+  const isMobile = cleanId.length === 10 && cleanId.startsWith('0');
+  let target: string;
+  let targetTag: string;
+
+  if (isMobile) {
+    target = '0066' + cleanId.substring(1);
+    targetTag = '01';
+  } else {
+    target = cleanId;
+    targetTag = '02';
   }
-  const targetTag = target.length === 13 ? '02' : '01';
   const subField04 = `0016A000000677010111${targetTag}${target.length.toString().padStart(2, '0')}${target}`;
   const field29 = `29${subField04.length.toString().padStart(2, '0')}${subField04}`;
   const amtStr = amount.toFixed(2);
