@@ -96,4 +96,39 @@ describe('menuCategories', () => {
       expect(res.error).toBe('Database error');
     });
   });
+
+  describe('addMenuCategory', () => {
+    it('inserts category with parent_id if provided', async () => {
+      const singleMock = vi.fn().mockResolvedValue({
+        data: { id: 10, name: 'ของหวาน', sort_order: 5, parent_id: 2 },
+        error: null,
+      });
+      const selectMock = vi.fn().mockReturnValue({ single: singleMock });
+      const insertMock = vi.fn().mockReturnValue({ select: selectMock });
+      const limitMock = vi.fn().mockReturnValue({ data: [{ sort_order: 4 }] });
+      const orderMock = vi.fn().mockReturnValue({ limit: limitMock });
+      const fromSelectMock = vi.fn().mockReturnValue({ order: orderMock });
+
+      vi.spyOn(supabase, 'from').mockImplementation(((table: string) => {
+        if (table === 'menu_categories') {
+          return {
+            select: fromSelectMock,
+            insert: insertMock,
+          } as any;
+        }
+        return {} as any;
+      }) as any);
+
+      const { addMenuCategory } = await import('./menuCategories');
+      const res = await addMenuCategory('ของหวาน', 2);
+
+      expect(res.error).toBeNull();
+      expect(res.data?.parent_id).toBe(2);
+      expect(insertMock).toHaveBeenCalledWith({
+        name: 'ของหวาน',
+        sort_order: 5,
+        parent_id: 2,
+      });
+    });
+  });
 });

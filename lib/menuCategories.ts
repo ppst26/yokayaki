@@ -160,6 +160,7 @@ export async function fetchMenuCategories(): Promise<MenuCategoryRow[]> {
 /** เพิ่มหมวดหมู่ใหม่ — sort_order = สูงสุด + 1 */
 export async function addMenuCategory(
   name: string,
+  parentId?: number | null,
 ): Promise<{ data: MenuCategoryRow | null; error: string | null }> {
   const trimmed = normalizeCategoryName(name);
   if (!trimmed || HIDDEN_MENU_CATEGORIES.has(trimmed)) {
@@ -177,7 +178,11 @@ export async function addMenuCategory(
 
   const { data, error } = await supabase
     .from('menu_categories')
-    .insert({ name: trimmed, sort_order: nextOrder })
+    .insert({
+      name: trimmed,
+      sort_order: nextOrder,
+      parent_id: parentId ?? null,
+    })
     .select()
     .single();
 
