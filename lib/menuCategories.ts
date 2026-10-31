@@ -10,7 +10,16 @@ export interface MenuCategoryRow {
   org_id: string;
   name: string;
   sort_order: number;
+  parent_id?: number | null;
   created_at: string;
+}
+
+export interface CategoryTreeItem {
+  id: number;
+  name: string;
+  sort_order: number;
+  parent_id: number | null;
+  children: CategoryTreeItem[];
 }
 
 /** หมวดที่ซ่อน/ลบออกจาก UI */
@@ -71,6 +80,63 @@ export function normalizeCategoryName(name: string): string {
     default:
       return trimmed;
   }
+}
+
+// =====================================================================
+// Category Tree Helpers
+// =====================================================================
+
+/** แปลงรายการหมวดหมู่เป็นต้นไม้ 2 ระดับ (Main Categories พร้อม Sub Categories) */
+export function buildCategoryTree(categories: MenuCategoryRow[]): CategoryTreeItem[] {
+  if (!categories || categories.length === 0) return [];
+
+  const roots: CategoryTreeItem[] = [];
+  const rootMap = new Map<number, CategoryTreeItem>();
+
+  // สร้าง root items (parent_id == null หรือ undefined)
+  for (const cat of categories) {
+    if (cat.parent_id == null) {
+      const item: CategoryTreeItem = {
+        id: cat.id,
+        name: cat.name,
+        sort_order: cat.sort_order,
+        parent_id: null,
+        children: [],
+      };
+      roots.push(item);
+      rootMap.set(cat.id, item);
+    }
+  }
+
+  // จัด child items เข้า children ของ parent
+  const orphans: CategoryTreeItem[] = [];
+  for (const cat of categories) {
+    if (cat.parent_id != null) {
+      const childItem: CategoryTreeItem = {
+        id: cat.id,
+        name: cat.name,
+        sort_order: cat.sort_order,
+        parent_id: cat.parent_id,
+        children: [],
+      };
+
+      const parent = rootMap.get(cat.parent_id);
+      if (parent) {
+        parent.children.push(childItem);
+      } else {
+        // หากไม่พบ parent ให้คงไว้เป็น root ชั่วคราวเพื่อกันข้อมูลสูญหาย
+        orphans.push(childItem);
+      }
+    }
+  }
+
+  const allRoots = [...roots, ...orphans];
+  allRoots.sort((a, b) => a.sort_order - b.sort_order || a.id - b.id);
+  for (const root of allRoots) {
+    root.children.sort((a, b) => a.sort_order - b.sort_order || a.id - b.id);
+  }
+
+  return allRoots;
 }
 
 // =====================================================================
@@ -169,6 +235,24 @@ export async function reorderMenuCategories(
   const results = await Promise.all(
     items.map(({ id, sort_order }) =>
       supabase.from('menu_categories').update({ sort_order }).eq('id', id),
+    ),
+  );
+
+  const firstError = results.find(r => r.error);
+  if (firstError?.error) return { error: firstError.error.message };
+  return { error: null };
+}
+
+/** บันทึกลำดับ sort_order และ parent_id ของหลาย category พร้อมกัน */
+export async function saveCategoryHierarchy(
+  updates: Array<{ id: number; parent_id: number | null; sort_order: number }>,
+): Promise<{ error: string | null }> {
+  const results = await Promise.all(
+    updates.map(({ id, parent_id, sort_order }) =>
+      supabase
+        .from('menu_categories')
+        .update({ parent_id, sort_order })
+        .eq('id', id),
     ),
   );
 

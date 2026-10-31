@@ -171,6 +171,7 @@ export type Database = {
           org_id: string
           name: string
           sort_order: number
+          parent_id: number | null
           created_at: string
         }
         Insert: {
@@ -178,6 +179,7 @@ export type Database = {
           org_id?: string
           name: string
           sort_order?: number
+          parent_id?: number | null
           created_at?: string
         }
         Update: {
@@ -185,6 +187,7 @@ export type Database = {
           org_id?: string
           name?: string
           sort_order?: number
+          parent_id?: number | null
           created_at?: string
         }
         Relationships: []
@@ -548,6 +551,41 @@ export type Database = {
           org_id?: string
         }
         Relationships: []
+      }
+      promotion_targets: {
+        Row: {
+          id: number
+          org_id: string
+          promotion_id: number
+          target_type: string
+          target_id: number
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          org_id?: string
+          promotion_id: number
+          target_type: string
+          target_id: number
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          org_id?: string
+          promotion_id?: number
+          target_type?: string
+          target_id?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promotion_targets_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: false
+            referencedRelation: "promotions"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       purchase_orders: {
         Row: {
