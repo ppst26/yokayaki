@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import {
@@ -13,6 +13,12 @@ import {
   Gift,
   Clock,
   TicketPercent,
+  Search,
+  ChevronDown,
+  ChevronRight,
+  Folder,
+  Check,
+  Minus,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { CustomSelect } from '@/components/ui/select';
@@ -30,12 +36,58 @@ import {
   getPromoSegmentMeta,
   parsePromoTargetSegment,
 } from '@/lib/promoSegments';
+import {
+  fetchPromotionTargets,
+  savePromotionTargets,
+} from '@/lib/promoTargets';
+import {
+  fetchMenuCategories,
+  buildCategoryTree,
+  type MenuCategoryRow,
+  type CategoryTreeItem,
+} from '@/lib/menuCategories';
+
+export type PromoTargetSelectionType = 'main_category' | 'sub_category' | 'menu_item';
+
+export interface SelectedTarget {
+  type: PromoTargetSelectionType;
+  id: number;
+  label: string;
+}
 
 interface MenuItem {
   id: number;
   name: string;
   price: number;
+  category?: string | null;
 }
+
+const CheckboxBox: React.FC<{
+  checked: boolean;
+  indeterminate?: boolean;
+  onClick: (e: React.MouseEvent) => void;
+  ariaLabel?: string;
+}> = ({ checked, indeterminate, onClick, ariaLabel }) => {
+  return (
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={checked}
+      aria-label={ariaLabel}
+      onClick={onClick}
+      className={`w-4 h-4 rounded flex items-center justify-center shrink-0 transition-colors cursor-pointer ${
+        checked
+          ? 'bg-red-600 text-white'
+          : indeterminate
+          ? 'bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 border border-red-400'
+          : 'border border-slate-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 hover:border-slate-400'
+      }`}
+    >
+      {checked && <Check className="w-3 h-3 stroke-[3]" />}
+      {!checked && indeterminate && <Minus className="w-3 h-3 stroke-[3]" />}
+    </button>
+  );
+};
 
 interface Promotion {
   id: number;
@@ -76,6 +128,8 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
   const { showActionFeedback } = useActionFeedback();
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [categories, setCategories] = useState<MenuCategoryRow[]>([]);
+  const [promoTargetsMap, setPromoTargetsMap] = useState<Record<number, Array<{ target_type: string; target_id: number }>>>({});
   const [loading, setLoading] = useState(true);
 
   const [showModal, setShowModal] = useState(false);
@@ -107,6 +161,13 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
   const [targetSegment, setTargetSegment] = useState<PromoTargetSegment>('all');
   const [winbackNote, setWinbackNote] = useState<string | null>(null);
 
+  // Multi-target selection state
+  const [targetScope, setTargetScope] = useState<'all' | 'custom'>('all');
+  const [selectedTargets, setSelectedTargets] = useState<SelectedTarget[]>([]);
+  const [targetSearchText, setTargetSearchText] = useState('');
+  const [expandedMainCats, setExpandedMainCats] = useState<Set<number>>(new Set());
+  const [expandedSubCats, setExpandedSubCats] = useState<Set<number>>(new Set());
+
   const showMsg = (text: string, t: 'success' | 'error') => {
     showActionFeedback({ variant: t, title: text });
   };
@@ -114,19 +175,36 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
   const fetchData = async () => {
     try {
       setLoading(true);
-      const { data: pData } = await supabase
-        .from('promotions')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const [pRes, mRes, cData, ptRes] = await Promise.all([
+        supabase
+          .from('promotions')
+          .select('*')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('menu_items')
+          .select('id, name, price, category')
+          .order('name'),
+        fetchMenuCategories(),
+        supabase
+          .from('promotion_targets')
+          .select('promotion_id, target_type, target_id'),
+      ]);
 
-      if (pData) setPromotions(pData as Promotion[]);
+      if (pRes.data) setPromotions(pRes.data as Promotion[]);
+      if (mRes.data) setMenuItems(mRes.data as MenuItem[]);
+      setCategories(cData);
 
-      const { data: mData } = await supabase
-        .from('menu_items')
-        .select('id, name, price')
-        .order('name');
-
-      if (mData) setMenuItems(mData as MenuItem[]);
+      if (ptRes.data) {
+        const tMap: Record<number, Array<{ target_type: string; target_id: number }>> = {};
+        for (const row of ptRes.data) {
+          if (!tMap[row.promotion_id]) tMap[row.promotion_id] = [];
+          tMap[row.promotion_id].push({
+            target_type: row.target_type,
+            target_id: row.target_id,
+          });
+        }
+        setPromoTargetsMap(tMap);
+      }
     } catch (err) {
       console.error('Error fetching data:', err);
       showMsg('เกิดข้อผิดพลาดในการดึงข้อมูล', 'error');
@@ -161,6 +239,11 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
     setImageUrl(null);
     setTargetSegment('all');
     setPreviousImageUrl(null);
+    setTargetScope('all');
+    setSelectedTargets([]);
+    setTargetSearchText('');
+    setExpandedMainCats(new Set());
+    setExpandedSubCats(new Set());
     setShowModal(true);
   };
 
@@ -186,6 +269,11 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
     setImageUrl(null);
     setPreviousImageUrl(null);
     setWinbackNote(formatWinbackNote(draft));
+    setTargetScope('all');
+    setSelectedTargets([]);
+    setTargetSearchText('');
+    setExpandedMainCats(new Set());
+    setExpandedSubCats(new Set());
     setShowModal(true);
     showMsg('เติมฟอร์ม Win-back แล้ว — ตรวจสอบแล้วกดบันทึก', 'success');
   };
@@ -196,7 +284,7 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
     onWinbackDraftConsumed?.();
   }, [winbackDraft]);
 
-  const openEdit = (p: Promotion) => {
+  const openEdit = async (p: Promotion) => {
     setWinbackNote(null);
     setEditingPromo(p);
     setName(p.name);
@@ -227,12 +315,288 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
     setTargetSegment(parsePromoTargetSegment(p.target_segment) ?? 'all');
     setImageUrl(p.image_url ?? null);
     setPreviousImageUrl(p.image_url ?? null);
+
+    setTargetSearchText('');
+    setExpandedMainCats(new Set());
+    setExpandedSubCats(new Set());
+
+    try {
+      const targets = await fetchPromotionTargets(p.id);
+      if (targets.length > 0) {
+        setTargetScope('custom');
+        const mapped: SelectedTarget[] = targets.map(t => {
+          if (t.target_type === 'main_category') {
+            const c = categories.find(cat => cat.id === t.target_id);
+            return {
+              type: 'main_category',
+              id: t.target_id,
+              label: c ? c.name : `หมวดใหญ่ #${t.target_id}`,
+            };
+          } else if (t.target_type === 'sub_category') {
+            const c = categories.find(cat => cat.id === t.target_id);
+            return {
+              type: 'sub_category',
+              id: t.target_id,
+              label: c ? c.name : `หมวดย่อย #${t.target_id}`,
+            };
+          } else {
+            const m = menuItems.find(mi => mi.id === t.target_id);
+            return {
+              type: 'menu_item',
+              id: t.target_id,
+              label: m ? m.name : `เมนู #${t.target_id}`,
+            };
+          }
+        });
+        setSelectedTargets(mapped);
+      } else if (p.menu_item_id && p.type !== 'buy_x_get_y') {
+        setTargetScope('custom');
+        const m = menuItems.find(mi => mi.id === p.menu_item_id);
+        setSelectedTargets([
+          {
+            type: 'menu_item',
+            id: p.menu_item_id,
+            label: m ? m.name : `เมนู #${p.menu_item_id}`,
+          },
+        ]);
+      } else {
+        setTargetScope('all');
+        setSelectedTargets([]);
+      }
+    } catch (err) {
+      console.error('Error fetching targets for promo edit:', err);
+      setTargetScope('all');
+      setSelectedTargets([]);
+    }
+
     setShowModal(true);
   };
 
   const closeModal = () => {
     setShowModal(false);
     setWinbackNote(null);
+    setTargetSearchText('');
+  };
+
+  // Helper structures for category tree and targets
+  const categoryTree = useMemo(() => buildCategoryTree(categories), [categories]);
+
+  const itemsByCategoryName = useMemo(() => {
+    const map = new Map<string, MenuItem[]>();
+    for (const item of menuItems) {
+      const cat = item.category?.trim() || '';
+      if (!map.has(cat)) map.set(cat, []);
+      map.get(cat)!.push(item);
+    }
+    return map;
+  }, [menuItems]);
+
+  const allKnownCatNames = useMemo(() => {
+    return new Set(categories.map(c => c.name.trim()));
+  }, [categories]);
+
+  const orphanItems = useMemo(() => {
+    return menuItems.filter(m => !m.category || !allKnownCatNames.has(m.category.trim()));
+  }, [menuItems, allKnownCatNames]);
+
+  const isMainCatSelected = (mainCatId: number) => {
+    return selectedTargets.some(t => t.type === 'main_category' && t.id === mainCatId);
+  };
+
+  const isSubCatSelected = (subCatId: number, parentMainCatId?: number | null) => {
+    if (parentMainCatId != null && isMainCatSelected(parentMainCatId)) return true;
+    return selectedTargets.some(t => t.type === 'sub_category' && t.id === subCatId);
+  };
+
+  const isMenuItemSelected = (itemId: number, subCatId?: number | null, mainCatId?: number | null) => {
+    if (mainCatId != null && isMainCatSelected(mainCatId)) return true;
+    if (subCatId != null && isSubCatSelected(subCatId, mainCatId)) return true;
+    return selectedTargets.some(t => t.type === 'menu_item' && t.id === itemId);
+  };
+
+  const isSubCatIndeterminate = (subCat: CategoryTreeItem, parentMainCatId: number) => {
+    if (isSubCatSelected(subCat.id, parentMainCatId)) return false;
+    const items = itemsByCategoryName.get(subCat.name.trim()) || [];
+    const itemIds = new Set(items.map(m => m.id));
+    return selectedTargets.some(t => t.type === 'menu_item' && itemIds.has(t.id));
+  };
+
+  const isMainCatIndeterminate = (mainCat: CategoryTreeItem) => {
+    if (isMainCatSelected(mainCat.id)) return false;
+    const childSubCatIds = new Set(mainCat.children.map(c => c.id));
+    const hasSelectedSub = selectedTargets.some(t => t.type === 'sub_category' && childSubCatIds.has(t.id));
+    if (hasSelectedSub) return true;
+
+    const catNames = new Set([mainCat.name.trim(), ...mainCat.children.map(c => c.name.trim())]);
+    const itemsUnderMainCat = menuItems.filter(m => m.category && catNames.has(m.category.trim()));
+    const itemIds = new Set(itemsUnderMainCat.map(m => m.id));
+    return selectedTargets.some(t => t.type === 'menu_item' && itemIds.has(t.id));
+  };
+
+  const toggleMainCategory = (mainCat: CategoryTreeItem) => {
+    const childSubCatIds = new Set(mainCat.children.map(c => c.id));
+    const catNames = new Set([mainCat.name.trim(), ...mainCat.children.map(c => c.name.trim())]);
+    const itemsUnderMainCat = menuItems.filter(m => m.category && catNames.has(m.category.trim()));
+    const itemIdsUnderMainCat = new Set(itemsUnderMainCat.map(m => m.id));
+
+    if (isMainCatSelected(mainCat.id)) {
+      setSelectedTargets(prev => prev.filter(t => {
+        if (t.type === 'main_category' && t.id === mainCat.id) return false;
+        if (t.type === 'sub_category' && childSubCatIds.has(t.id)) return false;
+        if (t.type === 'menu_item' && itemIdsUnderMainCat.has(t.id)) return false;
+        return true;
+      }));
+    } else {
+      setSelectedTargets(prev => {
+        const filtered = prev.filter(t => {
+          if (t.type === 'main_category' && t.id === mainCat.id) return false;
+          if (t.type === 'sub_category' && childSubCatIds.has(t.id)) return false;
+          if (t.type === 'menu_item' && itemIdsUnderMainCat.has(t.id)) return false;
+          return true;
+        });
+        return [...filtered, { type: 'main_category', id: mainCat.id, label: mainCat.name }];
+      });
+    }
+  };
+
+  const toggleSubCategory = (subCat: CategoryTreeItem, parentMainCat: CategoryTreeItem) => {
+    const items = itemsByCategoryName.get(subCat.name.trim()) || [];
+    const itemIds = new Set(items.map(m => m.id));
+
+    if (isMainCatSelected(parentMainCat.id)) {
+      setSelectedTargets(prev => {
+        const withoutParentAndSub = prev.filter(t => {
+          if (t.type === 'main_category' && t.id === parentMainCat.id) return false;
+          if (t.type === 'sub_category' && t.id === subCat.id) return false;
+          if (t.type === 'menu_item' && itemIds.has(t.id)) return false;
+          return true;
+        });
+        const otherSubs: SelectedTarget[] = parentMainCat.children
+          .filter(c => c.id !== subCat.id)
+          .map(c => ({ type: 'sub_category', id: c.id, label: c.name }));
+        const directItems: SelectedTarget[] = (itemsByCategoryName.get(parentMainCat.name.trim()) || [])
+          .map(m => ({ type: 'menu_item', id: m.id, label: m.name }));
+        return [...withoutParentAndSub, ...otherSubs, ...directItems];
+      });
+    } else {
+      const isDirectlySelected = selectedTargets.some(t => t.type === 'sub_category' && t.id === subCat.id);
+      if (isDirectlySelected) {
+        setSelectedTargets(prev => prev.filter(t => {
+          if (t.type === 'sub_category' && t.id === subCat.id) return false;
+          if (t.type === 'menu_item' && itemIds.has(t.id)) return false;
+          return true;
+        }));
+      } else {
+        setSelectedTargets(prev => {
+          const filtered = prev.filter(t => {
+            if (t.type === 'sub_category' && t.id === subCat.id) return false;
+            if (t.type === 'menu_item' && itemIds.has(t.id)) return false;
+            return true;
+          });
+          return [...filtered, { type: 'sub_category', id: subCat.id, label: subCat.name }];
+        });
+      }
+    }
+  };
+
+  const toggleMenuItem = (item: MenuItem, subCat?: CategoryTreeItem, parentMainCat?: CategoryTreeItem) => {
+    if (parentMainCat && isMainCatSelected(parentMainCat.id)) {
+      setSelectedTargets(prev => {
+        const withoutParent = prev.filter(t => !(t.type === 'main_category' && t.id === parentMainCat.id));
+        const otherSubs: SelectedTarget[] = subCat
+          ? parentMainCat.children
+              .filter(c => c.id !== subCat.id)
+              .map(c => ({ type: 'sub_category', id: c.id, label: c.name }))
+          : parentMainCat.children.map(c => ({ type: 'sub_category', id: c.id, label: c.name }));
+
+        const siblingItems: SelectedTarget[] = subCat
+          ? (itemsByCategoryName.get(subCat.name.trim()) || [])
+              .filter(m => m.id !== item.id)
+              .map(m => ({ type: 'menu_item', id: m.id, label: m.name }))
+          : (itemsByCategoryName.get(parentMainCat.name.trim()) || [])
+              .filter(m => m.id !== item.id)
+              .map(m => ({ type: 'menu_item', id: m.id, label: m.name }));
+
+        return [...withoutParent, ...otherSubs, ...siblingItems];
+      });
+    } else if (subCat && isSubCatSelected(subCat.id, parentMainCat?.id)) {
+      setSelectedTargets(prev => {
+        const withoutSub = prev.filter(t => !(t.type === 'sub_category' && t.id === subCat.id));
+        const siblingItems: SelectedTarget[] = (itemsByCategoryName.get(subCat.name.trim()) || [])
+          .filter(m => m.id !== item.id)
+          .map(m => ({ type: 'menu_item', id: m.id, label: m.name }));
+        return [...withoutSub, ...siblingItems];
+      });
+    } else {
+      const isDirectlySelected = selectedTargets.some(t => t.type === 'menu_item' && t.id === item.id);
+      if (isDirectlySelected) {
+        setSelectedTargets(prev => prev.filter(t => !(t.type === 'menu_item' && t.id === item.id)));
+      } else {
+        setSelectedTargets(prev => [...prev, { type: 'menu_item', id: item.id, label: item.name }]);
+      }
+    }
+  };
+
+  const removeTarget = (t: SelectedTarget) => {
+    setSelectedTargets(prev => prev.filter(item => !(item.type === t.type && item.id === t.id)));
+  };
+
+  const toggleExpandMainCat = (id: number) => {
+    setExpandedMainCats(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleExpandSubCat = (id: number) => {
+    setExpandedSubCats(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleExpandAll = () => {
+    setExpandedMainCats(new Set([...categoryTree.map(c => c.id), -1]));
+    const allSubIds: number[] = [];
+    for (const root of categoryTree) {
+      for (const child of root.children) {
+        allSubIds.push(child.id);
+      }
+    }
+    setExpandedSubCats(new Set(allSubIds));
+  };
+
+  const handleCollapseAll = () => {
+    setExpandedMainCats(new Set());
+    setExpandedSubCats(new Set());
+  };
+
+  const normalizedSearch = targetSearchText.trim().toLowerCase();
+
+  const itemMatchesSearch = (item: MenuItem) => {
+    if (!normalizedSearch) return true;
+    return item.name.toLowerCase().includes(normalizedSearch);
+  };
+
+  const subCatMatchesSearch = (subCat: CategoryTreeItem, items: MenuItem[]) => {
+    if (!normalizedSearch) return true;
+    if (subCat.name.toLowerCase().includes(normalizedSearch)) return true;
+    return items.some(itemMatchesSearch);
+  };
+
+  const mainCatMatchesSearch = (
+    mainCat: CategoryTreeItem,
+    subCatsWithItems: Array<{ subCat: CategoryTreeItem; items: MenuItem[] }>,
+    directItems: MenuItem[],
+  ) => {
+    if (!normalizedSearch) return true;
+    if (mainCat.name.toLowerCase().includes(normalizedSearch)) return true;
+    if (directItems.some(itemMatchesSearch)) return true;
+    return subCatsWithItems.some(s => subCatMatchesSearch(s.subCat, s.items));
   };
 
   const handleSave = async () => {
@@ -246,6 +610,12 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
       return showMsg('กรุณาเลือกเมนูที่จัดโปรโมชั่น ซื้อ - แถม', 'error');
     }
 
+    if (promoCategory === 'discount' || promoCategory === 'coupon') {
+      if (targetScope === 'custom' && selectedTargets.length === 0) {
+        return showMsg('กรุณาเลือกหมวดหมู่หรือเมนูที่ร่วมรายการอย่างน้อย 1 รายการ หรือเลือกใช้ได้กับทุกเมนูทั้งร้าน', 'error');
+      }
+    }
+
     let finalType: 'percentage' | 'fixed' | 'buy_x_get_y' = 'percentage';
     if (promoCategory === 'buy_x_get_y') {
       finalType = 'buy_x_get_y';
@@ -255,6 +625,16 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
 
     try {
       setIsSaving(true);
+
+      let finalMenuItemId: number | null = null;
+      if (promoCategory === 'buy_x_get_y') {
+        finalMenuItemId = menuItemId ? Number(menuItemId) : null;
+      } else if (targetScope === 'custom' && selectedTargets.length === 1 && selectedTargets[0].type === 'menu_item') {
+        finalMenuItemId = selectedTargets[0].id;
+      } else {
+        finalMenuItemId = null;
+      }
+
       const payload: any = {
         name: name.trim(),
         type: finalType,
@@ -263,7 +643,7 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
         end_date: endDate || null,
         start_time: isHappyHour ? (startTime || null) : null,
         end_time: isHappyHour ? (endTime || null) : null,
-        menu_item_id: menuItemId ? Number(menuItemId) : null,
+        menu_item_id: finalMenuItemId,
         coupon_code: promoCategory === 'coupon' && couponCode.trim() ? couponCode.trim().toUpperCase() : null,
         target_segment: targetSegment === 'all' ? null : targetSegment,
         image_url: imageUrl,
@@ -281,7 +661,9 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
         payload.free_qty = Number(freeQty) || 1;
       }
 
+      let promoId: number;
       if (editingPromo) {
+        promoId = editingPromo.id;
         const { error } = await supabase
           .from('promotions')
           .update(payload)
@@ -289,9 +671,32 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
         if (error) throw error;
         showMsg(`อัปเดตโปรโมชั่น "${name}" เรียบร้อยแล้ว`, 'success');
       } else {
-        const { error } = await supabase.from('promotions').insert([payload]);
+        const { data: newPromo, error } = await supabase
+          .from('promotions')
+          .insert([payload])
+          .select('id')
+          .single();
         if (error) throw error;
+        promoId = newPromo.id;
         showMsg(`สร้างโปรโมชั่น "${name}" เรียบร้อยแล้ว`, 'success');
+      }
+
+      // Save promotion targets
+      if (promoCategory === 'discount' || promoCategory === 'coupon') {
+        if (targetScope === 'custom') {
+          const targetsToSave = selectedTargets.map(t => ({
+            target_type: t.type,
+            target_id: t.id,
+          }));
+          const { error: targetErr } = await savePromotionTargets(promoId, targetsToSave);
+          if (targetErr) throw new Error(targetErr);
+        } else {
+          const { error: targetErr } = await savePromotionTargets(promoId, []);
+          if (targetErr) throw new Error(targetErr);
+        }
+      } else {
+        const { error: targetErr } = await savePromotionTargets(promoId, []);
+        if (targetErr) throw new Error(targetErr);
       }
 
       const nextUrl = payload.image_url;
@@ -476,11 +881,41 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
                       </span>
                     )}
 
-                    {targetMenu && (
-                      <span className="inline-flex items-center rounded-md border border-indigo-100 bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-700 dark:border-indigo-900/40 dark:bg-indigo-950/40 dark:text-indigo-300">
-                        เฉพาะ {targetMenu.name}
-                      </span>
-                    )}
+                    {(() => {
+                      const pTargets = promoTargetsMap[p.id] || [];
+                      if (pTargets.length === 1) {
+                        const t = pTargets[0];
+                        let label = '';
+                        if (t.target_type === 'main_category') {
+                          const c = categories.find(cat => cat.id === t.target_id);
+                          label = `หมวด ${c?.name || '#' + t.target_id}`;
+                        } else if (t.target_type === 'sub_category') {
+                          const c = categories.find(cat => cat.id === t.target_id);
+                          label = `หมวดย่อย ${c?.name || '#' + t.target_id}`;
+                        } else {
+                          const m = menuItems.find(mi => mi.id === t.target_id);
+                          label = m?.name || `เมนู #${t.target_id}`;
+                        }
+                        return (
+                          <span className="inline-flex items-center rounded-md border border-indigo-100 bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-700 dark:border-indigo-900/40 dark:bg-indigo-950/40 dark:text-indigo-300">
+                            เฉพาะ {label}
+                          </span>
+                        );
+                      } else if (pTargets.length > 1) {
+                        return (
+                          <span className="inline-flex items-center rounded-md border border-indigo-100 bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-700 dark:border-indigo-900/40 dark:bg-indigo-950/40 dark:text-indigo-300">
+                            เฉพาะ {pTargets.length} กลุ่ม/เมนู
+                          </span>
+                        );
+                      } else if (targetMenu) {
+                        return (
+                          <span className="inline-flex items-center rounded-md border border-indigo-100 bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-700 dark:border-indigo-900/40 dark:bg-indigo-950/40 dark:text-indigo-300">
+                            เฉพาะ {targetMenu.name}
+                          </span>
+                        );
+                      }
+                      return null;
+                    })()}
 
                     <div className="ml-auto flex shrink-0 items-center gap-1">
                       <button
@@ -526,7 +961,7 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
         <div
           className="fixed inset-0 z-[60] flex flex-col px-3 pt-3 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] sm:flex-row sm:items-center sm:justify-center sm:p-4 sm:pb-4 app-dialog-backdrop"
         >
-          <div className="app-dialog flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-2xl shadow-xl sm:flex-none sm:max-h-[min(90dvh,40rem)] sm:max-w-lg">
+          <div className="app-dialog flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-2xl shadow-xl sm:flex-none sm:max-h-[min(92dvh,46rem)] sm:max-w-xl">
             {/* Header */}
             <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-4 pb-3 pt-4 dark:border-neutral-800 sm:px-6 sm:pt-5">
               <div className="min-w-0 pr-2">
@@ -777,21 +1212,391 @@ export const PromoManager: React.FC<PromoManagerProps> = ({
                     />
                   </div>
 
-                  {/* Target Menu Item (Optional) */}
-                  <div>
-                    <label className="block text-slate-600 dark:text-neutral-300 mb-1 font-bold">
-                      เมนูที่ร่วมรายการ ( Optional )
+                  {/* Target Scope Selection & Multi-Target Tree Picker */}
+                  <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-neutral-800">
+                    <label className="block text-slate-600 dark:text-neutral-300 font-extrabold">
+                      ขอบเขตเมนูที่ร่วมรายการ *
                     </label>
-                    <CustomSelect
-                      value={menuItemId}
-                      onChange={val => setMenuItemId(val)}
-                      options={[
-                        { label: 'ทุกเมนูในร้าน (ทั้งบิล)', value: '' },
-                        ...menuItems.map(m => ({ label: `${m.name} (฿${m.price})`, value: String(m.id) }))
-                      ]}
-                      placeholder="ทุกเมนูในร้าน (ทั้งบิล)"
-                      searchable={true}
-                    />
+
+                    {/* Radio Options */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <label
+                        className={`flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer transition ${
+                          targetScope === 'all'
+                            ? 'bg-red-50/70 dark:bg-red-950/40 border-red-500 text-red-700 dark:text-red-300 ring-2 ring-red-500/20'
+                            : 'bg-slate-50 dark:bg-neutral-800/60 border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-neutral-400 hover:bg-slate-100 dark:hover:bg-neutral-800'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="targetScope"
+                          value="all"
+                          checked={targetScope === 'all'}
+                          onChange={() => setTargetScope('all')}
+                          className="mt-0.5 text-red-600 focus:ring-red-500 cursor-pointer"
+                        />
+                        <div className="min-w-0">
+                          <span className="font-extrabold text-xs block text-slate-800 dark:text-neutral-200">
+                            ใช้ได้กับทุกเมนูทั้งร้าน
+                          </span>
+                          <span className="text-[10px] text-slate-400 dark:text-neutral-500 font-normal block mt-0.5">
+                            คำนวณส่วนลดจากยอดรวมทั้งบิล
+                          </span>
+                        </div>
+                      </label>
+
+                      <label
+                        className={`flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer transition ${
+                          targetScope === 'custom'
+                            ? 'bg-red-50/70 dark:bg-red-950/40 border-red-500 text-red-700 dark:text-red-300 ring-2 ring-red-500/20'
+                            : 'bg-slate-50 dark:bg-neutral-800/60 border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-neutral-400 hover:bg-slate-100 dark:hover:bg-neutral-800'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="targetScope"
+                          value="custom"
+                          checked={targetScope === 'custom'}
+                          onChange={() => setTargetScope('custom')}
+                          className="mt-0.5 text-red-600 focus:ring-red-500 cursor-pointer"
+                        />
+                        <div className="min-w-0">
+                          <span className="font-extrabold text-xs block text-slate-800 dark:text-neutral-200">
+                            กำหนดเฉพาะกลุ่ม / เจาะจงเมนู
+                          </span>
+                          <span className="text-[10px] text-slate-400 dark:text-neutral-500 font-normal block mt-0.5">
+                            เลือกหมวดใหญ่ หมวดย่อย หรือเมนูเฉพาะได้หลายรายการ
+                          </span>
+                        </div>
+                      </label>
+                    </div>
+
+                    {/* When Custom is selected: Tree Picker + Chips */}
+                    {targetScope === 'custom' && (
+                      <div className="space-y-3 p-3 bg-slate-50/70 dark:bg-neutral-800/40 border border-slate-200/80 dark:border-neutral-700 rounded-2xl">
+                        {/* Search Bar + Controls */}
+                        <div className="flex items-center gap-2">
+                          <div className="relative flex-1">
+                            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                            <input
+                              type="text"
+                              value={targetSearchText}
+                              onChange={e => setTargetSearchText(e.target.value)}
+                              placeholder="ค้นหากลุ่ม หรือชื่อเมนู..."
+                              className="w-full pl-8 pr-7 py-1.5 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-neutral-100 placeholder:text-slate-400 focus:outline-none focus:border-red-500"
+                            />
+                            {targetSearchText && (
+                              <button
+                                type="button"
+                                onClick={() => setTargetSearchText('')}
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              onClick={handleExpandAll}
+                              className="px-2.5 py-1.5 text-[10px] font-bold text-slate-600 dark:text-neutral-300 bg-white dark:bg-neutral-700 hover:bg-slate-100 dark:hover:bg-neutral-600 border border-slate-200 dark:border-neutral-600 rounded-lg transition cursor-pointer"
+                            >
+                              ขยายทั้งหมด
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleCollapseAll}
+                              className="px-2.5 py-1.5 text-[10px] font-bold text-slate-600 dark:text-neutral-300 bg-white dark:bg-neutral-700 hover:bg-slate-100 dark:hover:bg-neutral-600 border border-slate-200 dark:border-neutral-600 rounded-lg transition cursor-pointer"
+                            >
+                              ย่อทั้งหมด
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Hierarchical Tree Container */}
+                        <div className="max-h-60 overflow-y-auto rounded-xl border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-2 space-y-1.5 overscroll-contain">
+                          {categoryTree.length === 0 && orphanItems.length === 0 ? (
+                            <div className="text-center py-6 text-slate-400 text-xs font-normal">
+                              ไม่พบข้อมูลหมวดหมู่หรือเมนู
+                            </div>
+                          ) : (
+                            <>
+                              {categoryTree.map(mainCat => {
+                                const subCatsWithItems = mainCat.children.map(subCat => ({
+                                  subCat,
+                                  items: itemsByCategoryName.get(subCat.name.trim()) || [],
+                                }));
+                                const directItems = itemsByCategoryName.get(mainCat.name.trim()) || [];
+
+                                if (!mainCatMatchesSearch(mainCat, subCatsWithItems, directItems)) {
+                                  return null;
+                                }
+
+                                const totalItemCount = directItems.length + subCatsWithItems.reduce((acc, s) => acc + s.items.length, 0);
+                                const isExpanded = normalizedSearch ? true : expandedMainCats.has(mainCat.id);
+
+                                return (
+                                  <div
+                                    key={mainCat.id}
+                                    className="rounded-xl border border-slate-100 dark:border-neutral-800 bg-slate-50/50 dark:bg-neutral-850 overflow-hidden"
+                                  >
+                                    {/* Main Category Header */}
+                                    <div className="flex items-center gap-2 px-2.5 py-2 hover:bg-slate-100/60 dark:hover:bg-neutral-800 transition">
+                                      <button
+                                        type="button"
+                                        onClick={() => toggleExpandMainCat(mainCat.id)}
+                                        className="p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 rounded transition cursor-pointer"
+                                        title={isExpanded ? 'ย่อ' : 'ขยาย'}
+                                      >
+                                        {isExpanded ? (
+                                          <ChevronDown className="w-3.5 h-3.5" />
+                                        ) : (
+                                          <ChevronRight className="w-3.5 h-3.5" />
+                                        )}
+                                      </button>
+
+                                      <CheckboxBox
+                                        checked={isMainCatSelected(mainCat.id)}
+                                        indeterminate={isMainCatIndeterminate(mainCat)}
+                                        onClick={() => toggleMainCategory(mainCat)}
+                                        ariaLabel={`เลือกหมวดใหญ่ ${mainCat.name}`}
+                                      />
+
+                                      <div
+                                        onClick={() => toggleExpandMainCat(mainCat.id)}
+                                        className="flex-1 flex items-center gap-1.5 cursor-pointer select-none min-w-0"
+                                      >
+                                        <Folder className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                                        <span className="font-extrabold text-xs text-slate-800 dark:text-neutral-200 truncate">
+                                          {mainCat.name}
+                                        </span>
+                                        <span className="text-[10px] text-slate-400 dark:text-neutral-500 font-normal shrink-0">
+                                          ({mainCat.children.length} หมวดย่อย · {totalItemCount} เมนู)
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    {/* Expanded Children */}
+                                    {isExpanded && (
+                                      <div className="pl-6 pr-2 pb-2 pt-1 space-y-1.5 border-t border-slate-100 dark:border-neutral-800/60">
+                                        {/* Sub Categories */}
+                                        {subCatsWithItems.map(({ subCat, items }) => {
+                                          if (!subCatMatchesSearch(subCat, items)) return null;
+
+                                          const isSubExpanded = normalizedSearch ? true : expandedSubCats.has(subCat.id);
+                                          const filteredItems = normalizedSearch ? items.filter(itemMatchesSearch) : items;
+
+                                          return (
+                                            <div
+                                              key={subCat.id}
+                                              className="rounded-lg border border-slate-200/60 dark:border-neutral-700/50 bg-white dark:bg-neutral-900 p-1.5 space-y-1"
+                                            >
+                                              <div className="flex items-center gap-2">
+                                                <button
+                                                  type="button"
+                                                  onClick={() => toggleExpandSubCat(subCat.id)}
+                                                  className="p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 rounded transition cursor-pointer"
+                                                  title={isSubExpanded ? 'ย่อ' : 'ขยาย'}
+                                                >
+                                                  {isSubExpanded ? (
+                                                    <ChevronDown className="w-3 h-3" />
+                                                  ) : (
+                                                    <ChevronRight className="w-3 h-3" />
+                                                  )}
+                                                </button>
+
+                                                <CheckboxBox
+                                                  checked={isSubCatSelected(subCat.id, mainCat.id)}
+                                                  indeterminate={isSubCatIndeterminate(subCat, mainCat.id)}
+                                                  onClick={() => toggleSubCategory(subCat, mainCat)}
+                                                  ariaLabel={`เลือกหมวดย่อย ${subCat.name}`}
+                                                />
+
+                                                <div
+                                                  onClick={() => toggleExpandSubCat(subCat.id)}
+                                                  className="flex-1 flex items-center gap-1.5 cursor-pointer select-none min-w-0"
+                                                >
+                                                  <span className="font-bold text-xs text-slate-700 dark:text-neutral-300 truncate">
+                                                    {subCat.name}
+                                                  </span>
+                                                  <span className="text-[10px] text-slate-400 dark:text-neutral-500 font-normal shrink-0">
+                                                    ({items.length} เมนู)
+                                                  </span>
+                                                </div>
+                                              </div>
+
+                                              {/* Menu Items under Sub Category */}
+                                              {isSubExpanded && (
+                                                <div className="pl-6 pr-1 py-1 space-y-1 border-t border-slate-100 dark:border-neutral-800">
+                                                  {filteredItems.length === 0 ? (
+                                                    <div className="text-[10px] text-slate-400 py-1">
+                                                      ไม่มีเมนูในหมวดนี้
+                                                    </div>
+                                                  ) : (
+                                                    filteredItems.map(item => (
+                                                      <div
+                                                        key={item.id}
+                                                        className="flex items-center gap-2 py-0.5 hover:bg-slate-50 dark:hover:bg-neutral-800/40 rounded px-1 transition"
+                                                      >
+                                                        <CheckboxBox
+                                                          checked={isMenuItemSelected(item.id, subCat.id, mainCat.id)}
+                                                          onClick={() => toggleMenuItem(item, subCat, mainCat)}
+                                                          ariaLabel={`เลือกเมนู ${item.name}`}
+                                                        />
+                                                        <span className="flex-1 text-xs text-slate-600 dark:text-neutral-300 truncate">
+                                                          {item.name}
+                                                        </span>
+                                                        <span className="text-[11px] font-mono text-slate-400 dark:text-neutral-500 shrink-0">
+                                                          ฿{item.price}
+                                                        </span>
+                                                      </div>
+                                                    ))
+                                                  )}
+                                                </div>
+                                              )}
+                                            </div>
+                                          );
+                                        })}
+
+                                        {/* Direct Menu Items under Main Category */}
+                                        {directItems.length > 0 && (
+                                          <div className="space-y-1 pt-1">
+                                            {directItems
+                                              .filter(itemMatchesSearch)
+                                              .map(item => (
+                                                <div
+                                                  key={item.id}
+                                                  className="flex items-center gap-2 py-0.5 pl-4 hover:bg-slate-100/50 dark:hover:bg-neutral-800/40 rounded px-1 transition"
+                                                >
+                                                  <CheckboxBox
+                                                    checked={isMenuItemSelected(item.id, null, mainCat.id)}
+                                                    onClick={() => toggleMenuItem(item, undefined, mainCat)}
+                                                    ariaLabel={`เลือกเมนู ${item.name}`}
+                                                  />
+                                                  <span className="flex-1 text-xs text-slate-600 dark:text-neutral-300 truncate">
+                                                    {item.name}
+                                                  </span>
+                                                  <span className="text-[11px] font-mono text-slate-400 dark:text-neutral-500 shrink-0">
+                                                    ฿{item.price}
+                                                  </span>
+                                                </div>
+                                              ))}
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+
+                              {/* Orphan Items (if any) */}
+                              {orphanItems.length > 0 && (
+                                <div className="rounded-xl border border-dashed border-slate-200 dark:border-neutral-700 bg-slate-50/40 dark:bg-neutral-850/50 p-2 space-y-1">
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleExpandMainCat(-1)}
+                                      className="p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 rounded transition cursor-pointer"
+                                    >
+                                      {expandedMainCats.has(-1) || normalizedSearch ? (
+                                        <ChevronDown className="w-3.5 h-3.5" />
+                                      ) : (
+                                        <ChevronRight className="w-3.5 h-3.5" />
+                                      )}
+                                    </button>
+                                    <span
+                                      onClick={() => toggleExpandMainCat(-1)}
+                                      className="font-bold text-xs text-slate-600 dark:text-neutral-400 cursor-pointer select-none"
+                                    >
+                                      อื่นๆ / ยังไม่จัดหมวดหมู่ ({orphanItems.length} เมนู)
+                                    </span>
+                                  </div>
+
+                                  {(expandedMainCats.has(-1) || normalizedSearch) && (
+                                    <div className="pl-6 pt-1 space-y-1 border-t border-slate-100 dark:border-neutral-800">
+                                      {orphanItems.filter(itemMatchesSearch).map(item => (
+                                        <div
+                                          key={item.id}
+                                          className="flex items-center gap-2 py-0.5 hover:bg-slate-100/50 dark:hover:bg-neutral-800/40 rounded px-1 transition"
+                                        >
+                                          <CheckboxBox
+                                            checked={isMenuItemSelected(item.id)}
+                                            onClick={() => toggleMenuItem(item)}
+                                            ariaLabel={`เลือกเมนู ${item.name}`}
+                                          />
+                                          <span className="flex-1 text-xs text-slate-600 dark:text-neutral-300 truncate">
+                                            {item.name}
+                                          </span>
+                                          <span className="text-[11px] font-mono text-slate-400 dark:text-neutral-500 shrink-0">
+                                            ฿{item.price}
+                                          </span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+
+                        {/* Active Target Pills / Chips Container */}
+                        <div className="pt-2 border-t border-slate-200 dark:border-neutral-700 space-y-2">
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="font-extrabold text-slate-700 dark:text-neutral-300">
+                              รายการที่เลือก ({selectedTargets.length} รายการ):
+                            </span>
+                            {selectedTargets.length > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => setSelectedTargets([])}
+                                className="text-[10px] text-red-600 dark:text-red-400 hover:underline font-bold cursor-pointer"
+                              >
+                                ล้างทั้งหมด
+                              </button>
+                            )}
+                          </div>
+
+                          {selectedTargets.length === 0 ? (
+                            <div className="p-2.5 rounded-xl border border-dashed border-amber-300 dark:border-amber-900/60 bg-amber-50/50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 text-[11px] font-medium text-center">
+                              ⚠️ ยังไม่ได้เลือกกลุ่มหรือเมนูเป้าหมาย — โปรดเลือกอย่างน้อย 1 รายการ
+                            </div>
+                          ) : (
+                            <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto p-1.5 bg-white dark:bg-neutral-900 rounded-xl border border-slate-200/60 dark:border-neutral-700">
+                              {selectedTargets.map(t => {
+                                const isMain = t.type === 'main_category';
+                                const isSub = t.type === 'sub_category';
+                                return (
+                                  <span
+                                    key={`${t.type}-${t.id}`}
+                                    className={`inline-flex items-center gap-1.5 pl-2 pr-1.5 py-0.5 rounded-lg text-xs font-bold border transition ${
+                                      isMain
+                                        ? 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-900/50'
+                                        : isSub
+                                        ? 'bg-sky-50 text-sky-800 border-sky-200 dark:bg-sky-950/50 dark:text-sky-300 dark:border-sky-900/50'
+                                        : 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-900/50'
+                                    }`}
+                                  >
+                                    <span className="text-[10px] opacity-70 font-semibold">
+                                      {isMain ? 'หมวดใหญ่:' : isSub ? 'หมวดย่อย:' : 'เมนู:'}
+                                    </span>
+                                    <span className="truncate max-w-[140px]">{t.label}</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => removeTarget(t)}
+                                      className="p-0.5 text-slate-400 hover:text-red-500 rounded-full transition cursor-pointer"
+                                      title="ลบ"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
