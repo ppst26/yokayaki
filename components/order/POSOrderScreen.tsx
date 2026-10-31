@@ -12,7 +12,18 @@ import { VoidItemModal } from './VoidItemModal';
 import { CustomerQRModal } from './CustomerQRModal';
 import { menuItemSalePrice, type MenuPriceFields } from '@/lib/menuPrice';
 import { useActionFeedback } from '@/context/ActionFeedbackContext';
-import { normalizeCategoryName, orderedPresentCategories } from '@/lib/menuCategories';
+import {
+  ALL_MAIN_CATEGORY,
+  ALL_SUB_CATEGORY,
+  buildCategoryTreeWithFallback,
+  filterMenuItemsByCategory,
+  type MenuCategoryRow,
+} from '@/lib/menuCategories';
+import {
+  getItemPromoBadge,
+  type ActivePromotion,
+  type PromotionTargetRow,
+} from '@/lib/promoTargets';
 
 interface MenuItem extends MenuPriceFields {
   id: number;
@@ -51,6 +62,9 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, tableNu
 
   // Data States
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [rawCategories, setRawCategories] = useState<MenuCategoryRow[]>([]);
+  const [activePromotions, setActivePromotions] = useState<ActivePromotion[]>([]);
+  const [promoTargets, setPromoTargets] = useState<PromotionTargetRow[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orderedItems, setOrderedItems] = useState<OrderedItem[]>([]);
   const [activeOrderId, setActiveOrderId] = useState<number | null>(null);
@@ -60,7 +74,8 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, tableNu
   const [isLoadingOrder, setIsLoadingOrder] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedMainCategory, setSelectedMainCategory] = useState<string>(ALL_MAIN_CATEGORY);
+  const [selectedSubCategory, setSelectedSubCategory] = useState<string>(ALL_SUB_CATEGORY);
   const [noteEditTarget, setNoteEditTarget] = useState<{ index: number; notes: string } | null>(null);
 
   // Void Modal States
@@ -111,17 +126,32 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, tableNu
   const fetchMenu = async () => {
     try {
       setIsLoadingMenu(true);
-      // เลือกเฉพาะคอลัมน์ที่จอนี้ใช้จริง — เดิม select('*') ลากทุกคอลัมน์มาทุกครั้ง
-      const { data, error } = await supabase
-        .from('menu_items')
-        .select('id, name, name_en, price, stock, category, image_url, is_happy_hour, happy_hour_price')
-        .eq('is_available', true)
-        .order('id', { ascending: true });
+      const [menuRes, catRes, promoRes, targetsRes] = await Promise.all([
+        supabase
+          .from('menu_items')
+          .select('id, name, name_en, price, stock, category, image_url, is_happy_hour, happy_hour_price')
+          .eq('is_available', true)
+          .order('id', { ascending: true }),
+        supabase
+          .from('menu_categories')
+          .select('*')
+          .order('sort_order', { ascending: true }),
+        supabase
+          .from('promotions')
+          .select('*')
+          .eq('is_active', true),
+        supabase
+          .from('promotion_targets')
+          .select('id, promotion_id, target_type, target_id'),
+      ]);
 
-      if (error) throw error;
-      if (data) setMenuItems(data as MenuItem[]);
+      if (menuRes.error) throw menuRes.error;
+      if (menuRes.data) setMenuItems(menuRes.data as MenuItem[]);
+      if (catRes.data) setRawCategories(catRes.data as MenuCategoryRow[]);
+      if (promoRes.data) setActivePromotions(promoRes.data as ActivePromotion[]);
+      if (targetsRes.data) setPromoTargets(targetsRes.data as PromotionTargetRow[]);
     } catch (err: any) {
-      console.error('Error fetching menu:', err);
+      console.error('Error fetching menu/categories/promotions:', err);
       setErrorMsg('ไม่สามารถดึงข้อมูลรายการอาหารได้');
     } finally {
       setIsLoadingMenu(false);
@@ -221,23 +251,44 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, tableNu
     };
   }, [tableId, activeOrderId]);
 
-  const categories = useMemo(
-    () => orderedPresentCategories(menuItems.map(m => m.category || 'ทั่วไป')),
-    [menuItems],
-  );
+  // 2-tier Category Tree With Fallback
+  const categoryTree = useMemo(() => {
+    return buildCategoryTreeWithFallback(rawCategories, menuItems);
+  }, [rawCategories, menuItems]);
 
-  useEffect(() => {
-    if (categories.length === 0) return;
-    setSelectedCategory(prev =>
-      prev && categories.includes(prev) ? prev : categories[0],
+  // Filtered Menu Items
+  const filteredMenuItems = useMemo(() => {
+    return filterMenuItemsByCategory(
+      menuItems,
+      selectedMainCategory,
+      selectedSubCategory,
+      categoryTree,
     );
-  }, [categories]);
+  }, [menuItems, selectedMainCategory, selectedSubCategory, categoryTree]);
 
-  const filteredMenuItems = selectedCategory
-    ? menuItems.filter(
-        m => normalizeCategoryName(m.category || 'ทั่วไป') === selectedCategory,
-      )
-    : [];
+  // Promo Badges Lookup
+  const promoBadges = useMemo(() => {
+    const map: Record<number, string> = {};
+    if (activePromotions.length === 0 || menuItems.length === 0) return map;
+
+    const now = new Date();
+    for (const item of menuItems) {
+      const badge = getItemPromoBadge(item, activePromotions, promoTargets, rawCategories, now);
+      if (badge) {
+        map[item.id] = badge;
+      }
+    }
+    return map;
+  }, [menuItems, activePromotions, promoTargets, rawCategories]);
+
+  const handleSelectMainCategory = (cat: string) => {
+    setSelectedMainCategory(cat);
+    setSelectedSubCategory(ALL_SUB_CATEGORY);
+  };
+
+  const handleSelectSubCategory = (sub: string) => {
+    setSelectedSubCategory(sub);
+  };
 
   const addToCart = (item: MenuItem) => {
     const salePrice = menuItemSalePrice(item);
@@ -468,9 +519,12 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, tableNu
         )}
 
         <MenuGrid
-          categories={categories}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
+          categoryTree={categoryTree}
+          selectedMainCategory={selectedMainCategory}
+          setSelectedMainCategory={handleSelectMainCategory}
+          selectedSubCategory={selectedSubCategory}
+          setSelectedSubCategory={handleSelectSubCategory}
+          promoBadges={promoBadges}
           filteredMenuItems={filteredMenuItems}
           addToCart={addToCart}
           isLoadingMenu={isLoadingMenu}

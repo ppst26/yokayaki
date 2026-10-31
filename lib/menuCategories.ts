@@ -139,6 +139,99 @@ export function buildCategoryTree(categories: MenuCategoryRow[]): CategoryTreeIt
   return allRoots;
 }
 
+export const ALL_MAIN_CATEGORY = 'ทั้งหมด';
+export const ALL_SUB_CATEGORY = 'ทั้งหมดในหมวด';
+
+/**
+ * รวมหมวดจาก DB rows เป็น CategoryTree และเติมหมวดจาก menu_items ที่ยังไม่มีใน DB ลงเป็น root
+ */
+export function buildCategoryTreeWithFallback(
+  dbCategories: MenuCategoryRow[] = [],
+  menuItems: Array<{ category: string }> = [],
+): CategoryTreeItem[] {
+  // สร้าง tree ตั้งต้นจาก DB
+  const tree = buildCategoryTree(dbCategories);
+
+  // รวบรวมชื่อหมวดทั้งหมดที่มีใน tree
+  const existingNames = new Set<string>();
+  for (const root of tree) {
+    existingNames.add(normalizeCategoryName(root.name).toLowerCase());
+    for (const child of root.children) {
+      existingNames.add(normalizeCategoryName(child.name).toLowerCase());
+    }
+  }
+
+  // หาหมวดที่มีอยู่ใน menuItems แต่ยังไม่อยู่ใน tree
+  let nextId = -1;
+  const missingRoots: CategoryTreeItem[] = [];
+
+  for (const item of menuItems) {
+    const rawCat = item.category || 'ทั่วไป';
+    const norm = normalizeCategoryName(rawCat);
+    if (!norm || HIDDEN_MENU_CATEGORIES.has(norm)) continue;
+    const key = norm.toLowerCase();
+    if (!existingNames.has(key)) {
+      existingNames.add(key);
+      missingRoots.push({
+        id: nextId--,
+        name: norm,
+        sort_order: 999,
+        parent_id: null,
+        children: [],
+      });
+    }
+  }
+
+  return [...tree, ...missingRoots];
+}
+
+/**
+ * กรองรายการอาหารตามหมวดหลัก (Main Category) และหมวดย่อย (Sub Category)
+ */
+export function filterMenuItemsByCategory<T extends { category: string }>(
+  items: T[],
+  selectedMain: string,
+  selectedSub: string,
+  categoryTree: CategoryTreeItem[],
+): T[] {
+  // 1. ถ้าเลือก 'ทั้งหมด' หรือไม่ได้เลือก ให้แสดงรายการทั้งหมด
+  if (!selectedMain || selectedMain === ALL_MAIN_CATEGORY) {
+    return items;
+  }
+
+  const selectedMainNorm = normalizeCategoryName(selectedMain).toLowerCase();
+  const mainCat = categoryTree.find(
+    c => normalizeCategoryName(c.name).toLowerCase() === selectedMainNorm,
+  );
+
+  // ถ้าไม่พบหมวดหลักใน tree ให้เทียบตรงๆ
+  if (!mainCat) {
+    return items.filter(
+      item => normalizeCategoryName(item.category || '').toLowerCase() === selectedMainNorm,
+    );
+  }
+
+  // 2. ถ้าเลือกหมวดหลัก และหมวดย่อยเป็น 'ทั้งหมดในหมวด' (หรือไม่ได้ระบุ)
+  if (!selectedSub || selectedSub === ALL_SUB_CATEGORY) {
+    const validCategoryNames = new Set<string>();
+    validCategoryNames.add(selectedMainNorm);
+    for (const child of mainCat.children) {
+      validCategoryNames.add(normalizeCategoryName(child.name).toLowerCase());
+    }
+
+    return items.filter(item => {
+      const itemCat = normalizeCategoryName(item.category || '').toLowerCase();
+      return validCategoryNames.has(itemCat);
+    });
+  }
+
+  // 3. ถ้าเลือกหมวดย่อยเฉพาะเจาะจง
+  const selectedSubNorm = normalizeCategoryName(selectedSub).toLowerCase();
+  return items.filter(
+    item => normalizeCategoryName(item.category || '').toLowerCase() === selectedSubNorm,
+  );
+}
+
 // =====================================================================
 // DB CRUD
 // =====================================================================

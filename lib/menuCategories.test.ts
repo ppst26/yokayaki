@@ -5,6 +5,10 @@ import {
   normalizeCategoryName,
   orderedPresentCategories,
   buildCategoryTree,
+  buildCategoryTreeWithFallback,
+  filterMenuItemsByCategory,
+  ALL_MAIN_CATEGORY,
+  ALL_SUB_CATEGORY,
   saveCategoryHierarchy,
   type MenuCategoryRow,
 } from './menuCategories';
@@ -129,6 +133,63 @@ describe('menuCategories', () => {
         sort_order: 5,
         parent_id: 2,
       });
+    });
+  });
+
+  describe('buildCategoryTreeWithFallback & filterMenuItemsByCategory', () => {
+    const rows: MenuCategoryRow[] = [
+      { id: 1, org_id: 'org1', name: 'อาหาร', sort_order: 1, parent_id: null, created_at: '' },
+      { id: 2, org_id: 'org1', name: 'ของทานเล่น', sort_order: 1, parent_id: 1, created_at: '' },
+      { id: 3, org_id: 'org1', name: 'จานหลัก', sort_order: 2, parent_id: 1, created_at: '' },
+      { id: 4, org_id: 'org1', name: 'เครื่องดื่ม', sort_order: 2, parent_id: null, created_at: '' },
+    ];
+
+    it('buildCategoryTreeWithFallback appends orphan item categories as root categories', () => {
+      const items = [
+        { category: 'ของทานเล่น' },
+        { category: 'ของหวาน' }, // Not in rows
+      ];
+      const tree = buildCategoryTreeWithFallback(rows, items);
+      expect(tree).toHaveLength(3); // อาหาร, เครื่องดื่ม, ของหวาน
+      expect(tree.some(t => t.name === 'ของหวาน')).toBe(true);
+    });
+
+    it('filterMenuItemsByCategory returns all items when ALL_MAIN_CATEGORY is selected', () => {
+      const tree = buildCategoryTree(rows);
+      const items = [
+        { id: 1, category: 'ของทานเล่น' },
+        { id: 2, category: 'จานหลัก' },
+        { id: 3, category: 'เครื่องดื่ม' },
+      ];
+
+      const res = filterMenuItemsByCategory(items, ALL_MAIN_CATEGORY, ALL_SUB_CATEGORY, tree);
+      expect(res).toHaveLength(3);
+    });
+
+    it('filterMenuItemsByCategory returns all subcategory items when main is selected and sub is ALL_SUB_CATEGORY', () => {
+      const tree = buildCategoryTree(rows);
+      const items = [
+        { id: 1, category: 'ของทานเล่น' },
+        { id: 2, category: 'จานหลัก' },
+        { id: 3, category: 'เครื่องดื่ม' },
+      ];
+
+      const res = filterMenuItemsByCategory(items, 'อาหาร', ALL_SUB_CATEGORY, tree);
+      expect(res).toHaveLength(2);
+      expect(res.map(i => i.id)).toEqual([1, 2]);
+    });
+
+    it('filterMenuItemsByCategory returns only subcategory items when a specific subcategory is selected', () => {
+      const tree = buildCategoryTree(rows);
+      const items = [
+        { id: 1, category: 'ของทานเล่น' },
+        { id: 2, category: 'จานหลัก' },
+        { id: 3, category: 'เครื่องดื่ม' },
+      ];
+
+      const res = filterMenuItemsByCategory(items, 'อาหาร', 'ของทานเล่น', tree);
+      expect(res).toHaveLength(1);
+      expect(res[0].id).toBe(1);
     });
   });
 });
