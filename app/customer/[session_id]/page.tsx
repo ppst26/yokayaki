@@ -23,7 +23,19 @@ import {
 import { menuItemSalePrice } from '@/lib/menuPrice';
 import { PLATFORM_BRANDING } from '@/lib/branding';
 import { useActionFeedback } from '@/context/ActionFeedbackContext';
-import { normalizeCategoryName, orderedPresentCategories } from '@/lib/menuCategories';
+import {
+  ALL_MAIN_CATEGORY,
+  ALL_SUB_CATEGORY,
+  normalizeCategoryName,
+  buildCategoryTreeWithFallback,
+  filterMenuItemsByCategory,
+  type MenuCategoryRow,
+} from '@/lib/menuCategories';
+import {
+  getItemPromoBadge,
+  type ActivePromotion,
+  type PromotionTargetRow,
+} from '@/lib/promoTargets';
 import { CustomSelect } from '@/components/ui/select';
 import { CustomerImage } from '@/components/customer/CustomerImage';
 interface OrderedItem {
@@ -55,7 +67,7 @@ interface CartItem extends MenuItem {
 interface Promotion {
   id: number;
   name: string;
-  type: 'percentage' | 'fixed' | 'buy_x_get_y';
+  type: 'percentage' | 'fixed' | 'buy_x_get_y' | string;
   discount_percent: number | null;
   discount_amount: number | null;
   min_order_amount: number;
@@ -63,6 +75,11 @@ interface Promotion {
   image_url: string | null;
   start_time: string | null;
   end_time: string | null;
+  buy_qty?: number | null;
+  free_qty?: number | null;
+  menu_item_id?: number | null;
+  start_date?: string | null;
+  end_date?: string | null;
 }
 
 type CustomerTab = 'home' | 'order' | 'ordered' | 'promotions';
@@ -86,7 +103,10 @@ export default function CustomerOrderPortal() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [rawCategories, setRawCategories] = useState<MenuCategoryRow[]>([]);
+  const [promoTargets, setPromoTargets] = useState<PromotionTargetRow[]>([]);
+  const [selectedMainCategory, setSelectedMainCategory] = useState<string>(ALL_MAIN_CATEGORY);
+  const [selectedSubCategory, setSelectedSubCategory] = useState<string>(ALL_SUB_CATEGORY);
   const [priceSort, setPriceSort] = useState<'asc' | 'desc'>('asc');
   const [showCartDrawer, setShowCartDrawer] = useState(false);
   const [noteEditTarget, setNoteEditTarget] = useState<{ index: number; notes: string } | null>(null);
@@ -96,33 +116,93 @@ export default function CustomerOrderPortal() {
   const [showCheckBillConfirm, setShowCheckBillConfirm] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
-  const menuCategories = useMemo(
-    () =>
-      orderedPresentCategories(
-        menuItems.map(item => item.category).filter(Boolean) as string[],
-      ),
-    [menuItems],
-  );
+  const categoryTree = useMemo(() => {
+    return buildCategoryTreeWithFallback(rawCategories, menuItems);
+  }, [rawCategories, menuItems]);
 
-  useEffect(() => {
-    if (menuCategories.length === 0) return;
-    setSelectedCategory(prev =>
-      prev && menuCategories.includes(prev) ? prev : menuCategories[0],
+  const activeMainItem = useMemo(() => {
+    if (!categoryTree) return null;
+    return (
+      categoryTree.find(
+        c =>
+          normalizeCategoryName(c.name).toLowerCase() ===
+          normalizeCategoryName(selectedMainCategory).toLowerCase(),
+      ) ?? null
     );
-  }, [menuCategories]);
+  }, [categoryTree, selectedMainCategory]);
+
+  const availableSubCategories = useMemo(() => {
+    if (!activeMainItem || selectedMainCategory === ALL_MAIN_CATEGORY) return [];
+    return activeMainItem.children || [];
+  }, [activeMainItem, selectedMainCategory]);
+
+  const promoBadges = useMemo(() => {
+    const map: Record<number, string> = {};
+    if (promotions.length === 0 || menuItems.length === 0) return map;
+
+    const now = new Date();
+    for (const item of menuItems) {
+      const badge = getItemPromoBadge(
+        item,
+        promotions as ActivePromotion[],
+        promoTargets,
+        rawCategories,
+        now,
+      );
+      if (badge) {
+        map[item.id] = badge;
+      }
+    }
+    return map;
+  }, [menuItems, promotions, promoTargets, rawCategories]);
 
   const visibleMenuItems = useMemo(() => {
-    const filtered = menuItems.filter(
-      item =>
-        !!selectedCategory &&
-        normalizeCategoryName(item.category) === selectedCategory,
+    const filtered = filterMenuItemsByCategory(
+      menuItems,
+      selectedMainCategory,
+      selectedSubCategory,
+      categoryTree,
     );
     return [...filtered].sort((a, b) => {
       const pa = menuItemSalePrice(a);
       const pb = menuItemSalePrice(b);
       return priceSort === 'asc' ? pa - pb : pb - pa;
     });
-  }, [menuItems, selectedCategory, priceSort]);
+  }, [menuItems, selectedMainCategory, selectedSubCategory, categoryTree, priceSort]);
+
+  useEffect(() => {
+    if (selectedMainCategory === ALL_MAIN_CATEGORY) return;
+    const exists = categoryTree.some(
+      c =>
+        normalizeCategoryName(c.name).toLowerCase() ===
+        normalizeCategoryName(selectedMainCategory).toLowerCase(),
+    );
+    if (!exists) {
+      setSelectedMainCategory(ALL_MAIN_CATEGORY);
+      setSelectedSubCategory(ALL_SUB_CATEGORY);
+    }
+  }, [categoryTree, selectedMainCategory]);
+
+  useEffect(() => {
+    if (selectedSubCategory === ALL_SUB_CATEGORY) return;
+    const exists = availableSubCategories.some(
+      c =>
+        normalizeCategoryName(c.name).toLowerCase() ===
+        normalizeCategoryName(selectedSubCategory).toLowerCase(),
+    );
+    if (!exists) {
+      setSelectedSubCategory(ALL_SUB_CATEGORY);
+    }
+  }, [availableSubCategories, selectedSubCategory]);
+
+  const handleSelectMainCategory = (cat: string) => {
+    setSelectedMainCategory(cat);
+    setSelectedSubCategory(ALL_SUB_CATEGORY);
+  };
+
+  const handleSelectSubCategory = (sub: string) => {
+    setSelectedSubCategory(sub);
+  };
 
   // =============================================================
   // ข้อมูลทั้งหมดของหน้านี้มาจาก /api/customer/[session_id]/state ทางเดียว
@@ -162,6 +242,8 @@ export default function CustomerOrderPortal() {
       setMenuItems((data.menuItems ?? []) as MenuItem[]);
       setPromotions((data.promotions ?? []) as Promotion[]);
       setOrderedItems((data.orderedItems ?? []) as OrderedItem[]);
+      setRawCategories((data.categories ?? []) as MenuCategoryRow[]);
+      setPromoTargets((data.promoTargets ?? []) as PromotionTargetRow[]);
 
       const nextStatus = data.tableStatus as 'vacant' | 'occupied' | 'checking_out';
       setTableStatus(nextStatus);
@@ -205,11 +287,10 @@ export default function CustomerOrderPortal() {
 
   // Preload first batch of menu images in background when on 'home' tab
   useEffect(() => {
-    if (activeTab !== 'home' || menuItems.length === 0 || menuCategories.length === 0) return;
+    if (activeTab !== 'home' || menuItems.length === 0) return;
 
-    const firstCategory = menuCategories[0];
     const topItems = menuItems
-      .filter(item => normalizeCategoryName(item.category) === firstCategory && item.image_url)
+      .filter(item => item.image_url)
       .slice(0, 8);
 
     if (typeof window === 'undefined') return;
@@ -230,7 +311,7 @@ export default function CustomerOrderPortal() {
       const timer = setTimeout(preloadImages, 600);
       return () => clearTimeout(timer);
     }
-  }, [activeTab, menuItems, menuCategories]);
+  }, [activeTab, menuItems]);
 
 
   const addToCart = (item: MenuItem, notes?: string) => {
@@ -624,47 +705,123 @@ export default function CustomerOrderPortal() {
         {/* TAB 2: 🍱 สั่งอาหาร (Order Food View) */}
         {activeTab === 'order' && (
           <div className="space-y-4 animate-fade-in">
-            {/* หมวดหมู่ (ซ้าย) + เรียงราคา (ขวา) */}
-            <div className="flex items-center gap-1.5 min-w-0">
-              <div className="relative flex-1 min-w-0">
-                <div className="flex min-w-0 gap-1.5 overflow-x-auto pb-1 scrollbar-none pr-4">
-                  {menuCategories.map(cat => (
+            {/* Category Navigation (Dual-Tier) + เรียงราคา (ขวา) */}
+            <div className="space-y-2">
+              {/* Row 1: Main Category Pills + Price Sort */}
+              <div className="flex items-center gap-1.5 min-w-0">
+                <div className="relative flex-1 min-w-0">
+                  <div className="flex min-w-0 gap-1.5 overflow-x-auto pb-1 scrollbar-none pr-4 items-center">
+                    {/* [ ทั้งหมด ] */}
                     <button
-                      key={cat}
                       type="button"
-                      onClick={() => setSelectedCategory(cat)}
-                      className={`badge-pill shrink-0 px-3.5 py-2 text-xs font-bold ${
-                        selectedCategory === cat ? 'badge-active' : 'badge-inactive'
+                      onClick={() => handleSelectMainCategory(ALL_MAIN_CATEGORY)}
+                      className={`badge-pill shrink-0 px-3.5 py-2 text-xs font-bold transition-all ${
+                        selectedMainCategory === ALL_MAIN_CATEGORY
+                          ? 'badge-active bg-red-600 text-white shadow-xs'
+                          : 'badge-inactive bg-neutral-900/90 text-neutral-300 border border-neutral-800/80 hover:bg-neutral-800'
                       }`}
                     >
-                      {cat}
+                      {ALL_MAIN_CATEGORY}
                     </button>
-                  ))}
+
+                    {/* Main Category Pills */}
+                    {categoryTree.map(mainCat => {
+                      const isSelected =
+                        normalizeCategoryName(selectedMainCategory).toLowerCase() ===
+                        normalizeCategoryName(mainCat.name).toLowerCase();
+                      return (
+                        <button
+                          key={mainCat.id}
+                          type="button"
+                          onClick={() => handleSelectMainCategory(mainCat.name)}
+                          className={`badge-pill shrink-0 px-3.5 py-2 text-xs font-bold transition-all ${
+                            isSelected
+                              ? 'badge-active bg-red-600 text-white shadow-xs'
+                              : 'badge-inactive bg-neutral-900/90 text-neutral-300 border border-neutral-800/80 hover:bg-neutral-800'
+                          }`}
+                        >
+                          {mainCat.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {/* Black fade edge on right */}
+                  <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-neutral-950 to-transparent" />
                 </div>
-                {/* Black fade edge on right */}
-                <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-neutral-950 to-transparent" />
+
+                <CustomSelect
+                  size="sm"
+                  prefixLabel="ราคา"
+                  value={priceSort}
+                  onChange={val => setPriceSort(val as 'asc' | 'desc')}
+                  options={[
+                    { label: 'น้อย→มาก', value: 'asc', shortLabel: 'น้อย→มาก' },
+                    { label: 'มาก→น้อย', value: 'desc', shortLabel: 'มาก→น้อย' },
+                  ]}
+                  searchable={false}
+                  className="w-[7rem] shrink-0 text-[10px]"
+                />
               </div>
 
-              <CustomSelect
-                size="sm"
-                prefixLabel="ราคา"
-                value={priceSort}
-                onChange={val => setPriceSort(val as 'asc' | 'desc')}
-                options={[
-                  { label: 'น้อย→มาก', value: 'asc', shortLabel: 'น้อย→มาก' },
-                  { label: 'มาก→น้อย', value: 'desc', shortLabel: 'มาก→น้อย' },
-                ]}
-                searchable={false}
-                className="w-[7rem] shrink-0 text-[10px]"
-              />
+              {/* Row 2: Sub Category Chips (when Main Category has children and is not 'ทั้งหมด') */}
+              {availableSubCategories.length > 0 && selectedMainCategory !== ALL_MAIN_CATEGORY && (
+                <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none items-center pl-1 border-t border-neutral-800/80 pt-2 animate-fade-in">
+                  <span className="text-[10px] uppercase font-bold text-neutral-500 mr-1 shrink-0">
+                    หมวดย่อย:
+                  </span>
+                  {/* [ ทั้งหมดในหมวด ] */}
+                  <button
+                    type="button"
+                    onClick={() => handleSelectSubCategory(ALL_SUB_CATEGORY)}
+                    className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all duration-200 cursor-pointer whitespace-nowrap shrink-0 ${
+                      selectedSubCategory === ALL_SUB_CATEGORY
+                        ? 'bg-neutral-100 text-neutral-900 shadow-xs font-bold'
+                        : 'bg-neutral-900/90 text-neutral-400 border border-neutral-800/80 hover:bg-neutral-800 hover:text-neutral-200'
+                    }`}
+                  >
+                    {ALL_SUB_CATEGORY}
+                  </button>
+
+                  {/* Sub Category Chips */}
+                  {availableSubCategories.map(subCat => {
+                    const isSelected =
+                      normalizeCategoryName(selectedSubCategory).toLowerCase() ===
+                      normalizeCategoryName(subCat.name).toLowerCase();
+                    return (
+                      <button
+                        key={subCat.id}
+                        type="button"
+                        onClick={() => handleSelectSubCategory(subCat.name)}
+                        className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all duration-200 cursor-pointer whitespace-nowrap shrink-0 ${
+                          isSelected
+                            ? 'bg-neutral-100 text-neutral-900 shadow-xs font-bold'
+                            : 'bg-neutral-900/90 text-neutral-400 border border-neutral-800/80 hover:bg-neutral-800 hover:text-neutral-200'
+                        }`}
+                      >
+                        {subCat.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Menu Grid */}
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              {visibleMenuItems.map(item => {
+            {visibleMenuItems.length === 0 ? (
+              <div className="text-center py-16 app-card app-card--compact p-8">
+                <UtensilsCrossed className="w-12 h-12 text-neutral-600 mx-auto mb-3" />
+                <p className="text-sm font-bold text-neutral-400">
+                  ไม่พบรายการอาหารในหมวดหมู่นี้
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                {visibleMenuItems.map(item => {
                   const qty = getCartQuantity(item.id);
                   const isSoldOut = item.stock <= 0;
                   const isLowStock = item.stock > 0 && item.stock <= 3;
+                  const promoBadge = promoBadges[item.id];
+                  const salePrice = menuItemSalePrice(item);
 
                   return (
                     <div 
@@ -679,7 +836,17 @@ export default function CustomerOrderPortal() {
                           isSoldOut={isSoldOut}
                         />
 
-                        {/* Badges on the image */}
+                        {/* Promo Badge on top-left */}
+                        {promoBadge && (
+                          <div className="absolute top-2 left-2 z-10">
+                            <span className="text-[10px] px-2 py-0.5 rounded-md bg-red-600 text-white font-black shadow-xs flex items-center gap-1 backdrop-blur-xs">
+                              <Tag className="w-2.5 h-2.5 shrink-0" />
+                              <span>{promoBadge}</span>
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Badges on the image (top-right) */}
                         {isSoldOut ? (
                           <span className="absolute top-2 right-2 text-[10px] font-bold tracking-wider bg-black/75 backdrop-blur-xs text-rose-500 border border-rose-900/50 px-2 py-0.5 rounded-md shadow-xs z-10">
                             SOLD OUT
@@ -705,9 +872,16 @@ export default function CustomerOrderPortal() {
                         </div>
 
                         <div className="flex items-center justify-between gap-1">
-                          <span className="text-sm sm:text-base font-black text-red-500">
-                            ฿{item.price.toLocaleString()}
-                          </span>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-sm sm:text-base font-black text-red-500">
+                              ฿{salePrice.toLocaleString()}
+                            </span>
+                            {salePrice < item.price && (
+                              <span className="text-[10px] text-neutral-500 line-through">
+                                ฿{item.price.toLocaleString()}
+                              </span>
+                            )}
+                          </div>
 
                           <div className="flex items-center gap-1.5 shrink-0">
                             <button
@@ -741,7 +915,8 @@ export default function CustomerOrderPortal() {
                     </div>
                   );
                 })}
-            </div>
+              </div>
+            )}
           </div>
         )}
 

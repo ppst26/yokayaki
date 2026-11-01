@@ -29,7 +29,7 @@ export async function GET(
       return Response.json({ sessionActive: false });
     }
 
-    const [tableRes, menuRes, promoRes, orderRes] = await Promise.all([
+    const [tableRes, menuRes, promoRes, orderRes, catRes, targetsRes] = await Promise.all([
       supabaseAdmin.from('tables').select('status, table_number').eq('id', tableId).maybeSingle(),
       supabaseAdmin
         .from('menu_items')
@@ -39,7 +39,7 @@ export async function GET(
         .order('id', { ascending: true }),
       supabaseAdmin
         .from('promotions')
-        .select('id, name, type, discount_percent, discount_amount, min_order_amount, is_active, image_url, start_time, end_time')
+        .select('id, name, type, discount_percent, discount_amount, min_order_amount, is_active, image_url, start_time, end_time, buy_qty, free_qty, menu_item_id, start_date, end_date')
         .eq('org_id', orgId)
         .eq('is_active', true)
         .order('created_at', { ascending: false }),
@@ -51,9 +51,19 @@ export async function GET(
         .eq('table_id', tableId)
         .eq('status', 'active')
         .maybeSingle(),
+      supabaseAdmin
+        .from('menu_categories')
+        .select('id, name, sort_order, parent_id')
+        .eq('org_id', orgId)
+        .order('sort_order', { ascending: true }),
+      supabaseAdmin
+        .from('promotion_targets')
+        .select('id, promotion_id, target_type, target_id')
+        .eq('org_id', orgId),
     ]);
 
     if (menuRes.error) throw menuRes.error;
+    if (catRes.error) throw catRes.error;
 
     const orderRow = orderRes.data as
       | { id: number; order_items?: { id: number }[] | null }
@@ -68,7 +78,9 @@ export async function GET(
       tableStatus: tableRes.data?.status ?? 'occupied',
       orderActive: Boolean(orderRow?.id),
       menuItems: menuRes.data ?? [],
+      categories: catRes.data ?? [],
       promotions: promoRes.data ?? [],
+      promoTargets: targetsRes.data ?? [],
       orderedItems,
     });
   } catch (err) {
