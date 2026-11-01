@@ -63,12 +63,29 @@ interface VoidLog {
   created_at: string;
 }
 
+export type SalesAuditRange = 'today' | 'yesterday' | '7days' | '30days';
+
+const AUDIT_RANGE_OPTIONS: { id: SalesAuditRange; label: string; desc: string }[] = [
+  { id: 'today', label: 'วันนี้', desc: 'ในวันนี้' },
+  { id: 'yesterday', label: 'เมื่อวาน', desc: 'ของเมื่อวาน' },
+  { id: '7days', label: '7 วัน', desc: '7 วันล่าสุด' },
+  { id: '30days', label: '30 วัน', desc: '30 วันล่าสุด (1 เดือน)' },
+];
+
+function chunkArray<T>(arr: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) {
+    chunks.push(arr.slice(i, i + size));
+  }
+  return chunks;
+}
+
 export const SalesHistory: React.FC = () => {
   const { employee } = useAuth();
   const showKpi = employee ? canReadSales(employee.role) : false;
 
   const [activeSubTab, setActiveSubTab] = useState<'sales' | 'voids'>('sales');
-  const [auditRange, setAuditRange] = useState<'today' | 'yesterday'>('today');
+  const [auditRange, setAuditRange] = useState<SalesAuditRange>('today');
   const [orders, setOrders] = useState<CompletedOrder[]>([]);
   const [voidLogs, setVoidLogs] = useState<VoidLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,22 +94,36 @@ export const SalesHistory: React.FC = () => {
   const [orderItems, setOrderItems] = useState<OrderItemDetail[]>([]);
   const [detailLoading, setDetailLoading] = useState(false);
 
-  const getDateRange = (range: 'today' | 'yesterday') => {
-    const start = new Date();
-    const end = new Date();
-
-    if (range === 'yesterday') {
-      start.setDate(start.getDate() - 1);
-      end.setDate(end.getDate() - 1);
-    }
-
-    start.setHours(0, 0, 0, 0);
+  const getDateRange = (range: SalesAuditRange) => {
+    const now = new Date();
+    const start = new Date(now);
+    const end = new Date(now);
     end.setHours(23, 59, 59, 999);
+
+    switch (range) {
+      case 'today':
+        start.setHours(0, 0, 0, 0);
+        break;
+      case 'yesterday':
+        start.setDate(start.getDate() - 1);
+        start.setHours(0, 0, 0, 0);
+        end.setDate(end.getDate() - 1);
+        end.setHours(23, 59, 59, 999);
+        break;
+      case '7days':
+        start.setDate(start.getDate() - 6);
+        start.setHours(0, 0, 0, 0);
+        break;
+      case '30days':
+        start.setDate(start.getDate() - 29);
+        start.setHours(0, 0, 0, 0);
+        break;
+    }
 
     return { startISO: start.toISOString(), endISO: end.toISOString() };
   };
 
-  const fetchOrdersForRange = async (range: 'today' | 'yesterday') => {
+  const fetchOrdersForRange = async (range: SalesAuditRange) => {
     try {
       setLoading(true);
       const { startISO, endISO } = getDateRange(range);
@@ -119,19 +150,26 @@ export const SalesHistory: React.FC = () => {
       const orderIds = orderData.map(o => o.id);
       const normalizePhone = (phone?: string | null) => (phone ? phone.replace(/\D/g, '') : '');
 
-      // รัน payments + members ขนานกัน (เดิมเป็นน้ำตก)
-      const [paymentResult, memberResult] = await Promise.all([
-        supabase
-          .from('payments')
-          .select(
-            'id, order_id, payment_method, subtotal, discount_amount, net_amount, cash_amount, promptpay_amount, points_earned, points_redeemed, phone_number, created_at'
+      // รัน payments + members ขนานกัน (รองรับหลายร้อยออเดอร์ด้วยการแบ่ง chunk ละ 100)
+      const orderIdChunks = chunkArray(orderIds, 100);
+      const [paymentChunks, memberResult] = await Promise.all([
+        Promise.all(
+          orderIdChunks.map(chunk =>
+            supabase
+              .from('payments')
+              .select(
+                'id, order_id, payment_method, subtotal, discount_amount, net_amount, cash_amount, promptpay_amount, points_earned, points_redeemed, phone_number, created_at'
+              )
+              .in('order_id', chunk)
           )
-          .in('order_id', orderIds),
+        ),
         supabase.from('loyalty_members').select('phone_number, name'),
       ]);
 
-      if (paymentResult.error) throw paymentResult.error;
-      const paymentData = paymentResult.data;
+      const paymentData = paymentChunks.flatMap(res => {
+        if (res.error) throw res.error;
+        return res.data || [];
+      });
 
       const memberMap: Record<string, string> = {};
       if (memberResult.data) {
@@ -147,14 +185,22 @@ export const SalesHistory: React.FC = () => {
       const paymentIds = (paymentData || []).map(p => p.id);
       let promoData: any[] = [];
       if (paymentIds.length > 0) {
-        const { data: promos, error: promoError } = await supabase
-          .from('payment_promotions')
-          .select(
-            'id, payment_id, promotion_name, promotion_type, discount_value, free_items, promotion_id'
+        const paymentIdChunks = chunkArray(paymentIds, 100);
+        const promoChunks = await Promise.all(
+          paymentIdChunks.map(chunk =>
+            supabase
+              .from('payment_promotions')
+              .select(
+                'id, payment_id, promotion_name, promotion_type, discount_value, free_items, promotion_id'
+              )
+              .in('payment_id', chunk)
           )
-          .in('payment_id', paymentIds);
+        );
 
-        if (promoError) throw promoError;
+        const promos = promoChunks.flatMap(res => {
+          if (res.error) throw res.error;
+          return res.data || [];
+        });
 
         const promoIds = Array.from(
           new Set(
@@ -238,13 +284,21 @@ export const SalesHistory: React.FC = () => {
     const orderIds = orderData.map(o => o.id);
     const subtotalByOrder: Record<number, number> = {};
 
-    const { data: items, error: itemsError } = await supabase
-      .from('order_items')
-      .select('order_id, quantity, unit_price')
-      .in('order_id', orderIds)
-      .neq('status', 'voided');
+    const orderIdChunks = chunkArray(orderIds, 100);
+    const itemChunks = await Promise.all(
+      orderIdChunks.map(chunk =>
+        supabase
+          .from('order_items')
+          .select('order_id, quantity, unit_price')
+          .in('order_id', chunk)
+          .neq('status', 'voided')
+      )
+    );
 
-    if (itemsError) throw itemsError;
+    const items = itemChunks.flatMap(res => {
+      if (res.error) throw res.error;
+      return res.data || [];
+    });
 
     for (const item of items ?? []) {
       const line = Number(item.quantity) * parseFloat(String(item.unit_price));
@@ -264,7 +318,7 @@ export const SalesHistory: React.FC = () => {
     setOrders(combined);
   };
 
-  const fetchVoidLogsForRange = async (range: 'today' | 'yesterday') => {
+  const fetchVoidLogsForRange = async (range: SalesAuditRange) => {
     try {
       setVoidLoading(true);
       const { startISO, endISO } = getDateRange(range);
@@ -360,47 +414,52 @@ export const SalesHistory: React.FC = () => {
     }
   };
 
-  const formatTime = (dateStr: string) =>
-    new Date(dateStr).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+  const formatTime = (dateStr: string) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    const timeStr = d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+    if (auditRange === 'today' || auditRange === 'yesterday') {
+      return timeStr;
+    }
+    const day = d.getDate();
+    const months = [
+      'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
+      'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
+    ];
+    const month = months[d.getMonth()];
+    return `${day} ${month} ${timeStr}`;
+  };
 
   return (
     <div className="w-full text-slate-800 dark:text-neutral-100 font-sans space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="min-w-0">
           <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-neutral-100 tracking-tight">
             ประวัติการขาย
           </h1>
           <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
-            ตรวจสอบรายการที่เช็คบิลแล้ว ({auditRange === 'today' ? 'ในวันนี้' : 'ของเมื่อวาน'})
+            ตรวจสอบรายการที่เช็คบิลแล้ว ({AUDIT_RANGE_OPTIONS.find(o => o.id === auditRange)?.desc ?? 'ในวันนี้'})
           </p>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          {/* Today / Yesterday Toggle Pills */}
-          <div className="bg-slate-100 dark:bg-neutral-800/80 p-1 rounded-2xl flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setAuditRange('today')}
-              className={`px-3 py-1.5 rounded-xl  text-xs md:text-sm font-extrabold transition cursor-pointer ${
-                auditRange === 'today'
-                  ? 'nav-active border-none'
-                  : 'text-slate-600  dark:text-neutral-300 hover:text-slate-900 dark:hover:text-neutral-100 border-none'
-              }`}
-            >
-              วันนี้
-            </button>
-            <button
-              type="button"
-              onClick={() => setAuditRange('yesterday')}
-              className={`px-3 py-1.5 rounded-xl text-xs md:text-sm font-extrabold transition cursor-pointer ${
-                auditRange === 'yesterday'
-                  ? 'nav-active border-none'
-                  : 'text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-neutral-100 border-none'
-              }`}
-            >
-              เมื่อวาน
-            </button>
+          {/* Today / Yesterday / 7 Days / 30 Days Toggle Pills */}
+          <div className="bg-slate-100 dark:bg-neutral-800/80 p-1 rounded-2xl flex items-center gap-1 overflow-x-auto scrollbar-none max-w-full">
+            {AUDIT_RANGE_OPTIONS.map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => setAuditRange(opt.id)}
+                className={`px-3 py-1.5 rounded-xl text-xs md:text-sm font-extrabold transition cursor-pointer whitespace-nowrap ${
+                  auditRange === opt.id
+                    ? 'nav-active border-none'
+                    : 'text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-neutral-100 border-none'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
           </div>
         </div>
       </div>
@@ -426,7 +485,7 @@ export const SalesHistory: React.FC = () => {
               : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-100 hover:bg-slate-100/60 dark:hover:bg-neutral-800/60 border-none'
           }`}
         >
-          รายการการขายวันนี้ ({orders.length})
+          รายการการขาย ({orders.length})
         </button>
 
         <button
@@ -490,7 +549,7 @@ export const SalesHistory: React.FC = () => {
           aria-label="พิมพ์สรุปออเดอร์ประจำวัน"
         >
           <Printer className="w-5 h-5" />
-          <span className="text-sm font-bold">พิมพ์สรุปวัน</span>
+          <span className="text-sm font-bold">พิมพ์สรุปยอด</span>
         </button>
       )}
 
@@ -512,8 +571,12 @@ export const SalesHistory: React.FC = () => {
           </div>
           <div className="border-t border-dashed border-gray-400 my-2" />
           <div className="receipt-meta text-center space-y-0.5 text-[13px] font-semibold">
-            <p className="text-[14px] font-black">สรุปยอดขายประจำวัน</p>
-            <p>{auditRange === 'today' ? 'วันนี้' : 'เมื่อวาน'} — {new Date().toLocaleDateString('th-TH')}</p>
+            <p className="text-[14px] font-black">
+              {auditRange === 'today'
+                ? 'สรุปยอดขายประจำวัน'
+                : `สรุปยอดขาย (${AUDIT_RANGE_OPTIONS.find(o => o.id === auditRange)?.label})`}
+            </p>
+            <p>{AUDIT_RANGE_OPTIONS.find(o => o.id === auditRange)?.desc ?? 'วันนี้'} — {new Date().toLocaleDateString('th-TH')}</p>
           </div>
           <div className="border-t border-dashed border-gray-400 my-2" />
 

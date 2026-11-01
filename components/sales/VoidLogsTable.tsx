@@ -38,7 +38,7 @@ export const VoidLogsTable: React.FC<VoidLogsTableProps> = ({
       <Card className="text-center py-16 p-8">
         <Trash2 className="w-12 h-12 text-slate-300 dark:text-neutral-600 mx-auto mb-3" />
         <p className="text-sm font-bold text-slate-500 dark:text-neutral-400">
-          ไม่มีประวัติการ Void รายการในวันนี้
+          ไม่มีประวัติการ Void รายการในช่วงเวลานี้
         </p>
       </Card>
     );
