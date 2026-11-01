@@ -6,7 +6,7 @@ BEGIN;
 -- 1. payments: เพิ่มคอลัมน์ is_voided และ voided_at เพื่อการจัดทำรายงานบัญชี
 -- 2. void_logs: เพิ่ม order_id สำหรับ audit trail
 -- 3. void_completed_order RPC: ทำงานแบบ atomic ใน transaction เดียว
---    - สิทธิ์: owner หรือ manager เท่านั้น
+--    - สิทธิ์: owner หรือ manager หรือ service_role
 --    - คืนสต็อก menu_items + บันทึก stock_logs
 --    - ดึงแต้ม loyalty_members คืน + บันทึก points_logs
 --    - ปรับสถานะ orders.status = 'voided', order_items.status = 'voided', payments.is_voided = TRUE
@@ -52,8 +52,12 @@ DECLARE
   v_new_stock     INT;
   v_note          TEXT := NULLIF(TRIM(COALESCE(p_reason_note, '')), '');
 BEGIN
-  -- 3.1 สิทธิ์: ต้องเป็น owner หรือ manager
-  IF NOT (public.is_service_role() OR public.jwt_emp_role() IN ('owner', 'manager')) THEN
+  -- 3.1 สิทธิ์: ต้องเป็น owner หรือ manager หรือ service_role
+  IF NOT (
+    COALESCE(NULLIF(current_setting('request.jwt.claims', true), '')::jsonb->>'role', '') = 'service_role'
+    OR current_user = 'service_role'
+    OR public.jwt_emp_role() IN ('owner', 'manager')
+  ) THEN
     RAISE EXCEPTION 'forbidden';
   END IF;
 
@@ -227,4 +231,3 @@ REVOKE EXECUTE ON FUNCTION public.void_completed_order(INT, TEXT, TEXT) FROM PUB
 GRANT  EXECUTE ON FUNCTION public.void_completed_order(INT, TEXT, TEXT) TO authenticated, service_role;
 
 COMMIT;
-
