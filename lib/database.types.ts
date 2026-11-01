@@ -1023,6 +1023,15 @@ export type Database = {
         }
         Returns: boolean
       }
+
+      void_completed_order: {
+        Args: {
+          p_order_id: number
+          p_reason_code: string
+          p_reason_note?: string | null
+        }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never

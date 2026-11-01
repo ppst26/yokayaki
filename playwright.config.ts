@@ -31,9 +31,9 @@ export default defineConfig({
       ...appEnv,
       NODE_ENV: 'production',
       M5_ORG_AUTH_SKIP:
-        process.env.E2E_ORG_EMAIL ?? appEnv.E2E_ORG_EMAIL
+        (process.env.E2E_ORG_EMAIL || appEnv.E2E_ORG_EMAIL)
           ? 'false'
-          : (process.env.M5_ORG_AUTH_SKIP ?? appEnv.M5_ORG_AUTH_SKIP ?? 'true'),
+          : (process.env.M5_ORG_AUTH_SKIP || appEnv.M5_ORG_AUTH_SKIP || 'true'),
     },
   },
 });

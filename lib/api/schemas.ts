@@ -107,6 +107,25 @@ export const voidOrderBodySchema = z
     { message: 'กรุณาระบุเหตุผลในการ Void', path: ['reasonNote'] }
   );
 
+export const voidCompletedBillBodySchema = z
+  .object({
+    orderId: z.number().int().positive('รหัสออเดอร์ไม่ถูกต้อง'),
+    pin: pinSchema,
+    reasonCode: voidReasonCodeSchema,
+    reasonNote: z
+      .union([z.string(), z.null()])
+      .optional()
+      .transform(v => {
+        if (typeof v !== 'string') return null;
+        const t = v.trim();
+        return t ? t.slice(0, 255) : null;
+      }),
+  })
+  .refine(
+    data => data.reasonCode !== VOID_REASON_OTHER || data.reasonNote,
+    { message: 'กรุณาระบุเหตุผลในการยกเลิกบิล', path: ['reasonNote'] }
+  );
+
 export const checkoutBodySchema = z.object({
   orderId: z.number().int().positive(),
   cashReceived: z.number().min(0),

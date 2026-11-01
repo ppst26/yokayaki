@@ -24,6 +24,7 @@ interface CompletedOrder {
   id: number;
   table_id: string;
   table_number?: number;
+  status?: 'completed' | 'voided';
   created_at: string;
   payment: {
     id: number;
@@ -130,8 +131,8 @@ export const SalesHistory: React.FC = () => {
 
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
-        .select('id, table_id, created_at, tables(table_number)')
-        .eq('status', 'completed')
+        .select('id, table_id, status, created_at, tables(table_number)')
+        .in('status', ['completed', 'voided'])
         .gte('created_at', startISO)
         .lte('created_at', endISO)
         .order('created_at', { ascending: false });
@@ -247,6 +248,7 @@ export const SalesHistory: React.FC = () => {
           id: order.id,
           table_id: order.table_id,
           table_number: (order as any).tables?.table_number,
+          status: (order as any).status as 'completed' | 'voided',
           created_at: order.created_at ?? '',
           payment: payment
             ? {
@@ -309,6 +311,7 @@ export const SalesHistory: React.FC = () => {
       id: order.id,
       table_id: order.table_id,
       table_number: (order as { tables?: { table_number?: number } | null }).tables?.table_number,
+      status: (order as any).status as 'completed' | 'voided',
       created_at: order.created_at ?? '',
       payment: null,
       promos: [],
@@ -344,12 +347,16 @@ export const SalesHistory: React.FC = () => {
       setDetailLoading(true);
       setSelectedOrder(order);
 
-      const { data, error } = await supabase
+      let query = supabase
         .from('order_items')
         .select('id, quantity, unit_price, notes, menu_items(name)')
-        .eq('order_id', order.id)
-        .neq('status', 'voided')
-        .order('id', { ascending: true });
+        .eq('order_id', order.id);
+
+      if (order.status !== 'voided') {
+        query = query.neq('status', 'voided');
+      }
+
+      const { data, error } = await query.order('id', { ascending: true });
 
       if (error) throw error;
       setOrderItems((data || []) as unknown as OrderItemDetail[]);
@@ -369,9 +376,10 @@ export const SalesHistory: React.FC = () => {
     ]);
   }, [auditRange, employee?.id, showKpi]);
 
-  const totalRevenue = orders.reduce((s, o) => s + (o.payment?.net_amount || 0), 0);
-  const totalDiscount = orders.reduce((s, o) => s + (o.payment?.discount_amount || 0), 0);
-  const totalBills = orders.length;
+  const completedOrders = orders.filter(o => o.status !== 'voided');
+  const totalRevenue = completedOrders.reduce((s, o) => s + (o.payment?.net_amount || 0), 0);
+  const totalDiscount = completedOrders.reduce((s, o) => s + (o.payment?.discount_amount || 0), 0);
+  const totalBills = completedOrders.length;
   const totalVoidCount = voidLogs.length;
   const totalVoidAmount = voidLogs.reduce((s, l) => s + Number(l.total_amount || 0), 0);
 
@@ -530,6 +538,10 @@ export const SalesHistory: React.FC = () => {
         getPromoTypeLabel={getPromoTypeLabel}
         formatTime={formatTime}
         auditMode={!showKpi}
+        onOrderVoided={() => {
+          fetchOrdersForRange(auditRange);
+          fetchVoidLogsForRange(auditRange);
+        }}
       />
 
       {/* ===== FAB ปริ้นสรุปออเดอร์ประจำวัน ===== */}
@@ -608,7 +620,7 @@ export const SalesHistory: React.FC = () => {
           <div className="border-t border-dashed border-gray-400 my-2" />
           <p className="text-[12px] font-bold text-center mb-1">รายการบิล</p>
 
-          {orders.map(order => (
+          {completedOrders.map(order => (
             <div key={order.id} className="receipt-item py-0.5">
               <div className="flex justify-between gap-2 text-[12px] font-semibold">
                 <span className="min-w-0">

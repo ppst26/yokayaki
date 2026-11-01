@@ -8,3 +8,7 @@ export async function goToFloorTab(page: Page): Promise<void> {
 export async function goToKitchenTab(page: Page): Promise<void> {
   await page.getByRole('button', { name: /หน้าจอครัว|หน้าครัว/ }).first().click();
 }
+
+export async function goToHistoryTab(page: Page): Promise<void> {
+  await page.getByRole('button', { name: /ออเดอร์ประจำวัน|ประวัติการขาย/ }).first().click();
+}

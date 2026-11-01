@@ -1,9 +1,5 @@
-import { supabaseAdmin, createIsolatedServiceClient } from '@/lib/supabaseAdmin';
-import { requireManageEmployees, errorResponse, clientKeyFrom, HttpError } from '@/lib/session';
-import type { StaffClaims } from '@/lib/authToken';
-import type { EmployeeRole } from '@/lib/permissions';
-import { enforceRateLimit } from '@/lib/rateLimit';
-import { pinLookupHash } from '@/lib/pinLookup';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { requireManageEmployees, errorResponse } from '@/lib/session';
 import { parseJsonBody, parseValue } from '@/lib/api/parse';
 import {
   employeeDeleteBodySchema,
@@ -11,6 +7,8 @@ import {
   employeeUpdateBodySchema,
   pinSchema,
 } from '@/lib/api/schemas';
+import { pinLookupHash } from '@/lib/pinLookup';
+import { assertStepUpPin } from '@/lib/stepUpPin';
 
 const RESULT_MESSAGES: Record<string, string> = {
   not_found: 'ไม่พบพนักงานที่ต้องการ',
@@ -18,47 +16,6 @@ const RESULT_MESSAGES: Record<string, string> = {
   last_owner: 'ไม่สามารถทำรายการได้ เพราะจะทำให้ร้านไม่เหลือเจ้าของร้าน',
   self_delete: 'ไม่สามารถลบบัญชีของตัวเองได้',
 };
-
-const STEP_UP_ROLES: EmployeeRole[] = ['owner', 'manager'];
-
-async function assertStepUpPin(request: Request, pin: string, actor: StaffClaims): Promise<void> {
-  const limited = enforceRateLimit({
-    key: `owner-confirm:${clientKeyFrom(request)}`,
-    max: 15,
-    windowMs: 60 * 1000,
-  });
-  if (limited) {
-    throw new HttpError(429, 'ยืนยัน PIN ผิดหลายครั้ง กรุณารอก่อน');
-  }
-
-  // client แยก — ห้ามใช้ singleton หลัง org-login (JWT จะกลายเป็น authenticated)
-  const db = createIsolatedServiceClient();
-  const { data, error } = await db.rpc('verify_pin', {
-    p_pin: pin,
-    p_client_key: clientKeyFrom(request),
-    p_pin_lookup: pinLookupHash(pin),
-  });
-  if (error) throw error;
-
-  const row = Array.isArray(data) ? data[0] : data;
-
-  if (row?.locked_seconds > 0) {
-    throw new HttpError(429, 'ยืนยัน PIN ผิดหลายครั้ง ระบบถูกล็อคชั่วคราว');
-  }
-  if (!row?.emp_id || !STEP_UP_ROLES.includes(row.emp_role as EmployeeRole)) {
-    throw new HttpError(403, 'PIN ไม่ถูกต้อง หรือไม่มีสิทธิ์อนุมัติรายการนี้');
-  }
-
-  const { data: empRow, error: empError } = await supabaseAdmin
-    .from('employees')
-    .select('org_id')
-    .eq('id', row.emp_id)
-    .single();
-
-  if (empError || empRow?.org_id !== actor.orgId) {
-    throw new HttpError(403, 'PIN ไม่ถูกต้อง หรือไม่มีสิทธิ์อนุมัติรายการนี้');
-  }
-}
 
 export async function PATCH(
   request: Request,

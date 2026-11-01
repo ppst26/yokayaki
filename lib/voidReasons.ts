@@ -1,11 +1,8 @@
 // =============================================================
-// เหตุผลการยกเลิกรายการ (Void) — แหล่งเดียวของทั้ง POS และหน้าจอครัว
+// เหตุผลการยกเลิกรายการ (Void) — แหล่งเดียวของทั้ง POS, หน้าจอครัว และประวัติการขาย
 //
-// เดิมสองหน้าจอมีรายการคนละชุด (L15) และ RPC ตัดสินคืนสต็อกด้วยการ match
-// ข้อความไทย (A7.5) → เปลี่ยน label หรือพิมพ์ผิดตัวเดียว สต็อกก็เพี้ยนเงียบๆ
-//
-// ⚠️ ค่า `code` ต้องตรงกับ CASE ใน void_order_item
-//    (supabase/migrations/20260828_audit_and_integrity.sql)
+// ⚠️ ค่า `code` ต้องตรงกับ CASE ใน void_order_item และ void_completed_order
+//    (supabase/migrations/20260828_audit_and_integrity.sql & 20261101_void_completed_order.sql)
 //    การคืนสต็อกตัดสินที่ฝั่ง DB เท่านั้น — `restoresStock` ที่นี่ใช้บอกผู้ใช้ให้รู้ตัวก่อนกด
 // =============================================================
 
@@ -18,6 +15,8 @@ export interface VoidReason {
 
 export const VOID_REASONS: readonly VoidReason[] = [
   { code: 'wrong_key', label: 'คีย์ออเดอร์ผิด', restoresStock: true },
+  { code: 'wrong_bill', label: 'คีย์ผิด / คิดเงินผิดโต๊ะ', restoresStock: true },
+  { code: 'customer_cancel', label: 'ลูกค้ายกเลิก / ขอคืนเงิน', restoresStock: true },
   { code: 'customer_changed', label: 'ลูกค้าเปลี่ยนใจ', restoresStock: false },
   { code: 'cooking_error', label: 'ทำอาหารผิดพลาด', restoresStock: false },
   { code: 'too_slow', label: 'รอนานเกินไป', restoresStock: false },
