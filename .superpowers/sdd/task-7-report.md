@@ -1,31 +1,17 @@
-# Task 7 Report: requireManageEmployees + employee routes
+# Task 7 Completion Report: 2-Tier Category Navigation on Customer QR Portal
 
-**Plan:** `docs/superpowers/plans/2026-09-06-m5-auth-rbac-implementation-plan.md`  
-**Status:** complete
+- **Status**: DONE
+- **Commits created**: `c97d2be` ("feat(customer): mobile-friendly dual-tier category navigation")
+- **One-line test summary**: All 13 unit test files / 74 tests passed (`vitest run`), and `tsc --noEmit` passed with 0 errors.
+- **Concerns**: None.
+- **Security Check**: Verified that `@/lib/supabase` is NOT imported in `app/customer/[session_id]/page.tsx`. Zero client credentials leaked.
 
-## Summary
-
-เพิ่ม `requireManageEmployees()` ใน `lib/session.ts` ให้ owner และ manager เข้าถึง employee CRUD API ได้ แทน `requireOwner()` ที่จำกัดเฉพาะ owner
-
-## Changes
-
-| File | Change |
-|------|--------|
-| `lib/session.ts` | เพิ่ม `MANAGE_EMPLOYEES` constant และ `requireManageEmployees()` — 403 ข้อความไทยเมื่อ role ไม่ใช่ owner/manager |
-| `app/api/employees/route.ts` | GET/POST ใช้ `requireManageEmployees()` |
-| `app/api/employees/[id]/route.ts` | PATCH/DELETE ใช้ `requireManageEmployees()` |
-
-## Unchanged (by design)
-
-- `assertOwnerConfirmPin()` ใน `[id]/route.ts` ยังต้องยืนยัน PIN ของ **owner** สำหรับการแก้ role/PIN และการลบพนักงาน (step-up auth)
-- `requireOwner()` ยังคงใช้ใน upload routes (`presign`, `delete`)
-
-## Verification
-
-```bash
-pnpm typecheck  # exit 0
-```
-
-## Commit
-
-`feat(api): allow manager role for employee CRUD`
+### Summary of Deliverables:
+1. `app/api/customer/[session_id]/state/route.ts`:
+   - Updated GET handler to fetch `menu_categories` (`id`, `name`, `sort_order`, `parent_id`) and `promotion_targets` using `supabaseAdmin`.
+   - Returns `categories` and `promoTargets` in the state response payload.
+2. `app/customer/[session_id]/page.tsx`:
+   - Renders Row 1 (Main Category horizontal pills) and Row 2 (Sub Category pills under active Main Category).
+   - Filters visible menu items based on dual-tier selection using `filterMenuItemsByCategory`.
+   - Computes promo badges using `getItemPromoBadge` and displays `[🏷️ ลด %]` badges on qualifying items.
+   - Preserves responsive mobile layout and dark mode styling.

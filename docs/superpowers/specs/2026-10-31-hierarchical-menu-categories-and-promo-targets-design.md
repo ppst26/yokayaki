@@ -176,3 +176,4 @@ When evaluating a promotion `v_promo` in `complete_checkout`:
 - Verify save commit updates database correctly without reload glitches.
 - Verify POS navigation tabs switch sub-categories properly.
 - Verify Customer QR portal reflects category structure without exposing direct Supabase credentials.
+

@@ -1,143 +1,56 @@
-## Task 3: Design Tokens - Card, Typography & Spacing
+### Task 3: Data Access Layer & Category Tree Helpers
 
 **Files:**
-- Modify: `app/globals.css:@layer base :root` (continue from Task 2)
+- Modify: `lib/menuCategories.ts`
+- Create: `lib/promoTargets.ts`
+- Modify: `lib/menuCategories.test.ts`
+- Create: `lib/promoTargets.test.ts`
 
 **Interfaces:**
-- Consumes: Existing tokens from Task 2
-- Produces:
-  - Card tokens: `--card-padding`, `--card-padding-sm`, `--card-padding-lg`, `--card-radius`, `--card-radius-sm`, `--card-gap`
-  - Typography tokens: `--text-card-title`, `--text-card-value`, `--text-table-cell`
-  - Spacing tokens: `--space-section`, `--space-component`, `--space-element`
-  - Component tokens: `--pos-cart-width`, `--kitchen-cols`, `--manager-table-font`
+- Produces in `lib/menuCategories.ts`:
+  - `MenuCategoryRow` with `parent_id?: number | null`
+  - `CategoryTreeItem`: `{ id, name, sort_order, parent_id, children: CategoryTreeItem[] }`
+  - `buildCategoryTree(categories: MenuCategoryRow[]): CategoryTreeItem[]`
+  - `saveCategoryHierarchy(updates: Array<{ id: number; parent_id: number | null; sort_order: number }>): Promise<{ error: string | null }>`
+- Produces in `lib/promoTargets.ts`:
+  - `PromotionTargetRow`: `{ id, promotion_id, target_type, target_id }`
+  - `fetchPromotionTargets(promoId: number): Promise<PromotionTargetRow[]>`
+  - `savePromotionTargets(promoId: number, targets: Array<{ target_type: string; target_id: number }>): Promise<{ error: string | null }>`
 
-**Duration:** 30 minutes
-
----
-
-- [ ] **Step 1: Add card, typography & spacing tokens to mobile defaults**
-
-```css
-    /* Card Tokens - Mobile */
-    --card-padding: 1rem;
-    --card-padding-sm: 0.75rem;
-    --card-padding-lg: 1.5rem;
-    --card-radius: 1rem;
-    --card-radius-sm: 0.75rem;
-    --card-gap: 0.75rem;
-    
-    /* Typography Tokens - Mobile */
-    --text-card-title: 0.875rem;
-    --text-card-value: 1.5rem;
-    --text-table-cell: 0.875rem;
-    
-    /* Spacing Tokens - Mobile */
-    --space-section: 1.5rem;
-    --space-component: 1rem;
-    --space-element: 0.5rem;
-    
-    /* Component-Specific Tokens - Mobile */
-    --pos-cart-width: 100%;
-    --kitchen-cols: 1;
-    --manager-table-font: 0.875rem;
-    --manager-form-width: 100%;
+- [ ] **Step 1: Write unit tests in `lib/menuCategories.test.ts`**
+```typescript
+it('buildCategoryTree correctly groups parent and child categories', () => {
+  const rows: MenuCategoryRow[] = [
+    { id: 1, org_id: 'org1', name: 'อาหาร', sort_order: 1, parent_id: null, created_at: '' },
+    { id: 2, org_id: 'org1', name: 'ของทานเล่น', sort_order: 1, parent_id: 1, created_at: '' },
+    { id: 3, org_id: 'org1', name: 'จานหลัก', sort_order: 2, parent_id: 1, created_at: '' },
+    { id: 4, org_id: 'org1', name: 'เครื่องดื่ม', sort_order: 2, parent_id: null, created_at: '' },
+  ];
+  const tree = buildCategoryTree(rows);
+  expect(tree).toHaveLength(2);
+  expect(tree[0].name).toBe('อาหาร');
+  expect(tree[0].children).toHaveLength(2);
+  expect(tree[0].children[0].name).toBe('ของทานเล่น');
+  expect(tree[1].name).toBe('เครื่องดื่ม');
+  expect(tree[1].children).toHaveLength(0);
+});
 ```
 
-- [ ] **Step 2: Add card & spacing tokens to tablet breakpoint**
+- [ ] **Step 2: Run unit test to verify failure**
+Run: `pnpm test:unit lib/menuCategories.test.ts`
+Expected: FAIL (buildCategoryTree is not defined).
 
-```css
-  @media (--tablet) {
-    :root {
-      /* ... existing layout & grid tokens ... */
-      
-      /* Card */
-      --card-padding: 1.25rem;
-      --card-padding-sm: 1rem;
-      --card-padding-lg: 1.75rem;
-      --card-radius: 1.25rem;
-      --card-gap: 1rem;
-      
-      /* Spacing */
-      --space-section: 2rem;
-      --space-component: 1.25rem;
-      
-      /* Component-Specific */
-      --pos-cart-width: 380px;
-      --kitchen-cols: 2;
-      --manager-form-width: 600px;
-    }
-  }
-```
+- [ ] **Step 3: Implement tree helpers in `lib/menuCategories.ts` and `lib/promoTargets.ts`**
+Update `lib/menuCategories.ts` with `buildCategoryTree` and `saveCategoryHierarchy`.
+Create `lib/promoTargets.ts` with Supabase fetch/save functions.
 
-- [ ] **Step 3: Add tokens to tablet-xl breakpoint**
+- [ ] **Step 4: Run unit tests to verify pass**
+Run: `pnpm test:unit lib/menuCategories.test.ts`
+Expected: PASS.
 
-```css
-  @media (--tablet-xl) {
-    :root {
-      /* ... existing tokens ... */
-      
-      /* Card */
-      --card-padding: 1.5rem;
-      --card-radius: 1.5rem;
-      
-      /* Component-Specific */
-      --kitchen-cols: 3;
-    }
-  }
-```
-
-- [ ] **Step 4: Add tokens to desktop breakpoint**
-
-```css
-  @media (--desktop) {
-    :root {
-      /* ... existing tokens ... */
-      
-      /* Card */
-      --card-padding: 2rem;
-      
-      /* Typography */
-      --text-card-title: 1.125rem;
-      --text-card-value: 2rem;
-      --text-table-cell: 1rem;
-      
-      /* Spacing */
-      --space-section: 2.5rem;
-      --space-component: 1.5rem;
-    }
-  }
-```
-
-- [ ] **Step 5: Add shared tablet typography (all iPad sizes)**
-
-```css
-  /* Typography adjustments for all iPad sizes */
-  @media (--tablet-all) {
-    :root {
-      --text-card-title: 1rem;
-      --text-card-value: 1.75rem;
-      --text-table-cell: 0.9375rem;
-    }
-  }
-```
-
-- [ ] **Step 6: Verify token values at all breakpoints**
-
-DevTools → Computed → Check multiple tokens at each breakpoint
-Expected: Values change smoothly
-
-- [ ] **Step 7: Commit card, typography & spacing tokens**
-
+- [ ] **Step 5: Commit**
 ```bash
-git add app/globals.css
-git commit -m "feat(tokens): add card, typography & spacing tokens
-
-- Card tokens: padding, radius variants
-- Typography tokens: card titles, values, table cells
-- Spacing tokens: section, component, element gaps
-- Component-specific tokens: POS cart, kitchen, manager pages
-- Complete token system for all components"
+git add lib/menuCategories.ts lib/promoTargets.ts lib/menuCategories.test.ts
+git commit -m "feat: add category tree helpers and promo targets data layer"
 ```
-
----
 

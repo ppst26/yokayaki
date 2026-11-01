@@ -1,129 +1,83 @@
-## Task 2: Design Tokens - Layout & Grid
+### Task 2: Database Regression Tests
 
 **Files:**
-- Modify: `app/globals.css` (after custom media queries)
+- Modify: `supabase/tests/checkout_promo.sql`
 
 **Interfaces:**
-- Consumes: Custom media queries from Task 1
-- Produces:
-  - Layout tokens: `--sidebar-width`, `--content-padding`, `--page-margin`
-  - Grid tokens: `--grid-cols-menu`, `--grid-cols-table`, `--grid-cols-cards`, `--grid-gap`, `--grid-gap-lg`
+- Consumes: `complete_checkout`, `promotion_targets`, `menu_categories (parent_id)`
+- Produces: Verified SQL assertions in docker test suite
 
-**Duration:** 30 minutes
+- [ ] **Step 1: Write test assertions in `supabase/tests/checkout_promo.sql`**
+Append target promotion test cases to `supabase/tests/checkout_promo.sql`:
+```sql
+-- -------------------------------------------------------------
+-- ส่วนลดเฉพาะกลุ่มใหญ่ (Food 10% - อาหารลด เครื่องดื่มไม่ลด)
+-- -------------------------------------------------------------
+DO $$
+DECLARE
+  v_main_food INT;
+  v_sub_snack INT;
+  v_main_bev  INT;
+  v_sub_drink INT;
+  v_food_item INT;
+  v_bev_item  INT;
+  v_promo     INT;
+  v_order     INT;
+  v_res       RECORD;
+  v_tbl1      UUID := pg_temp.table_id(1);
+BEGIN
+  PERFORM set_config('request.jwt.claims',
+    '{"emp_id":1,"emp_name":"ผู้ทดสอบ","emp_role":"owner","org_id":"00000000-0000-4000-8000-000000000001"}', TRUE);
 
----
+  -- Setup categories
+  INSERT INTO menu_categories (name, parent_id, org_id) VALUES ('กลุ่มอาหารทดสอบ', NULL, '00000000-0000-4000-8000-000000000001') RETURNING id INTO v_main_food;
+  INSERT INTO menu_categories (name, parent_id, org_id) VALUES ('อาหารทานเล่นทดสอบ', v_main_food, '00000000-0000-4000-8000-000000000001') RETURNING id INTO v_sub_snack;
 
-- [ ] **Step 1: Add base layer with mobile defaults**
+  INSERT INTO menu_categories (name, parent_id, org_id) VALUES ('กลุ่มเครื่องดื่มทดสอบ', NULL, '00000000-0000-4000-8000-000000000001') RETURNING id INTO v_main_bev;
+  INSERT INTO menu_categories (name, parent_id, org_id) VALUES ('เครื่องดื่มทั่วไปทดสอบ', v_main_bev, '00000000-0000-4000-8000-000000000001') RETURNING id INTO v_sub_drink;
 
-```css
-/* app/globals.css - after custom media queries */
+  -- Setup menu items
+  INSERT INTO menu_items (name, price, stock, is_happy_hour, category, is_stock_tracked, org_id)
+  VALUES ('เกี๊ยวซ่าทดสอบ', 500.00, 50, FALSE, 'อาหารทานเล่นทดสอบ', TRUE, '00000000-0000-4000-8000-000000000001')
+  RETURNING id INTO v_food_item;
 
-@layer base {
-  /* ===================================
-     DESIGN TOKENS - iPad Responsive System
-     =================================== */
-  
-  :root {
-    /* Layout Tokens - Mobile (< 768px) */
-    --sidebar-width: 0;
-    --sidebar-padding: 1.25rem;
-    --content-padding: 1rem;
-    --content-max-width: 100%;
-    --page-margin: 1rem;
-    
-    /* Grid Tokens - Mobile */
-    --grid-cols-menu: 2;
-    --grid-cols-table: 2;
-    --grid-cols-cards: 1;
-    --grid-gap: 0.75rem;
-    --grid-gap-lg: 1rem;
-  }
-}
+  INSERT INTO menu_items (name, price, stock, is_happy_hour, category, is_stock_tracked, org_id)
+  VALUES ('ชาเขียวทดสอบ', 200.00, 50, FALSE, 'เครื่องดื่มทั่วไปทดสอบ', TRUE, '00000000-0000-4000-8000-000000000001')
+  RETURNING id INTO v_bev_item;
+
+  -- Create promo targeting Main Category (Food)
+  INSERT INTO promotions (name, type, discount_percent, min_order_amount, is_active, org_id)
+  VALUES ('ลดกลุ่มอาหาร 10%', 'percentage', 10, 0, TRUE, '00000000-0000-4000-8000-000000000001')
+  RETURNING id INTO v_promo;
+  PERFORM pg_temp.only_promo(v_promo);
+
+  INSERT INTO promotion_targets (promotion_id, target_type, target_id, org_id)
+  VALUES (v_promo, 'main_category', v_main_food, '00000000-0000-4000-8000-000000000001');
+
+  -- Order 500 Food + 200 Bev = 700 THB
+  PERFORM pg_temp.reset_table(v_tbl1);
+  PERFORM public.place_order_item(v_tbl1, v_food_item, 1, NULL);
+  PERFORM public.place_order_item(v_tbl1, v_bev_item, 1, NULL);
+
+  SELECT o.id INTO v_order FROM orders o WHERE o.table_id = v_tbl1 AND o.status = 'active';
+  SELECT * INTO v_res FROM public.complete_checkout(v_order, 1000, NULL, NULL, 0);
+
+  -- Assert: Discount = 50 (10% of 500), Net = 650
+  IF v_res.subtotal <> 700 OR v_res.promo_discount <> 50 OR v_res.net_amount <> 650 THEN
+    RAISE EXCEPTION 'Targeted Main Category Promo ล้มเหลว: subtotal %, discount % (คาดหวัง 50), net % (คาดหวัง 650)',
+      v_res.subtotal, v_res.promo_discount, v_res.net_amount;
+  END IF;
+END $$;
 ```
 
-- [ ] **Step 2: Add tablet breakpoint tokens (768-833px)**
+- [ ] **Step 2: Run docker tests to verify**
+Run: `pnpm db:reset && pnpm db:test`
+Expected output: All 50+ assertions pass including target promo checks.
 
-```css
-  /* Tablet (768-833px) - iPad standard, iPad Mini */
-  @media (--tablet) {
-    :root {
-      /* Layout */
-      --sidebar-width: 240px;
-      --content-padding: 1.5rem;
-      --content-max-width: calc(100vw - 240px);
-      --page-margin: 1.5rem;
-      
-      /* Grid */
-      --grid-cols-menu: 2;        /* Keep 2 (sidebar takes space) */
-      --grid-cols-table: 3;       /* 3 table cards fit well */
-      --grid-cols-cards: 2;       /* 2-column stat cards */
-      --grid-gap: 1rem;
-      --grid-gap-lg: 1.25rem;
-    }
-  }
-```
-
-- [ ] **Step 3: Add tablet-xl breakpoint tokens (834-1023px)**
-
-```css
-  /* Tablet XL (834-1023px) - iPad Pro 11", iPad Air */
-  @media (--tablet-xl) {
-    :root {
-      /* Layout */
-      --sidebar-width: 256px;
-      --content-padding: 1.75rem;
-      --content-max-width: calc(100vw - 256px);
-      
-      /* Grid */
-      --grid-cols-menu: 3;        /* 3 menu items per row */
-      --grid-cols-table: 3;       /* Keep 3 (good balance) */
-      --grid-cols-cards: 2;       /* Keep 2 (card width ideal) */
-      --grid-gap: 1.25rem;
-      --grid-gap-lg: 1.5rem;
-    }
-  }
-```
-
-- [ ] **Step 4: Add desktop breakpoint tokens (1024px+)**
-
-```css
-  /* Desktop (1024px+) - iPad Pro 12.9", Desktop monitors */
-  @media (--desktop) {
-    :root {
-      /* Layout */
-      --sidebar-width: 288px;
-      --content-padding: 2rem;
-      --content-max-width: calc(100vw - 288px);
-      --page-margin: 2rem;
-      
-      /* Grid */
-      --grid-cols-menu: 4;        /* 4-column menu grid */
-      --grid-cols-table: 4;       /* 4 table cards */
-      --grid-cols-cards: 3;       /* 3-column stats */
-    }
-  }
-```
-
-- [ ] **Step 5: Verify tokens in DevTools**
-
-Open DevTools → Elements → Computed → Filter `--sidebar-width`
-Resize viewport and verify:
-- < 768px: `0`
-- 768-833px: `240px`
-- 834-1023px: `256px`
-- 1024px+: `288px`
-
-- [ ] **Step 6: Commit layout & grid tokens**
-
+- [ ] **Step 3: Commit test updates**
 ```bash
-git add app/globals.css
-git commit -m "feat(tokens): add layout and grid design tokens
-
-- Add layout tokens: sidebar width, content padding, page margin
-- Add grid tokens: column counts, gaps
-- Values change automatically at 4 breakpoints
-- Base for component migration"
+git add supabase/tests/checkout_promo.sql
+git commit -m "test(db): add regression tests for category target promotions"
 ```
 
 ---
-

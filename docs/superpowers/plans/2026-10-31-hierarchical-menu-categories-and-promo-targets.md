@@ -692,3 +692,4 @@ Expected: Next.js build succeeds with static pages generated.
 ```bash
 git status
 ```
+
