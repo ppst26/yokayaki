@@ -8,4 +8,11 @@ test.describe('smoke', () => {
     const orgLogin = page.getByText(/เข้าสู่ระบบองค์กรก่อนใช้ PIN/i);
     await expect(pinKey.or(orgLogin)).toBeVisible({ timeout: 15_000 });
   });
+
+  test('หน้าเมนูดิจิทัล (/menu) โหลดได้ ดูได้อย่างเดียวโดยไม่ต้องล็อกอิน', async ({ page }) => {
+    await page.goto('/menu');
+    await expect(page.getByText('YO-YAKI IZAKAYA').first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText(/Digital Menu/i).first()).toBeVisible();
+    await expect(page.getByPlaceholder('ค้นหาเมนู...')).toBeVisible();
+  });
 });

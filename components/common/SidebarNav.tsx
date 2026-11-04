@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { canAccessTab, type EmployeeRole } from '@/lib/permissions';
 import { SidebarBrand } from '@/components/common/SidebarBrand';
+import { StaticMenuQRButton } from '@/components/menu/StaticMenuQR';
 import { ThemeToggleIcon } from '@/components/common/ThemeToggleIcon';
 import { applyTheme, readStoredTheme, switchTheme, type Theme } from '@/lib/theme';
 import {
@@ -315,6 +316,10 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                       <UtensilsCrossed className="w-4.5 h-4.5" />
                       <span>จัดการเมนู</span>
                     </button>
+                    )}
+
+                    {canAccessTab(role, 'menu') && (
+                      <StaticMenuQRButton isDrawer />
                     )}
 
                     {canAccessTab(role, 'stock') && (
@@ -692,6 +697,10 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                   <UtensilsCrossed className="w-4.5 h-4.5 shrink-0" />
                   <span className="sidebar-nav-label">จัดการเมนู</span>
                 </button>
+                )}
+
+                {canAccessTab(role, 'menu') && (
+                  <StaticMenuQRButton />
                 )}
 
                 {canAccessTab(role, 'stock') && (

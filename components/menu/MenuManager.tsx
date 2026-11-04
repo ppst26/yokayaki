@@ -19,7 +19,9 @@ import {
   ArrowDown,
   ArrowUpDown,
   Settings,
+  QrCode,
 } from 'lucide-react';
+import { StaticMenuQRModal } from './StaticMenuQR';
 import { Card } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { CustomSelect, SelectOption } from '@/components/ui/select';
@@ -208,6 +210,7 @@ export const MenuManager: React.FC = () => {
   const [isToggling, setIsToggling] = useState(false);
   const [previousImageUrl, setPreviousImageUrl] = useState<string | null>(null);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
 
   const categoryScrollRef = useRef<HTMLDivElement>(null);
 
@@ -531,13 +534,23 @@ export const MenuManager: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={openAddModal}
-          className="flex items-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 btn-crimson text-white rounded-xl text-xs font-extrabold transition active:scale-95 shadow-md shadow-red-600/20 cursor-pointer shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>เพิ่มเมนูอาหารใหม่</span>
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={() => setShowQRModal(true)}
+            className="flex items-center gap-1.5 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl text-xs font-bold bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 transition active:scale-95 cursor-pointer"
+          >
+            <QrCode className="w-4 h-4" />
+            <span className="hidden sm:inline">QR เมนูดิจิทัล</span>
+          </button>
+          <button
+            onClick={openAddModal}
+            className="flex items-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 btn-crimson text-white rounded-xl text-xs font-extrabold transition active:scale-95 shadow-md shadow-red-600/20 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>เพิ่มเมนูอาหารใหม่</span>
+          </button>
+        </div>
       </div>
 
       {/* Filters & Search */}
