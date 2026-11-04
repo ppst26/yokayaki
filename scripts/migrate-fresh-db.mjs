@@ -3,27 +3,57 @@
 //
 // วิธีใช้:
 //   node scripts/migrate-fresh-db.mjs "<SUPABASE_DB_URL>"
-//
-// ตัวอย่าง:
-//   node scripts/migrate-fresh-db.mjs "postgresql://postgres.xxx:mypassword@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres"
+//   node scripts/migrate-fresh-db.mjs "<SUPABASE_DB_URL>" --from 20260940_link_superadmin_user.sql
 // =============================================================
 
 import { spawnSync } from 'node:child_process';
 import { readdirSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 
-const dbUrl = process.argv[2] || process.env.SUPABASE_DB_URL;
+const args = process.argv.slice(2);
+const dbArg = args.find(a => !a.startsWith('--'));
+let rawUrl = dbArg || process.env.SUPABASE_DB_URL;
 
-if (!dbUrl) {
+if (!rawUrl) {
   console.error('\n❌ กรุณาระบุ Connection String ของฐานข้อมูล Supabase:');
   console.error('   node scripts/migrate-fresh-db.mjs "<SUPABASE_DB_URL>"\n');
   process.exit(1);
 }
 
+// ตรวจสอบและ encode อักขระพิเศษในรหัสผ่านอัตโนมัติ (เช่น #, ?, /)
+let dbUrl = rawUrl;
+const urlMatch = rawUrl.match(/^(postgresql:\/\/[^:]+:)(.*)(@[^@]+)$/);
+if (urlMatch) {
+  const [, prefix, pass, suffix] = urlMatch;
+  if (/[#?\/]/.test(pass) && !pass.includes('%')) {
+    dbUrl = `${prefix}${encodeURIComponent(pass)}${suffix}`;
+  }
+}
+
+// ตรวจสอบตัวเลือก --from
+let fromFile = null;
+const fromIndex = args.indexOf('--from');
+if (fromIndex !== -1 && args[fromIndex + 1]) {
+  fromFile = args[fromIndex + 1];
+} else {
+  const fromEq = args.find(a => a.startsWith('--from='));
+  if (fromEq) fromFile = fromEq.split('=')[1];
+}
+
 const migrationsDir = resolve(process.cwd(), 'supabase/migrations');
-const files = readdirSync(migrationsDir)
+let files = readdirSync(migrationsDir)
   .filter(f => f.endsWith('.sql'))
   .sort();
+
+if (fromFile) {
+  const startIndex = files.findIndex(f => f.includes(fromFile));
+  if (startIndex !== -1) {
+    console.log(`⏩ ข้ามไฟล์ก่อนหน้า เริ่มรันตั้งแต่: ${files[startIndex]}`);
+    files = files.slice(startIndex);
+  } else {
+    console.warn(`⚠️ ไม่พบไฟล์ที่ตรงกับ --from ${fromFile} จะเริ่มตั้งแต่ไฟล์แรก`);
+  }
+}
 
 console.log(`\n🚀 เริ่มต้นรัน Migration ทั้งหมด ${files.length} ไฟล์ขึ้น Supabase...`);
 console.log(`📍 ปลายทาง: ${dbUrl.replace(/:([^:@]+)@/, ':****@')}\n`);
