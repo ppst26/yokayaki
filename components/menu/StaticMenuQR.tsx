@@ -27,6 +27,15 @@ function StaticMenuQRModalContent({ onClose }: StaticMenuQRModalProps) {
     setMenuUrl(`${window.location.origin}/menu`);
   }, []);
 
+  // ปิด modal ด้วยปุ่ม Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(menuUrl);
@@ -188,7 +197,7 @@ function StaticMenuQRModalContent({ onClose }: StaticMenuQRModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm"
+      className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm"
       onClick={e => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -323,18 +332,31 @@ export function StaticMenuQRModal({ onClose }: StaticMenuQRModalProps) {
   return createPortal(<StaticMenuQRModalContent onClose={onClose} />, document.body);
 }
 
+interface StaticMenuQRButtonProps {
+  isDrawer?: boolean;
+  onClick?: () => void;
+}
+
 /**
  * StaticMenuQRButton — ปุ่มเปิด QR Modal (ใส่ใน SidebarNav)
  * แสดงเฉพาะ owner / role ที่มีสิทธิ์ menu
  */
-export function StaticMenuQRButton({ isDrawer = false }: { isDrawer?: boolean }) {
-  const [open, setOpen] = useState(false);
+export function StaticMenuQRButton({ isDrawer = false, onClick }: StaticMenuQRButtonProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+    } else {
+      setInternalOpen(true);
+    }
+  };
 
   return (
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={handleClick}
         title="QR เมนูอาหาร"
         className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none text-zinc-600 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 ${
           isDrawer ? '' : 'sidebar-nav-btn'
@@ -343,7 +365,7 @@ export function StaticMenuQRButton({ isDrawer = false }: { isDrawer?: boolean })
         <QrCode className="w-4.5 h-4.5 shrink-0" />
         <span className={isDrawer ? '' : 'sidebar-nav-label'}>QR เมนูอาหาร</span>
       </button>
-      {open && <StaticMenuQRModal onClose={() => setOpen(false)} />}
+      {!onClick && internalOpen && <StaticMenuQRModal onClose={() => setInternalOpen(false)} />}
     </>
   );
 }

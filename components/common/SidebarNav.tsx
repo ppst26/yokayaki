@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { canAccessTab, type EmployeeRole } from '@/lib/permissions';
 import { SidebarBrand } from '@/components/common/SidebarBrand';
-import { StaticMenuQRButton } from '@/components/menu/StaticMenuQR';
+import { StaticMenuQRButton, StaticMenuQRModal } from '@/components/menu/StaticMenuQR';
 import { ThemeToggleIcon } from '@/components/common/ThemeToggleIcon';
 import { applyTheme, readStoredTheme, switchTheme, type Theme } from '@/lib/theme';
 import {
@@ -50,6 +50,12 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
   const [pendingTablesCount, setPendingTablesCount] = useState<number>(0);
   const [checkingOutCount, setCheckingOutCount] = useState<number>(0);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMenuQrOpen, setIsMenuQrOpen] = useState(false);
+
+  // ปิด modal เสมอเมื่อ activeTab เปลี่ยน
+  useEffect(() => {
+    setIsMenuQrOpen(false);
+  }, [activeTab]);
 
   useEffect(() => {
     const fetchPendingTables = async () => {
@@ -180,7 +186,13 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
   };
 
   const handleTabClick = (tab: NavTab) => {
+    setIsMenuQrOpen(false);
     handleCloseDrawer(() => onSelectTab(tab));
+  };
+
+  const handleSelectTab = (tab: NavTab) => {
+    setIsMenuQrOpen(false);
+    onSelectTab(tab);
   };
 
   return (
@@ -319,7 +331,12 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                     )}
 
                     {canAccessTab(role, 'menu') && (
-                      <StaticMenuQRButton isDrawer />
+                      <StaticMenuQRButton
+                        isDrawer
+                        onClick={() => {
+                          handleCloseDrawer(() => setIsMenuQrOpen(true));
+                        }}
+                      />
                     )}
 
                     {canAccessTab(role, 'stock') && (
@@ -451,7 +468,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
         {canAccessTab(role, 'floor') && (
         <button
           type="button"
-          onClick={() => onSelectTab('floor')}
+          onClick={() => handleSelectTab('floor')}
           className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
             activeTab === 'floor'
               ? 'text-red-600 dark:text-red-400 font-bold'
@@ -478,7 +495,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
         {canAccessTab(role, 'kitchen') && (
         <button
           type="button"
-          onClick={() => onSelectTab('kitchen')}
+          onClick={() => handleSelectTab('kitchen')}
           className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
             activeTab === 'kitchen'
               ? 'text-red-600 dark:text-red-400 font-bold'
@@ -505,7 +522,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
         {canAccessTab(role, 'history') && (
           <button
             type="button"
-            onClick={() => onSelectTab('history')}
+            onClick={() => handleSelectTab('history')}
             className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
               activeTab === 'history'
                 ? 'text-red-600 dark:text-red-400 font-bold'
@@ -587,7 +604,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
             {canAccessTab(role, 'floor') && (
             <button
               type="button"
-              onClick={() => onSelectTab('floor')}
+              onClick={() => handleSelectTab('floor')}
               title="แผนผังโต๊ะ"
               className={`sidebar-nav-btn relative w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                 activeTab === 'floor'
@@ -624,7 +641,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
             {canAccessTab(role, 'kitchen') && (
             <button
               type="button"
-              onClick={() => onSelectTab('kitchen')}
+              onClick={() => handleSelectTab('kitchen')}
               title="หน้าจอครัว"
               className={`sidebar-nav-btn relative w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                 activeTab === 'kitchen'
@@ -661,7 +678,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
             {canAccessTab(role, 'history') && (
               <button
                 type="button"
-                onClick={() => onSelectTab('history')}
+                onClick={() => handleSelectTab('history')}
                 title="ออเดอร์ประจำวัน"
                 className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                   activeTab === 'history'
@@ -686,7 +703,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                 {canAccessTab(role, 'menu') && (
                 <button
                   type="button"
-                  onClick={() => onSelectTab('menu')}
+                  onClick={() => handleSelectTab('menu')}
                   title="จัดการเมนู"
                   className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                     activeTab === 'menu'
@@ -700,13 +717,13 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                 )}
 
                 {canAccessTab(role, 'menu') && (
-                  <StaticMenuQRButton />
+                  <StaticMenuQRButton onClick={() => setIsMenuQrOpen(true)} />
                 )}
 
                 {canAccessTab(role, 'stock') && (
                 <button
                   type="button"
-                  onClick={() => onSelectTab('stock')}
+                  onClick={() => handleSelectTab('stock')}
                   title="ต้นทุนวัตถุดิบ"
                   className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                     activeTab === 'stock'
@@ -722,7 +739,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                 {canAccessTab(role, 'promo') && (
                 <button
                   type="button"
-                  onClick={() => onSelectTab('promo')}
+                  onClick={() => handleSelectTab('promo')}
                   title="โปรโมชั่น"
                   className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                     activeTab === 'promo'
@@ -749,7 +766,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                 {canAccessTab(role, 'dashboard') && (
                 <button
                   type="button"
-                  onClick={() => onSelectTab('dashboard')}
+                  onClick={() => handleSelectTab('dashboard')}
                   title="รายงาน / Dashboard"
                   className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                     activeTab === 'dashboard'
@@ -765,7 +782,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                 {canAccessTab(role, 'loyalty') && (
                 <button
                   type="button"
-                  onClick={() => onSelectTab('loyalty')}
+                  onClick={() => handleSelectTab('loyalty')}
                   title="สมาชิก"
                   className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                     activeTab === 'loyalty'
@@ -781,7 +798,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
                 {canAccessTab(role, 'employees') && (
                 <button
                   type="button"
-                  onClick={() => onSelectTab('employees')}
+                  onClick={() => handleSelectTab('employees')}
                   title="จัดการพนักงาน"
                   className={`sidebar-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:outline-none select-none ${
                     activeTab === 'employees'
@@ -843,6 +860,10 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onSelectTab }
           </button>
         </div>
       </aside>
+
+      {isMenuQrOpen && (
+        <StaticMenuQRModal onClose={() => setIsMenuQrOpen(false)} />
+      )}
     </>
   );
 };
