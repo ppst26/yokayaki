@@ -9,10 +9,10 @@ test.describe('smoke', () => {
     await expect(pinKey.or(orgLogin)).toBeVisible({ timeout: 15_000 });
   });
 
-  test('หน้าเมนูดิจิทัล (/menu) โหลดได้ ดูได้อย่างเดียวโดยไม่ต้องล็อกอิน', async ({ page }) => {
+  test('หน้าเมนูอาหาร (/menu) โหลดได้ ดูได้อย่างเดียวโดยไม่ต้องล็อกอิน', async ({ page }) => {
     await page.goto('/menu');
     await expect(page.getByText('YO-YAKI IZAKAYA').first()).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByText(/Digital Menu/i).first()).toBeVisible();
+    await expect(page.getByText('รายการอาหาร').first()).toBeVisible();
     await expect(page.getByPlaceholder('ค้นหาเมนู...')).toBeVisible();
   });
 });

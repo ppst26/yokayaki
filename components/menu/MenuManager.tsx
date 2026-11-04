@@ -538,10 +538,10 @@ export const MenuManager: React.FC = () => {
           <button
             type="button"
             onClick={() => setShowQRModal(true)}
-            className="flex items-center gap-1.5 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl text-xs font-bold bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 transition active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl text-xs font-bold bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:text-red-600 dark:hover:text-red-400 border border-zinc-200 dark:border-zinc-700 transition active:scale-95 cursor-pointer"
           >
             <QrCode className="w-4 h-4" />
-            <span className="hidden sm:inline">QR เมนูดิจิทัล</span>
+            <span className="hidden sm:inline">QR เมนูอาหาร</span>
           </button>
           <button
             onClick={openAddModal}
