@@ -3,7 +3,16 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import QRCode from 'react-qr-code';
-import { QrCode, X, ExternalLink, Printer, Copy, Check } from 'lucide-react';
+import {
+  QrCode,
+  X,
+  ExternalLink,
+  Printer,
+  Copy,
+  Check,
+  Download,
+  FileCode,
+} from 'lucide-react';
 
 interface StaticMenuQRModalProps {
   onClose: () => void;
@@ -12,6 +21,7 @@ interface StaticMenuQRModalProps {
 function StaticMenuQRModalContent({ onClose }: StaticMenuQRModalProps) {
   const [menuUrl, setMenuUrl] = useState('');
   const [copied, setCopied] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     setMenuUrl(`${window.location.origin}/menu`);
@@ -24,6 +34,100 @@ function StaticMenuQRModalContent({ onClose }: StaticMenuQRModalProps) {
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // fallback
+    }
+  };
+
+  /**
+   * ดาวน์โหลดรูป QR ความละเอียดสูง 2048 x 2048 px (300 DPI)
+   * เหมาะสำหรับนำไปพิมพ์ใส่กระดาษ ป้ายโต๊ะ หรือใส่ในโปรแกรมออกแบบ
+   */
+  const handleDownloadPNG = () => {
+    const svgElement = document.getElementById('static-menu-qr')?.querySelector('svg');
+    if (!svgElement) return;
+
+    setIsDownloading(true);
+
+    try {
+      const targetSize = 2048; // 2048x2048 Ultra-HD (คมชัด 300 DPI สำหรับพิมพ์)
+      const padding = 160; // พื้นที่ขอบขาวป้องกันเครื่องพิมพ์ตัดตก (Quiet Zone)
+
+      // Clone SVG และตั้งค่า viewBox ชัดเจน
+      const svgClone = svgElement.cloneNode(true) as SVGElement;
+      svgClone.setAttribute('width', `${targetSize}`);
+      svgClone.setAttribute('height', `${targetSize}`);
+
+      const svgData = new XMLSerializer().serializeToString(svgClone);
+      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const URL = window.URL || window.webkitURL || window;
+      const blobURL = URL.createObjectURL(svgBlob);
+
+      const image = new Image();
+      image.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = targetSize;
+        canvas.height = targetSize;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          setIsDownloading(false);
+          return;
+        }
+
+        // พื้นหลังขาวบริสุทธิ์ (จำเป็นมากสำหรับการพิมพ์)
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, targetSize, targetSize);
+
+        // วาด QR Code ตรงกลางด้วยความคมชัดสูงสุด
+        const qrSize = targetSize - padding * 2;
+        ctx.imageSmoothingEnabled = false; // รักษามุมสี่เหลี่ยมคมชัด ไม่เบลอ
+        ctx.drawImage(image, padding, padding, qrSize, qrSize);
+
+        URL.revokeObjectURL(blobURL);
+
+        // แปลงเป็น PNG คุณภาพสูงสุด 100%
+        const pngUrl = canvas.toDataURL('image/png', 1.0);
+        const downloadLink = document.createElement('a');
+        downloadLink.download = 'yo-yaki-menu-qr-2048px.png';
+        downloadLink.href = pngUrl;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        setIsDownloading(false);
+      };
+
+      image.onerror = () => {
+        setIsDownloading(false);
+      };
+
+      image.src = blobURL;
+    } catch (err) {
+      console.error('Error downloading QR PNG:', err);
+      setIsDownloading(false);
+    }
+  };
+
+  /**
+   * ดาวน์โหลดไฟล์ Vector SVG (ความละเอียดไม่จำกัด ย่อขยายไม่แตกเลย)
+   * สำหรับส่งให้ร้านป้ายหรือโรงพิมพ์มืออาชีพ
+   */
+  const handleDownloadSVG = () => {
+    const svgElement = document.getElementById('static-menu-qr')?.querySelector('svg');
+    if (!svgElement) return;
+
+    try {
+      const svgData = new XMLSerializer().serializeToString(svgElement);
+      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const URL = window.URL || window.webkitURL || window;
+      const blobURL = URL.createObjectURL(svgBlob);
+
+      const downloadLink = document.createElement('a');
+      downloadLink.download = 'yo-yaki-menu-qr.svg';
+      downloadLink.href = blobURL;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      URL.revokeObjectURL(blobURL);
+    } catch (err) {
+      console.error('Error downloading QR SVG:', err);
     }
   };
 
@@ -110,7 +214,7 @@ function StaticMenuQRModalContent({ onClose }: StaticMenuQRModalProps) {
         </div>
 
         {/* QR Code */}
-        <div className="flex flex-col items-center px-6 py-6 gap-5">
+        <div className="flex flex-col items-center px-6 py-6 gap-4">
           <div
             id="static-menu-qr"
             className="p-4 bg-white rounded-2xl shadow-inner border border-zinc-100"
@@ -119,7 +223,7 @@ function StaticMenuQRModalContent({ onClose }: StaticMenuQRModalProps) {
               <QRCode
                 value={menuUrl}
                 size={180}
-                level="M"
+                level="Q"
                 bgColor="#ffffff"
                 fgColor="#111111"
               />
@@ -127,15 +231,15 @@ function StaticMenuQRModalContent({ onClose }: StaticMenuQRModalProps) {
           </div>
 
           {/* Info */}
-          <div className="text-center space-y-1">
+          <div className="text-center space-y-0.5">
             <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">สแกนเพื่อดูเมนูอาหาร</p>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              ลูกค้าดูรายการอาหารและราคาได้เลย ไม่ต้องล็อกอิน
+              ความละเอียดสูงพิเศษ 2048 x 2048 px คมชัดสำหรับพิมพ์
             </p>
           </div>
 
           {/* URL */}
-          <div className="w-full flex items-center gap-2 bg-zinc-50 dark:bg-zinc-800 rounded-xl px-3 py-2.5 border border-zinc-200 dark:border-zinc-700">
+          <div className="w-full flex items-center gap-2 bg-zinc-50 dark:bg-zinc-800 rounded-xl px-3 py-2 border border-zinc-200 dark:border-zinc-700">
             <span className="text-xs text-zinc-500 dark:text-zinc-400 truncate flex-1 font-mono">
               {menuUrl}
             </span>
@@ -162,20 +266,43 @@ function StaticMenuQRModalContent({ onClose }: StaticMenuQRModalProps) {
           </div>
 
           {/* Actions */}
-          <div className="w-full flex gap-2">
-            <button
-              onClick={handlePrint}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-bold transition-colors active:scale-95 cursor-pointer shadow-md shadow-red-600/20"
-            >
-              <Printer className="w-4 h-4" />
-              พิมพ์ QR
-            </button>
-            <button
-              onClick={onClose}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-sm font-bold transition-colors cursor-pointer"
-            >
-              ปิด
-            </button>
+          <div className="w-full flex flex-col gap-2 pt-1">
+            <div className="flex gap-2">
+              <button
+                onClick={handleDownloadPNG}
+                disabled={isDownloading}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-md shadow-red-600/20"
+              >
+                <Download className="w-4 h-4 shrink-0" />
+                <span>{isDownloading ? 'กำลังสร้างรูป...' : 'บันทึกรูป QR (HD)'}</span>
+              </button>
+              <button
+                onClick={handlePrint}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-xs font-bold transition-all active:scale-95 cursor-pointer"
+              >
+                <Printer className="w-4 h-4 shrink-0" />
+                <span>พิมพ์ QR</span>
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between px-1 pt-1.5 border-t border-zinc-100 dark:border-zinc-800">
+              <button
+                type="button"
+                onClick={handleDownloadSVG}
+                className="text-xs font-semibold text-zinc-500 hover:text-red-600 dark:hover:text-red-400 transition-colors cursor-pointer flex items-center gap-1"
+                title="ดาวน์โหลดไฟล์เวกเตอร์ SVG สำหรับร้านป้าย / โรงพิมพ์"
+              >
+                <FileCode className="w-3.5 h-3.5" />
+                <span>บันทึกไฟล์เวกเตอร์ (SVG)</span>
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="text-xs font-semibold text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors cursor-pointer"
+              >
+                ปิด
+              </button>
+            </div>
           </div>
         </div>
       </div>
