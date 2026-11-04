@@ -22,7 +22,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'),
   title: "Yokayaki Izakaya POS",
   description: "ระบบบริหารจัดการร้านอาหารญี่ปุ่นและระบบสั่งอาหารไฮบริด Yokayaki Izakaya Point of Sale",
 };

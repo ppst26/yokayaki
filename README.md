@@ -27,7 +27,7 @@ pnpm install
 pnpm dev
 ```
 
-เปิด [http://localhost:3000](http://localhost:3000) สำหรับหน้าจอ POS พนักงาน
+เปิด [http://localhost:3001](http://localhost:3001) สำหรับหน้าจอ POS พนักงาน
 
 **PIN ทดสอบ:**
 - Owner: `111111`
@@ -35,7 +35,7 @@ pnpm dev
 
 ## 📱 ทดสอบ QR Customer Portal (Local Network)
 
-1. เปิดเว็บผ่าน IP เครื่อง (เช่น `http://192.168.1.102:3000`) แทน localhost
+1. เปิดเว็บผ่าน IP เครื่อง (เช่น `http://192.168.1.102:3001`) แทน localhost
 2. เข้าโต๊ะและกด **"สร้าง QR ลูกค้า"**
 3. หยิบมือถือ (Wi-Fi เดียวกัน) สแกน QR Code เพื่อเปิดหน้าสั่งอาหาร
 
