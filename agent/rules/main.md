@@ -22,6 +22,10 @@
 
 ## 🔒 Critical Safety Rules (กฎความปลอดภัยที่ห้ามละเมิด)
 
+- 🚫 **ห้ามรัน SQL Query / Script แก้ไขฐานข้อมูลบน Supabase เองโดยเด็ดขาด (STRICT):**
+  - **ห้ามรันสคริปต์ Node.js, CLI, หรือคำสั่งใดๆ ที่ทำการ INSERT, UPDATE, DELETE, TRUNCATE, DROP, ALTER บนฐานข้อมูล Supabase ทั้งสาขา 1 และสาขา 2 โดยพลการเด็ดขาด**
+  - **ทุกครั้งที่ต้องมีการเปลี่ยนแปลงหรือจัดการข้อมูลในฐานข้อมูล:** ให้ Agent เขียนเป็นชุดคำสั่ง SQL Query ที่สมบูรณ์ พร้อมคำอธิบายและขั้นตอน ให้ **พีพีเป็นผู้ตรวจสอบและนำไปกด Run บน Supabase SQL Editor ด้วยตนเองเท่านั้น**
+  - หากจำเป็นต้องตรวจสอบสถานะข้อมูล อนุญาตให้ใช้คำสั่งอ่านข้อมูลแบบ Read-only (`SELECT`) เท่านั้น และต้องไม่สร้างความเปลี่ยนแปลงใดๆ ต่อข้อมูลใน Database
 - **ห้ามแก้ไข RPC ที่มี `SECURITY DEFINER`** โดยไม่แจ้งพีพีก่อน — ฟังก์ชันเหล่านี้ทำงานด้วยสิทธิ์สูงสุด (`place_order_item`, `void_order_item`, `customer_place_order_item`, `complete_checkout`)
 - **ห้ามแก้ไข RLS Policies** โดยไม่แจ้งพีพีก่อน — Row Level Security เป็นกลไกป้องกันข้อมูลหลักของระบบ
 - **ห้ามลบหรือเปลี่ยน PIN hash logic** ใน `AuthContext.tsx` — SHA-256 hashing + fallback เป็นส่วนสำคัญของระบบ Authentication
