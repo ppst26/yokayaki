@@ -28,7 +28,9 @@ function getR2PublicBaseUrl(): string {
   if (!raw) {
     throw new Error('[r2] ไม่พบ R2_PUBLIC_BASE_URL');
   }
-  return raw.replace(/\/+$/, '');
+  // หยิบเฉพาะ URL ตัวแรก (กรณีเผลอก๊อปปี้ติดหลายบรรทัดใน Vercel) และตัด trailing slash
+  const firstUrl = raw.trim().split(/\s+/)[0];
+  return firstUrl.replace(/\/+$/, '');
 }
 
 function getR2Config() {
