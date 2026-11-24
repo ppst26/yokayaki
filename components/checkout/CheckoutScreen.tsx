@@ -15,6 +15,7 @@ import { pointsEarnedFromNet } from '@/lib/loyaltyPoints';
 import { isDoublePointsActive, parseDoublePointsDates } from '@/lib/doublePoints';
 import { MinimalAlert } from '@/components/ui/minimal-alert';
 import { useActionFeedback } from '@/context/ActionFeedbackContext';
+import { formatTableLabel } from '@/lib/floorLayout';
 
 interface CheckoutScreenProps {
   tableId: string;
@@ -613,7 +614,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ tableId, tableNu
                 <span>ชำระเงิน</span>
               </h1>
               <p className="text-xs text-slate-500 dark:text-neutral-400 font-semibold mt-0.5">
-                ประจำ <span className="text-red-600 dark:text-red-400 font-bold">โต๊ะ {tableNumber ?? tableId}</span> • ออเดอร์ #{orderId}
+                ประจำ <span className="text-red-600 dark:text-red-400 font-bold">{formatTableLabel(tableNumber ?? tableId)}</span> • ออเดอร์ #{orderId}
               </p>
             </div>
           </header>

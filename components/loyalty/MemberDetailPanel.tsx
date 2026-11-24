@@ -15,6 +15,7 @@ import {
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { MemberTagChips } from './MemberTagChips';
+import { formatTableLabel } from '@/lib/floorLayout';
 import { RFM_SEGMENT_META } from '@/lib/memberRfm';
 import type { MemberTagCode } from '@/lib/memberTags';
 import type { MemberRfm } from '@/lib/memberRfm';
@@ -405,7 +406,7 @@ export const MemberDetailPanel: React.FC<MemberDetailPanelProps> = ({
                             {formatDate(b.created_at)} {formatTime(b.created_at)} น.
                           </TableCell>
                           <TableCell className="text-xs text-slate-600 dark:text-neutral-300">
-                            {b.table_number ? `โต๊ะ ${b.table_number}` : '—'}
+                            {b.table_number ? formatTableLabel(b.table_number) : '—'}
                           </TableCell>
                           <TableCell>
                             <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 dark:text-neutral-300">

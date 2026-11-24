@@ -11,6 +11,7 @@ import { SpecialNoteModal } from './SpecialNoteModal';
 import { VoidItemModal } from './VoidItemModal';
 import { CustomerQRModal } from './CustomerQRModal';
 import { menuItemSalePrice, type MenuPriceFields } from '@/lib/menuPrice';
+import { formatTableLabel } from '@/lib/floorLayout';
 import { useActionFeedback } from '@/context/ActionFeedbackContext';
 import {
   ALL_MAIN_CATEGORY,
@@ -496,7 +497,7 @@ export const POSOrderScreen: React.FC<POSOrderScreenProps> = ({ tableId, tableNu
                 สั่งอาหาร
               </h1>
               <p className="text-sm md:text-base text-slate-500 dark:text-neutral-400 font-semibold whitespace-nowrap mt-0.5">
-                ประจำ <span className="text-base md:text-lg text-red-600 dark:text-red-400 font-black">โต๊ะ {tableNumber ?? tableId}</span>
+                ประจำ <span className="text-base md:text-lg text-red-600 dark:text-red-400 font-black">{formatTableLabel(tableNumber ?? tableId)}</span>
               </p>
             </div>
           </div>

@@ -23,6 +23,7 @@ import {
 import { menuItemSalePrice } from '@/lib/menuPrice';
 import { PLATFORM_BRANDING } from '@/lib/branding';
 import { useActionFeedback } from '@/context/ActionFeedbackContext';
+import { formatTableLabel } from '@/lib/floorLayout';
 import {
   ALL_MAIN_CATEGORY,
   ALL_SUB_CATEGORY,
@@ -509,7 +510,7 @@ export default function CustomerOrderPortal() {
               ขอบคุณที่ใช้บริการ!
             </h1>
             <p className="text-xs font-semibold text-neutral-400">
-              Yokayaki Izakaya • โต๊ะ {tableNumber ?? ''}
+              Yokayaki Izakaya • {formatTableLabel(tableNumber)}
             </p>
           </div>
 
@@ -576,7 +577,7 @@ export default function CustomerOrderPortal() {
         </div>
         <div className="flex items-center">
           <p className="whitespace-nowrap text-sm font-bold text-neutral-400">
-            ประจำ <span className="text-lg sm:text-xl font-black text-red-500 dark:text-red-400">โต๊ะ {tableNumber ?? ''}</span>
+            ประจำ <span className="text-lg sm:text-xl font-black text-red-500 dark:text-red-400">{formatTableLabel(tableNumber)}</span>
           </p>
         </div>
       </header>
@@ -598,7 +599,7 @@ export default function CustomerOrderPortal() {
             {/* Table Welcome Banner */}
             <div className="bg-gradient-to-br from-red-600 to-orange-600 text-white rounded-3xl p-5 shadow-sm relative overflow-hidden">
               <div className="relative z-10">
-                <h2 className="text-2xl font-black tracking-tight mb-1">สั่งอาหาร โต๊ะ {tableNumber ?? ''}</h2>
+                <h2 className="text-2xl font-black tracking-tight mb-1">สั่งอาหาร {formatTableLabel(tableNumber)}</h2>
                 <p className="text-white/80 text-xs font-medium leading-relaxed">
                   เลือกเมนูที่ชอบและส่งสั่งครัวได้ทันทีจากมือถือของคุณ
                 </p>
@@ -929,7 +930,7 @@ export default function CustomerOrderPortal() {
                   <ClipboardList className="w-5 h-5 text-red-600" />
                   <span>รายการอาหารที่สั่งแล้ว</span>
                 </h2>
-                <p className="text-neutral-400 text-xs mt-0.5">ประจำ <span className="font-bold text-red-600">โต๊ะ {tableNumber ?? ''}</span></p>
+                <p className="text-neutral-400 text-xs mt-0.5">ประจำ <span className="font-bold text-red-600">{formatTableLabel(tableNumber)}</span></p>
               </div>
               <button 
                 onClick={() => fetchOrderedItems()} 
@@ -1045,7 +1046,7 @@ export default function CustomerOrderPortal() {
                               <span>⏳ แจ้งเรียกพนักงานเช็คบิลแล้ว</span>
                             </div>
                             <p className="text-neutral-400 text-xs font-medium">
-                              พนักงานกำลังจัดเตรียมใบเสร็จและเดินทางมาที่ <span className="font-extrabold text-rose-400">โต๊ะ {tableNumber ?? ''}</span>
+                              พนักงานกำลังจัดเตรียมใบเสร็จและเดินทางมาที่ <span className="font-extrabold text-rose-400">{formatTableLabel(tableNumber)}</span>
                             </p>
                             <button
                               onClick={handleCancelCheckBill}
@@ -1081,7 +1082,7 @@ export default function CustomerOrderPortal() {
                             <div>
                               <h3 className="text-base font-black text-neutral-100">เรียกพนักงานเช็คบิล?</h3>
                               <p className="text-neutral-400 text-xs mt-1">
-                                โต๊ะ {tableNumber ?? ''} • ยอดรวมทั้งสิ้น <span className="font-extrabold text-red-500">฿{totalAmt.toLocaleString()} บาท</span>
+                                {formatTableLabel(tableNumber)} • ยอดรวมทั้งสิ้น <span className="font-extrabold text-red-500">฿{totalAmt.toLocaleString()} บาท</span>
                               </p>
                             </div>
                             <div className="flex gap-2 border-t border-white/10 pt-2">

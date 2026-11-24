@@ -3,6 +3,7 @@ import { Clock, CheckCircle, Check, Trash2, Loader2, Printer } from 'lucide-reac
 import { VOID_REASONS, VOID_REASON_OTHER } from '@/lib/voidReasons';
 import { Card } from '@/components/ui/card';
 import type { KitchenOrderItem, KitchenTableGroup } from './types';
+import { formatTableLabel } from '@/lib/floorLayout';
 
 type OrderItem = KitchenOrderItem;
 
@@ -153,7 +154,7 @@ export const KitchenOrderCard: React.FC<KitchenOrderCardProps> = ({
             <div className={`w-1 h-6 sm:h-7 rounded-full shrink-0 ${barAccentStyle}`} />
             <div className="min-w-0">
               <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-neutral-100 leading-tight truncate">
-                โต๊ะ {group.table_number || group.table_id}
+                {formatTableLabel(group.table_number || group.table_id)}
               </h3>
               <span className="text-xs text-slate-500 dark:text-neutral-400 font-medium block mt-0.5">
                 รวม {group.items.reduce((s, i) => s + i.quantity, 0)} รายการ
@@ -271,8 +272,8 @@ export const KitchenOrderCard: React.FC<KitchenOrderCardProps> = ({
           <CheckCircle className="w-4.5 h-4.5" />
           <span>
             {hasPending
-              ? `เสิร์ฟทั้งหมดของโต๊ะ ${group.table_number || group.table_id}`
-              : `โต๊ะ ${group.table_number || group.table_id} เสิร์ฟครบแล้ว`}
+              ? `เสิร์ฟทั้งหมดของ${formatTableLabel(group.table_number || group.table_id)}`
+              : `${formatTableLabel(group.table_number || group.table_id)} เสิร์ฟครบแล้ว`}
           </span>
         </button>
       </div>

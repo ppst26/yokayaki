@@ -16,7 +16,12 @@ import {
   FLOOR_GRID_TEMPLATE_AREAS,
   FLOOR_KITCHEN_AREA,
   FLOOR_TABLE_AREAS,
+  isRatchadaBranch,
+  formatTableLabel,
+  RATCHADA_BAR_TABLES,
+  RATCHADA_DINING_TABLES,
 } from '@/lib/floorLayout';
+import { Armchair, Users } from 'lucide-react';
 import type { WinbackPromoDraft } from '@/lib/winbackPromo';
 
 // แท็บหนัก — โหลดเมื่อเปิดครั้งแรก (ลดงานตอน login)
@@ -83,6 +88,38 @@ export const TableMap: React.FC = () => {
   /** แท็บที่เคยเปิดแล้ว — keep-alive ไม่ remount / ไม่ fetch ซ้ำ */
   const [visitedTabs, setVisitedTabs] = useState<Set<NavTab>>(() => new Set(['floor']));
   const [winbackDraft, setWinbackDraft] = useState<WinbackPromoDraft | null>(null);
+  const [ratchadaFilter, setRatchadaFilter] = useState<'all' | 'table' | 'bar'>('all');
+
+  const isRatchada = useMemo(() => {
+    return isRatchadaBranch() || tables.length > 7 || tables.some(t => t.table_number > 7);
+  }, [tables]);
+
+  const renderTableCardItem = (tableNumber: number, compact = false) => {
+    const table = tables.find(t => t.table_number === tableNumber);
+    if (!table) {
+      return (
+        <div
+          key={`placeholder-${tableNumber}`}
+          className={`rounded-[24px] border border-dashed border-slate-200 dark:border-neutral-800 bg-slate-50/50 dark:bg-neutral-900/40 flex items-center justify-center ${
+            compact ? 'h-20 sm:h-24' : 'min-h-32 sm:min-h-36'
+          }`}
+        >
+          <span className="text-caption text-slate-400">
+            {formatTableLabel(tableNumber)}
+          </span>
+        </div>
+      );
+    }
+    return (
+      <TableCard
+        key={table.id}
+        table={table}
+        onClick={() => handleTableClick(table)}
+        compact={compact}
+        className={compact ? '' : 'h-full min-h-32 sm:min-h-36'}
+      />
+    );
+  };
 
   useEffect(() => {
     if (!employee) return;
@@ -342,52 +379,189 @@ export const TableMap: React.FC = () => {
                 </div>
               )}
 
-              <div
-                className="w-full max-w-3xl mx-auto grid"
-                style={{
-                  gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-                  gridTemplateAreas: FLOOR_GRID_TEMPLATE_AREAS,
-                  gap: 'var(--grid-gap-lg)',
-                }}
-              >
-                <div
-                  style={{ gridArea: FLOOR_KITCHEN_AREA }}
-                  className="pointer-events-none select-none rounded-[24px] border-2 border-dashed border-red-300/80 dark:border-red-500/40 bg-red-50/60 dark:bg-red-950/20 px-4 py-3 sm:py-4 flex items-center justify-center gap-2"
-                  aria-hidden="true"
-                >
-                  <ChefHat className="w-5 h-5 text-red-500 dark:text-red-400 shrink-0" />
-                  <span className="text-sm sm:text-base font-bold tracking-wide text-red-600 dark:text-red-400">
-                    Kitchen
-                  </span>
-                  <span className="text-xs font-medium text-red-400/80 dark:text-red-500/70 hidden sm:inline">
-                    (ทิศทาง · ไม่ใช่โต๊ะ)
-                  </span>
-                </div>
+              {isRatchada ? (
+                <div className="w-full max-w-4xl mx-auto space-y-4">
+                  {/* Zone Filter Chips */}
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                    <button
+                      onClick={() => setRatchadaFilter('all')}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
+                        ratchadaFilter === 'all'
+                          ? 'bg-red-600 text-white shadow-xs'
+                          : 'bg-white dark:bg-neutral-900 text-slate-600 dark:text-neutral-400 border border-slate-200 dark:border-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-800'
+                      }`}
+                    >
+                      <span>ผังร้านทั้งหมด (12 จุดบริการ)</span>
+                    </button>
+                    <button
+                      onClick={() => setRatchadaFilter('table')}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
+                        ratchadaFilter === 'table'
+                          ? 'bg-red-600 text-white shadow-xs'
+                          : 'bg-white dark:bg-neutral-900 text-slate-600 dark:text-neutral-400 border border-slate-200 dark:border-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-800'
+                      }`}
+                    >
+                      <Users className="w-3.5 h-3.5" />
+                      <span>โต๊ะอาหาร (5 โต๊ะ)</span>
+                    </button>
+                    <button
+                      onClick={() => setRatchadaFilter('bar')}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
+                        ratchadaFilter === 'bar'
+                          ? 'bg-amber-600 text-white shadow-xs'
+                          : 'bg-white dark:bg-neutral-900 text-slate-600 dark:text-neutral-400 border border-slate-200 dark:border-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-800'
+                      }`}
+                    >
+                      <Armchair className="w-3.5 h-3.5" />
+                      <span>เคาน์เตอร์บาร์ (7 ที่นั่ง)</span>
+                    </button>
+                  </div>
 
-                {Object.entries(FLOOR_TABLE_AREAS).map(([area, tableNumber]) => {
-                  const table = tables.find(t => t.table_number === tableNumber);
-                  if (!table) {
-                    return (
-                      <div
-                        key={area}
-                        style={{ gridArea: area }}
-                        className="rounded-[24px] border border-dashed border-slate-200 dark:border-neutral-800 bg-slate-50/50 dark:bg-neutral-900/40 min-h-32 sm:min-h-36 flex items-center justify-center"
-                      >
-                        <span className="text-caption text-slate-400">โต๊ะ {tableNumber}</span>
+                  {ratchadaFilter === 'table' ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      {RATCHADA_DINING_TABLES.map(num => renderTableCardItem(num))}
+                    </div>
+                  ) : ratchadaFilter === 'bar' ? (
+                    <div className="p-4 sm:p-5 rounded-[28px] bg-gradient-to-b from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 dark:border-amber-500/20 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Armchair className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                        <span className="text-sm font-bold text-amber-900 dark:text-amber-200">
+                          เคาน์เตอร์บาร์ (บาร์ 1 - บาร์ 7)
+                        </span>
                       </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                        {RATCHADA_BAR_TABLES.map(num => renderTableCardItem(num, true))}
+                      </div>
+                    </div>
+                  ) : (
+                    /* ผังร้าน 3D Architectural View */
+                    <div className="bg-white/60 dark:bg-neutral-900/40 p-4 sm:p-6 rounded-[32px] border border-slate-200/90 dark:border-neutral-800 shadow-sm space-y-5">
+                      {/* Top: ครัว (ซ้าย) vs ทางเข้าครัว (ขวา) */}
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-4">
+                        <div className="md:col-span-5 pointer-events-none select-none rounded-[20px] border-2 border-dashed border-red-300/80 dark:border-red-500/40 bg-red-50/60 dark:bg-red-950/20 px-4 py-3 sm:py-3.5 flex items-center justify-center gap-2">
+                          <ChefHat className="w-5 h-5 text-red-500 dark:text-red-400 shrink-0" />
+                          <span className="text-sm font-bold tracking-wide text-red-600 dark:text-red-400">
+                            ครัว (Kitchen)
+                          </span>
+                        </div>
+                        <div className="md:col-span-7 pointer-events-none select-none rounded-[20px] border-2 border-dashed border-slate-300/80 dark:border-neutral-700/80 bg-slate-100/60 dark:bg-neutral-800/30 px-4 py-3 sm:py-3.5 flex items-center justify-center gap-2">
+                          <span className="text-xs font-semibold text-slate-500 dark:text-neutral-400">
+                            ทางเข้าครัว / ตู้แช่
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Main Floor Area: ฝั่งซ้าย (โต๊ะ 1, 2) vs ฝั่งขวา (บาร์ 1-7 + โต๊ะ 3, 4, 5) */}
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-5">
+                        {/* ฝั่งซ้าย (5 cols): โต๊ะ 1, โต๊ะ 2 */}
+                        <div className="md:col-span-5 flex flex-col justify-between gap-4">
+                          <div className="space-y-1.5">
+                            <span className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider px-1">
+                              ฝั่งซ้าย (ด้านใน)
+                            </span>
+                            {renderTableCardItem(1)}
+                          </div>
+                          <div className="space-y-1.5">
+                            <span className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider px-1">
+                              ฝั่งซ้าย (หน้าร้าน)
+                            </span>
+                            {renderTableCardItem(2)}
+                          </div>
+                        </div>
+
+                        {/* ฝั่งขวา (7 cols): เคาน์เตอร์บาร์ (บาร์ 1-7) + โต๊ะ 3, 4, 5 */}
+                        <div className="md:col-span-7 space-y-4">
+                          {/* กล่องเคาน์เตอร์บาร์ */}
+                          <div className="p-3 sm:p-4 rounded-[26px] bg-gradient-to-b from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 dark:border-amber-500/20 space-y-2.5">
+                            <div className="flex items-center justify-between px-1">
+                              <div className="flex items-center gap-1.5">
+                                <Armchair className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                                <span className="text-xs sm:text-sm font-bold text-amber-900 dark:text-amber-200">
+                                  เคาน์เตอร์บาร์ (7 ที่นั่ง)
+                                </span>
+                              </div>
+                              <span className="text-[11px] text-amber-700/80 dark:text-amber-300/80 font-medium hidden sm:inline">
+                                ในครัว → หน้าร้าน
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                              {RATCHADA_BAR_TABLES.map(num => renderTableCardItem(num, true))}
+                            </div>
+                          </div>
+
+                          {/* โต๊ะฝั่งขวา (3, 4, 5) */}
+                          <div className="space-y-2">
+                            <span className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider px-1">
+                              โต๊ะฝั่งขวา (ต่อจากบาร์)
+                            </span>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                              {renderTableCardItem(3)}
+                              {renderTableCardItem(4)}
+                              {renderTableCardItem(5)}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Bottom Entrance */}
+                      <div className="pt-2 flex justify-center">
+                        <div className="inline-flex items-center gap-2 px-5 py-1.5 rounded-full bg-slate-200/60 dark:bg-neutral-800/70 text-slate-600 dark:text-neutral-300 text-xs font-bold border border-slate-300/60 dark:border-neutral-700/60 shadow-2xs">
+                          <span className="text-red-500">▲</span>
+                          <span>ทางเข้า (หน้าร้าน)</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* ผังเดิม สาขา 1 (คงเดิม 100%) */
+                <div
+                  className="w-full max-w-3xl mx-auto grid"
+                  style={{
+                    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                    gridTemplateAreas: FLOOR_GRID_TEMPLATE_AREAS,
+                    gap: 'var(--grid-gap-lg)',
+                  }}
+                >
+                  <div
+                    style={{ gridArea: FLOOR_KITCHEN_AREA }}
+                    className="pointer-events-none select-none rounded-[24px] border-2 border-dashed border-red-300/80 dark:border-red-500/40 bg-red-50/60 dark:bg-red-950/20 px-4 py-3 sm:py-4 flex items-center justify-center gap-2"
+                    aria-hidden="true"
+                  >
+                    <ChefHat className="w-5 h-5 text-red-500 dark:text-red-400 shrink-0" />
+                    <span className="text-sm sm:text-base font-bold tracking-wide text-red-600 dark:text-red-400">
+                      Kitchen
+                    </span>
+                    <span className="text-xs font-medium text-red-400/80 dark:text-red-500/70 hidden sm:inline">
+                      (ทิศทาง · ไม่ใช่โต๊ะ)
+                    </span>
+                  </div>
+
+                  {Object.entries(FLOOR_TABLE_AREAS).map(([area, tableNumber]) => {
+                    const table = tables.find(t => t.table_number === tableNumber);
+                    if (!table) {
+                      return (
+                        <div
+                          key={area}
+                          style={{ gridArea: area }}
+                          className="rounded-[24px] border border-dashed border-slate-200 dark:border-neutral-800 bg-slate-50/50 dark:bg-neutral-900/40 min-h-32 sm:min-h-36 flex items-center justify-center"
+                        >
+                          <span className="text-caption text-slate-400">โต๊ะ {tableNumber}</span>
+                        </div>
+                      );
+                    }
+                    return (
+                      <TableCard
+                        key={table.id}
+                        table={table}
+                        onClick={() => handleTableClick(table)}
+                        className="h-full min-h-32 sm:min-h-36"
+                        style={{ gridArea: area }}
+                      />
                     );
-                  }
-                  return (
-                    <TableCard
-                      key={table.id}
-                      table={table}
-                      onClick={() => handleTableClick(table)}
-                      className="h-full min-h-32 sm:min-h-36"
-                      style={{ gridArea: area }}
-                    />
-                  );
-                })}
-              </div>
+                  })}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -416,7 +590,7 @@ export const TableMap: React.FC = () => {
           <div className="app-dialog w-full max-w-sm p-6 shadow-xl space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-h2 text-slate-900 dark:text-neutral-100">
-                จัดการ โต๊ะ {actionSelectorTable.table_number}
+                จัดการ {formatTableLabel(actionSelectorTable.table_number)}
               </h3>
               <button
                 onClick={() => setActionSelectorTable(null)}

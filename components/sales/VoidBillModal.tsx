@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ShieldAlert, X, AlertTriangle, Delete, CircleX, Loader2 } from 'lucide-react';
 import { VOID_REASONS, VOID_REASON_OTHER, type VoidReason } from '@/lib/voidReasons';
+import { formatTableLabel } from '@/lib/floorLayout';
 
 interface CompletedOrder {
   id: number;
@@ -148,7 +149,7 @@ export const VoidBillModal: React.FC<VoidBillModalProps> = ({
         {/* Bill Summary Banner */}
         <div className="p-3.5 bg-rose-50/70 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/40 rounded-xl space-y-1.5">
           <div className="flex justify-between items-center text-xs font-bold text-slate-700 dark:text-neutral-300">
-            <span>บิล ORD-{order.id} (โต๊ะ {order.table_number ?? order.table_id})</span>
+            <span>บิล ORD-{order.id} ({formatTableLabel(order.table_number ?? order.table_id)})</span>
             <span className="text-sm font-black text-rose-600 dark:text-rose-400">
               {Number(totalAmount).toLocaleString()} ฿
             </span>

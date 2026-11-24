@@ -1,7 +1,8 @@
 "use client";
 
 import React from 'react';
-import { ShoppingBag, Receipt, BellRing } from 'lucide-react';
+import { ShoppingBag, Receipt, BellRing, Armchair, Users } from 'lucide-react';
+import { getTableMeta } from '@/lib/floorLayout';
 
 export interface Table {
   id: string;
@@ -15,11 +16,19 @@ interface TableCardProps {
   onClick: () => void;
   className?: string;
   style?: React.CSSProperties;
+  compact?: boolean;
 }
 
-export const TableCard: React.FC<TableCardProps> = ({ table, onClick, className = '', style }) => {
+export const TableCard: React.FC<TableCardProps> = ({
+  table,
+  onClick,
+  className = '',
+  style,
+  compact = false,
+}) => {
   const isOccupied = table.status === 'occupied';
   const isCheckingOut = table.status === 'checking_out';
+  const meta = getTableMeta(table.table_number);
 
   // Card Background & Ring Styling
   const getCardStyle = () => {
@@ -28,6 +37,9 @@ export const TableCard: React.FC<TableCardProps> = ({ table, onClick, className 
     }
     if (isOccupied) {
       return 'bg-gradient-to-br from-amber-400 via-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/20 border-transparent';
+    }
+    if (meta.isBar) {
+      return 'app-card text-slate-900 dark:text-neutral-100 border-amber-900/10 dark:border-amber-500/20 hover:border-amber-500/40 dark:hover:border-amber-400/30';
     }
     return 'app-card text-slate-900 dark:text-neutral-100 hover:border-slate-300 dark:hover:border-white/15';
   };
@@ -94,6 +106,52 @@ export const TableCard: React.FC<TableCardProps> = ({ table, onClick, className 
 
   const actionInfo = getActionInfo();
 
+  if (compact) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        style={style}
+        className={`group relative p-3 sm:p-3.5 rounded-2xl transition-all duration-200 text-left flex flex-col justify-between h-20 sm:h-24 cursor-pointer active:scale-[0.98] outline-none focus:outline-none focus-visible:outline-none overflow-hidden ${getCardStyle()} ${className}`}
+      >
+        <div className="flex items-center justify-between gap-1.5">
+          <div className="flex items-center gap-1.5 min-w-0">
+            {meta.isBar ? (
+              <Armchair className="w-4 h-4 shrink-0 text-amber-500 dark:text-amber-400" />
+            ) : (
+              <Users className="w-4 h-4 shrink-0 text-slate-400 dark:text-neutral-400" />
+            )}
+            <span
+              className={`text-sm sm:text-base font-bold tracking-tight truncate ${
+                isOccupied || isCheckingOut
+                  ? 'text-white'
+                  : 'text-slate-900 dark:text-white'
+              }`}
+            >
+              {meta.label}
+            </span>
+          </div>
+          {renderStatus()}
+        </div>
+
+        <div className="flex items-center justify-between gap-1 text-[11px] sm:text-xs">
+          <span className={`line-clamp-1 ${actionInfo.labelColor}`}>
+            {actionInfo.label}
+          </span>
+          <span
+            className={`font-medium shrink-0 ${
+              isOccupied || isCheckingOut
+                ? 'text-white/80'
+                : 'text-slate-400 dark:text-neutral-500'
+            }`}
+          >
+            {meta.capacityLabel}
+          </span>
+        </div>
+      </button>
+    );
+  }
+
   return (
     <button
       type="button"
@@ -101,17 +159,30 @@ export const TableCard: React.FC<TableCardProps> = ({ table, onClick, className 
       style={style}
       className={`group relative p-4 sm:p-5 rounded-[24px] transition-all duration-200 text-left flex flex-col justify-between h-32 sm:h-36 cursor-pointer active:scale-[0.98] outline-none focus:outline-none focus-visible:outline-none overflow-hidden ${getCardStyle()} ${className}`}
     >
-      {/* Top Row: Table Name + Status */}
+      {/* Top Row: Table Name + Capacity + Status */}
       <div className="flex items-center justify-between gap-2">
-        <span
-          className={`text-lg sm:text-xl font-bold tracking-tight ${
-            isOccupied || isCheckingOut
-              ? 'text-white'
-              : 'text-slate-900 dark:text-white'
-          }`}
-        >
-          โต๊ะ {table.table_number}
-        </span>
+        <div className="flex items-center gap-2 min-w-0">
+          <span
+            className={`text-lg sm:text-xl font-bold tracking-tight truncate ${
+              isOccupied || isCheckingOut
+                ? 'text-white'
+                : 'text-slate-900 dark:text-white'
+            }`}
+          >
+            {meta.label}
+          </span>
+          <span
+            className={`text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+              isOccupied || isCheckingOut
+                ? 'bg-black/20 text-white/90'
+                : meta.isBar
+                ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/50'
+                : 'bg-slate-100 dark:bg-neutral-800 text-slate-500 dark:text-neutral-400'
+            }`}
+          >
+            {meta.capacityLabel}
+          </span>
+        </div>
         {renderStatus()}
       </div>
 
@@ -127,4 +198,3 @@ export const TableCard: React.FC<TableCardProps> = ({ table, onClick, className 
     </button>
   );
 };
-

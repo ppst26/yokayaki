@@ -4,6 +4,7 @@ import React from 'react';
 import { Printer } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { PLATFORM_BRANDING } from '@/lib/branding';
+import { formatTableLabel } from '@/lib/floorLayout';
 
 interface OrderedItem {
   id: number;
@@ -109,7 +110,7 @@ export const ReceiptPrintView: React.FC<ReceiptPrintViewProps> = ({
         <div className="border-t border-dashed border-gray-400 my-2" />
         <div className="receipt-meta space-y-0.5 text-[13px] font-semibold">
           <p>บิลเลขที่: ORD-{orderId}</p>
-          <p>โต๊ะที่: Table {tableNumber ?? tableId}</p>
+          <p>โต๊ะที่: {formatTableLabel(tableNumber ?? tableId)}</p>
           <p>
             วันที่: {now.toLocaleDateString('th-TH')} เวลา:{' '}
             {now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.

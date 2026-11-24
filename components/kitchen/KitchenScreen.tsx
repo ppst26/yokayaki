@@ -7,6 +7,7 @@ import { KitchenOrderCard } from './KitchenOrderCard';
 import { Card } from '@/components/ui/card';
 import { playNewOrderSound, playCheckBillSound } from '@/lib/audioNotifier';
 import type { KitchenOrderItem, KitchenPrintLine, KitchenTableGroup } from './types';
+import { formatTableLabel } from '@/lib/floorLayout';
 
 type OrderItem = KitchenOrderItem;
 type TableGroup = KitchenTableGroup;
@@ -169,7 +170,7 @@ export const KitchenScreen: React.FC = () => {
     if (pending.length === 0) return;
 
     const payload: KitchenPrintPayload = {
-      tableLabel: String(group.table_number || group.table_id),
+      tableLabel: formatTableLabel(group.table_number || group.table_id),
       printedAt: formatKitchenPrintTime(),
       lines: pending.map(i => ({
         name: i.menu_items?.name || '—',
@@ -297,7 +298,7 @@ export const KitchenScreen: React.FC = () => {
       >
         {printPayload && (
           <>
-            <p className="kitchen-ticket-title">โต๊ะ {printPayload.tableLabel}</p>
+            <p className="kitchen-ticket-title">{printPayload.tableLabel}</p>
             <p className="kitchen-ticket-time">{printPayload.printedAt}</p>
             <div className="kitchen-ticket-rule" />
             {printPayload.lines.map((line, idx) => (

@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect } from 'react';
 import { X, QrCode, Printer } from 'lucide-react';
 import QRCode from 'react-qr-code';
+import { formatTableLabel } from '@/lib/floorLayout';
 
 interface CustomerQRModalProps {
   showQrModal: boolean;
@@ -21,7 +22,7 @@ export const CustomerQRModal: React.FC<CustomerQRModalProps> = ({
   tableNumber,
   qrSessionId,
 }) => {
-  const tableLabel = tableNumber ?? tableId;
+  const tableLabel = formatTableLabel(tableNumber ?? tableId);
 
   const cleanupPrintClass = useCallback(() => {
     document.documentElement.classList.remove(PRINT_CLASS);
@@ -57,7 +58,7 @@ export const CustomerQRModal: React.FC<CustomerQRModalProps> = ({
         aria-hidden="true"
       >
         <div className="customer-qr-print-safe customer-qr-print-safe-top" />
-        <p className="customer-qr-print-title">โต๊ะ {tableLabel}</p>
+        <p className="customer-qr-print-title">{tableLabel}</p>
         <p className="customer-qr-print-sub">สแกนเพื่อสั่งอาหาร</p>
         <div className="customer-qr-print-code">
           <div className="customer-qr-print-quiet">
@@ -86,7 +87,7 @@ export const CustomerQRModal: React.FC<CustomerQRModalProps> = ({
             QR สั่งอาหาร
           </h3>
           <p className="text-xs font-semibold text-slate-500 dark:text-neutral-400">
-            โต๊ะ {tableLabel}
+            {tableLabel}
           </p>
         </div>
 

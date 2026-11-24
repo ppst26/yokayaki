@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Tag, Gift, User, Banknote, Smartphone, Trash2, ShieldAlert } from 'lucide-react';
 import { VoidBillModal } from './VoidBillModal';
+import { formatTableLabel } from '@/lib/floorLayout';
 
 interface PaymentPromo {
   id: number;
@@ -131,7 +132,7 @@ export const BillDetailModal: React.FC<BillDetailModalProps> = ({
                 ) : null}
               </div>
               <p className="text-xs sm:text-sm text-neutral-300 font-semibold flex items-center gap-2 flex-wrap">
-                <span>โต๊ะ {selectedOrder.table_number ?? selectedOrder.table_id}</span>
+                <span>{formatTableLabel(selectedOrder.table_number ?? selectedOrder.table_id)}</span>
                 <span>•</span>
                 <span>ปิดบิลเวลา {formatTime(selectedOrder.payment?.created_at || selectedOrder.created_at)} น.</span>
               </p>

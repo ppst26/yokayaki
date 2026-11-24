@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '@/lib/supabase';
 import { PLATFORM_BRANDING } from '@/lib/branding';
+import { formatTableLabel } from '@/lib/floorLayout';
 
 interface PaymentPromo {
   id: number;
@@ -141,7 +142,7 @@ export const SalesReceiptPrint: React.FC<SalesReceiptPrintProps> = ({ order, onC
           <div className="border-t border-dashed border-gray-400 my-2" />
           <div className="receipt-meta space-y-0.5 text-[13px] font-semibold">
             <p>บิลเลขที่: ORD-{order.id}</p>
-            <p>โต๊ะที่: Table {order.table_number ?? order.table_id}</p>
+            <p>โต๊ะที่: {formatTableLabel(order.table_number ?? order.table_id)}</p>
             <p>
               วันที่: {billDate.toLocaleDateString('th-TH')} เวลา:{' '}
               {billDate.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.

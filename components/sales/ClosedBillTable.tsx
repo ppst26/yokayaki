@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Receipt, ChevronRight, Tag, Printer, ShieldAlert } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { SalesReceiptPrint } from './SalesReceiptPrint';
+import { formatTableLabel } from '@/lib/floorLayout';
 
 interface PaymentPromo {
   id: number;
@@ -104,7 +105,7 @@ export const ClosedBillTable: React.FC<ClosedBillTableProps> = ({
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                   <span className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-neutral-100 whitespace-nowrap">
-                    โต๊ะ {order.table_number ?? order.table_id}
+                    {formatTableLabel(order.table_number ?? order.table_id)}
                   </span>
                   <span className="text-xs sm:text-sm text-slate-400 dark:text-neutral-500 font-medium whitespace-nowrap">
                     • {formatTime(order.payment?.created_at || order.created_at)} น.
